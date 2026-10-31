@@ -60,6 +60,13 @@ body.is-desktop .topbar button, body.is-desktop .topbar input, body.is-desktop .
 .win-controls button.close:hover { background: #c42b1c; color: #fff; }
 .win-controls svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1; shape-rendering: crispEdges; }
 #winMax .ic-restore, body.is-maximized #winMax .ic-max { display: none; }
+/* update ready (electron/updater.js): green pill in the title bar, message in the settings */
+.topbar .update-pill { flex: none; margin-left: 8px; background: var(--good); border-color: var(--good); color: #fff; }
+.topbar .update-pill:hover { filter: brightness(1.1); }
+.topbar .update-pill[hidden] { display: none; }
+.set-label .upd-msg { margin-top: 4px; }
+.set-label .upd-ready, .set-label .upd-portable, .set-label .upd-none { color: var(--good); }
+.set-label .upd-error { color: var(--accent); }
 body.is-maximized #winMax .ic-restore { display: block; }
 
 /* ================= Start screen ================= */

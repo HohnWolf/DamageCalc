@@ -6,6 +6,7 @@ const { app, BrowserWindow, shell, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
+const updater = require('./updater');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -92,6 +93,7 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     createWindow();
     shiny.init(win);
+    updater.init(win);
   });
   app.on('window-all-closed', () => app.quit());
 }

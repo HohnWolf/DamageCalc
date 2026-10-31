@@ -177,7 +177,15 @@
       setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: immer alle Modi. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
-      setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm'
+      setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
+      setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
+      setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis.',
+      updCheck: 'Jetzt suchen', updChecking: 'Suche …', updNone: 'Du hast die neueste Version.', updLoading: 'Version {0} wird geladen …',
+      updProgress: 'Version {0} wird geladen … {1} %', updErr: 'Suche fehlgeschlagen: {0}', updOff: 'Updates gibt es nur in der Windows-App.',
+      updReady: 'Update {0}: neu starten', updReadyT: 'Rattata Lab {0} ist geladen. Klicken zum Neustarten und Installieren, sonst wird es beim nächsten Beenden installiert.',
+      updReadyMsg: 'Version {0} ist geladen und wird beim nächsten Beenden installiert.', updRestart: 'Jetzt neu starten',
+      updPortable: 'Update {0} verfügbar', updPortableT: 'Version {0} ist auf GitHub. Die portable Version aktualisiert sich nicht selbst: Klicken öffnet die Download-Seite.',
+      updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite'
     },
     en: {
       sub: 'VGC 2026 · Level 50 · Stat Points (max 32 each, 66 total) · Reg M-C',
@@ -260,7 +268,15 @@
       setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: always every mode. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
-      setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen'
+      setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
+      setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
+      setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice.',
+      updCheck: 'Check now', updChecking: 'Checking …', updNone: 'You have the latest version.', updLoading: 'Downloading version {0} …',
+      updProgress: 'Downloading version {0} … {1}%', updErr: 'Check failed: {0}', updOff: 'Updates are only available in the Windows app.',
+      updReady: 'Update {0}: restart', updReadyT: 'Rattata Lab {0} is downloaded. Click to restart and install, otherwise it is installed the next time you quit.',
+      updReadyMsg: 'Version {0} is downloaded and will be installed the next time you quit.', updRestart: 'Restart now',
+      updPortable: 'Update {0} available', updPortableT: 'Version {0} is on GitHub. The portable version does not update itself: click to open the download page.',
+      updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page'
     }
   };
   function T(key) {
@@ -1924,7 +1940,44 @@
   var setTheme = function () {}, setLang = function () {};
   function setting(k) { var s = load('cc_settings', {}) || {}; return s[k] != null ? s[k] : SETTING_DEFAULTS[k]; }
   function setSetting(k, v) { var s = load('cc_settings', {}) || {}; s[k] = v; save('cc_settings', s); }
-  var settingsModal = null;
+  var settingsModal = null, settingsRedraw = null;
+  // update state from the desktop app (electron/updater.js): idle | checking | none | available | progress | ready | portable | error | off
+  var updStatus = { state: 'off' };
+  function updMessage(s) {
+    switch (s.state) {
+      case 'checking': return T('updChecking');
+      case 'none': return T('updNone');
+      case 'available': return T('updLoading', s.version);
+      case 'progress': return T('updProgress', s.version, s.percent);
+      case 'ready': return T('updReadyMsg', s.version);
+      case 'portable': return T('updPortableMsg', s.version);
+      case 'error': return T('updErr', s.message || '?');
+      case 'off': return T('updOff');
+      default: return '';
+    }
+  }
+  function updRow(box) {
+    var D = window.desktop, s = updStatus;
+    var r = el('div', { class: 'set-row' });
+    var lab = el('div', { class: 'set-label' });
+    lab.appendChild(el('div', { class: 'set-name', text: T('setUpd') }));
+    lab.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
+    var msg = updMessage(s);
+    if (msg) lab.appendChild(el('div', { class: 'hint upd-msg upd-' + s.state, text: msg }));
+    r.appendChild(lab);
+    var g = el('div', { class: 'btn-group set-opts' }), b;
+    if (s.state === 'ready' || s.state === 'portable') {
+      b = el('button', { class: 'on', text: T(s.state === 'ready' ? 'updRestart' : 'updDownload') });
+      b.addEventListener('click', function () { D.update.install(); });
+    } else {
+      b = el('button', { text: T(s.state === 'checking' ? 'updChecking' : 'updCheck') });
+      b.disabled = s.state === 'checking' || s.state === 'available' || s.state === 'progress' || s.state === 'off';
+      b.addEventListener('click', function () { D.update.check(); });
+    }
+    g.appendChild(b);
+    r.appendChild(g);
+    box.appendChild(r);
+  }
   function openSettings() {
     if (settingsModal) return;
     settingsModal = el('div', { class: 'modal set-modal' });
@@ -1933,7 +1986,7 @@
     document.body.appendChild(settingsModal);
     function close() {
       if (!settingsModal) return;
-      settingsModal.remove(); settingsModal = null; document.removeEventListener('keydown', key, true);
+      settingsModal.remove(); settingsModal = null; settingsRedraw = null; document.removeEventListener('keydown', key, true);
     }
     function key(ev) { if (ev.key === 'Escape') { ev.stopPropagation(); close(); } }
     document.addEventListener('keydown', key, true);
@@ -1969,7 +2022,9 @@
       row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
       row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')]], setting('start'), function (v) { setSetting('start', v); });
       row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
+      if (window.desktop && window.desktop.update) updRow(bx);
     }
+    settingsRedraw = draw;
     draw();
   }
 
@@ -2070,6 +2125,24 @@
         document.body.classList.toggle('is-maximized', m);
         document.getElementById('winMax').title = T(m ? 'winRestore' : 'winMax');
       });
+      // updates: checked on every start; the button appears once an update is downloaded (or, portable, available)
+      if (D.update) {
+        var ub = document.getElementById('btnUpdate');
+        var applyUpd = function (s) {
+          if (!s) return;
+          updStatus = s;
+          var show = s.state === 'ready' || s.state === 'portable';
+          ub.hidden = !show;
+          if (show) {
+            ub.textContent = T(s.state === 'ready' ? 'updReady' : 'updPortable', s.version);
+            ub.title = T(s.state === 'ready' ? 'updReadyT' : 'updPortableT', s.version);
+          }
+          if (settingsRedraw) settingsRedraw();
+        };
+        ub.addEventListener('click', function () { D.update.install(); });
+        D.update.onStatus(applyUpd);
+        D.update.get().then(applyUpd);
+      }
     }
     // test hooks and reloads (language switch) keep the current view; a fresh start shows the start screen
     var v = 'start';

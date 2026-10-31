@@ -6,7 +6,7 @@ Eigener VGC-Schadensrechner für **Pokémon Champions** (Level 50, Stat Points),
 [NCP VGC Damage Calculator](https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/).
 
 ## Starten
-- **Als Windows-App:** `RattataLab-Setup-x.y.z.exe` aus den [Releases](../../releases) installieren. Das legt eine Desktop- und Startmenü-Verknüpfung an. Ohne Installation geht es mit `RattataLab-x.y.z-portable.exe`.
+- **Als Windows-App:** `RattataLab-Setup-x.y.z.exe` aus den [Releases](../../releases) installieren. Das legt eine Desktop- und Startmenü-Verknüpfung an. Ohne Installation geht es mit `RattataLab-x.y.z-portable.exe`. Ab Version 1.3.0 aktualisiert sich die installierte App selbst.
 - **Im Browser:** `index.html` per Doppelklick öffnen. Es braucht keinen Server und keine Installation.
 
 Nur die Sprites (und die Knöpfe „Sets laden“ / „Regulation laden“) brauchen Internet.
@@ -22,7 +22,8 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 
 - Die App ist eine reine Web-App (`index.html`, `css/`, `js/`, `data/`). `electron/main.js` öffnet sie nur in einem eigenen Fenster: Fenstergröße wird gemerkt, Links öffnen im Browser, `F5` lädt neu, `F12` öffnet die Entwicklertools.
 - Gespeicherte Teams und Sets liegen in der App unter `%APPDATA%\Rattata Lab` (nicht im Browser). Daten der alten Version (`%APPDATA%\Champions Damage Calc`) werden beim ersten Start übernommen. Teams aus der Browser-Version per Export/Import übernehmen.
-- Neue Version: `version` in `package.json` erhöhen, `npm run dist`, dann z. B. `gh release create v1.1.0 dist/*.exe`.
+- Neue Version: `version` in `package.json` erhöhen, `npm run dist`, dann `gh release create v1.3.0 dist/*1.3.0* dist/latest.yml` (Setup, portable und Blockmap dieser Version). Oder in einem Schritt: `GH_TOKEN` setzen und `npm run release` (baut und lädt alles hoch). **`latest.yml` und die `.blockmap` müssen mit ins Release**, sonst finden die installierten Apps das Update nicht.
+- Updates (`electron/updater.js`, ab 1.3.0): Die App prüft bei jedem Start das neueste GitHub-Release. Die installierte Version lädt es im Hintergrund (`electron-updater`), zeigt oben „Update x.y.z: neu starten“ und installiert spätestens beim nächsten Beenden. Die portable Version kann sich nicht selbst ersetzen und zeigt nur einen Hinweis mit Link zur Release-Seite. Einstellungen → Updates zeigt Version und Stand und sucht auf Knopfdruck. Log: `%APPDATA%\Rattata Lab\update.log`. Testen mit `npm start`: eine `dev-app-update.yml` (steht in `.gitignore`) in den Projektordner legen, z. B. `provider: generic` und `url: http://127.0.0.1:8765`.
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
