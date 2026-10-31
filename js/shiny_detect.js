@@ -40,20 +40,30 @@
   function num(x, d) { return x.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 
   var sessions = {};
+  // up to 1.3.0 the decoded pixels (_g) were stored along with each reference and came back broken after a restart;
+  // keep only w, h and d (the picture itself is intact in d)
+  function cleanRefs(refs) {
+    if (!Array.isArray(refs)) return [];
+    var bad = refs.some(function (r) { return !r || !r.d || Object.keys(r).length !== 3; });
+    return bad ? refs.filter(function (r) { return r && r.d && r.w && r.h; }).map(function (r) { return { w: r.w, h: r.h, d: r.d }; }) : refs;
+  }
   function cfg(h) {
     h.detect = h.detect || {};
     var c = h.detect;
     if (c.thr == null) c.thr = 0.85;
     if (c.hits == null) c.hits = 3;
     if (c.cool == null) c.cool = 1.5;
-    c.refs = c.refs || [];
+    c.refs = cleanRefs(c.refs);
     return c;
   }
 
   // ---------------- sources ----------------
   function openStream(src) {
     if (src.kind === 'camera') {
-      return navigator.mediaDevices.getUserMedia({ video: src.id ? { deviceId: { exact: src.id } } : true, audio: false });
+      // without a size Chromium opens cameras and capture cards at 640x480; ask for Full HD (the device's best below that otherwise)
+      var v = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
+      if (src.id) v.deviceId = { exact: src.id };
+      return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
     }
     if (D && src.id) D.chooseSource(src.id);
     return navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 20 }, audio: false });
@@ -136,7 +146,13 @@
   }
   function b64(u8) { var s = ''; for (var i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return btoa(s); }
   function unb64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
-  function refData(ref) { if (!ref._g) ref._g = unb64(ref.d); return ref._g; }
+  // decoded reference pixels live only in memory: the stored reference is just { w, h, d } (d = base64)
+  var refCache = new WeakMap();
+  function refData(ref) {
+    var g = refCache.get(ref);
+    if (!g) { g = unb64(ref.d); refCache.set(ref, g); }
+    return g;
+  }
   function scoreNow(s, c) {
     var v = s.video;
     if (!c.region || !c.refs.length || v.readyState < 2 || !v.videoWidth) return null;
@@ -358,7 +374,7 @@
   }
 
   window.CCShinyDetect = {
-    panel: panel, stop: stop,
+    panel: panel, stop: stop, cleanRefs: cleanRefs,
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
     _similarity: similarity, _sessions: sessions,
     // for tests: use any MediaStream (e.g. canvas.captureStream()) as the source

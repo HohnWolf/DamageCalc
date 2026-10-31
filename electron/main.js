@@ -2,7 +2,7 @@
 // Die Web-App selbst bleibt unverändert und läuft auch weiterhin direkt im Browser.
 // Das Fenster hat keinen Windows-Rahmen; die Kopfzeile der App ist die Titelleiste (Ziehen, Doppelklick
 // maximiert) und zeigt eigene Knöpfe für Minimieren, Maximieren und Schließen (electron/preload.js).
-const { app, BrowserWindow, shell, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, Menu, ipcMain, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
@@ -96,4 +96,6 @@ if (!app.requestSingleInstanceLock()) {
     updater.init(win);
   });
   app.on('window-all-closed', () => app.quit());
+  // Teams, Hunts und Referenzbilder (localStorage) vor dem Beenden sicher auf die Platte schreiben, auch beim Neustart für ein Update
+  app.on('before-quit', () => { try { session.defaultSession.flushStorageData(); } catch (e) { /* nichts zu schreiben */ } });
 }

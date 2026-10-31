@@ -143,8 +143,20 @@
   var saveTimer = null;
   function persist() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () { A.save('cc_shiny', store); }, 120);
+    saveTimer = setTimeout(function () { saveTimer = null; A.save('cc_shiny', store); }, 120);
     pushState();
+  }
+  // closing, restarting or updating right after a change: write it now, not after the short delay
+  window.addEventListener('pagehide', function () { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; A.save('cc_shiny', store); } });
+  // references of the auto detection saved by 1.3.0 carried a broken cache: repair them once and save
+  if (window.CCShinyDetect && window.CCShinyDetect.cleanRefs) {
+    var refsFixed = false;
+    store.hunts.forEach(function (h) {
+      if (!h.detect || !h.detect.refs) return;
+      var r = window.CCShinyDetect.cleanRefs(h.detect.refs);
+      if (r !== h.detect.refs) { h.detect.refs = r; refsFixed = true; }
+    });
+    if (refsFixed) A.save('cc_shiny', store);
   }
   function hunt(id) { var r = null; store.hunts.some(function (h) { if (h.id === id) { r = h; return true; } return false; }); return r; }
   function sel() { return hunt(store.sel) || store.hunts[0] || null; }
