@@ -3,24 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Champions Damage Calculator</title>
-  <link rel="stylesheet" href="css/style.css?v=50">
+  <title>Rattata Lab</title>
+  <link rel="icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css?v=53">
+  <link rel="stylesheet" href="css/views.css?v=53">
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand">Champions Damage Calc</div>
-    <span class="sub" data-t="sub">VGC 2026 · Level 50 · Stat Points (max. 32 je Wert, 66 gesamt) · Reg M-C</span>
+<body data-view="start">
+  <header class="topbar" id="topbar">
+    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/logo.png" alt=""><span class="brand">Rattata Lab</span></button>
+    <nav class="view-nav">
+      <button data-go="calc" data-t="navCalc">Damage Calculator</button>
+      <button data-go="builder" data-t="navBuilder">Teambuilder</button>
+    </nav>
+    <span class="sub only-calc" data-t="sub">VGC 2026 · Level 50 · Stat Points (max. 32 je Wert, 66 gesamt) · Reg M-C</span>
     <div class="top-actions">
-      <button id="btnOpenImport" class="pill primary" data-t="importBtn">Team importieren</button>
-      <button id="btnSets" class="pill" data-t="setsBtn" data-tt="setsTitle">Sets laden</button>
-      <button id="btnReg" class="pill" data-t="regBtn" data-tt="regTitle">Regulation laden</button>
-      <button id="btnSwap" class="pill" data-t="swapBtn" data-tt="swapTitle">Seiten tauschen</button>
+      <button id="btnOpenImport" class="pill primary only-calc" data-t="importBtn">Team importieren</button>
+      <button id="btnSets" class="pill no-start" data-t="setsBtn" data-tt="setsTitle">Sets laden</button>
+      <button id="btnReg" class="pill no-start" data-t="regBtn" data-tt="regTitle">Regulation laden</button>
+      <button id="btnSwap" class="pill only-calc" data-t="swapBtn" data-tt="swapTitle">Seiten tauschen</button>
       <button id="btnLang" class="pill lang" data-t="langBtn" data-tt="langTitle">EN</button>
       <button id="btnTheme" class="pill">Light theme</button>
     </div>
+    <div class="win-controls" id="winControls" hidden>
+      <button id="winMin" data-tt="winMin"><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></button>
+      <button id="winMax" data-tt="winMax"><svg class="ic-max" viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9"/></svg><svg class="ic-restore" viewBox="0 0 10 10"><rect x=".5" y="2.5" width="7" height="7"/><path d="M2.5 2.5V.5h7v7h-2"/></svg></button>
+      <button id="winClose" class="close" data-tt="winClose"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10"/></svg></button>
+    </div>
   </header>
 
-  <main class="wrap">
+  <section id="startView" class="start-view">
+    <div class="start-inner">
+      <img class="start-logo" src="img/logo.png" alt="">
+      <h1>Rattata Lab</h1>
+      <p class="start-sub" id="startSub">Damage Calculator &amp; Teambuilder für Pokémon Champions</p>
+      <div class="start-cards">
+        <button class="start-card card-calc" data-go="calc">
+          <span class="sc-art sc-art-calc">
+            <span class="sc-dmg">156 – 184 <small>(82,1 – 96,8 %)</small></span>
+            <span class="sc-bar"><span style="width:88%"></span></span>
+            <span class="sc-ko" data-t="startCalcKo">43,8 % Chance auf OHKO</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navCalc">Damage Calculator</span><span class="sc-key">1</span></span>
+          <span class="sc-text" data-t="startCalcText"></span>
+        </button>
+        <button class="start-card card-builder" data-go="builder">
+          <span class="sc-art sc-art-builder" id="startTeam"></span>
+          <span class="sc-head"><span class="sc-title" data-t="navBuilder">Teambuilder</span><span class="sc-key">2</span></span>
+          <span class="sc-text" data-t="startBuilderText"></span>
+        </button>
+      </div>
+      <p class="start-foot" data-t="startFoot"></p>
+    </div>
+  </section>
+
+  <main id="builderView" class="wrap builder-view"></main>
+
+  <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
       <div id="mainDesc" class="main-desc" data-tt="copyTitle"></div>
       <div class="main-sub"><span id="mainRolls" class="main-rolls"></span><span id="mainNotes" class="main-notes"></span><span id="turnOrder" class="turn-order"></span></div>
@@ -67,17 +105,20 @@
     </div>
   </div>
 
-  <script src="js/shim.js?v=50"></script>
-  <script src="data/pokedex.js?v=50"></script>
-  <script src="data/move_data.js?v=50"></script>
-  <script src="data/item_data.js?v=50"></script>
-  <script src="data/ability_data.js?v=50"></script>
-  <script src="data/setdex_ncp-g10.js?v=50"></script>
-  <script src="data/names_de.js?v=50"></script>
-  <script src="data/learnsets_champ.js?v=50"></script>
-  <script src="data/sprite_boxes.js?v=50"></script>
-  <script src="js/online.js?v=50"></script>
-  <script src="js/calc.js?v=50"></script>
-  <script src="js/app.js?v=50"></script>
+  <script src="js/shim.js?v=53"></script>
+  <script src="data/pokedex.js?v=53"></script>
+  <script src="data/move_data.js?v=53"></script>
+  <script src="data/move_acc.js?v=53"></script>
+  <script src="data/forms_champ.js?v=53"></script>
+  <script src="data/item_data.js?v=53"></script>
+  <script src="data/ability_data.js?v=53"></script>
+  <script src="data/setdex_ncp-g10.js?v=53"></script>
+  <script src="data/names_de.js?v=53"></script>
+  <script src="data/learnsets_champ.js?v=53"></script>
+  <script src="data/sprite_boxes.js?v=53"></script>
+  <script src="js/online.js?v=53"></script>
+  <script src="js/calc.js?v=53"></script>
+  <script src="js/app.js?v=53"></script>
+  <script src="js/builder.js?v=53"></script>
 </body>
 </html>

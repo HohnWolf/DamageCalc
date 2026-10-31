@@ -1,10 +1,12 @@
-# Champions Damage Calculator
+# Rattata Lab
+
+Damage Calculator und Teambuilder für **Pokémon Champions** (VGC, Level 50, Stat Points). Früher „Champions Damage Calc“.
 
 Eigener VGC-Schadensrechner für **Pokémon Champions** (Level 50, Stat Points), nach Vorbild des
 [NCP VGC Damage Calculator](https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/).
 
 ## Starten
-- **Als Windows-App:** `ChampionsDamageCalc-Setup-x.y.z.exe` aus den [Releases](../../releases) installieren. Das legt eine Desktop- und Startmenü-Verknüpfung an. Ohne Installation geht es mit `ChampionsDamageCalc-x.y.z-portable.exe`.
+- **Als Windows-App:** `RattataLab-Setup-x.y.z.exe` aus den [Releases](../../releases) installieren. Das legt eine Desktop- und Startmenü-Verknüpfung an. Ohne Installation geht es mit `RattataLab-x.y.z-portable.exe`.
 - **Im Browser:** `index.html` per Doppelklick öffnen. Es braucht keinen Server und keine Installation.
 
 Nur die Sprites (und die Knöpfe „Sets laden“ / „Regulation laden“) brauchen Internet.
@@ -19,9 +21,23 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 ```
 
 - Die App ist eine reine Web-App (`index.html`, `css/`, `js/`, `data/`). `electron/main.js` öffnet sie nur in einem eigenen Fenster: Fenstergröße wird gemerkt, Links öffnen im Browser, `F5` lädt neu, `F12` öffnet die Entwicklertools.
-- Gespeicherte Teams und Sets liegen in der App unter `%APPDATA%\Champions Damage Calc` (nicht im Browser). Teams aus der Browser-Version per Export/Import übernehmen.
+- Gespeicherte Teams und Sets liegen in der App unter `%APPDATA%\Rattata Lab` (nicht im Browser). Daten der alten Version (`%APPDATA%\Champions Damage Calc`) werden beim ersten Start übernommen. Teams aus der Browser-Version per Export/Import übernehmen.
 - Neue Version: `version` in `package.json` erhöhen, `npm run dist`, dann z. B. `gh release create v1.1.0 dist/*.exe`.
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
+
+## Startbildschirm und Teambuilder
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator** und **Teambuilder** (Tasten `1` / `2`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- **Teambuilder** (`js/builder.js`):
+  - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
+  - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
+  - Darunter der Editor: Pokémon-Suche (deutsch/englisch), „Set übernehmen …“ (beliebte, eigene und Online-Sets), Form, Item, Fähigkeit, Wesen, vier Attacken (nur legale, mit Typ, Kategorie, Stärke und Genauigkeit), Wesen und Stat Points als Balken; bei Mega-Steinen stehen die Mega-Werte daneben.
+  - **Formwechsel** über dem großen Sprite: Normal / Mega (X, Y, Z) / Kampfformen wie Klingenform, Heldenform oder Kohldampf. Werte, Typen und Fähigkeit zeigen die gewählte Form; Mega setzt automatisch den passenden Mega-Stein.
+  - **Aussehen & Form**: Form mit eigenen Werten (Regionalformen, Rotom-Formen, Wolwerock, Psiaugon-F …), kosmetische Variante (alle Vivillon-Muster, Florges-Farben, Alcremie, Coiffwaff …), Geschlecht (feste Geschlechter und geschlechtslose Pokémon werden beachtet) und Shiny. Wird im Showdown-Export mitgeschrieben (`(M)`/`(F)`, `Shiny: Yes`, Variantenname).
+  - Rechts die Typ-Abdeckung: wie stark jeder Angriffstyp jedes Teammitglied trifft, inklusive Fähigkeiten wie Schwebe, Absorber oder Speckschicht.
+  - „Ins Damage Calc: Du / Gegner“ legt das Team in die Team-Leiste der Seite; die ersten beiden werden Slot A und B.
+  - Gespeichert in `localStorage` unter `cc_builder`. Beim ersten Öffnen wird das eigene Team aus dem Rechner übernommen.
+- In der Desktop-App hat das Fenster keinen Windows-Rahmen: Die Kopfzeile ist die Titelleiste (ziehen, Doppelklick maximiert), rechts sitzen eigene Knöpfe für Minimieren, Maximieren und Schließen (`electron/preload.js`). `F11` schaltet Vollbild.
+- Logo und Icon: Rattfratz (`img/logo.png`, `icon.ico`, erzeugt mit `python tools/make_icon.py icon.ico img/logo.png rattata`).
 
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
@@ -94,3 +110,8 @@ Lernsets aktualisieren (`data/learnsets_champ.js`): die beiden Showdown-Dateien 
 
 Sprite-Zuschnitt für die Team-Leiste (`data/sprite_boxes.js`, braucht Pillow), danach mit `index.html?teamdemo` prüfen:
 `python tools/build_sprite_boxes.py pokedex.json data/learnsets_champ.js data/sprite_boxes.js`.
+
+Genauigkeit der Attacken (`data/move_acc.js`, nur für die Anzeige im Teambuilder): `https://play.pokemonshowdown.com/data/moves.json` und `data/mods/champions/moves.ts` herunterladen, dann
+`python tools/build_move_acc.py moves.json moves.ts data/move_acc.js`.
+
+Formen, Geschlecht und Varianten (`data/forms_champ.js`): `https://play.pokemonshowdown.com/data/pokedex.json` herunterladen, dann `python tools/build_forms.py pokedex.json data/forms_champ.js`.

@@ -152,7 +152,25 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       protectPD: 'Ziel nutzt {0} – {1} trifft mit 1/4 Schaden', protectNote: 'Ziel nutzt {0} – Schaden nur ohne Schutz',
-      stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}'
+      stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', homeTitle: 'Zum Startbildschirm',
+      winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
+      startCalcKo: '43,8 % Chance auf OHKO',
+      startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
+      startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
+      startSub: 'Damage Calculator & Teambuilder für Pokémon Champions',
+      startFoot: 'Taste 1 oder 2 zum Öffnen · Zurück zum Start über das Logo oben links',
+      tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)',
+      tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
+      tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
+      tbDeleteConfirm: 'Team „{0}“ löschen?', tbName: 'Teamname', tbDefaultName: 'Team {0}', tbCopyName: '{0} (Kopie)',
+      tbAddMon: '+ Pokémon', tbChoose: 'Pokémon suchen …', tbPreset: 'Set übernehmen …', tbNick: 'Set-Name', tbRemove: 'Entfernen',
+      tbMoves: 'Attacken', tbStats: 'Werte auf Level 50', tbMega: 'Mega', tbSpReset: 'SP leeren', tbTotal: 'Summe',
+      tbWeak: 'Typ-Abdeckung', tbWeakHint: 'Wie stark jede Angriffstyp-Attacke dein Team trifft (inkl. Fähigkeiten wie Schwebe). Rot = schwach, grün = resistent.',
+      tbWeakCol: 'schw.', tbResCol: 'res.', tbEmptyEdit: 'Wähle oben einen Platz oder füge ein Pokémon hinzu.',
+      tbSentYou: 'Team ins Damage Calc übernommen (deine Seite)', tbSentFoe: 'Team ins Damage Calc übernommen (Gegnerseite)',
+      tbImportDone: '{0} Pokémon importiert', tbLeft: 'Nach links', tbRight: 'Nach rechts', tbNoTeam: 'Noch kein Team',
+      tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal'
     },
     en: {
       sub: 'VGC 2026 · Level 50 · Stat Points (max 32 each, 66 total) · Reg M-C',
@@ -210,7 +228,25 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       protectPD: 'Target uses {0} – {1} hits for 1/4 damage', protectNote: 'Target uses {0} – damage only without protection',
-      stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}'
+      stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', homeTitle: 'Back to the start screen',
+      winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
+      startCalcKo: '43.8% chance to OHKO',
+      startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
+      startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
+      startSub: 'Damage Calculator & Teambuilder for Pokémon Champions',
+      startFoot: 'Press 1 or 2 to open · Back to the start via the logo in the top left',
+      tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)',
+      tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
+      tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
+      tbDeleteConfirm: 'Delete team “{0}”?', tbName: 'Team name', tbDefaultName: 'Team {0}', tbCopyName: '{0} (copy)',
+      tbAddMon: '+ Pokémon', tbChoose: 'Search Pokémon …', tbPreset: 'Use set …', tbNick: 'Set name', tbRemove: 'Remove',
+      tbMoves: 'Moves', tbStats: 'Stats at level 50', tbMega: 'Mega', tbSpReset: 'Clear SP', tbTotal: 'Total',
+      tbWeak: 'Type coverage', tbWeakHint: 'How hard each attacking type hits your team (incl. abilities like Levitate). Red = weak, green = resists.',
+      tbWeakCol: 'weak', tbResCol: 'res.', tbEmptyEdit: 'Pick a slot above or add a Pokémon.',
+      tbSentYou: 'Team sent to the damage calc (your side)', tbSentFoe: 'Team sent to the damage calc (opponent side)',
+      tbImportDone: '{0} Pokémon imported', tbLeft: 'Move left', tbRight: 'Move right', tbNoTeam: 'No team yet',
+      tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal'
     }
   };
   function T(key) {
@@ -396,11 +432,12 @@
     });
   }
 
-  function spriteImg(species) {
-    var img = el('img', { alt: nSpecies(species), title: nSpecies(species), src: spriteUrl(species), loading: 'lazy' });
+  function shinyUrl(url, shiny) { return shiny ? url.replace('/gen5/', '/gen5-shiny/') : url; }
+  function spriteImg(species, shiny) {
+    var img = el('img', { alt: nSpecies(species), title: nSpecies(species), src: shinyUrl(spriteUrl(species), shiny), loading: 'lazy' });
     img.onerror = function () {
       var b = baseOf(species).replace(/-.*$/, '');
-      var fb = 'https://play.pokemonshowdown.com/sprites/gen5/' + idOf(b) + '.png';
+      var fb = shinyUrl('https://play.pokemonshowdown.com/sprites/gen5/' + idOf(b) + '.png', shiny);
       if (img.src !== fb) { img.src = fb; } else { img.replaceWith(el('span', { class: 'fallback', text: nSpecies(species) })); }
     };
     return img;
@@ -417,12 +454,15 @@
     return { sp: sp, forme: (k !== sp && k.indexOf('Mega ') !== 0) ? k : undefined };
   }
   var SVGNS = 'http://www.w3.org/2000/svg';
-  function spriteFit(species) {
+  // shiny: same crop box, the shiny sprite only differs in colour
+  function spriteFit(species, shiny) {
     var boxes = window.SPRITE_BOXES || {};
     var url = spriteUrl(species), id = url.replace(/^.*\/|\.png$/g, '');
     var b = boxes[id];
+    if (!b && species.indexOf('-') > 0 && window.FORM_DATA) return spriteImg(species, shiny); // cosmetic variant: not measured
     if (!b) { id = idOf(baseOf(species).replace(/-.*$/, '')); b = boxes[id]; url = 'https://play.pokemonshowdown.com/sprites/gen5/' + id + '.png'; }
-    if (!b) return spriteImg(species);
+    if (!b) return spriteImg(species, shiny);
+    url = shinyUrl(url, shiny);
     var pad = 2, svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('class', 'sprite-fit');
     svg.setAttribute('viewBox', (b[0] - pad) + ' ' + (b[1] - pad) + ' ' + (b[2] + 2 * pad) + ' ' + (b[3] + 2 * pad));
@@ -1436,7 +1476,7 @@
     var current = sides[idx].setLabel;
     teams[idx].forEach(function (m, i) {
       var slot = el('div', { class: 'team-slot' + (current === m.species + ' (' + m.setName + ')' ? ' current' : ''), title: T('teamLoad', nSpecies(m.species) + ' (' + nSetName(m.setName) + ')') });
-      slot.appendChild(spriteFit(m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species));
+      slot.appendChild(spriteFit(m.set.look || (m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species), m.set.shiny));
       slot.addEventListener('click', function () { loadSet(sides[idx], m.species, m.set, m.setName); recalc(); });
       var toOther = el('button', { class: 'slot-btn other', title: T('toOther'), text: '⇄' });
       toOther.addEventListener('click', function (ev) { ev.stopPropagation(); loadSet(sides[1 - idx], m.species, m.set, m.setName); recalc(); });
@@ -1452,7 +1492,7 @@
     var ex = el('button', { text: T('exportShort'), title: T('teamExport') });
     var clr = el('button', { text: T('clearShort'), title: T('teamClear') });
     if (!teams[idx].length) { ex.disabled = true; clr.disabled = true; }
-    ex.addEventListener('click', function () { showModal(T('teamExport'), teams[idx].map(function (m) { return exportSet(m.set, m.setName); }).join('\n\n')); });
+    ex.addEventListener('click', function () { showModal(T('teamExport'), teams[idx].map(function (m) { return exportSet(m.set, m.setName, m.species); }).join('\n\n')); });
     clr.addEventListener('click', function () { if (confirm(T('clearConfirm', idx + 1))) { teams[idx] = []; save('cc_teams', teams); renderTeam(idx); } });
     acts.appendChild(ex); acts.appendChild(clr);
     box.appendChild(acts);
@@ -1476,6 +1516,17 @@
     if (DEX_BY_ID[id]) { var k = DEX_BY_ID[id]; return { base: baseOf(k), forme: k }; }
     var alias = { 'floette': 'Floette-Eternal', 'gourgeist': 'Gourgeist-Average', 'lycanroc': 'Lycanroc-Midday', 'aegislash': 'Aegislash', 'meowsticm': 'Meowstic', 'indeedeem': 'Indeedee', 'basculegionm': 'Basculegion', 'mausholdthree': 'Maushold' };
     if (alias[id] && DEX[alias[id]]) return { base: baseOf(alias[id]), forme: alias[id] };
+    // cosmetic variant (Vivillon-Polar, Florges-Blue …): same Pokémon, other look
+    var parts = s.split('-');
+    while (parts.length > 1) {
+      parts.pop();
+      var r = resolveSpecies(parts.join('-'));
+      if (r) {
+        var fd = (window.FORM_DATA || {})[idOf(parts.join('-'))] || {};
+        (fd.v || []).some(function (v) { if (idOf(v) === id) { r.look = v; return true; } return false; });
+        return r;
+      }
+    }
     return null;
   }
 
@@ -1490,6 +1541,7 @@
       var item = '(none)';
       var at = first.lastIndexOf(' @ ');
       if (at !== -1) { item = first.slice(at + 3).trim(); first = first.slice(0, at).trim(); }
+      var gm = first.match(/\s*\((M|F)\)\s*$/), gender = gm ? gm[1] : '';
       first = first.replace(/\s*\((M|F)\)\s*$/, '');
       var nick = null, speciesRaw = first;
       var pm = first.match(/^(.*)\(([^()]+)\)\s*$/);
@@ -1501,6 +1553,7 @@
       lines.forEach(function (l) {
         var m;
         if ((m = l.match(/^Ability:\s*(.+)$/i))) set.ability = ABIL_BY_ID[idOf(m[1])] || m[1].trim();
+        else if (/^Shiny:\s*Yes/i.test(l)) set.shiny = true;
         else if ((m = l.match(/^(EVs|SPs?|Stat Points):\s*(.+)$/i))) {
           var vals = {};
           m[2].split('/').forEach(function (part) {
@@ -1526,18 +1579,23 @@
       var forme = sp.forme && formesOf(sp.base).indexOf(sp.forme) !== -1 ? sp.forme : null;
       if (forme && forme.indexOf('Mega ') === 0) forme = null; // megas come from the stone
       if (forme) set.forme = forme;
+      if (sp.look) set.look = sp.look;
+      if (gender) set.gender = gender;
       if (!set.ability) set.ability = DEX[forme || sp.base].ab;
       out.push({ species: sp.base, setName: nick || 'Import', set: set });
     });
     return { mons: out, errors: errors };
   }
 
-  function exportSet(set, name) {
-    var species = set.forme && set.forme.indexOf('Mega ') !== 0 && set.forme !== formesOf(set.species)[0] ? set.forme : set.species;
+  function exportSet(set, name, sp) {
+    sp = set.species || sp || (set.forme ? baseOf(set.forme) : '');
+    var species = set.look || (set.forme && set.forme.indexOf('Mega ') !== 0 && set.forme !== formesOf(sp)[0] ? set.forme : sp);
     var lines = [];
-    lines.push((name && name !== 'Import' && name !== 'Mein Set' && name !== 'My set' && name !== 'Blank Set' && name !== species ? name + ' (' + species + ')' : species) + (set.item && set.item !== '(none)' ? ' @ ' + set.item : ''));
+    lines.push((name && name !== 'Import' && name !== 'Mein Set' && name !== 'My set' && name !== 'Blank Set' && name !== 'Set' && name !== species ? name + ' (' + species + ')' : species) +
+      (set.gender === 'M' || set.gender === 'F' ? ' (' + set.gender + ')' : '') + (set.item && set.item !== '(none)' ? ' @ ' + set.item : ''));
     if (set.ability) lines.push('Ability: ' + set.ability);
     lines.push('Level: 50');
+    if (set.shiny) lines.push('Shiny: Yes');
     var sps = C.STAT_KEYS.filter(function (k) { return set.sps[k]; }).map(function (k) { return set.sps[k] + ' ' + STAT_TO_SD[k]; });
     if (sps.length) lines.push('SPs: ' + sps.join(' / '));
     lines.push(set.nature + ' Nature');
@@ -1682,7 +1740,13 @@
       recalc();
     });
     var themeBtn = document.getElementById('btnTheme');
-    function applyTheme(light) { document.body.classList.toggle('light', light); themeBtn.textContent = light ? T('dark') : T('light'); }
+    function applyTheme(light) {
+      document.body.classList.toggle('light', light);
+      themeBtn.innerHTML = light
+        ? '<svg viewBox="0 0 16 16" width="15" height="15"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg>'
+        : '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3"/></svg>';
+      themeBtn.title = light ? T('dark') : T('light');
+    }
     applyTheme(load('cc_light', false));
     themeBtn.addEventListener('click', function () { var l = !document.body.classList.contains('light'); applyTheme(l); save('cc_light', l); });
     function saveState() {
@@ -1748,6 +1812,7 @@
       saveState(); ONLINE.reset(); location.reload();
     });
     recalc();
+    initViews();
     if (location.hash === '#selftest') setTimeout(runSelfTest, 200);
     // #runreg / #runsets: start an online update right away (for testing without clicking)
     if (location.hash === '#runreg') document.getElementById('btnReg').click();
@@ -1849,6 +1914,93 @@
     } catch (e) { L('FEHLER: ' + e.message + '\n' + e.stack); }
   }
 
+  // ======================= views: start screen / calculator / teambuilder =======================
+  var VIEWS = ['start', 'calc', 'builder'];
+  function showView(v) {
+    if (VIEWS.indexOf(v) === -1) v = 'start';
+    document.body.dataset.view = v;
+    try { sessionStorage.setItem('cc_view', v); } catch (e) { /* ignore */ }
+    document.querySelectorAll('.view-nav [data-go]').forEach(function (b) { b.classList.toggle('on', b.dataset.go === v); });
+    if (v === 'builder' && window.CCBuilder) window.CCBuilder.render();
+    if (v === 'start') renderStartTeam();
+    if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
+  }
+  // the builder card on the start screen shows the team that was edited last
+  function renderStartTeam() {
+    var box = document.getElementById('startTeam');
+    if (!box) return;
+    var st = load('cc_builder', null), team = null;
+    if (st && st.teams) st.teams.some(function (t) { if (t.id === st.cur) { team = t; return true; } return false; });
+    var mons = team && team.mons.length ? team.mons.map(function (m) { return m.set && m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species; })
+      : ['Incineroar', 'Rillaboom', 'Garchomp', 'Sneasler', 'Kingambit', 'Sinistcha'].filter(function (s) { return DEX[s]; });
+    box.innerHTML = '';
+    for (var i = 0; i < 6; i++) {
+      var c = el('span', { class: 'sc-mon' + (mons[i] ? '' : ' empty') });
+      if (mons[i]) c.appendChild(spriteFit(mons[i]));
+      box.appendChild(c);
+    }
+  }
+  function initViews() {
+    document.querySelectorAll('[data-go]').forEach(function (b) {
+      b.addEventListener('click', function () { showView(b.dataset.go); });
+    });
+    document.getElementById('btnHome').addEventListener('click', function () { showView('start'); });
+    document.addEventListener('keydown', function (ev) {
+      if (document.body.dataset.view !== 'start' || ev.ctrlKey || ev.altKey || ev.metaKey) return;
+      if (ev.key === '1') showView('calc');
+      if (ev.key === '2') showView('builder');
+    });
+    var sub = document.getElementById('startSub');
+    if (sub) sub.textContent = T('startSub') + ' · VGC 2026 · ' + REG_NAME;
+    // desktop app (Electron): the top bar is the title bar, with own window buttons
+    var D = window.desktop;
+    if (D) {
+      document.body.classList.add('is-desktop');
+      var wc = document.getElementById('winControls');
+      wc.hidden = false;
+      document.getElementById('winMin').addEventListener('click', function () { D.minimize(); });
+      document.getElementById('winMax').addEventListener('click', function () { D.toggleMaximize(); });
+      document.getElementById('winClose').addEventListener('click', function () { D.close(); });
+      D.onMaximized(function (m) {
+        document.body.classList.toggle('is-maximized', m);
+        document.getElementById('winMax').title = T(m ? 'winRestore' : 'winMax');
+      });
+    }
+    // test hooks and reloads (language switch) keep the current view; a fresh start shows the start screen
+    var v = 'start';
+    if (/^#(selftest|runreg|runsets|runreset|calc)$/.test(location.hash) || /[?&]teamdemo\b/.test(location.search)) v = 'calc';
+    else if (location.hash === '#builder') v = 'builder';
+    else { try { v = sessionStorage.getItem('cc_view') || 'start'; } catch (e) { /* ignore */ } }
+    showView(v);
+  }
+
+  // puts a team from the teambuilder into a team bar of the calculator; the first two become slot A and B
+  function setCalcTeam(idx, mons) {
+    mons = JSON.parse(JSON.stringify(mons.slice(0, 6)));
+    teams[idx] = mons;
+    save('cc_teams', teams);
+    var side = sides[idx];
+    if (mons.length) {
+      side.slots = [null, null];
+      if (mons[1]) { side.active = 1; loadSet(side, mons[1].species, mons[1].set, mons[1].setName); side.slots[1] = captureState(side); }
+      side.active = 0;
+      loadSet(side, mons[0].species, mons[0].set, mons[0].setName);
+    }
+    renderTeam(idx);
+    recalc();
+  }
+
+  // shared helpers for js/builder.js (teambuilder)
+  window.CC = {
+    C: C, DEX: DEX, MOVES: MOVES, ITEMS: ITEMS, ABILITIES: ABILITIES, SPECIES: SPECIES, NATURE_NAMES: NATURE_NAMES, LANG: LANG,
+    TYPE_COLORS: TYPE_COLORS, DARK_TEXT_TYPES: DARK_TEXT_TYPES,
+    baseOf: baseOf, formesOf: formesOf, megaFormeFor: megaFormeFor, legalMoves: legalMoves, legalAbilities: legalAbilities,
+    nSpecies: nSpecies, nMove: nMove, nItem: nItem, nAbility: nAbility, nNature: nNature, nType: nType, nStat: nStat, nStatLong: nStatLong,
+    natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
+    el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
+    typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, speciesGroups: speciesGroups, defaultSet: defaultSet,
+    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, showView: showView
+  };
   // expose for debugging
   window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES };
   document.addEventListener('DOMContentLoaded', init);

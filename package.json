@@ -1,8 +1,8 @@
 {
-  "name": "champions-damage-calc",
-  "productName": "Champions Damage Calc",
-  "version": "1.0.0",
-  "description": "VGC-Schadensrechner für Pokémon Champions (Level 50, Stat Points)",
+  "name": "rattata-lab",
+  "productName": "Rattata Lab",
+  "version": "1.1.0",
+  "description": "Rattata Lab: Damage Calculator und Teambuilder für Pokémon Champions (VGC, Level 50, Stat Points)",
   "author": "HohnWolf",
   "license": "UNLICENSED",
   "private": true,
@@ -18,7 +18,7 @@
   },
   "build": {
     "appId": "de.hohnwolf.championscalc",
-    "productName": "Champions Damage Calc",
+    "productName": "Rattata Lab",
     "directories": {
       "output": "dist"
     },
@@ -28,6 +28,7 @@
       "css/**",
       "js/**",
       "data/**",
+      "img/**",
       "electron/**",
       "package.json"
     ],
@@ -41,11 +42,11 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Champions Damage Calc",
-      "artifactName": "ChampionsDamageCalc-Setup-${version}.${ext}"
+      "shortcutName": "Rattata Lab",
+      "artifactName": "RattataLab-Setup-${version}.${ext}"
     },
     "portable": {
-      "artifactName": "ChampionsDamageCalc-${version}-portable.${ext}"
+      "artifactName": "RattataLab-${version}-portable.${ext}"
     }
   },
   "allowScripts": {
