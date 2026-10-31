@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Regulation-Test</title></head>
+<body style="background:#111;color:#0f0;font:12px monospace;white-space:pre-wrap;padding:10px">
+<div id="out">läuft …</div>
+<!-- tools/regtest.html: runs the regulation update without the UI and prints the result (does not save anything) -->
+<script src="../js/shim.js"></script>
+<script src="../data/pokedex.js"></script>
+<script src="../data/move_data.js"></script>
+<script src="../data/item_data.js"></script>
+<script src="../data/ability_data.js"></script>
+<script src="../data/learnsets_champ.js"></script>
+<script>
+  // keep localStorage untouched during the test
+  var _set = Storage.prototype.setItem; Storage.prototype.setItem = function () {};
+</script>
+<script>
+  // always load the current online.js (no cache)
+  var s = document.createElement('script');
+  s.src = '../js/online.js?t=' + Date.now();
+  s.onload = function () {
+    var out = document.getElementById('out');
+    Online.updateRegulation(function (st) { out.textContent = 'Schritt: ' + st; }).then(function (r) {
+      out.textContent = 'OK\n' + JSON.stringify(r, null, 1);
+    }, function (e) {
+      out.textContent = 'FEHLER: ' + (e && e.message) + '\n' + (e && e.stack);
+    });
+  };
+  document.body.appendChild(s);
+</script>
+</body></html>

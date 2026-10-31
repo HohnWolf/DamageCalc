@@ -1,0 +1,54 @@
+{
+  "name": "champions-damage-calc",
+  "productName": "Champions Damage Calc",
+  "version": "1.0.0",
+  "description": "VGC-Schadensrechner für Pokémon Champions (Level 50, Stat Points)",
+  "author": "HohnWolf",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis portable",
+    "dist:dir": "electron-builder --win dir"
+  },
+  "devDependencies": {
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "de.hohnwolf.championscalc",
+    "productName": "Champions Damage Calc",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "icon.ico",
+      "css/**",
+      "js/**",
+      "data/**",
+      "electron/**",
+      "package.json"
+    ],
+    "win": {
+      "icon": "icon.ico",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Champions Damage Calc",
+      "artifactName": "ChampionsDamageCalc-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "ChampionsDamageCalc-${version}-portable.${ext}"
+    }
+  },
+  "allowScripts": {
+    "electron@39.8.10": true
+  }
+}

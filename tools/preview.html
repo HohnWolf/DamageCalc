@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Preview</title>
+<style>body{margin:0;background:#000;overflow:hidden}iframe{border:0;transform-origin:0 0}</style></head>
+<body><iframe id="f"></iframe>
+<script>
+  // tools/preview.html?w=1920&h=1080 - shows the calculator at a given window size, scaled to fit
+  var q = new URLSearchParams(location.search), w = +q.get('w') || 1920, h = +q.get('h') || 1080;
+  var f = document.getElementById('f');
+  f.width = w; f.height = h; f.src = '../index.html?lang=' + (q.get('lang') || 'de');
+  var s = Math.min(innerWidth / w, innerHeight / h); f.style.transform = 'scale(' + s + ')';
+</script></body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Champions Damage Calculator</title>
+  <link rel="stylesheet" href="css/style.css?v=50">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Champions Damage Calc</div>
+    <span class="sub" data-t="sub">VGC 2026 · Level 50 · Stat Points (max. 32 je Wert, 66 gesamt) · Reg M-C</span>
+    <div class="top-actions">
+      <button id="btnOpenImport" class="pill primary" data-t="importBtn">Team importieren</button>
+      <button id="btnSets" class="pill" data-t="setsBtn" data-tt="setsTitle">Sets laden</button>
+      <button id="btnReg" class="pill" data-t="regBtn" data-tt="regTitle">Regulation laden</button>
+      <button id="btnSwap" class="pill" data-t="swapBtn" data-tt="swapTitle">Seiten tauschen</button>
+      <button id="btnLang" class="pill lang" data-t="langBtn" data-tt="langTitle">EN</button>
+      <button id="btnTheme" class="pill">Light theme</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="main-result" id="mainResult">
+      <div id="mainDesc" class="main-desc" data-tt="copyTitle"></div>
+      <div class="main-sub"><span id="mainRolls" class="main-rolls"></span><span id="mainNotes" class="main-notes"></span><span id="turnOrder" class="turn-order"></span></div>
+    </section>
+
+    <section class="columns">
+      <div class="panel poke-panel" id="panel1"></div>
+      <div class="panel field-panel" id="fieldPanel"></div>
+      <div class="panel poke-panel" id="panel2"></div>
+    </section>
+  </main>
+
+  <!-- Team import dialog -->
+  <div id="importModal" class="modal hidden">
+    <div class="modal-box wide">
+      <div class="modal-head">
+        <h3 data-t="importTitle">Team-Import (Showdown-Format)</h3>
+        <button id="importClose" class="icon-btn" data-tt="close">✕</button>
+      </div>
+      <p class="hint" data-th="importHintH"></p>
+      <textarea id="importText" spellcheck="false" placeholder="Garchomp @ Garchompite&#10;Ability: Rough Skin&#10;Level: 50&#10;SPs: 2 HP / 32 Atk / 32 Spe&#10;Jolly Nature&#10;- Earthquake&#10;- Dragon Claw&#10;- Rock Slide&#10;- Protect"></textarea>
+      <div class="import-actions">
+        <button id="btnImportLeft" data-t="importLeft">In linkes Team (eigene Seite)</button>
+        <button id="btnImportRight" data-t="importRight">In rechtes Team (Gegner)</button>
+        <button id="btnImportCustom" data-t="importCustom">Als eigene Sets speichern</button>
+        <span id="importMsg" class="hint"></span>
+      </div>
+      <div class="import-actions split">
+        <button id="btnDeleteCustom" class="danger" data-t="deleteCustom">Alle eigenen Sets löschen</button>
+        <button id="btnResetOnline" class="danger" data-t="resetOnline">Online-Daten zurücksetzen</button>
+        <span class="hint" data-th="creditsH"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h3 id="modalTitle">Export</h3>
+      <textarea id="modalText" spellcheck="false"></textarea>
+      <div class="import-actions">
+        <button id="modalCopy" data-t="copy">Kopieren</button>
+        <button id="modalClose" data-t="close">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/shim.js?v=50"></script>
+  <script src="data/pokedex.js?v=50"></script>
+  <script src="data/move_data.js?v=50"></script>
+  <script src="data/item_data.js?v=50"></script>
+  <script src="data/ability_data.js?v=50"></script>
+  <script src="data/setdex_ncp-g10.js?v=50"></script>
+  <script src="data/names_de.js?v=50"></script>
+  <script src="data/learnsets_champ.js?v=50"></script>
+  <script src="data/sprite_boxes.js?v=50"></script>
+  <script src="js/online.js?v=50"></script>
+  <script src="js/calc.js?v=50"></script>
+  <script src="js/app.js?v=50"></script>
+</body>
+</html>
