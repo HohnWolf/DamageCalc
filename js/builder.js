@@ -19,6 +19,7 @@
     var mine = (calcTeams[0] || []).filter(function (m) { return m && DEX[m.species]; });
     var t0 = { id: newId(), name: mine.length ? (de ? 'Mein Team' : 'My team') : T('tbDefaultName', 1), mons: clone(mine) };
     store.teams.push(t0); store.cur = t0.id;
+    A.save('cc_builder', store);
   }
   function persist() { A.save('cc_builder', store); }
   function team() {
@@ -127,19 +128,24 @@
     var i = f.indexOf('-');
     return i > 0 ? A.nSpecies(f).slice(A.nSpecies(f).indexOf('-') + 1) : (de ? 'Normal' : 'Base');
   }
-  // animated 3D model (Showdown "ani"), falling back to the pixel sprite; female and shiny variants where they exist
+  // animated 3D model (Showdown "ani"), falling back to the pixel sprite; female and shiny variants where they exist.
+  // The setting "Pixel-Sprite" skips the 3D models.
   function bigSprite(name, set, img) {
     var still = A.spriteUrl(name), shiny = !!set.shiny;
     var ani = still.replace('/gen5/', shiny ? '/ani-shiny/' : '/ani/').replace(/\.png$/, '.gif');
     var px = shiny ? still.replace('/gen5/', '/gen5-shiny/') : still;
+    var use3d = !A.setting || A.setting('model') !== 'sprite';
     var chain = [];
-    if (set.gender === 'F') chain.push(ani.replace(/\.gif$/, '-f.gif'));
-    chain.push(ani);
+    if (use3d) {
+      if (set.gender === 'F') chain.push(ani.replace(/\.gif$/, '-f.gif'));
+      chain.push(ani);
+    }
     if (set.gender === 'F') chain.push(px.replace(/\.png$/, '-f.png'));
     chain.push(px);
+    if (shiny && px !== still) chain.push(still);
     var i = 0;
     img.onerror = function () { i++; if (i < chain.length) { img.classList.toggle('still', /\.png$/.test(chain[i])); img.src = chain[i]; } };
-    img.classList.remove('still');
+    img.classList.toggle('still', /\.png$/.test(chain[0]));
     img.src = chain[0];
   }
   function spTotal(set) { return C.STAT_KEYS.reduce(function (n, k) { return n + ((set.sps && set.sps[k]) || 0); }, 0); }

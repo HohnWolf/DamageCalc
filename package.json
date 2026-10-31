@@ -1,8 +1,8 @@
 {
   "name": "rattata-lab",
   "productName": "Rattata Lab",
-  "version": "1.1.0",
-  "description": "Rattata Lab: Damage Calculator und Teambuilder für Pokémon Champions (VGC, Level 50, Stat Points)",
+  "version": "1.2.0",
+  "description": "Rattata Lab: Damage Calculator und Teambuilder für Pokémon Champions, Soul-Link-Planer, Nuzlocke-Rechner (Alpha) und Shiny-Zähler",
   "author": "HohnWolf",
   "license": "UNLICENSED",
   "private": true,

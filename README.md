@@ -26,7 +26,7 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
-- Beim Start erscheint die Auswahl zwischen **Damage Calculator** und **Teambuilder** (Tasten `1` / `2`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke** und **Shiny-Zähler** (Tasten `1` bis `5`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
 - **Teambuilder** (`js/builder.js`):
   - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
@@ -39,6 +39,26 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - In der Desktop-App hat das Fenster keinen Windows-Rahmen: Die Kopfzeile ist die Titelleiste (ziehen, Doppelklick maximiert), rechts sitzen eigene Knöpfe für Minimieren, Maximieren und Schließen (`electron/preload.js`). `F11` schaltet Vollbild.
 - Logo und Icon: Rattfratz (`img/logo.png`, `icon.ico`, erzeugt mit `python tools/make_icon.py icon.ico img/logo.png rattata`).
 
+## Soul-Link-Planer und Nuzlocke-Rechner (Alpha)
+Zwei eigene Modi, unabhängig voneinander.
+- **Soul-Link-Planer** (`js/nuz.js`): nur zum Planen und Nachhalten, rechnet nichts. Mehrere Runs mit 2–6 Spielern. Jede Begegnung (Route/Ort) verbindet je ein Pokémon pro Spieler (alle 1025 Pokémon, deutsch/englisch suchbar, mit Spitzname). Status pro Verbindung: Team, Box, Tot, Verpasst – stirbt eines, ist die ganze Verbindung tot. Oben die Team-Übersicht mit den verbundenen Pokémon, Warnung bei mehr als 6 im Team und bei Typ-Konflikten (Regel wählbar: kein gleicher Primärtyp / kein gemeinsamer Typ / aus). Export/Import als Text, um den Stand mit den anderen Spielern zu teilen. Gespeichert unter `cc_soullink`.
+- **Nuzlocke-Rechner – ALPHA** (`js/nuzcalc.js`, Engine `js/gen3.js`): frühe Testversion, in der App deutlich markiert. Das Auslesen ist mit einer nachgebauten Test-ROM und Test-Spielständen geprüft, noch nicht mit allen echten Spielen und Emulatoren. Für Rubin, Saphir, Smaragd, Feuerrot, Blattgrün (alle Sprachen) und ROM-Hacks mit gleichem Aufbau:
+  - **ROM laden** (.gba): Basiswerte, Typen, Fähigkeiten, Attacken, Items, Typentabelle, Level-Attacken und alle Trainer mit ihren Teams werden direkt aus der ROM gelesen (die Tabellen werden über bekannte Muster gesucht, keine festen Adressen). Gespeichert werden nur diese Daten (`cc_nuz_rom`, ca. 400 KB), nicht die ROM.
+  - **Spielstand laden**: `.sav` (Ingame-Speicherstand, neuester der beiden Blöcke) mit Team, Box, DVs, EVs, Wesen, Fähigkeit und aktuellen KP; Savestates von Emulatoren (roh, gzip, zlib oder PNG wie bei mGBA) so gut es geht durch Suche nach gültigen Pokémon-Daten.
+  - **Kämpfe**: Trainer nach Spielfortschritt (höchstes Level) sortiert, „Nur wichtige“ zeigt Trainer mit eigenen Attacken oder Items (Arenaleiter, Top 4, Rivalen …). Wesen und Fähigkeit der gegnerischen Pokémon werden wie im Spiel aus Trainer- und Pokémon-Namen berechnet, Standard-Attacken aus den Level-Attacken.
+  - Schaden in beide Richtungen mit allen 16 Zufallswerten, K.O.-Chancen (auch 2–5-Treffer-Attacken), Volltreffer, Initiative. Gen-3-Formel aus pokeemerald (`CalculateBaseDamage`, `Cmd_typecalc`): physisch/speziell nach Typ, Orden-Boni (Orden 1/3/5/7), Wetter, Reflektor/Lichtschild, Doppelkampf, Statuswerte, Brand, Fähigkeiten (Kraftkoloss, Speckschicht, Notdünger …), Typ-Items. Abgeglichen mit @smogon/calc (Gen 3): 2999 von 3000 Zufallsfällen identisch, die Abweichung ist die Typ-Reihenfolge, in der das Original rechnet.
+  - Tote Pokémon lassen sich markieren und ausblenden. Auswahl und Feld unter `cc_nuz_calc`.
+## Shiny-Zähler
+Eigener Modus (`js/shiny.js`, Quoten `js/shiny_odds.js`, Erkennung `js/shiny_detect.js`, Desktop-Teil `electron/shiny.js` und `electron/overlay.html`), angelehnt an die Funktionen von Encounty, aber selbst geschrieben (kein Code übernommen).
+- **Hunts**: beliebig viele parallel. Pro Hunt Pokémon (alle 1025), Spiel (Gen 2 bis Legenden: Z-A), Methode, Schillerpin und Schrittweite (z. B. 5 bei Horden). Zählen per Knopf, mit `+`/`−` im Fenster oder per globalem Hotkey.
+- **Quoten** pro Spiel und Methode: Zufallsbegegnung/Soft Reset, Masuda, Zucht mit Shiny-Elternteil (Gen 2), Pokéradar, Angelkette, Kontaktsafari, Horden, SOS-Kette, Fangkombo mit Lockparfüm, Besiegt-Zähler (SwSh), Dyna-Raid-Abenteuer, Massenauftreten und Forschung (PLA), Massenauftreten und Sandwich (KP), eigene Quote. Näherungen sind mit „ca.“ markiert.
+- **Statistik**: Wahrscheinlichkeit, bis jetzt ein Shiny gefunden zu haben, Vielfaches der Quote, Meilensteine (50/75/90/99 %) mit verbleibenden Begegnungen und geschätzter Zeit, Begegnungen heute und pro Stunde, Timer.
+- **Phasen**: „Phase“ (anderes Shiny erschienen, optional in die Sammlung), „Entkommen“ (gesehen, nicht gefangen), letzte Phase rückgängig. „Gefunden!“ beendet den Hunt und trägt das Shiny mit Details in die Sammlung ein.
+- **Sammlung**: alle Fänge mit Spitzname, Geschlecht, Wesen, Level, Ball, Fundort, Spiel, Methode, Begegnungen, Phasen, Datum, Notizen; manuell eintragen und bearbeiten. **Shiny-Dex** pro Generation mit Fortschritt (gefangen, gesehen, fehlt).
+- **Globale Hotkeys** (Desktop-App, Standard `Strg+Alt+↑` zählen, `Strg+Alt+↓` zurück, `Strg+Alt+T` Timer, Phase frei belegbar): wirken auf alle Hunts mit Haken „Hotkeys zählen diesen Hunt“, auch wenn das Spiel im Vordergrund ist.
+- **OBS** (Desktop-App): Browser-Quelle `http://127.0.0.1:39151/overlay` (Server nur lokal, fremde Hosts werden abgewiesen) mit Layout, Größe, Farben und Teilen zum Ein-/Ausblenden, Vorschau in der App. Dazu Textdateien im Ordner `OBS` der App-Daten (`zaehler.txt`, `gesamt.txt`, `phase.txt`, `quote.txt`, `chance.txt`, `timer.txt`, `pokemon.txt`, `methode.txt`, `spiel.txt`).
+- **Automatische Erkennung – ALPHA**: Bildschirm/Fenster oder Kamera/Capture-Karte aufnehmen, im Bild einen Bereich markieren, eine oder mehrere Referenzen aufnehmen, während die Begegnung zu sehen ist. Vergleich in Graustufen (Korrelation + mittlere Abweichung), Zustandsmaschine mit Treffern in Folge, Sperre und Pause gegen Doppelzählungen, „Ruhewert messen“ für die Schwelle, „Nur testen“ ohne Zählen. Läuft lokal, auch im Hintergrund.
+- Gespeichert unter `cc_shiny` (Hunts, Sammlung, Hotkeys, Overlay).
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
 - Die Oberfläche passt sich der Fenstergröße an (Basis 1180 × 800, Faktor 0,8 bis 1,9), damit kein Platz frei bleibt. Vorschau verschiedener Größen: `tools/preview.html?w=1920&h=1080` (braucht den lokalen Server).
@@ -48,8 +68,16 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Oben rechts: „Team importieren“ öffnet den Import-Dialog.
 - „Zurücksetzen“ im Feld-Kopf: leert die Gegnerseite (beide Slots) und schaltet alle Feldeffekte aus (Wetter, Terrain, Auren, Ruin, Trick Room, Gravity, Screens, Hazards usw.). Einzel/Doppel, deine Seite und das Gegner-Team in der Team-Leiste bleiben. Danach den nächsten Gegner über die Suche oder die Team-Leiste wählen.
 
+## Einstellungen
+Zahnrad oben rechts:
+- **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm), *Alle Modi* oder *Keine* (Wechsel nur über das Logo)
+- **Pokémon im Teambuilder**: animiertes 3D-Modell oder Pixel-Sprite
+- **Design**: dunkel oder hell
+- **Beim Öffnen der App**: Startbildschirm, Damage Calculator oder Teambuilder
+- **Sprache**: Deutsch oder English
+
 ## Sprache (Deutsch / English)
-- Button **EN / DE** oben rechts. Die Seite lädt neu; Slots, Teams und Feld bleiben erhalten.
+- In den Einstellungen umschaltbar. Die Seite lädt neu; Slots, Teams und Feld bleiben erhalten.
 - Alternativ über die Adresse: `index.html?lang=en` oder `index.html?lang=de`.
 - Auf Deutsch werden Pokémon, Attacken, Items, Fähigkeiten, Typen und Wesen übersetzt (`data/names_de.js`, Quelle PokeAPI). Die Suche findet deutsche und englische Namen.
 - Showdown-Import und -Export bleiben immer englisch.
@@ -115,3 +143,5 @@ Genauigkeit der Attacken (`data/move_acc.js`, nur für die Anzeige im Teambuilde
 `python tools/build_move_acc.py moves.json moves.ts data/move_acc.js`.
 
 Formen, Geschlecht und Varianten (`data/forms_champ.js`): `https://play.pokemonshowdown.com/data/pokedex.json` herunterladen, dann `python tools/build_forms.py pokedex.json data/forms_champ.js`.
+
+Nuzlocke-Daten (`data/natdex.js` mit allen Pokémon, `data/gen3_names.js` mit Attacken und Fähigkeiten der 3. Generation): `pokedex.json` von Showdown sowie `pokemon_species_names.csv`, `move_names.csv` und `ability_names.csv` aus `PokeAPI/pokeapi` (`data/v2/csv/`) in einen Ordner laden, dann `python tools/build_nuz.py <ordner> data`.

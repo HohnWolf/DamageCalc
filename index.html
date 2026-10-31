@@ -5,24 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rattata Lab</title>
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=53">
-  <link rel="stylesheet" href="css/views.css?v=53">
+  <link rel="stylesheet" href="css/style.css?v=56">
+  <link rel="stylesheet" href="css/views.css?v=56">
+  <link rel="stylesheet" href="css/nuz.css?v=56">
+  <link rel="stylesheet" href="css/shiny.css?v=56">
 </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
     <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/logo.png" alt=""><span class="brand">Rattata Lab</span></button>
-    <nav class="view-nav">
-      <button data-go="calc" data-t="navCalc">Damage Calculator</button>
-      <button data-go="builder" data-t="navBuilder">Teambuilder</button>
-    </nav>
+    <nav class="view-nav" id="viewNav"></nav>
     <span class="sub only-calc" data-t="sub">VGC 2026 · Level 50 · Stat Points (max. 32 je Wert, 66 gesamt) · Reg M-C</span>
     <div class="top-actions">
       <button id="btnOpenImport" class="pill primary only-calc" data-t="importBtn">Team importieren</button>
       <button id="btnSets" class="pill no-start" data-t="setsBtn" data-tt="setsTitle">Sets laden</button>
       <button id="btnReg" class="pill no-start" data-t="regBtn" data-tt="regTitle">Regulation laden</button>
       <button id="btnSwap" class="pill only-calc" data-t="swapBtn" data-tt="swapTitle">Seiten tauschen</button>
-      <button id="btnLang" class="pill lang" data-t="langBtn" data-tt="langTitle">EN</button>
-      <button id="btnTheme" class="pill">Light theme</button>
+      <button id="btnSettings" class="pill icon-pill" data-tt="setBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
     <div class="win-controls" id="winControls" hidden>
       <button id="winMin" data-tt="winMin"><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></button>
@@ -51,12 +49,34 @@
           <span class="sc-head"><span class="sc-title" data-t="navBuilder">Teambuilder</span><span class="sc-key">2</span></span>
           <span class="sc-text" data-t="startBuilderText"></span>
         </button>
+        <button class="start-card card-sl" data-go="soullink">
+          <span class="sc-art sc-art-nuz" id="startSL"></span>
+          <span class="sc-head"><span class="sc-title" data-t="navSL">Soul Link</span><span class="sc-key">3</span></span>
+          <span class="sc-text" data-t="startSLText"></span>
+        </button>
+        <button class="start-card card-nuz" data-go="nuz">
+          <span class="sc-art sc-art-nc">
+            <span class="sc-nc-line"><span>ROM</span><span class="sc-plus">+</span><span>.sav</span></span>
+            <span class="sc-bar"><span style="width:62%"></span></span>
+            <span class="sc-ko" data-t="startNuzKo">Gen 3 · Trainer, Box, Schaden</span>
+          </span>
+          <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge">ALPHA</span></span><span class="sc-key">4</span></span>
+          <span class="sc-text" data-t="startNuzText"></span>
+        </button>
+        <button class="start-card card-shiny" data-go="shiny">
+          <span class="sc-art sc-art-shiny" id="startShiny"></span>
+          <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span><span class="sc-key">5</span></span>
+          <span class="sc-text" data-t="startShinyText"></span>
+        </button>
       </div>
       <p class="start-foot" data-t="startFoot"></p>
     </div>
   </section>
 
   <main id="builderView" class="wrap builder-view"></main>
+  <main id="slView" class="wrap sl-view"></main>
+  <main id="nuzView" class="wrap nuz-view"></main>
+  <main id="shinyView" class="wrap shiny-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -105,20 +125,28 @@
     </div>
   </div>
 
-  <script src="js/shim.js?v=53"></script>
-  <script src="data/pokedex.js?v=53"></script>
-  <script src="data/move_data.js?v=53"></script>
-  <script src="data/move_acc.js?v=53"></script>
-  <script src="data/forms_champ.js?v=53"></script>
-  <script src="data/item_data.js?v=53"></script>
-  <script src="data/ability_data.js?v=53"></script>
-  <script src="data/setdex_ncp-g10.js?v=53"></script>
-  <script src="data/names_de.js?v=53"></script>
-  <script src="data/learnsets_champ.js?v=53"></script>
-  <script src="data/sprite_boxes.js?v=53"></script>
-  <script src="js/online.js?v=53"></script>
-  <script src="js/calc.js?v=53"></script>
-  <script src="js/app.js?v=53"></script>
-  <script src="js/builder.js?v=53"></script>
+  <script src="js/shim.js?v=56"></script>
+  <script src="data/pokedex.js?v=56"></script>
+  <script src="data/move_data.js?v=56"></script>
+  <script src="data/move_acc.js?v=56"></script>
+  <script src="data/forms_champ.js?v=56"></script>
+  <script src="data/item_data.js?v=56"></script>
+  <script src="data/ability_data.js?v=56"></script>
+  <script src="data/setdex_ncp-g10.js?v=56"></script>
+  <script src="data/names_de.js?v=56"></script>
+  <script src="data/learnsets_champ.js?v=56"></script>
+  <script src="data/sprite_boxes.js?v=56"></script>
+  <script src="js/online.js?v=56"></script>
+  <script src="js/calc.js?v=56"></script>
+  <script src="js/app.js?v=56"></script>
+  <script src="js/builder.js?v=56"></script>
+  <script src="data/natdex.js?v=56"></script>
+  <script src="data/gen3_names.js?v=56"></script>
+  <script src="js/gen3.js?v=56"></script>
+  <script src="js/nuz.js?v=56"></script>
+  <script src="js/nuzcalc.js?v=56"></script>
+  <script src="js/shiny_odds.js?v=56"></script>
+  <script src="js/shiny_detect.js?v=56"></script>
+  <script src="js/shiny.js?v=56"></script>
 </body>
 </html>

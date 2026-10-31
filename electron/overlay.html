@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Rattata Lab – Shiny-Overlay</title>
+<!--
+  OBS-Browser-Quelle des Shiny-Zählers. Parameter in der Adresse:
+    hunt=<id>|active   welcher Hunt (Standard: der aktive)
+    layout=card|row|count
+    sprite=0  odds=0  timer=0  phase=0  name=0   Teile ausblenden
+    color=ffffff  accent=f2c94c  bg=transparent|1b1d21  size=1.0  font=Name
+-->
+<style>
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { font-family: var(--font, 'Segoe UI', system-ui, sans-serif); color: var(--color, #fff); }
+  .ov { display: inline-flex; align-items: center; gap: calc(14px * var(--s)); padding: calc(12px * var(--s)) calc(18px * var(--s));
+    background: var(--bg, transparent); border-radius: calc(10px * var(--s)); text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+  .ov.card { flex-direction: column; text-align: center; }
+  .sprite { width: calc(120px * var(--s)); height: calc(120px * var(--s)); object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+  .txt { display: flex; flex-direction: column; gap: calc(2px * var(--s)); }
+  .ov.card .txt { align-items: center; }
+  .name { font-weight: 700; font-size: calc(20px * var(--s)); }
+  .count { font-weight: 800; font-size: calc(54px * var(--s)); line-height: 1; color: var(--accent, #f2c94c); font-variant-numeric: tabular-nums; }
+  .meta { font-size: calc(15px * var(--s)); opacity: .92; font-variant-numeric: tabular-nums; }
+  .found .count::after { content: ' ★'; }
+  .bump { animation: bump .35s ease-out; }
+  @keyframes bump { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+<div class="ov" id="ov">
+  <img class="sprite" id="sprite" alt="">
+  <div class="txt">
+    <div class="name" id="name"></div>
+    <div class="count" id="count">0</div>
+    <div class="meta" id="odds"></div>
+    <div class="meta" id="phase"></div>
+    <div class="meta" id="timer"></div>
+  </div>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var root = document.documentElement;
+  root.style.setProperty('--s', q.get('size') || '1');
+  if (q.get('color')) root.style.setProperty('--color', '#' + q.get('color').replace('#', ''));
+  if (q.get('accent')) root.style.setProperty('--accent', '#' + q.get('accent').replace('#', ''));
+  if (q.get('bg') && q.get('bg') !== 'transparent') root.style.setProperty('--bg', '#' + q.get('bg').replace('#', ''));
+  if (q.get('font')) root.style.setProperty('--font', q.get('font'));
+  var ov = document.getElementById('ov');
+  var layout = q.get('layout') || 'row';
+  ov.classList.add(layout);
+  function on(k) { return q.get(k) !== '0'; }
+  if (!on('sprite') || layout === 'count') document.getElementById('sprite').classList.add('hide');
+  if (!on('name') || layout === 'count') document.getElementById('name').classList.add('hide');
+  if (!on('odds') || layout === 'count') document.getElementById('odds').classList.add('hide');
+  if (!on('phase') || layout === 'count') document.getElementById('phase').classList.add('hide');
+  if (!on('timer') || layout === 'count') document.getElementById('timer').classList.add('hide');
+  var last = null, lastSprite = '';
+  function setSprite(id, shiny) {
+    var key = id + '|' + shiny;
+    if (key === lastSprite || !id) return;
+    lastSprite = key;
+    var img = document.getElementById('sprite');
+    var chain = ['https://play.pokemonshowdown.com/sprites/ani-shiny/' + id + '.gif', 'https://play.pokemonshowdown.com/sprites/gen5-shiny/' + id + '.png'];
+    var i = 0;
+    img.onerror = function () { i++; if (i < chain.length) img.src = chain[i]; };
+    img.src = chain[0];
+  }
+  function tick() {
+    fetch('/state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
+      var want = q.get('hunt');
+      var h = null;
+      (s.hunts || []).forEach(function (x) { if ((want && want !== 'active' ? x.id === want : x.id === s.active)) h = x; });
+      if (!h) h = (s.hunts || [])[0];
+      if (!h) return;
+      setSprite(h.sprite, true);
+      document.getElementById('name').textContent = h.name;
+      var c = document.getElementById('count');
+      if (last !== null && h.count !== last) { c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
+      last = h.count;
+      c.textContent = h.count.toLocaleString('de-DE');
+      document.getElementById('odds').textContent = h.oddsText + (h.chanceText ? ' · ' + h.chanceText : '');
+      document.getElementById('phase').textContent = h.phaseText || '';
+      document.getElementById('timer').textContent = h.timeText || '';
+      ov.classList.toggle('found', !!h.found);
+    }).catch(function () { /* app closed */ });
+  }
+  tick();
+  setInterval(tick, 400);
+})();
+</script>
+</body>
+</html>

@@ -151,15 +151,17 @@
       and: ' und ', after: ' nach ', recovery: 'Heilung durch {0}', sandDmg: 'Sandsturm-Schaden', burnDmg: 'Verbrennungs-Schaden',
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
-      protectPD: 'Ziel nutzt {0} – {1} trifft mit 1/4 Schaden', protectNote: 'Ziel nutzt {0} – Schaden nur ohne Schutz',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', homeTitle: 'Zum Startbildschirm',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', homeTitle: 'Zum Startbildschirm',
+      startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
+      startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
+      startNuzText: 'Rechner für Gen-3-Nuzlockes mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
       startCalcKo: '43,8 % Chance auf OHKO',
       startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
       startSub: 'Damage Calculator & Teambuilder für Pokémon Champions',
-      startFoot: 'Taste 1 oder 2 zum Öffnen · Zurück zum Start über das Logo oben links',
+      startFoot: 'Tasten 1–5 zum Öffnen · Zurück zum Start über das Logo oben links',
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
@@ -170,7 +172,12 @@
       tbWeakCol: 'schw.', tbResCol: 'res.', tbEmptyEdit: 'Wähle oben einen Platz oder füge ein Pokémon hinzu.',
       tbSentYou: 'Team ins Damage Calc übernommen (deine Seite)', tbSentFoe: 'Team ins Damage Calc übernommen (Gegnerseite)',
       tbImportDone: '{0} Pokémon importiert', tbLeft: 'Nach links', tbRight: 'Nach rechts', tbNoTeam: 'Noch kein Team',
-      tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal'
+      tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
+      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setSprite: 'Pixel-Sprite',
+      setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
+      setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
+      setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: immer alle Modi. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
+      setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm'
     },
     en: {
       sub: 'VGC 2026 · Level 50 · Stat Points (max 32 each, 66 total) · Reg M-C',
@@ -227,15 +234,17 @@
       and: ' and ', after: ' after ', recovery: '{0} recovery', sandDmg: 'sandstorm damage', burnDmg: 'burn damage',
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
-      protectPD: 'Target uses {0} – {1} hits for 1/4 damage', protectNote: 'Target uses {0} – damage only without protection',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', homeTitle: 'Back to the start screen',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', homeTitle: 'Back to the start screen',
+      startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
+      startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
+      startNuzText: 'Calculator for Gen 3 Nuzlockes with trainers from the ROM and your box from the save file. Early test version.', startNuzKo: 'Gen 3 · trainers, box, damage',
       winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
       startCalcKo: '43.8% chance to OHKO',
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
       startSub: 'Damage Calculator & Teambuilder for Pokémon Champions',
-      startFoot: 'Press 1 or 2 to open · Back to the start via the logo in the top left',
+      startFoot: 'Press 1–5 to open · Back to the start via the logo in the top left',
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
@@ -246,7 +255,12 @@
       tbWeakCol: 'weak', tbResCol: 'res.', tbEmptyEdit: 'Pick a slot above or add a Pokémon.',
       tbSentYou: 'Team sent to the damage calc (your side)', tbSentFoe: 'Team sent to the damage calc (opponent side)',
       tbImportDone: '{0} Pokémon imported', tbLeft: 'Move left', tbRight: 'Move right', tbNoTeam: 'No team yet',
-      tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal'
+      tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
+      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setSprite: 'Pixel sprite',
+      setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
+      setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
+      setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: always every mode. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
+      setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen'
     }
   };
   function T(key) {
@@ -1060,7 +1074,7 @@
   };
   // [key, English name, m = move / a = ability] – the name is translated via the move/ability names
   var SIDE_TOGGLES = [
-    ['protect', 'Protect', 'm'], ['helpingHand', 'Helping Hand', 'm'], ['auroraVeil', 'Aurora Veil', 'm'], ['reflect', 'Reflect', 'm'],
+    ['helpingHand', 'Helping Hand', 'm'], ['auroraVeil', 'Aurora Veil', 'm'], ['reflect', 'Reflect', 'm'],
     ['lightScreen', 'Light Screen', 'm'], ['tailwind', 'Tailwind', 'm'], ['leechSeed', 'Leech Seed', 'm'], ['saltCure', 'Salt Cure', 'm'],
     ['friendGuard', 'Friend Guard', 'a'], ['stealthRock', 'Stealth Rock', 'm'], ['flowerGift', 'Flower Gift', 'a'],
     ['steelySpirit', 'Steely Spirit', 'a'], ['powerSpot', 'Power Spot', 'a'], ['battery', 'Battery', 'a']
@@ -1343,9 +1357,6 @@
               if (ko) ko.text = koText(ko, info);
             }
             r.notes = r.notes.map(nNote);
-            if (field.sides[o].protect && !r.empty && !r.status) {
-              r.notes.push(atk.ability === 'Piercing Drill' && mv.makesContact ? T('protectPD', nMove('Protect'), nAbility('Piercing Drill')) : T('protectNote', nMove('Protect')));
-            }
             if (atk.species !== attacker.species) r.notes.push(T('stanceNote', nSpecies(attacker.baseSpecies), nAbility('Stance Change')));
             return { r: r, ko: ko };
           });
@@ -1739,16 +1750,8 @@
       selected.side = 1 - selected.side;
       recalc();
     });
-    var themeBtn = document.getElementById('btnTheme');
-    function applyTheme(light) {
-      document.body.classList.toggle('light', light);
-      themeBtn.innerHTML = light
-        ? '<svg viewBox="0 0 16 16" width="15" height="15"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg>'
-        : '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3"/></svg>';
-      themeBtn.title = light ? T('dark') : T('light');
-    }
-    applyTheme(load('cc_light', false));
-    themeBtn.addEventListener('click', function () { var l = !document.body.classList.contains('light'); applyTheme(l); save('cc_light', l); });
+    setTheme = function (light) { document.body.classList.toggle('light', light); save('cc_light', light); };
+    document.body.classList.toggle('light', !!load('cc_light', false));
     function saveState() {
       save('cc_state', [0, 1].map(function (s) {
         var side = sides[s], slots = side.slots.slice();
@@ -1758,11 +1761,12 @@
     }
     window.addEventListener('beforeunload', saveState);
     // language switch: save everything and rebuild the page in the other language
-    document.getElementById('btnLang').addEventListener('click', function () {
+    setLang = function (lang) {
+      if (lang === LANG) return;
       saveState();
-      save('cc_lang', LANG === 'de' ? 'en' : 'de');
+      save('cc_lang', lang);
       location.reload();
-    });
+    };
     // ---- online updates (js/online.js): popular sets and new regulation ----
     function onlineRun(btn, job, report) {
       if (!ONLINE || btn.disabled) return;
@@ -1914,16 +1918,113 @@
     } catch (e) { L('FEHLER: ' + e.message + '\n' + e.stack); }
   }
 
+  // ======================= settings =======================
+  // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder' }; theme and language keep their own keys
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs' };
+  var setTheme = function () {}, setLang = function () {};
+  function setting(k) { var s = load('cc_settings', {}) || {}; return s[k] != null ? s[k] : SETTING_DEFAULTS[k]; }
+  function setSetting(k, v) { var s = load('cc_settings', {}) || {}; s[k] = v; save('cc_settings', s); }
+  var settingsModal = null;
+  function openSettings() {
+    if (settingsModal) return;
+    settingsModal = el('div', { class: 'modal set-modal' });
+    var bx = el('div', { class: 'modal-box set-box' });
+    settingsModal.appendChild(bx);
+    document.body.appendChild(settingsModal);
+    function close() {
+      if (!settingsModal) return;
+      settingsModal.remove(); settingsModal = null; document.removeEventListener('keydown', key, true);
+    }
+    function key(ev) { if (ev.key === 'Escape') { ev.stopPropagation(); close(); } }
+    document.addEventListener('keydown', key, true);
+    settingsModal.addEventListener('mousedown', function (ev) { if (ev.target === settingsModal) close(); });
+    function draw() {
+      bx.innerHTML = '';
+      var head = el('div', { class: 'nat-head' });
+      head.appendChild(el('h3', { text: T('setTitle') }));
+      var done = el('button', { class: 'primary-btn', text: T('tbDone') });
+      done.addEventListener('click', close);
+      head.appendChild(done);
+      bx.appendChild(head);
+      function row(title, hint, opts, cur, pick) {
+        var r = el('div', { class: 'set-row' });
+        var lab = el('div', { class: 'set-label' });
+        lab.appendChild(el('div', { class: 'set-name', text: title }));
+        if (hint) lab.appendChild(el('div', { class: 'hint', text: hint }));
+        r.appendChild(lab);
+        var g = el('div', { class: 'btn-group set-opts' });
+        opts.forEach(function (o) {
+          var b = el('button', { class: o[0] === cur ? 'on' : '', text: o[1], 'data-v': o[0] });
+          b.addEventListener('click', function () { if (o[0] !== cur) { pick(o[0]); draw(); } });
+          g.appendChild(b);
+        });
+        r.appendChild(g);
+        bx.appendChild(r);
+      }
+      row(T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['sprite', T('setSprite')]], setting('model'), function (v) {
+        setSetting('model', v);
+        if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
+      });
+      row(T('setTheme'), '', [['dark', T('setDark')], ['light', T('setLight')]], document.body.classList.contains('light') ? 'light' : 'dark', function (v) { setTheme(v === 'light'); });
+      row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
+      row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')]], setting('start'), function (v) { setSetting('start', v); });
+      row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
+    }
+    draw();
+  }
+
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder'];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny'];
   function showView(v) {
     if (VIEWS.indexOf(v) === -1) v = 'start';
     document.body.dataset.view = v;
     try { sessionStorage.setItem('cc_view', v); } catch (e) { /* ignore */ }
-    document.querySelectorAll('.view-nav [data-go]').forEach(function (b) { b.classList.toggle('on', b.dataset.go === v); });
+    if (v !== 'start' && openTabs.indexOf(v) === -1) { openTabs.push(v); save('cc_tabs', openTabs); }
+    renderNav();
     if (v === 'builder' && window.CCBuilder) window.CCBuilder.render();
+    if (v === 'soullink' && window.CCSoulLink) window.CCSoulLink.render();
+    if (v === 'nuz' && window.CCNuz) window.CCNuz.render();
+    if (v === 'shiny' && window.CCShiny) window.CCShiny.render();
+    if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') renderStartTeam();
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
+  }
+  // ---- top navigation: tabs (only the opened modes, closable), all modes, or none (setting "nav") ----
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny']];
+  var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
+  function closeTab(v) {
+    var i = openTabs.indexOf(v);
+    if (i === -1) return;
+    openTabs.splice(i, 1); save('cc_tabs', openTabs);
+    if (document.body.dataset.view === v) showView(openTabs[Math.min(i, openTabs.length - 1)] || 'start');
+    else renderNav();
+  }
+  function renderNav() {
+    var nav = document.getElementById('viewNav');
+    if (!nav) return;
+    var mode = setting('nav'), cur = document.body.dataset.view;
+    nav.innerHTML = '';
+    nav.className = 'view-nav nav-' + mode;
+    if (mode === 'off' || (mode === 'all' && cur === 'start')) return;
+    MODES.forEach(function (m) {
+      if (mode === 'tabs' && openTabs.indexOf(m[0]) === -1) return;
+      var b = el('button', { class: 'nav-tab' + (m[0] === cur ? ' on' : ''), 'data-go': m[0] });
+      b.appendChild(el('span', { class: 'nav-label', text: T(m[1]) }));
+      if (m[2]) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+      b.addEventListener('click', function () { showView(m[0]); });
+      if (mode === 'tabs') {
+        var x = el('span', { class: 'nav-close', text: '×', title: T('closeTab') });
+        x.addEventListener('click', function (ev) { ev.stopPropagation(); closeTab(m[0]); });
+        b.appendChild(x);
+        b.addEventListener('mousedown', function (ev) { if (ev.button === 1) { ev.preventDefault(); closeTab(m[0]); } });
+      }
+      nav.appendChild(b);
+    });
+    if (mode === 'tabs' && openTabs.length && cur !== 'start') {
+      var plus = el('button', { class: 'nav-new', text: '+', title: T('newTab') });
+      plus.addEventListener('click', function () { showView('start'); });
+      nav.appendChild(plus);
+    }
   }
   // the builder card on the start screen shows the team that was edited last
   function renderStartTeam() {
@@ -1945,10 +2046,14 @@
       b.addEventListener('click', function () { showView(b.dataset.go); });
     });
     document.getElementById('btnHome').addEventListener('click', function () { showView('start'); });
+    document.getElementById('btnSettings').addEventListener('click', openSettings);
     document.addEventListener('keydown', function (ev) {
       if (document.body.dataset.view !== 'start' || ev.ctrlKey || ev.altKey || ev.metaKey) return;
       if (ev.key === '1') showView('calc');
       if (ev.key === '2') showView('builder');
+      if (ev.key === '3') showView('soullink');
+      if (ev.key === '4') showView('nuz');
+      if (ev.key === '5') showView('shiny');
     });
     var sub = document.getElementById('startSub');
     if (sub) sub.textContent = T('startSub') + ' · VGC 2026 · ' + REG_NAME;
@@ -1970,7 +2075,10 @@
     var v = 'start';
     if (/^#(selftest|runreg|runsets|runreset|calc)$/.test(location.hash) || /[?&]teamdemo\b/.test(location.search)) v = 'calc';
     else if (location.hash === '#builder') v = 'builder';
-    else { try { v = sessionStorage.getItem('cc_view') || 'start'; } catch (e) { /* ignore */ } }
+    else if (location.hash === '#nuz') v = 'nuz';
+    else if (location.hash === '#soullink') v = 'soullink';
+    else if (location.hash === '#shiny') v = 'shiny';
+    else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }
 
@@ -1999,7 +2107,8 @@
     natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
     el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, speciesGroups: speciesGroups, defaultSet: defaultSet,
-    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, showView: showView
+    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, showView: showView,
+    setting: setting, openSettings: openSettings
   };
   // expose for debugging
   window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES };

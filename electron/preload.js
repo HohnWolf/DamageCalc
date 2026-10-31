@@ -1,4 +1,5 @@
-// Brücke zwischen Seite und Fenster: nur die Fensterknöpfe der eigenen Titelleiste, sonst nichts.
+// Brücke zwischen Seite und Hauptprozess: Fensterknöpfe der eigenen Titelleiste und der Desktop-Teil des Shiny-Zählers
+// (globale Hotkeys, OBS-Overlay/Textdateien, Auswahl der Bildschirmquelle). Sonst nichts.
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
@@ -6,4 +7,13 @@ contextBridge.exposeInMainWorld('desktop', {
   toggleMaximize: () => ipcRenderer.send('win', 'max'),
   close: () => ipcRenderer.send('win', 'close'),
   onMaximized: (cb) => ipcRenderer.on('maximized', (e, v) => cb(!!v)),
+  shiny: {
+    setHotkeys: (map) => ipcRenderer.invoke('shiny-hotkeys', map),
+    onHotkey: (cb) => ipcRenderer.on('shiny-hotkey', (e, action) => cb(String(action))),
+    pushState: (s) => ipcRenderer.send('shiny-state', s),
+    overlayInfo: () => ipcRenderer.invoke('shiny-overlay-info'),
+    openObsDir: () => ipcRenderer.send('shiny-open-dir'),
+    captureSources: () => ipcRenderer.invoke('cap-sources'),
+    chooseSource: (id) => ipcRenderer.send('cap-choose', String(id)),
+  },
 });

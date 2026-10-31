@@ -1,10 +1,11 @@
-// Desktop-Hülle für Rattata Lab (Damage Calculator + Teambuilder): öffnet index.html in einem eigenen Fenster.
+// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler): öffnet index.html in einem eigenen Fenster.
 // Die Web-App selbst bleibt unverändert und läuft auch weiterhin direkt im Browser.
 // Das Fenster hat keinen Windows-Rahmen; die Kopfzeile der App ist die Titelleiste (Ziehen, Doppelklick
 // maximiert) und zeigt eigene Knöpfe für Minimieren, Maximieren und Schließen (electron/preload.js).
 const { app, BrowserWindow, shell, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const shiny = require('./shiny');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -40,6 +41,8 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false,
+      // the shiny counter keeps counting (hotkeys, auto detection) while the window is in the background
+      backgroundThrottling: false,
     },
   });
   if (b.maximized) win.maximize();
@@ -88,6 +91,7 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
     createWindow();
+    shiny.init(win);
   });
   app.on('window-all-closed', () => app.quit());
 }
