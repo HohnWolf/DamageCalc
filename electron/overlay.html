@@ -6,9 +6,12 @@
 <!--
   OBS-Browser-Quelle des Shiny-Zählers. Parameter in der Adresse:
     hunt=<id>|active   welcher Hunt (Standard: der aktive)
-    layout=card|row|count
+    layout=card|row|count|free
     sprite=0  odds=0  timer=0  phase=0  name=0   Teile ausblenden
     color=ffffff  accent=f2c94c  bg=transparent|1b1d21  size=1.0  font=Name
+  layout=free: Bühnengröße, Position und Größe jedes Teils kommen live aus /state (overlay.free),
+  eingestellt in der App unter „Hotkeys & OBS“. edit=1 (nur die Vorschau in der App): Teile mit der Maus
+  verschieben, Mausrad = Größe, Pfeiltasten = genau verschieben; Änderungen gehen per postMessage an die App.
 -->
 <style>
   html, body { margin: 0; background: transparent; overflow: hidden; }
@@ -26,17 +29,27 @@
   .bump { animation: bump .35s ease-out; }
   @keyframes bump { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
   .hide { display: none !important; }
+  /* free layout: every part sits where it was placed, with its own size */
+  .ov.free { display: block; position: relative; padding: 0; box-sizing: border-box; }
+  .ov.free .txt { display: contents; }
+  .ov.free .part { position: absolute; white-space: nowrap; }
+  .ov.free .count { transform-origin: left center; }
+  /* editing in the app preview */
+  .edit .ov.free { outline: 1px dashed rgba(255,255,255,.35); outline-offset: -1px; }
+  .edit .part { cursor: move; user-select: none; -webkit-user-drag: none; }
+  .edit .part:hover { outline: 1px dashed rgba(242,201,76,.8); }
+  .edit .part.sel { outline: 2px solid #f2c94c; outline-offset: 1px; }
 </style>
 </head>
 <body>
 <div class="ov" id="ov">
-  <img class="sprite" id="sprite" alt="">
+  <img class="sprite part" id="sprite" alt="" draggable="false">
   <div class="txt">
-    <div class="name" id="name"></div>
-    <div class="count" id="count">0</div>
-    <div class="meta" id="odds"></div>
-    <div class="meta" id="phase"></div>
-    <div class="meta" id="timer"></div>
+    <div class="name part" id="name"></div>
+    <div class="count part" id="count">0</div>
+    <div class="meta part" id="odds"></div>
+    <div class="meta part" id="phase"></div>
+    <div class="meta part" id="timer"></div>
   </div>
 </div>
 <script>
@@ -50,13 +63,84 @@
   if (q.get('font')) root.style.setProperty('--font', q.get('font'));
   var ov = document.getElementById('ov');
   var layout = q.get('layout') || 'row';
+  var free = layout === 'free', edit = free && q.get('edit') === '1';
   ov.classList.add(layout);
+  if (edit) document.body.classList.add('edit');
   function on(k) { return q.get(k) !== '0'; }
   if (!on('sprite') || layout === 'count') document.getElementById('sprite').classList.add('hide');
   if (!on('name') || layout === 'count') document.getElementById('name').classList.add('hide');
   if (!on('odds') || layout === 'count') document.getElementById('odds').classList.add('hide');
   if (!on('phase') || layout === 'count') document.getElementById('phase').classList.add('hide');
   if (!on('timer') || layout === 'count') document.getElementById('timer').classList.add('hide');
+
+  // ---------------- free layout ----------------
+  var PARTS = ['sprite', 'name', 'count', 'odds', 'phase', 'timer'];
+  var cfg = null, applied = '';
+  function applyFree(f) {
+    if (!f || !f.items) return;
+    var key = JSON.stringify(f);
+    if (key === applied) return;
+    applied = key;
+    cfg = JSON.parse(key);
+    root.style.setProperty('--s', '1');
+    ov.style.width = cfg.w + 'px'; ov.style.height = cfg.h + 'px';
+    PARTS.forEach(function (k) {
+      var it = cfg.items[k], e = document.getElementById(k);
+      if (!it) return;
+      e.style.left = it.x + 'px'; e.style.top = it.y + 'px';
+      e.style.setProperty('--s', it.s);
+    });
+  }
+  function send() { if (edit && cfg) parent.postMessage({ type: 'rl-ov-free', items: cfg.items }, '*'); }
+  if (edit) {
+    window.addEventListener('message', function (ev) {
+      if (ev.data && ev.data.type === 'rl-ov-free-set') { applied = ''; applyFree(ev.data.free); }
+    });
+    var drag = null, selKey = null;
+    function select(k) {
+      selKey = k;
+      PARTS.forEach(function (p) { document.getElementById(p).classList.toggle('sel', p === k); });
+    }
+    function place(k) { var it = cfg.items[k], e = document.getElementById(k); e.style.left = it.x + 'px'; e.style.top = it.y + 'px'; e.style.setProperty('--s', it.s); }
+    function clamp(k) {
+      var it = cfg.items[k], e = document.getElementById(k);
+      it.x = Math.round(Math.max(-e.offsetWidth + 10, Math.min(cfg.w - 10, it.x)));
+      it.y = Math.round(Math.max(-e.offsetHeight + 10, Math.min(cfg.h - 10, it.y)));
+    }
+    PARTS.forEach(function (k) {
+      var e = document.getElementById(k);
+      e.title = 'Ziehen = verschieben · Mausrad = Größe · Pfeiltasten = genau';
+      e.addEventListener('mousedown', function (ev) {
+        if (!cfg || ev.button !== 0) return;
+        ev.preventDefault(); select(k);
+        drag = { k: k, x0: ev.clientX, y0: ev.clientY, ix: cfg.items[k].x, iy: cfg.items[k].y };
+      });
+      e.addEventListener('wheel', function (ev) {
+        if (!cfg) return;
+        ev.preventDefault(); select(k);
+        var it = cfg.items[k];
+        it.s = Math.round(Math.max(0.3, Math.min(5, it.s * (ev.deltaY < 0 ? 1.08 : 1 / 1.08))) * 100) / 100;
+        place(k); clamp(k); place(k); send();
+      }, { passive: false });
+    });
+    window.addEventListener('mousemove', function (ev) {
+      if (!drag) return;
+      var it = cfg.items[drag.k];
+      it.x = drag.ix + ev.clientX - drag.x0; it.y = drag.iy + ev.clientY - drag.y0;
+      clamp(drag.k); place(drag.k);
+    });
+    window.addEventListener('mouseup', function () { if (drag) { drag = null; send(); } });
+    document.addEventListener('mousedown', function (ev) { if (!ev.target.closest('.part')) select(null); });
+    window.addEventListener('keydown', function (ev) {
+      if (!selKey || !cfg) return;
+      var d = ev.shiftKey ? 10 : 1, it = cfg.items[selKey];
+      if (ev.key === 'ArrowLeft') it.x -= d; else if (ev.key === 'ArrowRight') it.x += d;
+      else if (ev.key === 'ArrowUp') it.y -= d; else if (ev.key === 'ArrowDown') it.y += d;
+      else return;
+      ev.preventDefault(); clamp(selKey); place(selKey); send();
+    });
+  }
+
   var last = null, lastSprite = '';
   function setSprite(id, shiny) {
     var key = id + '|' + shiny;
@@ -70,11 +154,17 @@
   }
   function tick() {
     fetch('/state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
+      // while editing, the app hands the arrangement over directly (message rl-ov-free-set) and the preview is the source
+      if (free && !edit && s.overlay && s.overlay.free) applyFree(s.overlay.free);
       var want = q.get('hunt');
       var h = null;
       (s.hunts || []).forEach(function (x) { if ((want && want !== 'active' ? x.id === want : x.id === s.active)) h = x; });
       if (!h) h = (s.hunts || [])[0];
-      if (!h) return;
+      if (!h) {
+        // nothing to show yet: placeholders, so the parts can still be arranged
+        if (edit) { document.getElementById('name').textContent = 'Pokémon'; document.getElementById('odds').textContent = '1/4.096 · 0,00 %'; document.getElementById('phase').textContent = 'Phase 2'; document.getElementById('timer').textContent = '0:00:00'; }
+        return;
+      }
       setSprite(h.sprite, true);
       document.getElementById('name').textContent = h.name;
       var c = document.getElementById('count');
@@ -82,8 +172,9 @@
       last = h.count;
       c.textContent = h.count.toLocaleString('de-DE');
       document.getElementById('odds').textContent = h.oddsText + (h.chanceText ? ' · ' + h.chanceText : '');
-      document.getElementById('phase').textContent = h.phaseText || '';
-      document.getElementById('timer').textContent = h.timeText || '';
+      // in the editor, empty parts get a sample text so they can be grabbed
+      document.getElementById('phase').textContent = h.phaseText || (edit ? 'Phase 2 · 1.234 gesamt' : '');
+      document.getElementById('timer').textContent = h.timeText || (edit ? '0:00:00' : '');
       ov.classList.toggle('found', !!h.found);
     }).catch(function () { /* app closed */ });
   }

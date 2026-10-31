@@ -10,7 +10,7 @@ const fs = require('fs');
 
 const BASE_PORT = 39151;
 let win = null;
-let state = { hunts: [], active: null, updated: 0 };
+let state = { hunts: [], active: null, overlay: null, updated: 0 };
 let port = 0;
 let chosenSource = null;
 
@@ -83,7 +83,8 @@ function init(mainWindow) {
   ipcMain.handle('shiny-hotkeys', (e, map) => setHotkeys(map));
   ipcMain.on('shiny-state', (e, s) => {
     if (!s || !Array.isArray(s.hunts)) return;
-    state = { hunts: s.hunts, active: s.active, updated: Date.now() };
+    // overlay: Anordnung des freien Layouts (Bühne, Position und Größe der Teile), live für OBS
+    state = { hunts: s.hunts, active: s.active, overlay: s.overlay || null, updated: Date.now() };
     writeFiles();
   });
   ipcMain.handle('shiny-overlay-info', () => ({ port, url: port ? 'http://127.0.0.1:' + port + '/overlay' : '', dir: obsDir() }));

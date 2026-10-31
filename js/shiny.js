@@ -32,7 +32,9 @@
     act_inc: 'Zählen (+)', act_dec: 'Zurück (−)', act_phase: 'Phase abschließen', act_timer: 'Timer starten/pausieren',
     change: 'Ändern', remove: 'Entfernen', pressKeys: 'Tastenkombination drücken … (Esc bricht ab)', hkOk: 'aktiv', hkFail: 'belegt oder ungültig', none: '—',
     obsTitle: 'OBS-Overlay', obsHint: 'In OBS eine „Browser“-Quelle mit dieser Adresse anlegen (Breite z. B. 600, Höhe 250). Hintergrund ist durchsichtig.',
-    obsDesktop: 'Das OBS-Overlay gibt es nur in der Desktop-App.', copy: 'Kopieren', layout: 'Layout', l_row: 'Nebeneinander', l_card: 'Karte', l_count: 'Nur Zahl',
+    obsDesktop: 'Das OBS-Overlay gibt es nur in der Desktop-App.', copy: 'Kopieren', layout: 'Layout', l_row: 'Nebeneinander', l_card: 'Karte', l_count: 'Nur Zahl', l_free: 'Frei anordnen',
+    freeHint: 'Teile in der Vorschau mit der Maus verschieben. Mausrad über einem Teil = Größe, Pfeiltasten = genau verschieben (mit Umschalt 10 px). Änderungen erscheinen sofort in OBS.',
+    freeObs: 'In OBS die Browser-Quelle auf {0} × {1} stellen.', stageW: 'Breite', stageH: 'Höhe', freeReset: 'Anordnung zurücksetzen',
     show: 'Anzeigen', sh_sprite: 'Sprite', sh_name: 'Name', sh_odds: 'Quote', sh_phase: 'Phase', sh_timer: 'Timer', color: 'Schrift', accent: 'Zahl', bg: 'Hintergrund',
     transparent: 'durchsichtig', size: 'Größe', which: 'Hunt', whichSel: 'immer der ausgewählte', preview: 'Vorschau', files: 'Textdateien für OBS',
     filesHint: 'Werden bei jeder Änderung aktualisiert (zaehler.txt, gesamt.txt, phase.txt, quote.txt, chance.txt, timer.txt, pokemon.txt, methode.txt, spiel.txt).',
@@ -59,7 +61,9 @@
     act_inc: 'Count (+)', act_dec: 'Back (−)', act_phase: 'Finish phase', act_timer: 'Start/pause timer',
     change: 'Change', remove: 'Remove', pressKeys: 'Press a key combination … (Esc cancels)', hkOk: 'active', hkFail: 'taken or invalid', none: '—',
     obsTitle: 'OBS overlay', obsHint: 'Add a "Browser" source in OBS with this address (e.g. width 600, height 250). The background is transparent.',
-    obsDesktop: 'The OBS overlay is only available in the desktop app.', copy: 'Copy', layout: 'Layout', l_row: 'Side by side', l_card: 'Card', l_count: 'Number only',
+    obsDesktop: 'The OBS overlay is only available in the desktop app.', copy: 'Copy', layout: 'Layout', l_row: 'Side by side', l_card: 'Card', l_count: 'Number only', l_free: 'Free arrangement',
+    freeHint: 'Drag the parts in the preview with the mouse. Mouse wheel over a part = size, arrow keys = move precisely (with Shift 10 px). Changes show up in OBS right away.',
+    freeObs: 'Set the browser source in OBS to {0} × {1}.', stageW: 'Width', stageH: 'Height', freeReset: 'Reset arrangement',
     show: 'Show', sh_sprite: 'Sprite', sh_name: 'Name', sh_odds: 'Odds', sh_phase: 'Phase', sh_timer: 'Timer', color: 'Text', accent: 'Number', bg: 'Background',
     transparent: 'transparent', size: 'Size', which: 'Hunt', whichSel: 'always the selected one', preview: 'Preview', files: 'Text files for OBS',
     filesHint: 'Updated on every change (zaehler.txt = count, gesamt.txt = total, phase.txt, quote.txt = odds, chance.txt, timer.txt, pokemon.txt, methode.txt, spiel.txt).',
@@ -137,6 +141,30 @@
   store.collection = store.collection || [];
   store.hotkeys = store.hotkeys || { inc: 'CommandOrControl+Alt+Up', dec: 'CommandOrControl+Alt+Down', phase: '', timer: 'CommandOrControl+Alt+T' };
   store.overlay = store.overlay || { layout: 'row', sprite: 1, name: 1, odds: 1, phase: 1, timer: 1, color: '#ffffff', accent: '#f2c94c', bg: '', size: 1, hunt: '' };
+  // free overlay layout: stage size and, per part, position (px from the top left) and size factor
+  var OV_PARTS = ['sprite', 'name', 'count', 'odds', 'phase', 'timer'];
+  function freeDefaults() {
+    return { w: 600, h: 250, items: { sprite: { x: 12, y: 65, s: 1 }, name: { x: 150, y: 58, s: 1 }, count: { x: 150, y: 88, s: 1 },
+      odds: { x: 150, y: 146, s: 1 }, phase: { x: 150, y: 168, s: 1 }, timer: { x: 150, y: 190, s: 1 } } };
+  }
+  function cleanFree(f) {
+    var d = freeDefaults(), num = function (v, lo, hi, def) { v = +v; return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : def; };
+    f = f && typeof f === 'object' ? f : {};
+    var out = { w: Math.round(num(f.w, 100, 3840, d.w)), h: Math.round(num(f.h, 50, 2160, d.h)), items: {} };
+    OV_PARTS.forEach(function (k) {
+      var it = (f.items && f.items[k]) || {}, di = d.items[k];
+      out.items[k] = { x: Math.round(num(it.x, -4000, 4000, di.x)), y: Math.round(num(it.y, -4000, 4000, di.y)), s: Math.round(num(it.s, 0.3, 5, di.s) * 100) / 100 };
+    });
+    return out;
+  }
+  store.overlay.free = cleanFree(store.overlay.free);
+  // the preview (electron/overlay.html?edit=1 on the local OBS server) reports every move or resize
+  window.addEventListener('message', function (ev) {
+    var d = ev.data;
+    if (!d || d.type !== 'rl-ov-free' || !/^http:\/\/127\.0\.0\.1:\d+$/.test(ev.origin)) return;
+    store.overlay.free = cleanFree({ w: store.overlay.free.w, h: store.overlay.free.h, items: d.items });
+    persist();
+  });
   store.tab = store.tab || 'hunts';
   store.dexGen = store.dexGen || 0;
   store.dexView = store.dexView || 'catches';
@@ -251,7 +279,7 @@
     clearTimeout(pushTimer);
     pushTimer = setTimeout(function () {
       var active = store.overlay.hunt && hunt(store.overlay.hunt) ? store.overlay.hunt : (sel() ? sel().id : null);
-      D.pushState({ hunts: store.hunts.map(stateOf), active: active });
+      D.pushState({ hunts: store.hunts.map(stateOf), active: active, overlay: { free: store.overlay.free } });
     }, 60);
   }
   // timers tick every second (screen and overlay)
@@ -781,8 +809,10 @@
       s.addEventListener('change', function () { fn(s.value); persist(); update(); }); w.appendChild(s); opts.appendChild(w);
     }
     sel3(t('which'), [['', t('whichSel')]].concat(store.hunts.map(function (h) { return [h.id, huntName(h)]; })), o.hunt || '', function (v) { o.hunt = v; });
-    sel3(t('layout'), [['row', t('l_row')], ['card', t('l_card')], ['count', t('l_count')]], o.layout, function (v) { o.layout = v; });
-    sel3(t('size'), [[0.6, '60 %'], [0.8, '80 %'], [1, '100 %'], [1.25, '125 %'], [1.5, '150 %'], [2, '200 %']], o.size, function (v) { o.size = +v; });
+    var isFree = o.layout === 'free';
+    sel3(t('layout'), [['row', t('l_row')], ['card', t('l_card')], ['count', t('l_count')], ['free', t('l_free')]], o.layout, function (v) { o.layout = v; render(); });
+    // free arrangement: every part has its own size, so the overall size is not needed
+    if (!isFree) sel3(t('size'), [[0.6, '60 %'], [0.8, '80 %'], [1, '100 %'], [1.25, '125 %'], [1.5, '150 %'], [2, '200 %']], o.size, function (v) { o.size = +v; });
     ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) {
       var c = el('label', { class: 'nc-check sh-chk' }); var cb = el('input', { type: 'checkbox' }); cb.checked = !!o[k];
       cb.addEventListener('change', function () { o[k] = cb.checked ? 1 : 0; persist(); update(); });
@@ -801,10 +831,41 @@
     bw.appendChild(bgc); bw.appendChild(document.createTextNode(t('transparent') + ' ')); bw.appendChild(bgi);
     opts.appendChild(bw);
     op.appendChild(opts);
+    var obsSize = null;
+    if (isFree) {
+      var fr = el('div', { class: 'sh-obs-opts sh-free-opts' });
+      [['w', t('stageW'), 100, 3840], ['h', t('stageH'), 50, 2160]].forEach(function (x) {
+        var w = el('label', { class: 'nc-sel' }); w.appendChild(el('span', { text: x[1] }));
+        var ni = el('input', { type: 'number', min: x[2], max: x[3], step: 10, value: o.free[x[0]] });
+        ni.addEventListener('change', function () { o.free[x[0]] = +ni.value; o.free = cleanFree(o.free); ni.value = o.free[x[0]]; persist(); update(); });
+        w.appendChild(ni); w.appendChild(document.createTextNode(' px')); fr.appendChild(w);
+      });
+      var rs = el('button', { class: 'tbtn', text: t('freeReset') });
+      rs.addEventListener('click', function () { var w = o.free.w, h = o.free.h; o.free = freeDefaults(); o.free.w = w; o.free.h = h; persist(); update(); });
+      fr.appendChild(rs);
+      op.appendChild(fr);
+      op.appendChild(el('div', { class: 'hint', text: t('freeHint') }));
+      obsSize = el('div', { class: 'hint sh-free-obs' });
+      op.appendChild(obsSize);
+    }
     op.appendChild(el('div', { class: 'sh-lbl', text: t('preview') }));
+    // free arrangement: the preview is the real overlay in edit mode at the stage size, scaled down to fit
+    var frameWrap = el('div', { class: 'sh-preview-wrap' + (isFree ? ' free' : '') });
     var frame = el('iframe', { class: 'sh-preview', title: t('preview') });
-    op.appendChild(frame);
+    frameWrap.appendChild(frame);
+    op.appendChild(frameWrap);
+    frame.addEventListener('load', function () {
+      if (isFree && frame.contentWindow) frame.contentWindow.postMessage({ type: 'rl-ov-free-set', free: o.free }, '*');
+    });
     var baseUrl = '';
+    function fitFrame() {
+      if (!isFree) return;
+      var k = Math.min(1, (frameWrap.clientWidth || 900) / o.free.w);
+      frame.style.width = o.free.w + 'px'; frame.style.height = o.free.h + 'px';
+      frame.style.transform = 'scale(' + k + ')';
+      frameWrap.style.height = Math.ceil(o.free.h * k) + 2 + 'px';
+      if (obsSize) obsSize.textContent = t('freeObs', o.free.w, o.free.h);
+    }
     function url() {
       var q = [];
       if (o.hunt) q.push('hunt=' + encodeURIComponent(o.hunt));
@@ -813,10 +874,16 @@
       if (o.color && o.color !== '#ffffff') q.push('color=' + o.color.slice(1));
       if (o.accent && o.accent !== '#f2c94c') q.push('accent=' + o.accent.slice(1));
       if (o.bg) q.push('bg=' + o.bg.slice(1));
-      if (+o.size !== 1) q.push('size=' + o.size);
+      if (+o.size !== 1 && o.layout !== 'free') q.push('size=' + o.size);
       return baseUrl + (q.length ? '?' + q.join('&') : '');
     }
-    function update() { if (!baseUrl) return; urlIn.value = url(); frame.src = url(); }
+    function update() {
+      if (!baseUrl) return;
+      var u = url();
+      urlIn.value = u;
+      frame.src = isFree ? u + (u.indexOf('?') >= 0 ? '&' : '?') + 'edit=1' : u;
+      fitFrame();
+    }
     wrap.appendChild(op);
     // text files
     var fp = el('div', { class: 'panel sh-card' });

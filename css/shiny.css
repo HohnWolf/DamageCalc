@@ -133,6 +133,11 @@
 .sh-obs-opts input[type=color] { width: 34px; height: 26px; padding: 0 2px; }
 .sh-preview { width: 100%; height: 260px; border: 1px dashed var(--line); border-radius: var(--radius);
   background: repeating-conic-gradient(#2a2d33 0% 25%, #22252a 0% 50%) 0 0 / 20px 20px; }
+/* free arrangement: the preview has the stage size and is scaled down to the panel width */
+.sh-preview-wrap.free { position: relative; overflow: hidden; }
+.sh-preview-wrap.free .sh-preview { display: block; border: 0; border-radius: 0; transform-origin: 0 0; }
+.sh-free-opts input[type=number] { width: 76px; height: 28px; }
+.sh-free-obs { font-weight: 600; }
 
 /* ---------- auto detection ---------- */
 .sh-detect { grid-column: 1 / -1; padding: 8px 12px 12px; gap: 8px; }
