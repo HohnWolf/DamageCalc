@@ -5,6 +5,8 @@
 // (Korrelation + mittlere Abweichung) und über eine Zustandsmaschine gezählt:
 //   bereit → Treffer in Folge ≥ N → +1 und gesperrt → Ähnlichkeit fällt unter die Schwelle → Abklingzeit → bereit
 // So zählt eine Begegnung genau einmal. Alles läuft lokal; das Bild verlässt den Rechner nicht.
+// Modus „Text suchen“ (nur Windows-App): statt eines Bildvergleichs liest die Windows-Texterkennung den Text im Rahmen
+// (electron/ocr.js) und zählt, sobald der gesuchte Name darin steht; kleine Lesefehler werden toleriert.
 (function () {
   'use strict';
   var A = window.CC;
@@ -22,7 +24,12 @@
     noRegion: 'Erst einen Bereich markieren.', noRef: 'Erst eine Referenz aufnehmen.', regionChanged: 'Der Bereich hat sich geändert: vorhandene Referenzen passen nicht mehr und wurden entfernt.',
     errSource: 'Die Quelle konnte nicht geöffnet werden: {0}', del: 'Entfernen', sources: 'Bildschirm oder Fenster wählen', cancel: 'Abbrechen',
     alphaNote: 'Frühe Testversion: Bitte mit „Nur testen“ prüfen, ob jede Begegnung genau einmal erkannt wird, bevor du sie zählen lässt.',
-    testHit: 'Test: Begegnung erkannt'
+    testHit: 'Test: Begegnung erkannt',
+    modeImage: 'Bild vergleichen', modeText: 'Text suchen', modeTextT: 'Liest den Text im Rahmen (Windows-Texterkennung) und zählt, sobald der gesuchte Name darin steht',
+    words: 'Gesuchter Text', wordsHint: 'Mehrere Varianten mit Komma trennen. Leer = Name des Hunts ({0}).', wordsHintNone: 'Mehrere Varianten mit Komma trennen.',
+    regionHintText: 'Ziehe im Bild einen Rahmen um die Stelle, an der der Name steht (z. B. die Textbox „Ein wildes … erscheint!“ oder das Namensfeld des Gegners).',
+    read: 'Gelesen: {0}', readNone: '(kein Text)', match: 'Übereinstimmung {0} · nötig {1}', reading: 'Lese …',
+    noWords: 'Erst den gesuchten Text eingeben.', ocrDesktop: 'Texterkennung gibt es nur in der Windows-App.', ocrErr: 'Texterkennung: {0}'
   } : {
     title: 'Auto detection', off: 'off', ready: 'ready', latched: 'detected', cooldown: 'cooldown', noSource: 'no source',
     screen: 'Screen / window', camera: 'Camera / capture card', cameraN: 'Camera {0}', pickSource: 'Choose source', reconnect: 'Connect: {0}',
@@ -34,7 +41,12 @@
     noRegion: 'Mark an area first.', noRef: 'Capture a reference first.', regionChanged: 'The area changed: existing references no longer fit and were removed.',
     errSource: 'The source could not be opened: {0}', del: 'Remove', sources: 'Choose a screen or window', cancel: 'Cancel',
     alphaNote: 'Early test version: use "Test only" to check that every encounter is detected exactly once before letting it count.',
-    testHit: 'Test: encounter detected'
+    testHit: 'Test: encounter detected',
+    modeImage: 'Compare picture', modeText: 'Find text', modeTextT: 'Reads the text in the frame (Windows text recognition) and counts as soon as the wanted name appears',
+    words: 'Wanted text', wordsHint: 'Separate several variants with commas. Empty = name of the hunt ({0}).', wordsHintNone: 'Separate several variants with commas.',
+    regionHintText: 'Drag a frame in the picture around the spot where the name appears (e.g. the text box "A wild … appeared!" or the opponent’s name field).',
+    read: 'Read: {0}', readNone: '(no text)', match: 'Match {0} · needed {1}', reading: 'Reading …',
+    noWords: 'Enter the wanted text first.', ocrDesktop: 'Text recognition is only available in the Windows app.', ocrErr: 'Text recognition: {0}'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
   function num(x, d) { return x.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
@@ -53,6 +65,8 @@
     if (c.thr == null) c.thr = 0.85;
     if (c.hits == null) c.hits = 3;
     if (c.cool == null) c.cool = 1.5;
+    if (c.mode !== 'text') c.mode = 'image';
+    if (typeof c.words !== 'string') c.words = '';
     c.refs = cleanRefs(c.refs);
     return c;
   }
@@ -163,24 +177,98 @@
     return best;
   }
 
+  // ---------------- text search (Windows OCR, electron/ocr.js) ----------------
+  var TEXT_THR = 0.8;
+  var OCR = D && D.ocr ? D.ocr : null;
+  // lower case, no accents, ß → ss, everything else than letters and digits becomes a word gap
+  function normWords(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss')
+      .split(/[^a-z0-9]+/).filter(Boolean);
+  }
+  function lev(a, b) {
+    var m = a.length, n = b.length, prev = [], cur, i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur = [i];
+      for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1));
+      prev = cur;
+    }
+    return prev[n];
+  }
+  // 1 = the wanted text stands as its own word(s); one misread letter in a 5+ letter name still reaches 0.8.
+  // Compared against 1–3 neighbouring words, so "Ratt fratz" still fits, but "Abra" does not fire on "Kadabra".
+  function textScore(read, wanted) {
+    var words = normWords(read), best = 0;
+    wanted.forEach(function (w) {
+      var target = normWords(w).join('');
+      if (!target) return;
+      for (var i = 0; i < words.length; i++) {
+        var cand = '';
+        for (var k = i; k < Math.min(words.length, i + 3); k++) {
+          cand += words[k];
+          var sc = 1 - lev(target, cand) / Math.max(target.length, cand.length);
+          if (sc > best) best = sc;
+        }
+      }
+    });
+    return best;
+  }
+  function wantedTexts(c, api) {
+    var list = String(c.words || '').split(/[,;\n]/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!list.length && api && api.name) { var nm = api.name(); if (nm) list = [nm]; }
+    return list;
+  }
+  var ocrCanvas = document.createElement('canvas'), octx = ocrCanvas.getContext('2d');
+  function ocrImage(video, r) {
+    var p = regionPx(video, r);
+    // small text reads better a bit larger; Windows OCR takes at most about 2600 px per side
+    var k = Math.min(p.h < 80 ? 2 : 1, 2400 / p.w, 2400 / p.h);
+    ocrCanvas.width = Math.max(1, Math.round(p.w * k)); ocrCanvas.height = Math.max(1, Math.round(p.h * k));
+    octx.imageSmoothingQuality = 'high';
+    octx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
+    return ocrCanvas.toDataURL('image/png').split(',')[1];
+  }
+  // one picture at a time, at most 5 per second
+  function textTick(s, c) {
+    var v = s.video;
+    if (!OCR || s.ocrBusy || !c.region || v.readyState < 2 || !v.videoWidth || Date.now() - (s.ocrAt || 0) < 200) return;
+    var img;
+    try { img = ocrImage(v, c.region); } catch (e) { return; }
+    s.ocrBusy = true; s.ocrAt = Date.now();
+    OCR(img).then(function (r) {
+      s.ocrBusy = false;
+      if (sessions[s.hunt.id] !== s) return; // disconnected meanwhile
+      var cc = cfg(s.hunt);
+      if (cc.mode !== 'text') return;
+      if (!r || r.error) { s.ocrErr = r ? r.error : '?'; s.score = 0; return; }
+      s.ocrErr = ''; s.ocrText = r.text || '';
+      s.score = textScore(s.ocrText, wantedTexts(cc, s.api));
+      if (s.running) step(s, cc, s.score, TEXT_THR);
+    }, function (e) { s.ocrBusy = false; s.ocrErr = String(e && e.message || e); });
+  }
+
   // ---------------- detection loop ----------------
+  // ready → N hits in a row → +1 and latched → score drops below the threshold → cooldown → ready
+  function step(s, c, sc, thr) {
+    var now = Date.now();
+    if (s.state === 'idle') {
+      if (sc >= thr) { s.hitsN++; if (s.hitsN >= c.hits) { s.state = 'latched'; s.missN = 0; hit(s); } }
+      else s.hitsN = 0;
+    } else if (s.state === 'latched') {
+      if (sc < thr - 0.08) { s.missN++; if (s.missN >= 3) { s.state = 'cooldown'; s.until = now + c.cool * 1000; } }
+      else s.missN = 0;
+    } else if (s.state === 'cooldown' && now >= s.until) { s.state = 'idle'; s.hitsN = 0; }
+  }
   function startLoop(s) {
     clearInterval(s.loop);
     s.loop = setInterval(function () {
       var h = s.hunt, c = cfg(h);
+      if (c.mode === 'text') { textTick(s, c); return; }
       var sc = scoreNow(s, c);
       if (sc == null) return;
       s.score = sc;
       if (s.calib) { s.calib.push(sc); }
-      if (!s.running) return;
-      var now = Date.now();
-      if (s.state === 'idle') {
-        if (sc >= c.thr) { s.hitsN++; if (s.hitsN >= c.hits) { s.state = 'latched'; s.missN = 0; hit(s); } }
-        else s.hitsN = 0;
-      } else if (s.state === 'latched') {
-        if (sc < c.thr - 0.08) { s.missN++; if (s.missN >= 3) { s.state = 'cooldown'; s.until = now + c.cool * 1000; } }
-        else s.missN = 0;
-      } else if (s.state === 'cooldown' && now >= s.until) { s.state = 'idle'; s.hitsN = 0; }
+      if (s.running) step(s, c, sc, c.thr);
     }, 100);
   }
   function hit(s) {
@@ -236,10 +324,26 @@
       connect(h, src, api).then(function () { api.persist(); panel(box, h, api); }, function (e) { A.toast(t('errSource', e && e.message ? e.message : e)); });
     }
 
+    var textMode = c.mode === 'text';
+    var mr = el('div', { class: 'det-row' });
+    var mg = el('div', { class: 'btn-group' });
+    [['image', t('modeImage')], ['text', t('modeText')]].forEach(function (m) {
+      var b = el('button', { class: c.mode === m[0] ? 'on' : '', text: m[1] });
+      if (m[0] === 'text') { b.title = OCR ? t('modeTextT') : t('ocrDesktop'); b.disabled = !OCR; }
+      b.addEventListener('click', function () {
+        if (c.mode === m[0]) return;
+        c.mode = m[0]; s.running = false; s.state = 'idle'; s.hitsN = 0; s.score = 0; s.ocrText = ''; s.ocrErr = '';
+        api.persist(); panel(box, h, api);
+      });
+      mg.appendChild(b);
+    });
+    mr.appendChild(mg);
+    box.appendChild(mr);
+
     // preview with region selection
     var cv = el('canvas', { class: 'det-preview' });
     box.appendChild(cv);
-    box.appendChild(el('div', { class: 'hint', text: t('regionHint') }));
+    box.appendChild(el('div', { class: 'hint', text: t(textMode ? 'regionHintText' : 'regionHint') }));
     var ctx = cv.getContext('2d');
     var drag = null;
     function rel(ev) { var r = cv.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) }; }
@@ -252,7 +356,7 @@
       var x = Math.min(drag.a.x, drag.b.x), y = Math.min(drag.a.y, drag.b.y), w = Math.abs(drag.a.x - drag.b.x), hh = Math.abs(drag.a.y - drag.b.y);
       drag = null;
       if (w < 0.01 || hh < 0.01) return;
-      if (c.refs.length) { c.refs = []; A.toast(t('regionChanged')); }
+      if (c.refs.length && !textMode) { c.refs = []; A.toast(t('regionChanged')); }
       c.region = { x: x, y: y, w: w, h: hh };
       api.persist(); panel(box, h, api);
     });
@@ -275,10 +379,14 @@
       stEl.textContent = (s.src.label || '') + ' · ' + st;
       stEl.className = 'det-state ' + (s.running ? s.state : 'off');
       if (meterFill) {
+        var thr = textMode ? TEXT_THR : c.thr;
         meterFill.style.width = Math.round((s.score || 0) * 100) + '%';
-        meterFill.className = (s.score || 0) >= c.thr ? 'on' : '';
-        meterMark.style.left = Math.round(c.thr * 100) + '%';
-        meterTxt.textContent = t('score', num(s.score || 0, 2), num(c.thr, 2));
+        meterFill.className = (s.score || 0) >= thr ? 'on' : '';
+        meterMark.style.left = Math.round(thr * 100) + '%';
+        if (textMode) {
+          var rd = s.ocrErr ? t('ocrErr', s.ocrErr) : s.ocrText == null ? t('reading') : t('read', s.ocrText ? '„' + s.ocrText.replace(/\s+/g, ' ').slice(0, 90) + '“' : t('readNone'));
+          meterTxt.textContent = rd + ' · ' + t('match', num(s.score || 0, 2), num(thr, 2));
+        } else meterTxt.textContent = t('score', num(s.score || 0, 2), num(c.thr, 2));
         cntTxt.textContent = t('counted', s.counted);
       }
       requestAnimationFrame(draw);
@@ -289,8 +397,22 @@
     tools.appendChild(dc);
     box.appendChild(tools);
 
+    // text mode: what to look for (empty = name of the hunt)
+    if (textMode) {
+      var nm = api.name ? api.name() : '';
+      var wr = el('div', { class: 'det-words' });
+      var wl = el('label', { class: 'nc-sel' });
+      wl.appendChild(el('span', { text: t('words') }));
+      var wi = el('input', { type: 'text', value: c.words, placeholder: nm, spellcheck: 'false' });
+      wi.addEventListener('input', function () { c.words = wi.value; api.persist(); });
+      wl.appendChild(wi);
+      wr.appendChild(wl);
+      wr.appendChild(el('div', { class: 'hint', text: nm ? t('wordsHint', nm) : t('wordsHintNone') }));
+      box.appendChild(wr);
+    }
     // references
     var rf = el('div', { class: 'det-refs' });
+    if (textMode) rf.hidden = true;
     rf.appendChild(el('span', { class: 'sh-lbl', text: t('refs') }));
     if (!c.refs.length) rf.appendChild(el('span', { class: 'hint', text: t('noRefs') }));
     c.refs.forEach(function (r, i) {
@@ -323,7 +445,7 @@
     var tw = el('label', { class: 'nc-sel' }); tw.appendChild(el('span', { text: t('thr') }));
     var tr = el('input', { type: 'range', min: 50, max: 99, value: Math.round(c.thr * 100) });
     tr.addEventListener('input', function () { c.thr = +tr.value / 100; api.persist(); });
-    tw.appendChild(tr); set.appendChild(tw);
+    tw.appendChild(tr); if (!textMode) set.appendChild(tw);
     var cal = el('button', { class: 'tbtn', text: t('calib'), title: t('calibT') });
     cal.addEventListener('click', function () {
       if (!c.refs.length) { A.toast(t('noRef')); return; }
@@ -338,7 +460,7 @@
         panel(box, h, api);
       }, 3000);
     });
-    set.appendChild(cal);
+    if (!textMode) set.appendChild(cal);
     var hw = el('label', { class: 'nc-sel' }); hw.appendChild(el('span', { text: t('hits') }));
     var hi = el('input', { type: 'number', min: 1, max: 20, value: c.hits });
     hi.addEventListener('change', function () { c.hits = Math.max(1, Math.min(20, +hi.value || 3)); api.persist(); });
@@ -354,7 +476,10 @@
     rb.addEventListener('click', function () {
       if (!s.running) {
         if (!c.region) { A.toast(t('noRegion')); return; }
-        if (!c.refs.length) { A.toast(t('noRef')); return; }
+        if (textMode) {
+          if (!OCR) { A.toast(t('ocrDesktop')); return; }
+          if (!wantedTexts(c, api).length) { A.toast(t('noWords')); return; }
+        } else if (!c.refs.length) { A.toast(t('noRef')); return; }
         s.running = true; s.state = 'idle'; s.hitsN = 0;
       } else s.running = false;
       if (!s.loop) startLoop(s);
@@ -376,7 +501,7 @@
   window.CCShinyDetect = {
     panel: panel, stop: stop, cleanRefs: cleanRefs,
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
-    _similarity: similarity, _sessions: sessions,
+    _similarity: similarity, _sessions: sessions, _textScore: textScore,
     // for tests: use any MediaStream (e.g. canvas.captureStream()) as the source
     _attach: function (h, stream, api) {
       stop(h.id);

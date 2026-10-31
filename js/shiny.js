@@ -481,7 +481,8 @@
     if (window.CCShinyDetect) {
       var dp = el('div', { class: 'sh-detect panel' });
       grid.appendChild(dp);
-      window.CCShinyDetect.panel(dp, h, { count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de });
+      window.CCShinyDetect.panel(dp, h, { count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
+        name: function () { return h.species ? monName(h.species) : ''; } });
     }
   }
 

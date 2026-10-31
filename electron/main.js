@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
 const updater = require('./updater');
+const ocr = require('./ocr');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -93,7 +94,11 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     createWindow();
     shiny.init(win);
+    ocr.init();
     updater.init(win);
+    // Chromium schreibt localStorage nur verzögert auf die Platte: alle 5 s sichern, damit bei einem Absturz
+    // oder "Task beenden" höchstens die letzten Sekunden Zählungen fehlen (kostet nichts, wenn sich nichts geändert hat)
+    setInterval(() => { try { session.defaultSession.flushStorageData(); } catch (e) { /* beim Beenden */ } }, 5000);
   });
   app.on('window-all-closed', () => app.quit());
   // Teams, Hunts und Referenzbilder (localStorage) vor dem Beenden sicher auf die Platte schreiben, auch beim Neustart für ein Update
