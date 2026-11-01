@@ -1,5 +1,6 @@
 // Brücke zwischen Seite und Hauptprozess: Fensterknöpfe der eigenen Titelleiste und der Desktop-Teil des Shiny-Zählers
-// (globale Hotkeys, OBS-Overlay/Textdateien, Auswahl der Bildschirmquelle, Texterkennung) und Updates. Sonst nichts.
+// (globale Hotkeys, OBS-Overlay/Textdateien, Auswahl der Bildschirmquelle, Texterkennung). Dieselbe Bildquelle und
+// Texterkennung nutzt das Kampfprotokoll. Dazu Updates. Sonst nichts.
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
@@ -15,8 +16,10 @@ contextBridge.exposeInMainWorld('desktop', {
     openObsDir: () => ipcRenderer.send('shiny-open-dir'),
     captureSources: () => ipcRenderer.invoke('cap-sources'),
     chooseSource: (id) => ipcRenderer.send('cap-choose', String(id)),
-    // Text im markierten Bereich lesen (PNG als Base64) → { text } oder { error } (electron/ocr.js)
-    ocr: (b64) => ipcRenderer.invoke('shiny-ocr', String(b64)),
+    // Text im markierten Bereich lesen (PNG als Base64) → { text } oder { error } (electron/ocr.js).
+    // Windows.Media.Ocr gibt es nur unter Windows. Auf anderen Systemen bleibt die Brücke weg,
+    // damit die Seite denselben Hinweis zeigt wie im Browser, statt PowerShell zu starten.
+    ocr: process.platform === 'win32' ? (b64) => ipcRenderer.invoke('shiny-ocr', String(b64)) : undefined,
   },
   // Updates über GitHub-Releases (electron/updater.js)
   update: {

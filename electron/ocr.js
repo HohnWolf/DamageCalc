@@ -1,4 +1,4 @@
-// Texterkennung für den Shiny-Zähler: startet beim ersten Bild electron/ocr.ps1 (Windows-OCR über PowerShell)
+// Texterkennung für den Shiny-Zähler und das Kampfprotokoll: startet beim ersten Bild electron/ocr.ps1 (Windows-OCR über PowerShell)
 // und lässt es im Hintergrund laufen. Ein Bild nach dem anderen; die Seite schickt erst das nächste, wenn die Antwort da ist.
 const { app, ipcMain } = require('electron');
 const { spawn } = require('child_process');

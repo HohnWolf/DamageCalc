@@ -1,4 +1,4 @@
-// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler): öffnet index.html in einem eigenen Fenster.
+// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Kampfprotokoll): öffnet index.html in einem eigenen Fenster.
 // Die Web-App selbst bleibt unverändert und läuft auch weiterhin direkt im Browser.
 // Das Fenster hat keinen Windows-Rahmen; die Kopfzeile der App ist die Titelleiste (Ziehen, Doppelklick
 // maximiert) und zeigt eigene Knöpfe für Minimieren, Maximieren und Schließen (electron/preload.js).
