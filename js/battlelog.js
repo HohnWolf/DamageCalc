@@ -1,8 +1,8 @@
-// Kampfprotokoll: schreibt einen Kampf mit, während die Spielaufzeichnung läuft.
+// Kampfprotokoll für Pokémon Champions: schreibt einen Ranglistenkampf mit, während die Spielaufzeichnung läuft.
 // Dieselbe Quelle wie der Shiny-Zähler (js/capture.js): Bildschirm/Fenster oder Kamera/Capture-Karte.
-// Die Windows-Texterkennung liest das Kampftextfeld; KP-Leisten werden nur als Farbanteil geschätzt.
-// Was ein festes Muster trifft (Attacke, Wechsel, K.O., „Runde N“, Sieg) gilt als zuverlässig,
-// KP-Leiste, geratene Runde und unscharf gelesene Namen als Schätzung.
+// Die Windows-Texterkennung liest das Kampftextfeld und die Prozentzahl auf der KP-Leiste.
+// Arten und Attacken nur aus dem Champions-Dex. Wilde Begegnungen und der Nationaldex zählen nicht.
+// Festes Muster plus exakter Name gilt als zuverlässig; Leistenfarbe, geratene Runde und unscharfe Namen als Schätzung.
 (function () {
   'use strict';
   var A = window.CC;
@@ -11,60 +11,60 @@
   var el = A.el, de = A.LANG === 'de';
 
   var S = de ? {
-    title: 'Kampfprotokoll', sub: 'Schreibt den Kampf mit, während du spielst. Nutzt dieselbe Spielaufzeichnung wie der Shiny-Zähler.',
-    alpha: 'Frühe Testversion. Attacken, Wechsel, K.O. und der Sieg stehen fest, sobald die Texterkennung die Zeile richtig liest. KP-Leisten und Runden ohne „Runde“ oder „Turn“ sind Schätzungen.',
+    title: 'Kampfprotokoll', sub: 'Für Pokémon Champions. Nutzt dieselbe Spielaufzeichnung wie der Shiny-Zähler.',
+    alpha: 'Frühe Testversion für Champions, Standard ist Doppel. Attacke, Wechsel, K.O. und Sieg gelten, wenn die Zeile stimmt und Art sowie Attacke im Champions-Dex stehen. Die Prozentzahl auf der KP-Leiste gilt, die Farbe nur als Ersatz. Runden ohne „Was soll … tun?“ sind Schätzungen.',
     new: 'Neuer Kampf', demo: 'Beispielkampf', live: 'läuft', done: 'beendet', empty: 'Noch kein Kampf. Leg einen neuen an oder spiele das Beispiel ab.',
-    you: 'Du', foe: 'Gegner', youName: 'Dein Name', foeName: 'Name des Gegners', namesHint: 'Hilft, „Ash schickt …“ der richtigen Seite zuzuordnen. Leer lassen geht auch.',
+    you: 'Du', foe: 'Gegner', youName: 'Dein Name', foeName: 'Name des Gegners', namesHint: 'Trainername aus Champions, damit „Gary schickt …“ der richtigen Seite zugeordnet wird. Leer lassen geht auch.',
     format: 'Modus', singles: 'Einzel', doubles: 'Doppel',
     capture: 'Spielaufzeichnung', screen: 'Bildschirm / Fenster', camera: 'Kamera / Capture-Karte', cameraN: 'Kamera {0}',
     reconnect: 'Verbinden: {0}', disconnect: 'Quelle trennen', noSource: 'keine Quelle',
-    regionText: 'Textfeld', regionYou: 'Deine KP-Leiste', regionFoe: 'Gegner-KP-Leiste',
-    regionHint: 'Rahmen wählen und im Bild aufziehen. Zuerst das Kampftextfeld, die KP-Leisten nur wenn du sie komplett siehst, inklusive des leeren Teils.',
+    regionText: 'Textfeld', regionYou: 'Deine KP-Leiste', regionYou2: 'Deine zweite Leiste', regionFoe: 'Gegner-KP-Leiste', regionFoe2: 'Gegner, zweite Leiste',
+    regionHint: 'Rahmen wählen und im Bild aufziehen. Zuerst das Kampftextfeld. Champions zeigt die Prozentzahl auf der KP-Leiste: die ganze Leiste markieren, inklusive Zahl und leerem Teil. Im Doppel je eine Leiste pro Pokémon.',
     start: 'Mitschneiden', stop: 'Mitschneiden stoppen', end: 'Kampf beenden', resume: 'Wieder aufnehmen',
     read: 'Gelesen: {0}', readNone: '(kein Text)', reading: 'Lese …', ocrErr: 'Texterkennung: {0}',
     noOcr: 'Texterkennung gibt es nur in der Windows-App. KP-Leisten gehen auch hier, Zeilen kannst du unten nachtragen.',
-    manual: 'Zeile nachtragen', manualPh: 'z. B. Pikachu setzt Donnerblitz ein!', addLine: 'Übernehmen',
+    manual: 'Zeile nachtragen', manualPh: 'z. B. Fuegro setzt Mogelhieb ein!', addLine: 'Übernehmen',
     save: 'Speichern', exportJson: 'JSON', exportText: 'Text', del: 'Löschen', delConfirm: 'Dieses Protokoll löschen?',
     saved: 'Protokoll gespeichert', calc: 'Im Rechner', calcTip: 'Diese Attacke im Damage Calculator öffnen (Arten und Werte sind die Standards, nicht das echte Set).',
     turnN: 'Runde {0}', turnGuess: 'Runde ~{0}', started: 'Kampf beginnt', ended: 'Kampf beendet',
     winnerYou: 'Du gewinnst', winnerFoe: 'Gegner gewinnt', winnerNone: 'Kein Sieger erkannt', inferred: 'geschätzt', unclear: 'unklar',
-    hpEst: 'KP-Leiste {0} ≈ {1} %', party: 'Gesehen', noParty: 'noch niemand', fainted: 'besiegt',
+    hpEst: 'KP-Leiste {0} ≈ {1} %', hpRead: 'KP {0} {1} %', party: 'Gesehen', noParty: 'noch niemand', fainted: 'besiegt',
     events: 'Verlauf', noEvents: 'Noch keine Zeile. Markiere das Textfeld und starte das Mitschneiden, trage eine Zeile ein oder spiele das Beispiel ab.',
     errSource: 'Die Quelle konnte nicht geöffnet werden: {0}', needRegion: 'Zieh zuerst einen Rahmen um das Textfeld oder eine KP-Leiste.',
     vs: '{0} gegen {1}', when: '{0} · {1} Zeilen', listYou: 'Du', listFoe: 'Gegner',
     kind_start: 'Beginn', kind_turn: 'Runde', kind_send: 'Eingewechselt', kind_switch: 'Wechsel', kind_move: 'Attacke',
     kind_effect: 'Wirkung', kind_crit: 'Volltreffer', kind_miss: 'Daneben', kind_status: 'Status', kind_damage: 'Schaden',
     kind_heal: 'Heilung', kind_hp: 'KP-Leiste', kind_faint: 'K.O.', kind_win: 'Sieg', kind_end: 'Ende', kind_note: 'Zeile', kind_field: 'Feld',
-    limits: 'Zuverlässig, wenn die Zeile ein bekanntes Muster trifft und Name sowie Attacke exakt in den Daten stehen: Kampfbeginn, Runde (Zahl oder Befehl „Was soll … tun?“), Einwechseln, Wechsel nach „komm zurück“, Attacke, Wirksamkeit, Volltreffer, Daneben, K.O., Schaden in Prozent, Sieg. Schätzung: KP-Leiste (Farbanteil, nicht die echten KP), Runde ohne Ansage (nach je zwei Aktionen im Einzel), unscharf gelesene Namen, unklare Zeilen, Sieger nur daraus, dass eine Seite keine bekannten Pokémon mehr hat.',
+    limits: 'Für Pokémon Champions. Zuverlässig, wenn die Zeile ein bekanntes Kampftext-Muster trifft und Art sowie Attacke exakt im Champions-Dex stehen: Kampfbeginn, Einwechseln, Wechsel nach „komm zurück“, Attacke, Wirksamkeit, Volltreffer, Daneben, K.O., Sieg, und die Prozentzahl auf der KP-Leiste. „Was soll … tun?“ ist die Rundengrenze. Schätzung: Farbe der Leiste, wenn die Zahl fehlt, Runde ohne Ansage (Doppel nach vier Aktionen, Einzel nach zwei), unscharfe Namen, unklare Zeilen, Sieger nur weil eine Seite keine bekannten Pokémon mehr hat. „Turn“/„Runde“ und „verlor N %“ werden mitgelesen, sind aber keine bestätigte Champions-Anzeige. Wilde Pokémon und Arten außerhalb der Regulation zählen nicht.',
     demoDone: 'Beispielkampf abgespielt', openCalc: 'Im Damage Calculator geöffnet', unknownCalc: 'Dafür müssen beide Pokémon und die Attacke erkannt sein.',
     super: 'sehr effektiv', weak: 'nicht sehr effektiv', immune: 'keine Wirkung',
     exportTitle: 'Kampfprotokoll', copy: 'Der Text liegt in der Datei und hier zum Kopieren.'
   } : {
-    title: 'Battle log', sub: 'Records the battle while you play. Uses the same game recording as the shiny counter.',
-    alpha: 'Early test version. Moves, switches, KOs and the win are fixed once text recognition reads the line. HP bars and turns without a "Turn" or "Runde" line are estimates.',
+    title: 'Battle log', sub: 'For Pokémon Champions. Uses the same game recording as the shiny counter.',
+    alpha: 'Early test version for Champions, doubles by default. A move, switch, KO and the win count when the line is read and the species and move are in the Champions dex. The percent on the HP bar counts; the bar colour is only a fallback. Turns without “What will … do?” are estimates.',
     new: 'New battle', demo: 'Sample battle', live: 'live', done: 'ended', empty: 'No battle yet. Start a new one or play the sample.',
-    you: 'You', foe: 'Foe', youName: 'Your name', foeName: 'Opponent name', namesHint: 'Helps to put "Ash sent out …" on the right side. Leaving this empty is fine.',
+    you: 'You', foe: 'Foe', youName: 'Your name', foeName: 'Opponent name', namesHint: 'Champions trainer name, so “Gary sent out …” lands on the right side. Leaving this empty is fine.',
     format: 'Format', singles: 'Singles', doubles: 'Doubles',
     capture: 'Game recording', screen: 'Screen / window', camera: 'Camera / capture card', cameraN: 'Camera {0}',
     reconnect: 'Connect: {0}', disconnect: 'Disconnect source', noSource: 'no source',
-    regionText: 'Text box', regionYou: 'Your HP bar', regionFoe: 'Foe HP bar',
-    regionHint: 'Pick a frame and drag it in the picture. The battle text first; HP bars only if the whole bar is visible, including the empty part.',
+    regionText: 'Text box', regionYou: 'Your HP bar', regionYou2: 'Your second bar', regionFoe: 'Foe HP bar', regionFoe2: 'Foe second bar',
+    regionHint: 'Pick a frame and drag it in the picture. The battle text first. Champions prints the percent on the HP bar: mark the whole bar, including the number and the empty part. In doubles, one bar per Pokémon.',
     start: 'Record', stop: 'Stop recording', end: 'End battle', resume: 'Record again',
     read: 'Read: {0}', readNone: '(no text)', reading: 'Reading …', ocrErr: 'Text recognition: {0}',
     noOcr: 'Text recognition is only in the Windows app. HP bars work here too, and you can add a line below.',
-    manual: 'Add a line', manualPh: 'e.g. Pikachu used Thunderbolt!', addLine: 'Add',
+    manual: 'Add a line', manualPh: 'e.g. Incineroar used Fake Out!', addLine: 'Add',
     save: 'Save', exportJson: 'JSON', exportText: 'Text', del: 'Delete', delConfirm: 'Delete this log?',
     saved: 'Log saved', calc: 'Open in calc', calcTip: 'Open this move in the damage calculator (species and stats are the defaults, not the real set).',
     turnN: 'Turn {0}', turnGuess: 'Turn ~{0}', started: 'Battle started', ended: 'Battle ended',
     winnerYou: 'You win', winnerFoe: 'Foe wins', winnerNone: 'No winner detected', inferred: 'estimated', unclear: 'unclear',
-    hpEst: 'HP bar {0} ≈ {1}%', party: 'Seen', noParty: 'nobody yet', fainted: 'fainted',
+    hpEst: 'HP bar {0} ≈ {1}%', hpRead: 'HP {0} {1}%', party: 'Seen', noParty: 'nobody yet', fainted: 'fainted',
     events: 'Log', noEvents: 'No line yet. Mark the text box and start recording, add a line, or play the sample.',
     errSource: 'The source could not be opened: {0}', needRegion: 'Drag a frame around the text box or an HP bar first.',
     vs: '{0} vs {1}', when: '{0} · {1} lines', listYou: 'You', listFoe: 'Foe',
     kind_start: 'Start', kind_turn: 'Turn', kind_send: 'Sent out', kind_switch: 'Switch', kind_move: 'Move',
     kind_effect: 'Effect', kind_crit: 'Critical hit', kind_miss: 'Miss', kind_status: 'Status', kind_damage: 'Damage',
     kind_heal: 'Heal', kind_hp: 'HP bar', kind_faint: 'KO', kind_win: 'Win', kind_end: 'End', kind_note: 'Line', kind_field: 'Field',
-    limits: 'Reliable when the line matches a known pattern and the name and move are in the data exactly: battle start, turn (a number, or the "What will … do?" prompt), send-out, switch after "come back", move, effectiveness, critical hit, miss, KO, percent damage, win. Estimate: HP bar (share of colour, not the real HP), a turn with no announcement (after every two actions in singles), fuzzy names, unclear lines, a winner guessed only because one side has no known Pokémon left.',
+    limits: 'For Pokémon Champions. Reliable when the line matches a known battle-text pattern and the species and move are in the Champions dex exactly: battle start, send-out, switch after "come back", move, effectiveness, critical hit, miss, KO, win, and the percent printed on the HP bar. "What will … do?" is the turn boundary. Estimate: bar colour when the number is missing, a turn with no prompt (after four actions in doubles, two in singles), fuzzy names, unclear lines, a winner guessed only because one side has no known Pokémon left. "Turn"/"Runde" and "lost N%" are still read, but they are not a confirmed Champions message. Wild Pokémon and species outside the regulation are not treated as known.',
     demoDone: 'Sample battle finished', openCalc: 'Opened in the damage calculator', unknownCalc: 'Both Pokémon and the move have to be recognized for that.',
     super: 'super effective', weak: 'not very effective', immune: 'no effect',
     exportTitle: 'Battle log', copy: 'The text is in the file and here to copy.'
@@ -86,31 +86,35 @@
     return prev[n];
   }
 
-  // ---------------- name tables (English data + German names) ----------------
-  // Champions-Dex plus Nationaldex (data/natdex.js) and the full move list: a recorded battle is not limited to the calc's roster.
+  // ---------------- name tables (Champions dex + German names of those only) ----------------
+  // A recorded Champions battle only names species and moves the calculator already allows.
   function buildIndex() {
     var species = {}, moves = {}, bySp = {}, byMv = {};
     function addSp(en, deName) {
       if (!en) return;
       var k = nid(en);
-      species[k] = en; bySp[k] = en;
+      if (!species[k]) species[k] = en;
+      bySp[k] = en;
       if (deName) species[nid(deName)] = en;
     }
-    var nat = window.NATDEX;
-    if (nat) { for (var i = 1; i < nat.length; i++) if (nat[i]) addSp(nat[i][1], nat[i][2]); }
     Object.keys(A.DEX || {}).forEach(function (name) { addSp(name, null); });
-    var MV = window.MOVES_SV || window.MOVES_CHAMPIONS_NATDEX || A.MOVES || {};
-    Object.keys(MV).forEach(function (name) {
-      if (!name || name === '(No Move)') return;
-      var k = nid(name); moves[k] = name; byMv[k] = name;
-    });
     Object.keys(A.MOVES || {}).forEach(function (name) {
       if (!name || name === '(No Move)') return;
-      var k = nid(name); if (!moves[k]) { moves[k] = name; byMv[k] = name; }
+      var k = nid(name); moves[k] = name; byMv[k] = name;
     });
     var nd = window.NAMES_DE || {};
     Object.keys(nd.species || {}).forEach(function (k) { if (bySp[k]) species[nid(nd.species[k])] = bySp[k]; });
     Object.keys(nd.moves || {}).forEach(function (k) { if (byMv[k]) moves[nid(nd.moves[k])] = byMv[k]; });
+    // Champions prints megas as "Mega-Glurak" / "Mega Glurak X", not the English data key.
+    Object.keys(bySp).forEach(function (k) {
+      var en = bySp[k], m = /^Mega (.+?)( [XYZ])?$/.exec(en);
+      if (!m || !nd.species) return;
+      var base = nd.species[nid(m[1])];
+      if (!base) return;
+      var suf = m[2] || '';
+      species[nid('Mega-' + base + suf)] = en;
+      species[nid('Mega ' + base + suf)] = en;
+    });
     return { species: species, moves: moves };
   }
   var index = null;
@@ -137,7 +141,7 @@
       id: 'bl' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       title: '', created: Date.now(), updated: Date.now(),
       youName: opts.youName || '', foeName: opts.foeName || '',
-      format: opts.format === 'doubles' ? 'doubles' : 'singles',
+      format: opts.format === 'singles' ? 'singles' : 'doubles',
       detected: { you: '', foe: '' },
       status: 'live', turn: 0, turnHow: '', turnStyle: null, actionsThisTurn: 0, engaged: false,
       started: false, ended: false, winner: null, winnerHow: null,
@@ -304,8 +308,8 @@
     return next.slice(best);
   }
 
-  var FOE_PRE = ['the opposing ', "the foe's ", "foe's ", 'the wild ', 'wild ', 'foe ',
-    'das gegnerische ', 'gegnerisches ', 'das wilde ', 'ein wildes ', 'wildes ', 'gegner '];
+  var FOE_PRE = ['the opposing ', "the foe's ", "foe's ", 'foe ',
+    'das gegnerische ', 'gegnerisches ', 'gegner '];
   function foeSplit(line) {
     var low = line.toLowerCase();
     for (var i = 0; i < FOE_PRE.length; i++) {
@@ -350,15 +354,6 @@
       ensureStarted(b, out, line);
       return out;
     }
-    m = /^(?:wild|ein wildes)\s+(.+?)\s+(?:appeared|erscheint)[!.…]*$/i.exec(line);
-    if (m) {
-      ensureStarted(b, out);
-      var spW = lookup(idx().species, cleanName(m[1]));
-      var monW = ensureMon(b, 'foe', cleanName(m[1]), spW);
-      setActive(b, 'foe', monW);
-      out.push({ kind: 'send', side: 'foe', species: monW.species, name: monW.name, reliable: !!(spW && spW.score === 1), lead: true });
-      return out;
-    }
     m = /^(?:go|los)[,! ]+(.+?)[!.…]*$/i.exec(line);
     if (m) {
       ensureStarted(b, out);
@@ -371,7 +366,7 @@
         var implied = !voluntary && occupied >= slots && b.engaged;
         if ((voluntary || implied) && b.engaged) noteAction(b, out);
         var prev = setActive(b, 'you', mon);
-        var exact = !sp || sp.score === 1;
+        var exact = !!(sp && sp.score === 1);
         if (voluntary || implied) out.push({ kind: 'switch', side: 'you', species: mon.species, name: mon.name, fromName: prev && prev.name, fromSpecies: prev && prev.species, reliable: voluntary && exact, implied: implied });
         else out.push({ kind: 'send', side: 'you', species: mon.species, name: mon.name, reliable: exact, lead: !b.engaged });
       });
@@ -393,7 +388,7 @@
         var implied = !voluntary && occupied >= slots && b.engaged;
         if ((voluntary || implied) && b.engaged) noteAction(b, out);
         var prev = setActive(b, side, mon);
-        var exact = !sp || sp.score === 1;
+        var exact = !!(sp && sp.score === 1);
         if (voluntary || implied) out.push({ kind: 'switch', side: side, species: mon.species, name: mon.name, fromName: prev && prev.name, fromSpecies: prev && prev.species, reliable: voluntary && exact, implied: implied });
         else out.push({ kind: 'send', side: side, species: mon.species, name: mon.name, reliable: exact, lead: !b.engaged });
       });
@@ -437,7 +432,8 @@
       if (b.engaged || b.started) noteAction(b, out);
       var defs = side ? living(b, side === 'you' ? 'foe' : 'you') : [];
       var def = defs.length === 1 ? defs[0] : null;
-      var exact = !!(mv && mv.score === 1) && !!(side && ((found && found.exact) || (spA && spA.score === 1) || (mon && namesEqual(mon.name, actor))));
+      var speciesOk = (spA && spA.score === 1) || (mon && mon.species && namesEqual(actor, mon.species));
+      var exact = !!(mv && mv.score === 1) && !!(side && speciesOk);
       out.push({
         kind: 'move', side: side, species: (mon && mon.species) || (spA && spA.name) || null, name: (mon && mon.name) || actor,
         move: mv ? mv.name : null, moveRaw: moveRaw, moveScore: mv ? mv.score : 0,
@@ -472,7 +468,7 @@
         var before = monD.hp == null ? 100 : monD.hp;
         monD.hp = Math.max(0, Math.min(100, Math.round(before - pct)));
         monD.hpBar = monD.hp;
-        out.push({ kind: 'damage', side: sd, species: monD.species, name: monD.name, hp: monD.hp, delta: -pct, reliable: !fs.foe ? !!(hit && hit.exact) : !!(spD && spD.score === 1) });
+        out.push({ kind: 'damage', side: sd, species: monD.species, name: monD.name, hp: monD.hp, delta: -pct, reliable: !!(spD && spD.score === 1) });
       } else out.push({ kind: 'damage', reliable: false, text: line, delta: -pct });
       return out;
     }
@@ -498,7 +494,7 @@
       var fside = fs.foe ? 'foe' : (fh ? fh.side : null);
       var fmon = fside ? (fh && fh.side === fside ? fh.mon : ensureMon(b, fside, fn, fsp)) : null;
       if (fmon) { fmon.fainted = true; fmon.hp = 0; fmon.hpBar = 0; }
-      out.push({ kind: 'faint', side: fside, species: fmon && fmon.species, name: (fmon && fmon.name) || fn, reliable: !!(fside && ((fh && fh.exact) || (fsp && fsp.score === 1))) });
+      out.push({ kind: 'faint', side: fside, species: fmon && fmon.species, name: (fmon && fmon.name) || fn, reliable: !!(fside && fsp && fsp.score === 1) });
       return out;
     }
     if (/^you win|^du hast (?:den kampf )?gewonnen|^du gewinnst/i.test(line)) {
@@ -572,28 +568,55 @@
     return made;
   }
 
-  // pct is 0–100. The bar is a guess: first reading only anchors, later jumps of ≥ 5 points are logged.
-  function feedHp(b, side, pct) {
+  // Champions prints an integer percent on the HP bar. A bare number, or one followed by %, is that reading.
+  function parseHpText(text) {
+    var s = String(text || '');
+    var m = /(\d{1,3}(?:[.,]\d+)?)\s*%/.exec(s);
+    if (!m && /^\s*\d{1,3}\s*$/.test(s)) m = [s, s.trim()];
+    if (!m) return null;
+    var n = Math.round(parseFloat(String(m[1]).replace(',', '.')));
+    return n >= 0 && n <= 100 ? n : null;
+  }
+
+  // pct is 0–100. opt.reliable is the number read off the bar; colour is a guess.
+  // The first colour reading only anchors. A printed number is logged immediately, then on jumps of ≥ 2.
+  // Colour jumps of ≥ 5 are logged, unless a number for that slot was just read.
+  function feedHp(b, side, pct, opt) {
     if (!b || b.ended || (side !== 'you' && side !== 'foe')) return null;
-    var mons = living(b, side);
-    var mon = mons[0];
+    opt = opt || {};
+    var slot = opt.slot == null ? null : opt.slot;
+    var mon = slot != null ? b.active[side][slot] : null;
+    if (!mon || mon.fainted) {
+      if (slot != null) return null;
+      mon = living(b, side)[0];
+    }
     if (!mon) return null;
     pct = Math.max(0, Math.min(100, Math.round(pct)));
+    var reliable = !!opt.reliable;
+    var label = side === 'you' ? t('you') : t('foe');
+    if (b.format === 'doubles' && slot != null) label += ' ' + (slot + 1);
+    function row(prev) {
+      return commit(b, {
+        kind: 'hp', side: side, slot: slot, species: mon.species, name: mon.name, hp: pct,
+        delta: pct - (prev == null ? 100 : prev), reliable: reliable,
+        text: reliable ? t('hpRead', label, pct) : t('hpEst', label, pct), raw: ''
+      });
+    }
     if (mon.hpBar == null) {
       mon.hpBar = pct;
-      if (pct <= 97) mon.hp = pct;
-      return null;
+      mon.hp = pct;
+      return reliable && pct < 100 ? row(100) : null;
     }
-    if (Math.abs(pct - mon.hpBar) < 5) return null;
+    if (Math.abs(pct - mon.hpBar) < (reliable ? 2 : 5)) return null;
     var recent = null;
     for (var i = b.events.length - 1; i >= 0 && i >= b.events.length - 6; i--) {
       var e = b.events[i];
-      if ((e.kind === 'damage' || e.kind === 'heal' || e.kind === 'hp') && e.side === side && Date.now() - e.t < 2500) { recent = e; break; }
+      if ((e.kind === 'damage' || e.kind === 'heal' || e.kind === 'hp') && e.side === side && (slot == null || e.slot == null || e.slot === slot) && Date.now() - e.t < 2500) { recent = e; break; }
     }
     if (recent && recent.hp != null && Math.abs(recent.hp - pct) <= 8) { mon.hpBar = pct; mon.hp = pct; return null; }
     var prev = mon.hp;
     mon.hpBar = pct; mon.hp = pct;
-    return commit(b, { kind: 'hp', side: side, species: mon.species, name: mon.name, hp: pct, delta: pct - (prev == null ? 100 : prev), reliable: false, text: t('hpEst', side === 'you' ? t('you') : t('foe'), pct), raw: '' });
+    return row(prev);
   }
 
   function endBattle(b) {
@@ -627,120 +650,146 @@
     return lines.join('\n');
   }
   function exportJSON(b) {
-    return JSON.stringify({
-      generator: 'Rattata Lab BattleLog', limits: t('limits'),
-      id: b.id, created: b.created, updated: b.updated,
-      youName: b.youName, foeName: b.foeName, detected: b.detected, format: b.format,
-      status: b.status, turn: b.turn, winner: b.winner, winnerHow: b.winnerHow,
-      party: b.party, events: b.events
-    }, null, 2);
+    var snap = snapshot(b);
+    snap.generator = 'Rattata Lab BattleLog';
+    snap.limits = t('limits');
+    return JSON.stringify(snap, null, 2);
   }
 
   // ---------------- tests ----------------
   function selfTest() {
     var fails = [];
     function eq(a, b, msg) { if (a !== b) fails.push(msg + ': ' + JSON.stringify(a) + ' !== ' + JSON.stringify(b)); }
+    eq(createBattle({}).format, 'doubles', 'default doubles');
+    eq(createBattle({ format: 'singles' }).format, 'singles', 'singles opt');
     var script = [
-      'Youngster Joey wants to battle!',
-      'Go! Pikachu!',
-      'Youngster Joey sent out Rattata!',
-      'Turn 1',
-      'Pikachu used Thunderbolt!',
+      'Gary wants to battle!',
+      'Go! Incineroar and Charizard!',
+      'Gary sent out Rillaboom and Whimsicott!',
+      'Incineroar used Fake Out!',
+      'Charizard used Flamethrower!',
       "It's super effective!",
-      'The opposing Rattata lost 86% of its health!',
-      'The opposing Rattata fainted!',
-      'Youngster Joey sent out Pidgey!',
-      'Turn 2',
-      'Pidgey used Gust!',
+      'The opposing Whimsicott fainted!',
+      'What will Incineroar do?',
+      'Incineroar, come back!',
+      'Go! Garchomp!',
+      'Garchomp used Earthquake!',
       'A critical hit!',
-      'Pikachu lost 12% of its health!',
-      'Pikachu, come back!',
-      'Go! Charizard!',
-      'You defeated Youngster Joey!'
+      'You defeated Gary!'
     ];
     var b = createBattle({});
     script.forEach(function (l) { feedLine(b, l); });
     eq(b.started, true, 'started');
+    eq(b.format, 'doubles', 'format');
     eq(b.winner, 'you', 'winner');
     eq(b.winnerHow, 'text', 'winnerHow');
-    eq(b.detected.foe, 'Youngster Joey', 'foe name');
+    eq(b.detected.foe, 'Gary', 'foe name');
     eq(b.turn, 2, 'turn');
+    eq(b.party.you.length, 3, 'you party');
+    eq(b.party.foe.length, 2, 'foe party');
+    eq(b.party.you[0].species, 'Incineroar', 'lead you');
+    eq(b.party.you[1].species, 'Charizard', 'lead you 2');
+    eq(b.party.foe[0].species, 'Rillaboom', 'lead foe');
+    eq(b.party.foe[1].species, 'Whimsicott', 'lead foe 2');
+    eq(!!b.party.foe[1].fainted, true, 'whimsicott fainted');
     var moves = b.events.filter(function (e) { return e.kind === 'move'; });
-    eq(moves.length, 2, 'two moves');
-    eq(moves[0].move, 'Thunderbolt', 'mv0');
+    eq(moves.length, 3, 'three moves');
+    eq(moves[0].move, 'Fake Out', 'mv0');
     eq(moves[0].side, 'you', 'mv0 side');
-    eq(moves[0].species, 'Pikachu', 'mv0 sp');
-    eq(moves[0].defSpecies, 'Rattata', 'mv0 def');
-    eq(moves[0].effect, 'super', 'effect');
+    eq(moves[0].species, 'Incineroar', 'mv0 sp');
+    eq(moves[0].defSpecies, null, 'spread has no single target');
     eq(moves[0].reliable, true, 'mv0 reliable');
-    eq(moves[0].atkHp, 100, 'atk hp before');
-    eq(moves[1].move, 'Gust', 'mv1');
-    eq(moves[1].side, 'foe', 'mv1 side');
-    eq(moves[1].crit, true, 'crit');
-    eq(moves[1].defSpecies, 'Pikachu', 'gust target');
-    var dmg = b.events.filter(function (e) { return e.kind === 'damage'; });
-    eq(dmg[0].hp, 14, 'hp after 86');
-    eq(dmg[0].side, 'foe', 'dmg side');
-    eq(dmg[0].reliable, true, 'dmg reliable');
-    eq(dmg[1].hp, 88, 'pikachu hp');
+    eq(moves[1].move, 'Flamethrower', 'mv1');
+    eq(moves[1].effect, 'super', 'effect');
+    eq(moves[1].species, 'Charizard', 'mv1 sp');
+    eq(moves[2].move, 'Earthquake', 'mv2');
+    eq(moves[2].species, 'Garchomp', 'mv2 sp');
+    eq(moves[2].defSpecies, 'Rillaboom', 'eq target');
+    eq(moves[2].crit, true, 'crit');
+    eq(moves[2].reliable, true, 'mv2 reliable');
+    eq(moves[2].atkHp, 100, 'atk hp before');
     var sw = b.events.filter(function (e) { return e.kind === 'switch' && !e.recall; });
     eq(sw.length, 1, 'one switch in');
-    eq(sw[0].species, 'Charizard', 'switch to');
-    eq(sw[0].fromSpecies, 'Pikachu', 'switch from');
+    eq(sw[0].species, 'Garchomp', 'switch to');
+    eq(sw[0].fromSpecies, 'Incineroar', 'switch from');
     eq(sw[0].reliable, true, 'switch reliable');
-    eq(b.party.you.length, 2, 'you party');
-    eq(b.party.foe.length, 2, 'foe party');
-    eq(!!b.party.foe[0].fainted, true, 'rattata fainted');
-    eq(b.party.foe[0].species, 'Rattata', 'rattata sp');
+    eq(b.active.you[0] && b.active.you[0].species, 'Garchomp', 'active after switch');
+    eq(b.active.you[1] && b.active.you[1].species, 'Charizard', 'partner stays');
 
     var g = createBattle({});
-    ['Ein wildes Rattfratz erscheint!', 'Los! Pikachu!', 'Runde 1', 'Pikachu setzt Donnerblitz ein!', 'Das ist sehr effektiv!',
-      'Das wilde Rattfratz verlor 40 % seiner KP!', 'Pikachu, komm zurück!', 'Los! Glurak!', 'Glurak setzt Erdbeben ein!',
-      'Das wilde Rattfratz wurde besiegt!', 'Du hast gewonnen!'].forEach(function (l) { feedLine(g, l); });
-    eq(g.party.foe[0].species, 'Rattata', 'de foe');
-    eq(g.party.you[0].species, 'Pikachu', 'de you');
+    ['Gary möchte kämpfen!', 'Los! Fuegro und Glurak!', 'Gary schickt Gortrom und Elfun in den Kampf!',
+      'Fuegro setzt Mogelhieb ein!', 'Glurak setzt Flammenwurf ein!', 'Das ist sehr effektiv!',
+      'Das gegnerische Elfun wurde besiegt!', 'Was soll Fuegro tun?', 'Fuegro, komm zurück!', 'Los! Knakrack!',
+      'Knakrack setzt Erdbeben ein!', 'Volltreffer!', 'Du hast Gary besiegt!'].forEach(function (l) { feedLine(g, l); });
+    eq(g.party.you[0].species, 'Incineroar', 'de you');
     eq(g.party.you[1].species, 'Charizard', 'de char');
+    eq(g.party.foe[0].species, 'Rillaboom', 'de foe');
+    eq(g.party.foe[1].species, 'Whimsicott', 'de whim');
     var gm = g.events.filter(function (e) { return e.kind === 'move'; });
-    eq(gm[0].move, 'Thunderbolt', 'de tb');
-    eq(gm[0].reliable, true, 'de tb rel');
-    eq(gm[0].effect, 'super', 'de effect');
-    eq(gm[1].move, 'Earthquake', 'de eq');
-    eq(gm[1].species, 'Charizard', 'de eq user');
+    eq(gm[0].move, 'Fake Out', 'de fo');
+    eq(gm[0].reliable, true, 'de fo rel');
+    eq(gm[1].move, 'Flamethrower', 'de ft');
+    eq(gm[1].effect, 'super', 'de effect');
+    eq(gm[2].move, 'Earthquake', 'de eq');
+    eq(gm[2].species, 'Garchomp', 'de eq user');
+    eq(gm[2].defSpecies, 'Rillaboom', 'de eq target');
+    eq(gm[2].crit, true, 'de crit');
     eq(g.winner, 'you', 'de win');
-    eq(g.party.foe[0].hp, 0, 'de faint hp');
+    eq(g.party.foe[1].hp, 0, 'de faint hp');
     eq(g.events.filter(function (e) { return e.kind === 'switch' && !e.recall; }).length, 1, 'de switch');
-    eq(g.party.foe[0].hp === 0 || g.events.some(function (e) { return e.kind === 'damage' && e.hp === 60; }), true, 'de dmg');
+
+    var outside = createBattle({});
+    feedLine(outside, 'Go! Rattata!');
+    feedLine(outside, 'Ein wildes Rattfratz erscheint!');
+    eq(outside.party.you[0].species, null, 'rattata not in champions');
+    eq(outside.events.filter(function (e) { return e.kind === 'send'; })[0].reliable, false, 'unknown send is an estimate');
+    eq(outside.party.foe.length, 0, 'no wild battle');
+    eq(outside.events.some(function (e) { return e.kind === 'note'; }), true, 'wild line is unclear');
 
     var fuzzy = createBattle({});
-    feedLine(fuzzy, 'Go! Pikachu!');
-    feedLine(fuzzy, 'Wild Rattata appeared!');
-    feedLine(fuzzy, 'Pikachu used Thunderboit!');
+    feedLine(fuzzy, 'Go! Incineroar!');
+    feedLine(fuzzy, 'Gary sent out Rillaboom!');
+    feedLine(fuzzy, 'Incineroar used Flamethroer!');
     var fm = fuzzy.events.filter(function (e) { return e.kind === 'move'; })[0];
-    eq(fm.move, 'Thunderbolt', 'fuzzy move');
+    eq(fm.move, 'Flamethrower', 'fuzzy move');
     eq(fm.reliable, false, 'fuzzy not reliable');
 
-    var guess = createBattle({});
-    ['Wild Rattata appeared!', 'Go! Pikachu!', 'Pikachu used Thunderbolt!', 'Rattata used Tackle!', 'Pikachu used Thunderbolt!'].forEach(function (l) { feedLine(guess, l); });
+    var guess = createBattle({ format: 'singles' });
+    ['Gary wants to battle!', 'Go! Incineroar!', 'Gary sent out Rillaboom!',
+      'Incineroar used Fake Out!', 'Rillaboom used Grassy Glide!', 'Incineroar used Fake Out!'].forEach(function (l) { feedLine(guess, l); });
     eq(guess.turn, 2, 'guessed turn');
     eq(guess.events.filter(function (e) { return e.kind === 'turn' && e.guess; }).length, 1, 'one guessed turn');
     eq(guess.events.filter(function (e) { return e.kind === 'turn' && e.guess; })[0].reliable, false, 'guess unreliable');
 
-    var prompt = createBattle({});
-    ['Go! Pikachu!', 'Wild Rattata appeared!', 'Pikachu used Tackle!', 'What will Pikachu do?', 'Pikachu used Tackle!'].forEach(function (l) { feedLine(prompt, l); });
+    var prompt = createBattle({ format: 'singles' });
+    ['Go! Incineroar!', 'Gary sent out Rillaboom!', 'Incineroar used Fake Out!', 'What will Incineroar do?', 'Incineroar used Fake Out!'].forEach(function (l) { feedLine(prompt, l); });
     eq(prompt.turn, 2, 'prompt turn');
     eq(prompt.events.filter(function (e) { return e.kind === 'turn'; })[0].reliable, true, 'prompt reliable');
     eq(prompt.events.some(function (e) { return /what will/i.test(e.raw || ''); }), false, 'prompt not logged');
 
     eq(diffLines(['A', 'B'], ['B', 'C']).join('|'), 'C', 'diff scroll');
-    eq(diffLines(['Pikachu used Thunderbolt!'], ['Pikachu used Thunderbolt!']).length, 0, 'diff same');
-    eq(diffLines(['Pikachu used Thunderbolt!'], ['Pikachu used Thunderboit!']).length, 0, 'diff fuzzy');
-    eq(splitMessages('Pikachu used Thunderbolt! It\'s super effective!').length, 2, 'split bang');
-    eq(splitMessages('The opposing Rattata lost 12.5% of its health!').length, 1, 'split decimal');
+    eq(diffLines(['Incineroar used Fake Out!'], ['Incineroar used Fake Out!']).length, 0, 'diff same');
+    eq(diffLines(['Incineroar used Fake Out!'], ['Incineroar used Fake Ou!']).length, 0, 'diff fuzzy');
+    eq(splitMessages('Incineroar used Fake Out! It\'s super effective!').length, 2, 'split bang');
+    eq(splitMessages('The opposing Rillaboom lost 12.5% of its health!').length, 1, 'split decimal');
+    eq(parseHpText('87%'), 87, 'hp pct');
+    eq(parseHpText('KP 12 %'), 12, 'hp de');
+    eq(parseHpText('64'), 64, 'hp bare');
+    eq(parseHpText('Flamethrower'), null, 'hp none');
 
-    var ended = createBattle({});
-    feedLine(ended, 'Go! Pikachu!');
-    feedLine(ended, 'Wild Rattata appeared!');
-    feedLine(ended, 'The wild Rattata fainted!');
+    var hpB = createBattle({ format: 'singles' });
+    feedLine(hpB, 'Go! Incineroar!');
+    feedLine(hpB, 'Gary sent out Rillaboom!');
+    var hpEv = feedHp(hpB, 'foe', 72, { reliable: true, slot: 0 });
+    eq(!!hpEv && hpEv.reliable, true, 'printed hp reliable');
+    eq(hpB.party.foe[0].hp, 72, 'printed hp stored');
+    var colour = feedHp(hpB, 'foe', 40, { slot: 0 });
+    eq(!!colour && colour.reliable, false, 'colour hp is an estimate');
+
+    var ended = createBattle({ format: 'singles' });
+    feedLine(ended, 'Go! Incineroar!');
+    feedLine(ended, 'Gary sent out Rillaboom!');
+    feedLine(ended, 'The opposing Rillaboom fainted!');
     endBattle(ended);
     eq(ended.winner, 'you', 'inferred winner');
     eq(ended.winnerHow, 'inferred', 'inferred how');
@@ -759,7 +808,7 @@
       for (var q = 0; q < blue.length; q += 4) { blue[q] = 20; blue[q + 1] = 40; blue[q + 2] = 220; blue[q + 3] = 255; }
       if (Cap.hpFromPixels(blue, w, h) != null) fails.push('blue ui should not be a bar');
     }
-    return { ok: fails.length === 0, fails: fails, n: 40 };
+    return { ok: fails.length === 0, fails: fails, n: fails.length };
   }
 
   // ---------------- storage + UI ----------------
@@ -791,6 +840,7 @@
   }
   function snapshot(b) {
     return {
+      schema: 1, game: 'champions',
       id: b.id, title: b.title, created: b.created, updated: b.updated,
       youName: b.youName, foeName: b.foeName, format: b.format, detected: b.detected,
       status: b.status, turn: b.turn, turnHow: b.turnHow, turnStyle: b.turnStyle,
@@ -843,7 +893,7 @@
       var video = document.createElement('video');
       video.muted = true; video.playsInline = true; video.srcObject = stream;
       video.play().catch(function () {});
-      cap = { stream: stream, video: video, src: src, running: false, ocrBusy: false, stableLines: [], lastLines: [], blankHits: 0, hpHist: { you: [], foe: [] }, hpAt: { you: 0, foe: 0 } };
+      cap = { stream: stream, video: video, src: src, running: false, ocrBusy: false, stableLines: [], lastLines: [], blankHits: 0, hpHist: {}, hpAt: {}, hpReadAt: {}, hpOi: 0, hpOcrAt: 0 };
       stream.getVideoTracks().forEach(function (tr) { tr.addEventListener('ended', function () { stopCap(); persist(); render(); }); });
       store.cfg.source = { kind: src.kind, id: src.id || '', label: src.label || '' };
       persist();
@@ -855,6 +905,17 @@
     if (arr.length > 3) arr.shift();
     var s = arr.slice().sort(function (a, c) { return a - c; });
     return s[Math.floor(s.length / 2)];
+  }
+  function hpSlots() {
+    var list = [
+      { side: 'you', key: 'youHp', slot: 0 },
+      { side: 'foe', key: 'foeHp', slot: 0 }
+    ];
+    if (current && current.format === 'doubles') {
+      list.splice(1, 0, { side: 'you', key: 'youHp2', slot: 1 });
+      list.push({ side: 'foe', key: 'foeHp2', slot: 1 });
+    }
+    return list;
   }
   function capLoop() {
     if (!cap) return;
@@ -891,15 +952,36 @@
           }, function (e) { if (cap) cap.ocrBusy = false; ocrNote = t('ocrErr', e && e.message || e); paintOcr(); });
         }
       }
+      if (Cap.ocr && !cap.ocrBusy && cap.running && current && !current.ended && Date.now() - cap.hpOcrAt >= 700) {
+        var slots = hpSlots().filter(function (h) { return regs[h.key]; });
+        if (slots.length) {
+          var h = slots[cap.hpOi % slots.length];
+          cap.hpOi++;
+          var hpImg;
+          try { hpImg = sampler.ocrImage(cap.video, regs[h.key]); } catch (e2) { hpImg = null; }
+          if (hpImg) {
+            cap.ocrBusy = true; cap.hpOcrAt = Date.now();
+            Cap.ocr(hpImg).then(function (r) {
+              if (!cap) return;
+              cap.ocrBusy = false;
+              var n = r && !r.error ? parseHpText(r.text) : null;
+              if (n == null || !current || current.ended) return;
+              cap.hpReadAt[h.key] = Date.now();
+              if (feedHp(current, h.side, n, { slot: h.slot, reliable: true })) onChange();
+            }, function () { if (cap) cap.ocrBusy = false; });
+          }
+        }
+      }
       if (cap.running && current && !current.ended) {
-        ['you', 'foe'].forEach(function (sd) {
-          var key = sd === 'you' ? 'youHp' : 'foeHp';
-          if (!regs[key] || Date.now() - cap.hpAt[sd] < 350) return;
-          var ratio = sampler.hpFill(cap.video, regs[key]);
+        hpSlots().forEach(function (h) {
+          if (!regs[h.key] || Date.now() - (cap.hpAt[h.key] || 0) < 350) return;
+          if (Date.now() - (cap.hpReadAt[h.key] || 0) < 2500) return;
+          var ratio = sampler.hpFill(cap.video, regs[h.key]);
           if (ratio == null) return;
-          cap.hpAt[sd] = Date.now();
-          var pct = medianPush(cap.hpHist[sd], ratio * 100);
-          if (feedHp(current, sd, pct)) onChange();
+          cap.hpAt[h.key] = Date.now();
+          if (!cap.hpHist[h.key]) cap.hpHist[h.key] = [];
+          var pct = medianPush(cap.hpHist[h.key], ratio * 100);
+          if (feedHp(current, h.side, pct, { slot: h.slot })) onChange();
         });
       }
     }, 200);
@@ -1056,17 +1138,15 @@
     return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
   }
 
-  // Sample uses species the damage calculator knows, so "Im Rechner" is available on the moves.
-  var DEMO_EN = ['Gary wants to battle!', 'Go! Charizard!', 'Gary sent out Incineroar!', 'Turn 1',
-    'Charizard used Flamethrower!', "It's super effective!", 'The opposing Incineroar lost 48% of its health!',
-    'Incineroar used Fake Out!', 'Charizard lost 15% of its health!', 'Turn 2',
-    'Charizard, come back!', 'Go! Garchomp!', 'Garchomp used Earthquake!',
-    'The opposing Incineroar fainted!', 'You defeated Gary!'];
-  var DEMO_DE = ['Gary möchte kämpfen!', 'Los! Glurak!', 'Gary schickt Fuegro in den Kampf!', 'Runde 1',
-    'Glurak setzt Flammenwurf ein!', 'Das ist sehr effektiv!', 'Das gegnerische Fuegro verlor 48 % seiner KP!',
-    'Fuegro setzt Mogelhieb ein!', 'Glurak verlor 15 % seiner KP!', 'Runde 2',
-    'Glurak, komm zurück!', 'Los! Knakrack!', 'Knakrack setzt Erdbeben ein!', 'Volltreffer!',
-    'Das gegnerische Fuegro wurde besiegt!', 'Du hast Gary besiegt!'];
+  // Champions doubles. The last move has one target left, so "Im Rechner" can open it.
+  var DEMO_EN = ['Gary wants to battle!', 'Go! Incineroar and Charizard!', 'Gary sent out Rillaboom and Whimsicott!',
+    'Incineroar used Fake Out!', 'Charizard used Flamethrower!', "It's super effective!",
+    'The opposing Whimsicott fainted!', 'What will Incineroar do?', 'Incineroar, come back!', 'Go! Garchomp!',
+    'Garchomp used Earthquake!', 'A critical hit!', 'You defeated Gary!'];
+  var DEMO_DE = ['Gary möchte kämpfen!', 'Los! Fuegro und Glurak!', 'Gary schickt Gortrom und Elfun in den Kampf!',
+    'Fuegro setzt Mogelhieb ein!', 'Glurak setzt Flammenwurf ein!', 'Das ist sehr effektiv!',
+    'Das gegnerische Elfun wurde besiegt!', 'Was soll Fuegro tun?', 'Fuegro, komm zurück!', 'Los! Knakrack!',
+    'Knakrack setzt Erdbeben ein!', 'Volltreffer!', 'Du hast Gary besiegt!'];
 
   function playDemo() {
     clearTimeout(demoTimer);
@@ -1269,7 +1349,12 @@
     }
     if (!sampler) sampler = Cap.createSampler();
     var rg = el('div', { class: 'btn-group' });
-    [['text', t('regionText')], ['youHp', t('regionYou')], ['foeHp', t('regionFoe')]].forEach(function (o) {
+    var regionBtns = [['text', t('regionText')], ['youHp', t('regionYou')], ['foeHp', t('regionFoe')]];
+    if (current && current.format === 'doubles') {
+      regionBtns.splice(2, 0, ['youHp2', t('regionYou2')]);
+      regionBtns.push(['foeHp2', t('regionFoe2')]);
+    }
+    regionBtns.forEach(function (o) {
       var b = el('button', { class: drawKey === o[0] ? 'on' : '', text: o[1] });
       b.addEventListener('click', function () { drawKey = o[0]; render(); });
       rg.appendChild(b);
@@ -1292,7 +1377,7 @@
       store.cfg.regions[drawKey] = { x: x, y: y, w: w, h: h };
       persist();
     });
-    var cols = { text: '#f2c94c', youHp: '#3a7bd5', foeHp: '#c8283c' };
+    var cols = { text: '#f2c94c', youHp: '#3a7bd5', youHp2: '#7eb6ff', foeHp: '#c8283c', foeHp2: '#ff8a80' };
     function draw() {
       if (!document.contains(cv) || !cap) return;
       var v = cap.video;
@@ -1317,7 +1402,7 @@
     rb.addEventListener('click', function () {
       if (!cap.running) {
         var regs = store.cfg.regions || {};
-        if (!regs.text && !regs.youHp && !regs.foeHp) { A.toast(t('needRegion')); return; }
+        if (!regs.text && !regs.youHp && !regs.foeHp && !regs.youHp2 && !regs.foeHp2) { A.toast(t('needRegion')); return; }
         cap.running = true;
         cap.stableLines = (cap.lastLines || []).slice();
         if (!current) current = createBattle({});
