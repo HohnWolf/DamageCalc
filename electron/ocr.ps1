@@ -40,7 +40,10 @@ while ($true) {
     $dec = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
     $bmp = Await ($dec.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
     $res = Await ($engine.RecognizeAsync($bmp)) ([Windows.Media.Ocr.OcrResult])
-    Send @{ text = [string]$res.Text }
+    $parts = @()
+    foreach ($ln in $res.Lines) { if ($ln.Text) { $parts += [string]$ln.Text } }
+    $text = if ($parts.Count) { $parts -join "`n" } else { [string]$res.Text }
+    Send @{ text = $text }
     $bmp.Dispose(); $stream.Dispose(); $ms.Dispose()
   } catch {
     Send @{ error = $_.Exception.Message }

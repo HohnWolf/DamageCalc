@@ -81,13 +81,24 @@
       for (var i = 0, j = 0; i < d.length; i += 4, j++) g[j] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
       return { w: z.w, h: z.h, g: g };
     }
-    function ocrImage(video, r) {
+    var lastOutline = '';
+    function ocrImage(video, r, mode) {
       var p = regionPx(video, r);
+      var dw = p.w, dh = p.h;
+      if (dw > 1800) { var s = 1800 / dw; dw = 1800; dh = Math.max(1, Math.round(p.h * s)); }
       // small text reads better a bit larger; Windows OCR takes at most about 2600 px per side
-      var k = Math.min(p.h < 80 ? 2 : 1, 2400 / p.w, 2400 / p.h);
-      ocrCanvas.width = Math.max(1, Math.round(p.w * k)); ocrCanvas.height = Math.max(1, Math.round(p.h * k));
+      var k = Math.min(dh < 80 ? 2 : 1, 2400 / dw, 2400 / dh);
+      ocrCanvas.width = Math.max(1, Math.round(dw * k)); ocrCanvas.height = Math.max(1, Math.round(dh * k));
+      octx.imageSmoothingEnabled = true;
       octx.imageSmoothingQuality = 'high';
       octx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
+      if (mode === 'outline' && window.CCTextPrep) {
+        var src = octx.getImageData(0, 0, ocrCanvas.width, ocrCanvas.height);
+        var prepped = window.CCTextPrep.prepOutlinedText(src.data, ocrCanvas.width, ocrCanvas.height, 4);
+        ocrCanvas.width = prepped.w; ocrCanvas.height = prepped.h;
+        octx.putImageData(new ImageData(prepped.data, prepped.w, prepped.h), 0, 0);
+        lastOutline = ocrCanvas.toDataURL('image/png');
+      }
       return ocrCanvas.toDataURL('image/png').split(',')[1];
     }
     // Share of a left-aligned HP bar that is still green, yellow or red. null when the crop does not look like a bar.
@@ -100,7 +111,7 @@
       wctx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, w, h);
       return hpFromPixels(wctx.getImageData(0, 0, w, h).data, w, h);
     }
-    return { regionPx: regionPx, sampleSize: function (video, r) { return sampleSize(video, r); }, sample: sample, ocrImage: ocrImage, hpFill: hpFill };
+    return { regionPx: regionPx, sampleSize: function (video, r) { return sampleSize(video, r); }, sample: sample, ocrImage: ocrImage, hpFill: hpFill, lastOutline: function () { return lastOutline; } };
   }
 
   function hpHue(R, G, B) {
