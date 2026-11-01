@@ -1,6 +1,6 @@
-// Match-Analyse: Showdown-Replays und Kampfprotokolle auswerten.
-// Team kommt aus dem Teambuilder (cc_builder), Einträge liegen unter localStorage "cc_match".
-// Kampfprotokolle: Speicher "cc_battlelog" oder JSON des Kampfprotokolls, gelesen über js/match_parse.js.
+// Team-Analyse: alle Spiele eines Teambuilder-Teams als ein Bericht.
+// Einträge liegen unter localStorage "cc_match", je Spiel mit teamId.
+// Kampfprotokolle: Speicher "cc_battlelog" (schema 1) oder JSON, gelesen über js/match_parse.js.
 (function () {
   'use strict';
   var A = window.CC;
@@ -9,19 +9,22 @@
   var el = A.el, de = A.LANG === 'de';
 
   var S = de ? {
-    title: 'Match-Analyse',
-    sub: 'Showdown-Replays und Kampfprotokolle: Ergebnis, Teams, Leads, Mega und Tera, Nutzung und Matchups.',
+    title: 'Team-Analyse',
+    sub: 'Ein Team aus dem Teambuilder, alle Spiele dazu: Replays und Kampfprotokolle in einem Bericht.',
     team: 'Team', teamNone: 'Kein Team im Teambuilder', teamPick: 'Team wählen …',
     names: 'Showdown-Namen', namesPh: 'Namen, mit Komma getrennt',
     namesHint: 'Daran erkennt das Tool deine Seite. Leer lassen geht, wenn das gewählte Team im Replay vorkommt.',
     gamesN: '{0} Spiele', record: '{0}–{1}', noGames: 'Noch keine Spiele',
     tabGames: 'Spiele', tabSeries: 'Serien', tabUsage: 'Nutzung', tabMatch: 'Matchups', tabMoves: 'Attacken', tabCheck: 'Prüfen',
+    secEntries: 'Replay-Einträge', secUsage: 'Nutzung', secLeads: 'Lead-Paare', secMatch: 'Matchups', secMoves: 'Attacken', secGbg: 'Spiel für Spiel', secSeries: 'Serie für Serie', secCheck: 'Prüfen',
+    assigned: '{0} Spiele diesem Team zugeordnet', loose: '{0} Spiele ohne Team', claim: 'Diesem Team geben',
+    noTeam: 'Leg im Teambuilder zuerst ein Team an. Die sechs Pokémon sind der Bericht.',
     importTitle: 'Spiele hinzufügen',
     pastePh: 'Ein Replay-Link pro Zeile\nhttps://replay.pokemonshowdown.com/…\n\nOder ein Showdown-Log, ein Replay-JSON oder ein Kampfprotokoll-JSON hier einfügen.',
     load: 'Übernehmen', fromLog: 'Kampfprotokolle', demo: 'Beispiel laden', clearDemo: 'Beispiele entfernen',
     backup: 'Sichern', restore: 'Datei laden',
     cors: 'Replays lädt der Browser direkt von replay.pokemonshowdown.com. Die Seite erlaubt das von anderen Seiten aus. Klappt der Abruf nicht (privates Replay, kein Netz), das .json oder den Log-Text oben einfügen.',
-    logHint: 'Kampfprotokolle liest die gespeicherten Kämpfe des Kampfprotokolls (Speicher „cc_battlelog“, schema 1). Im Kampfprotokoll übernimmt „In Match-Analyse“ das offene Protokoll direkt. Elo, offen oder geschlossen und das Team von sechs stehen dort nicht. Ein exportiertes JSON kannst du oben einfügen.',
+    logHint: 'Kampfprotokolle liest „cc_battlelog“ (schema 1). Passen die Pokémon, landet das Spiel bei diesem Team. Im Kampfprotokoll übernimmt „In Team-Analyse“ das offene Protokoll. Elo, offen oder geschlossen und das Team von sechs stehen dort nicht.',
     loadingN: 'Lade {0} von {1} …', addedN: '{0} neu, {1} doppelt, {2} fehlgeschlagen',
     noLogs: 'Keine Kampfprotokolle gespeichert. Das Kampfprotokoll legt sie unter „cc_battlelog“ ab, oder du fügst ein exportiertes JSON ein.',
     logsIn: '{0} neu übernommen, {1} aktualisiert',
@@ -81,19 +84,22 @@
     testRun: 'Parser prüfen', testOk: 'Parser: {0} Prüfungen in Ordnung.', testBad: 'Parser: {0} Prüfung(en) fehlgeschlagen.',
     vs: 'gegen', backYou: 'Dein Back', backFoe: 'Gegner-Back', picks: 'Eingesetzt'
   } : {
-    title: 'Match-Analyse',
-    sub: 'Showdown replays and battle logs: result, teams, leads, Mega and Tera, usage and matchups.',
+    title: 'Team-Analyse',
+    sub: 'One teambuilder team, every game with it: replays and battle logs in a single report.',
     team: 'Team', teamNone: 'No team in the teambuilder', teamPick: 'Choose a team …',
     names: 'Showdown names', namesPh: 'Names, separated by commas',
     namesHint: 'This is how the tool finds your side. Leaving it empty is fine when the chosen team appears in the replay.',
     gamesN: '{0} games', record: '{0}–{1}', noGames: 'No games yet',
     tabGames: 'Games', tabSeries: 'Series', tabUsage: 'Usage', tabMatch: 'Matchups', tabMoves: 'Moves', tabCheck: 'Check',
+    secEntries: 'Replay entries', secUsage: 'Usage', secLeads: 'Lead pairs', secMatch: 'Matchups', secMoves: 'Moves', secGbg: 'Game by game', secSeries: 'Match by match', secCheck: 'Check',
+    assigned: '{0} games filed under this team', loose: '{0} games with no team', claim: 'Add to this team',
+    noTeam: 'Build a team in the teambuilder first. Those six Pokémon are the report.',
     importTitle: 'Add games',
     pastePh: 'One replay link per line\nhttps://replay.pokemonshowdown.com/…\n\nOr paste a Showdown log, a replay JSON or a battle-log JSON here.',
     load: 'Add', fromLog: 'Battle logs', demo: 'Load sample', clearDemo: 'Remove samples',
     backup: 'Save', restore: 'Load file',
     cors: 'The browser loads replays directly from replay.pokemonshowdown.com. That site allows other pages to read them. If a fetch fails (private replay, no network), paste the .json or the log text above.',
-    logHint: 'Battle logs reads the battles saved by the battle log (storage “cc_battlelog”, schema 1). In the battle log, “To Match-Analyse” sends the open log straight here. Elo, open or closed sheet and the team of six are not in there. You can paste an exported JSON above.',
+    logHint: 'Battle logs reads “cc_battlelog” (schema 1). When the Pokémon match, the game is filed under this team. In the battle log, “To Team-Analyse” sends the open log. Elo, open or closed sheet and the team of six are not in there.',
     loadingN: 'Loading {0} of {1} …', addedN: '{0} new, {1} duplicate, {2} failed',
     noLogs: 'No battle logs saved. The battle log stores them under “cc_battlelog”, or paste an exported JSON.',
     logsIn: '{0} added, {1} updated',
@@ -163,13 +169,15 @@
     return { result: '', oppTeam: '', oppLead: '', oppBack: '', myLead: '', myBack: '', myUsed: '', sheet: '', mega: '', megaMon: '', minElo: '' };
   }
   function fresh() {
-    return { v: 1, names: '', teamId: '', tab: 'games', sel: '', filters: freshFilters(), entries: [], notices: [] };
+    return { v: 2, names: '', teamId: '', tab: 'report', sel: '', filters: freshFilters(), entries: [], notices: [] };
   }
   var store = A.load('cc_match', null);
   if (!store || !Array.isArray(store.entries)) store = fresh();
   if (!store.filters) store.filters = freshFilters();
   if (!store.notices) store.notices = [];
   Object.keys(freshFilters()).forEach(function (k) { if (store.filters[k] == null) store.filters[k] = ''; });
+  var legacyTeam = (!store.v || store.v < 2) ? (store.teamId || '') : '';
+  store.v = 2;
   function persist() { A.save('cc_match', store); }
   function nid() { return 'ma' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
 
@@ -189,8 +197,7 @@
       persist();
     }
   }
-  function teamMons() {
-    var tm = currentTeam();
+  function monsOf(tm) {
     if (!tm) return [];
     return (tm.mons || []).map(function (m) {
       var forme = m.set && m.set.forme;
@@ -198,6 +205,55 @@
       var moves = ((m.set && m.set.moves) || []).filter(function (mv) { return mv && mv !== '(No Move)'; });
       return { species: sp, moves: moves };
     }).filter(function (m) { return m.species && A.DEX[m.species]; });
+  }
+  function teamMons() { return monsOf(currentTeam()); }
+  function bestOverlap(side) {
+    var best = 0;
+    teams().forEach(function (tm) { var n = overlap(side, monsOf(tm)); if (n > best) best = n; });
+    return best;
+  }
+  function guessSide(entry) {
+    if (!entry || !entry.game) return '';
+    if (entry.side === 'p1' || entry.side === 'p2') return entry.side;
+    if (entry.source === 'battlelog' || entry.game.source === 'battlelog') return 'p1';
+    var names = nameList(), g = entry.game;
+    var h1 = nameHit(g.p1.name, names), h2 = nameHit(g.p2.name, names);
+    if (h1 && !h2) return 'p1';
+    if (h2 && !h1) return 'p2';
+    var a = bestOverlap(g.p1), b = bestOverlap(g.p2);
+    if (a > b) return 'p1';
+    if (b > a) return 'p2';
+    var mine = teamMons();
+    if (mine.length) {
+      var s1 = overlap(g.p1, mine), s2 = overlap(g.p2, mine);
+      if (s1 > s2) return 'p1';
+      if (s2 > s1) return 'p2';
+    }
+    return '';
+  }
+  // File the game under the teambuilder team whose Pokémon match the player's side.
+  // preferId wins a tie. A match needs at least two of that team's Pokémon.
+  function assignEntry(entry, preferId) {
+    if (!entry || entry.pinned) return;
+    if (!entry.game) { entry.teamId = entry.teamId || preferId || store.teamId || ''; return; }
+    var sideName = guessSide(entry);
+    if (sideName) entry.side = sideName;
+    var side = sideName === 'p2' ? entry.game.p2 : sideName === 'p1' ? entry.game.p1 : null;
+    if (!side) { entry.teamId = preferId || store.teamId || entry.teamId || ''; return; }
+    var best = null, bestN = 0;
+    teams().forEach(function (tm) {
+      var n = overlap(side, monsOf(tm));
+      if (n > bestN) { bestN = n; best = tm; }
+    });
+    var min = 2;
+    if (preferId) {
+      var pref = null;
+      teams().forEach(function (tm) { if (tm.id === preferId) pref = tm; });
+      var pn = pref ? overlap(side, monsOf(pref)) : 0;
+      if (pn >= min && pn === bestN) { entry.teamId = preferId; return; }
+    }
+    if (best && bestN >= min) { entry.teamId = best.id; return; }
+    entry.teamId = preferId || store.teamId || entry.teamId || '';
   }
 
   function sameMon(a, b) {
@@ -243,21 +299,7 @@
     mons.forEach(function (m) { if (pool.some(function (sp) { return sameMon(sp, m.species); })) n++; });
     return n;
   }
-  function yourSide(entry) {
-    if (!entry || !entry.game) return '';
-    if (entry.side === 'p1' || entry.side === 'p2') return entry.side;
-    var names = nameList(), g = entry.game;
-    var h1 = nameHit(g.p1.name, names), h2 = nameHit(g.p2.name, names);
-    if (h1 && !h2) return 'p1';
-    if (h2 && !h1) return 'p2';
-    var mons = teamMons();
-    if (mons.length) {
-      var s1 = overlap(g.p1, mons), s2 = overlap(g.p2, mons);
-      if (s1 > s2) return 'p1';
-      if (s2 > s1) return 'p2';
-    }
-    return '';
-  }
+  function yourSide(entry) { return guessSide(entry); }
   function viewed(entry) {
     var side = yourSide(entry);
     if (!side || !entry.game) return null;
@@ -282,9 +324,12 @@
     return String(side.eloStart != null ? side.eloStart : side.eloEnd);
   }
 
+  function teamEntries() {
+    return store.entries.filter(function (e) { return e.teamId === store.teamId; });
+  }
   function counted() {
     var out = [];
-    store.entries.forEach(function (e) {
+    teamEntries().forEach(function (e) {
       var v = viewed(e);
       if (v && (v.result === 'win' || v.result === 'loss')) out.push(v);
     });
@@ -327,7 +372,7 @@
 
   function speciesChoices() {
     var map = {};
-    store.entries.forEach(function (e) {
+    teamEntries().forEach(function (e) {
       var v = viewed(e);
       if (!v) return;
       [v.you, v.foe].forEach(function (sd) {
@@ -425,6 +470,7 @@
     return {
       id: nid(), key: key, source: source, url: url || (game && game.url) || '',
       added: Date.now(), error: extra.error || null, side: extra.side || '',
+      teamId: extra.teamId || '', pinned: !!extra.pinned,
       splitBefore: false, alone: false, game: game || null
     };
   }
@@ -436,9 +482,19 @@
     var key = 'bl:' + (game.battleLogId || P.hashText([game.when, game.p1.name, game.p2.name, (game.p1.brought || []).join(), (game.p2.brought || []).join()].join('|')));
     var existing = null;
     store.entries.forEach(function (e) { if (e.key === key) existing = e; });
-    if (existing) { existing.game = game; existing.error = null; if (existing.source !== 'demo') existing.source = 'battlelog'; return 'upd'; }
+    if (existing) {
+      existing.game = game; existing.error = null;
+      if (existing.source !== 'demo') existing.source = 'battlelog';
+      if (!existing.side) existing.side = 'p1';
+      if (!existing.pinned && !existing.teamId) assignEntry(existing, store.teamId);
+      lastTeam = existing.teamId || lastTeam;
+      return 'upd';
+    }
     // The battle log already knows which side is the player (party.you → p1).
-    store.entries.push(makeEntry(key, 'battlelog', '', game, { side: 'p1' }));
+    var entry = makeEntry(key, 'battlelog', '', game, { side: 'p1' });
+    assignEntry(entry, store.teamId);
+    lastTeam = entry.teamId || lastTeam;
+    store.entries.push(entry);
     return 'new';
   }
   function importBattleObjects(list) {
@@ -468,17 +524,26 @@
     var key = 'sd:' + id;
     if (store.entries.some(function (e) { return e.key === key; })) { notice('dup', id); cb('dup'); return; }
     fetchReplay(id).then(function (game) {
-      store.entries.push(makeEntry(key, 'showdown', game.url, game));
+      var entry = makeEntry(key, 'showdown', game.url, game);
+      assignEntry(entry, store.teamId);
+      if (entry.teamId) batchTeams[entry.teamId] = 1;
+      store.entries.push(entry);
       cb('ok');
     }, function (err) {
       store.entries.push(makeEntry(key, 'showdown', 'https://replay.pokemonshowdown.com/' + id, null, { error: { code: 'fetch', detail: String(err && err.message || err) } }));
       cb('fail');
     });
   }
+  var lastTeam = '', batchTeams = {};
   function runIds(ids, done) {
     var i = 0, added = 0, dup = 0, failed = 0;
+    batchTeams = {};
     function next() {
-      if (i >= ids.length) { persist(); setBusy(''); done({ added: added, dup: dup, failed: failed }); return; }
+      if (i >= ids.length) {
+      var idsPicked = Object.keys(batchTeams);
+      if (idsPicked.length === 1) store.teamId = idsPicked[0];
+      persist(); setBusy(''); done({ added: added, dup: dup, failed: failed }); return;
+    }
       var id = ids[i++];
       setBusy(t('loadingN', i, ids.length));
       takeReplay(id, function (res) {
@@ -493,7 +558,10 @@
     var game = P.parseLog(text, { source: 'showdown', when: Date.now() });
     var key = 'log:' + P.hashText(text);
     if (store.entries.some(function (e) { return e.key === key; })) { notice('dup', key); return 'dup'; }
-    store.entries.push(makeEntry(key, 'showdown', '', game));
+    var entry = makeEntry(key, 'showdown', '', game);
+    assignEntry(entry, store.teamId);
+    if (entry.teamId) store.teamId = entry.teamId;
+    store.entries.push(entry);
     return 'ok';
   }
   function addBad(line) {
@@ -514,6 +582,8 @@
           if (!e || !e.key) return;
           if (store.entries.some(function (x) { return x.key === e.key; })) { notice('dup', e.key); return; }
           if (!e.id) e.id = nid();
+          if (!e.teamId && !e.pinned) assignEntry(e, store.teamId);
+          if (e.teamId) store.teamId = e.teamId;
           store.entries.push(e);
           added++;
         });
@@ -529,7 +599,10 @@
         var game = P.parseReplayJson(obj);
         var key = 'sd:' + (game.replayId || ('json:' + P.hashText(obj.log)));
         if (store.entries.some(function (e) { return e.key === key; })) { notice('dup', key); return; }
-        store.entries.push(makeEntry(key, 'showdown', game.url, game));
+        var entry = makeEntry(key, 'showdown', game.url, game);
+        assignEntry(entry, store.teamId);
+        if (entry.teamId) store.teamId = entry.teamId;
+        store.entries.push(entry);
         added++;
       }
     }
@@ -633,7 +706,7 @@
       var game = P.parseLog(sp.log, { source: 'demo', when: sp.when, format: 'doubles' });
       game.p1.eloStart = sp.eloYou[0]; game.p1.eloEnd = sp.eloYou[1];
       game.p2.eloStart = sp.eloFoe[0]; game.p2.eloEnd = sp.eloFoe[1];
-      var entry = makeEntry(sp.key, 'demo', '', game, { side: 'p1' });
+      var entry = makeEntry(sp.key, 'demo', '', game, { side: 'p1', teamId: store.teamId || '', pinned: true });
       store.entries.push(entry);
     });
     if (!store.entries.some(function (e) { return e.key === 'demo:bl'; })) {
@@ -653,7 +726,7 @@
           { kind: 'move', side: 'you', species: 'Garchomp', move: 'Earthquake' }
         ]
       });
-      var be = makeEntry('demo:bl', 'demo', '', bl, { side: 'p1' });
+      var be = makeEntry('demo:bl', 'demo', '', bl, { side: 'p1', teamId: store.teamId || '', pinned: true });
       store.entries.push(be);
     }
     if (!store.names) store.names = 'Rattata';
@@ -669,10 +742,10 @@
   }
 
   function backup() {
-    var dump = JSON.stringify({ kind: 'rattata-match', v: 1, names: store.names, teamId: store.teamId, entries: store.entries }, null, 2);
+    var dump = JSON.stringify({ kind: 'rattata-match', v: 2, names: store.names, teamId: store.teamId, entries: store.entries }, null, 2);
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([dump], { type: 'application/json' }));
-    a.download = 'match-analyse.json';
+    a.download = 'team-analyse.json';
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
@@ -680,7 +753,7 @@
   function problems() {
     var out = [];
     var seen = {};
-    store.entries.forEach(function (e) {
+    teamEntries().forEach(function (e) {
       if (seen[e.key]) out.push({ entry: e, code: 'dup', text: t('errDup', e.key) });
       seen[e.key] = 1;
       if (e.error && e.error.code === 'bad') out.push({ entry: e, code: 'bad', text: t('errBad', e.error.detail || e.key) });
@@ -696,129 +769,188 @@
 
   // ---------------- render ----------------
   var root = null;
-  function render() {
-    root = document.getElementById('matchView');
-    if (!root) return;
-    ensureTeam();
-    root.innerHTML = '';
-    var head = el('div', { class: 'nz-head' });
-    head.appendChild(el('h2', { text: t('title') }));
-    head.appendChild(el('span', { class: 'hint', text: t('sub') }));
-    root.appendChild(head);
-    root.appendChild(renderBar());
-    if (location.hash === '#matchtest') root.appendChild(renderTest(true));
-    var tabs = el('div', { class: 'nz-tabs' });
-    [['games', t('tabGames')], ['series', t('tabSeries')], ['usage', t('tabUsage')], ['match', t('tabMatch')], ['moves', t('tabMoves')], ['check', t('tabCheck')]].forEach(function (x) {
-      var b = el('button', { class: store.tab === x[0] ? 'on' : '', text: x[1] });
-      b.addEventListener('click', function () { store.tab = x[0]; persist(); render(); });
-      tabs.appendChild(b);
+  function migrateTeams() {
+    var dirty = false;
+    store.entries.forEach(function (e) {
+      if (!e || e.pinned || e.teamId) return;
+      var before = e.teamId || '';
+      assignEntry(e, legacyTeam || store.teamId);
+      if ((e.teamId || '') !== before) dirty = true;
     });
-    root.appendChild(tabs);
-    var body = el('div', { class: 'ma-body' });
-    root.appendChild(body);
-    if (store.tab === 'series') renderSeries(body);
-    else if (store.tab === 'usage') renderUsage(body);
-    else if (store.tab === 'match') renderMatchups(body);
-    else if (store.tab === 'moves') renderMoves(body);
-    else if (store.tab === 'check') renderCheck(body);
-    else renderGames(body);
+    legacyTeam = '';
+    if (dirty) persist();
   }
+  function wrClass(w, n) {
+    if (!n) return 'wr';
+    var p = 100 * w / n;
+    return 'wr ' + (p >= 60 ? 'hi' : p >= 45 ? 'mid' : 'lo');
+  }
+  function cell(text, cls) { return { text: text == null ? '' : String(text), cls: cls || '' }; }
+  function wrCell(w, n) { return cell(pct(w, n), wrClass(w, n)); }
+  function nodeCell(node, cls) { return { node: node, cls: cls || '' }; }
 
+  function icons(list, slots) {
+    var row = el('div', { class: 'ta-icons' });
+    var arr = (list || []).slice();
+    if (slots) while (arr.length < slots) arr.push('');
+    arr.forEach(function (sp) {
+      var c = el('span', { class: 'ta-ic' + (sp ? '' : ' empty'), title: sp ? lab(sp) : '' });
+      if (sp && String(sp).indexOf('*') === -1) c.appendChild(A.spriteFit(sp));
+      else if (sp) c.appendChild(el('span', { class: 'ta-q', text: '?' }));
+      row.appendChild(c);
+    });
+    if (!arr.length) row.appendChild(el('span', { class: 'ma-sub', text: '–' }));
+    return row;
+  }
+  function monLabel(sp) {
+    var box = el('span', { class: 'ta-mon' });
+    if (sp && String(sp).indexOf('*') === -1) box.appendChild(A.spriteFit(sp));
+    box.appendChild(el('span', { text: lab(sp) }));
+    return box;
+  }
+  function sheet(headers, rows) {
+    var wrap = el('div', { class: 'ta-sheet' });
+    var table = el('table');
+    var hr = el('tr');
+    headers.forEach(function (h, i) {
+      var th = el('th', { text: h });
+      if (i === 0) th.className = 'left';
+      hr.appendChild(th);
+    });
+    var thead = el('thead'); thead.appendChild(hr); table.appendChild(thead);
+    var tb = el('tbody');
+    rows.forEach(function (cells) {
+      var tr = el('tr');
+      cells.forEach(function (c, i) {
+        var td = el('td');
+        if (i === 0 && (!c || !c.cls)) td.className = 'left';
+        if (c && typeof c === 'object' && c.node) { td.appendChild(c.node); if (c.cls) td.className = ((td.className ? td.className + ' ' : '') + c.cls).trim(); }
+        else if (c && typeof c === 'object' && Object.prototype.hasOwnProperty.call(c, 'text')) { td.className = c.cls || ''; td.textContent = c.text; }
+        else td.textContent = c == null ? '' : String(c);
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb);
+    wrap.appendChild(table);
+    return wrap;
+  }
+  function section(id, title, hint) {
+    var s = el('section', { class: 'ta-sec', id: 'ta-' + id });
+    s.appendChild(el('h3', { text: title }));
+    if (hint) s.appendChild(el('p', { class: 'ma-note', text: hint }));
+    return s;
+  }
+  function teamRows() {
+    return teamEntries().filter(function (e) { return e.game; }).map(function (e) { return { entry: e, v: viewed(e) }; })
+      .sort(function (a, b) { return ((a.v && a.v.when) || a.entry.added || 0) - ((b.v && b.v.when) || b.entry.added || 0); });
+  }
   function fieldSelect(label, value, options, on) {
     var wrap = el('label', { class: 'ma-field' });
     wrap.appendChild(el('span', { text: label }));
     var sel = el('select');
-    options.forEach(function (o) {
-      var op = el('option', { value: o[0], text: o[1] });
-      sel.appendChild(op);
-    });
+    options.forEach(function (o) { sel.appendChild(el('option', { value: o[0], text: o[1] })); });
     sel.value = value || '';
     sel.addEventListener('change', function () { on(sel.value); });
     wrap.appendChild(sel);
     return wrap;
   }
-  function renderBar() {
-    var bar = el('div', { class: 'ma-bar' });
+
+  function render() {
+    root = document.getElementById('matchView');
+    if (!root) return;
+    ensureTeam();
+    migrateTeams();
+    root.innerHTML = '';
+    var head = el('div', { class: 'nz-head' });
+    head.appendChild(el('h2', { text: t('title') }));
+    head.appendChild(el('span', { class: 'hint', text: t('sub') }));
+    root.appendChild(head);
+    if (location.hash === '#matchtest') root.appendChild(renderTest(true));
+    var body = el('div', { class: 'ma-body ta-report' });
+    root.appendChild(body);
+    body.appendChild(renderHero());
+    body.appendChild(renderImport());
+    var loose = store.entries.filter(function (e) { return e.game && !e.teamId; });
+    if (loose.length && store.teamId) {
+      var bar = el('div', { class: 'ta-loose' });
+      bar.appendChild(el('span', { text: t('loose', loose.length) }));
+      var claim = el('button', { class: 'tbtn', text: t('claim') });
+      claim.addEventListener('click', function () {
+        loose.forEach(function (e) { e.teamId = store.teamId; e.pinned = true; });
+        persist(); render();
+      });
+      bar.appendChild(claim);
+      body.appendChild(bar);
+    }
+    var jumps = el('nav', { class: 'ta-jumps' });
+    [[t('secEntries'), 'entries'], [t('secUsage'), 'usage'], [t('secLeads'), 'leads'], [t('secMatch'), 'matchups'], [t('secMoves'), 'moves'], [t('secGbg'), 'gbg'], [t('secSeries'), 'series'], [t('secCheck'), 'check']].forEach(function (j) {
+      var a = el('a', { href: '#ta-' + j[1], text: j[0] });
+      jumps.appendChild(a);
+    });
+    body.appendChild(jumps);
+    body.appendChild(renderEntries());
+    body.appendChild(renderUsage());
+    body.appendChild(renderLeads());
+    body.appendChild(renderMatchups());
+    body.appendChild(renderMoves());
+    body.appendChild(renderGbg());
+    body.appendChild(renderSeries());
+    body.appendChild(renderCheck());
+  }
+
+  function renderHero() {
+    var tm = currentTeam(), mons = teamMons(), rows = counted(), rec = recordOf(rows), rates = sheetRates(rows);
+    var box = el('header', { class: 'ta-hero panel' });
+    var top = el('div', { class: 'ta-hero-top' });
     var list = teams();
-    var opts = list.map(function (tm) { return [tm.id, tm.name || tm.id]; });
+    var opts = list.map(function (x) { return [x.id, (x.name || x.id) + ' (' + store.entries.filter(function (e) { return e.teamId === x.id && e.game; }).length + ')']; });
     if (!opts.length) opts = [['', t('teamNone')]];
-    bar.appendChild(fieldSelect(t('team'), store.teamId, opts, function (v) { store.teamId = v; persist(); render(); }));
+    top.appendChild(fieldSelect(t('team'), store.teamId, opts, function (v) { store.teamId = v; persist(); render(); }));
     var names = el('label', { class: 'ma-field ma-names' });
     names.appendChild(el('span', { text: t('names') }));
-    var inp = el('input', { type: 'text', value: store.names || '', placeholder: t('namesPh') });
+    var inp = el('input', { type: 'text', value: store.names || '', placeholder: t('namesPh'), title: t('namesHint') });
     inp.addEventListener('change', function () { store.names = inp.value; persist(); render(); });
     names.appendChild(inp);
-    names.title = t('namesHint');
-    bar.appendChild(names);
-    var rows = counted();
-    var rec = recordOf(rows);
-    var sum = el('div', { class: 'ma-sum' });
-    if (!rec.n) sum.appendChild(el('span', { class: 'hint', text: t('noGames') }));
+    top.appendChild(names);
+    var recBox = el('div', { class: 'ta-record' });
+    recBox.appendChild(el('div', { class: 'ta-record-n', text: rec.n ? (rec.w + '–' + rec.l) : '–' }));
+    recBox.appendChild(el('div', { class: 'ta-record-p ' + wrClass(rec.w, rec.n), text: rec.n ? pct(rec.w, rec.n) : t('noGames') }));
+    recBox.appendChild(el('div', { class: 'ma-sub', text: rec.n ? t('gamesN', rec.n) : '' }));
+    top.appendChild(recBox);
+    box.appendChild(top);
+    if (!list.length) box.appendChild(el('p', { class: 'ma-note', text: t('noTeam') }));
     else {
-      var games = el('span');
-      games.appendChild(el('b', { text: String(rec.n) }));
-      games.appendChild(document.createTextNode(' ' + (de ? 'Spiele' : 'games')));
-      sum.appendChild(games);
-      var sc = el('span');
-      sc.appendChild(el('span', { class: 'ma-win', text: String(rec.w) }));
-      sc.appendChild(document.createTextNode('–'));
-      sc.appendChild(el('span', { class: 'ma-loss', text: String(rec.l) }));
-      sum.appendChild(sc);
-      sum.appendChild(el('span', { text: pct(rec.w, rec.n) }));
+      var six = el('div', { class: 'ta-six' });
+      var name = el('div', { class: 'ta-teamname', text: tm ? (tm.name || '') : '' });
+      six.appendChild(name);
+      six.appendChild(icons(mons.map(function (m) { return m.species; }), 6));
+      box.appendChild(six);
     }
-    bar.appendChild(sum);
-    return bar;
+    var mini = el('div', { class: 'ta-sheet ta-mini' });
+    mini.appendChild(sheet(
+      [t('sheetTitle'), de ? 'Siege' : 'Wins', de ? 'Spiele' : 'Games', t('colWr')],
+      [
+        [t('sheetOts'), rates.ots.w || 0, rates.ots.n || 0, wrCell(rates.ots.w, rates.ots.n)],
+        [t('sheetCts'), rates.cts.w || 0, rates.cts.n || 0, wrCell(rates.cts.w, rates.cts.n)]
+      ]
+    ));
+    box.appendChild(mini);
+    return box;
   }
 
-  function monRow(list, leadList) {
-    var row = el('div', { class: 'ma-mons' });
-    (list || []).forEach(function (sp) {
-      var cell = el('span', { class: 'ma-mon' + (leadList && hasMon(leadList, sp) ? ' lead' : ''), title: lab(sp) });
-      if (!sp || sp.indexOf('*') !== -1) cell.appendChild(el('span', { class: 'ma-q', text: '?' }));
-      else cell.appendChild(A.spriteFit(sp));
-      row.appendChild(cell);
-    });
-    if (!list || !list.length) row.appendChild(el('span', { class: 'ma-sub', text: '–' }));
-    return row;
-  }
-  function block(label, node) {
-    var b = el('div');
-    b.appendChild(el('div', { class: 'ma-lab', text: label }));
-    b.appendChild(node);
-    return b;
-  }
-  function sheetTag(sheet) {
-    var text = sheet === 'ots' ? t('sheetOts') : sheet === 'cts' ? t('sheetCts') : t('sheetUnk');
-    return el('span', { class: 'ma-tag' + (sheet === 'ots' ? ' ots' : ''), text: text });
-  }
-  function srcTag(source) {
-    var text = source === 'battlelog' ? t('srcBattle') : source === 'demo' ? t('srcDemo') : t('srcShowdown');
-    return el('span', { class: 'ma-tag', text: text });
-  }
-
-  function renderGames(body) {
+  function renderImport() {
     var card = el('div', { class: 'panel ma-card' });
     card.appendChild(el('h3', { text: t('importTitle') }));
-    var paste = el('textarea', { class: 'ma-paste', id: 'maPaste', placeholder: t('pastePh') });
+    var paste = el('textarea', { class: 'ma-paste', placeholder: t('pastePh') });
     card.appendChild(paste);
     var acts = el('div', { class: 'ma-actions' });
-    var load = el('button', { class: 'primary-btn', text: t('load') });
-    load.addEventListener('click', function () { var v = paste.value; paste.value = ''; importText(v); });
-    acts.appendChild(load);
-    var logs = el('button', { class: 'tbtn', text: t('fromLog') });
-    logs.addEventListener('click', importStoredLogs);
-    acts.appendChild(logs);
-    var demo = el('button', { class: 'tbtn', text: t('demo') });
-    demo.addEventListener('click', loadDemo);
-    acts.appendChild(demo);
-    if (store.entries.some(function (e) { return e.source === 'demo'; })) {
-      var clr = el('button', { class: 'tbtn', text: t('clearDemo') });
-      clr.addEventListener('click', clearDemo);
-      acts.appendChild(clr);
-    }
-    var save = el('button', { class: 'tbtn', text: t('backup') });
-    save.addEventListener('click', backup);
-    acts.appendChild(save);
+    function btn(cls, label, fn) { var b = el('button', { class: cls, text: label }); b.addEventListener('click', fn); return b; }
+    acts.appendChild(btn('primary-btn', t('load'), function () { var v = paste.value; paste.value = ''; importText(v); }));
+    acts.appendChild(btn('tbtn', t('fromLog'), importStoredLogs));
+    acts.appendChild(btn('tbtn', t('demo'), loadDemo));
+    if (teamEntries().some(function (e) { return e.source === 'demo'; })) acts.appendChild(btn('tbtn', t('clearDemo'), clearDemo));
+    acts.appendChild(btn('tbtn', t('backup'), backup));
     var file = el('input', { type: 'file', accept: 'application/json,.json' });
     file.hidden = true;
     file.addEventListener('change', function () {
@@ -828,344 +960,111 @@
       rd.onload = function () { importJson(String(rd.result || '')); };
       rd.readAsText(f);
     });
-    var rest = el('button', { class: 'tbtn', text: t('restore') });
-    rest.addEventListener('click', function () { file.click(); });
-    acts.appendChild(rest);
+    acts.appendChild(btn('tbtn', t('restore'), function () { file.click(); }));
     acts.appendChild(file);
     acts.appendChild(el('span', { class: 'ma-busy', id: 'maBusy', text: busy }));
     card.appendChild(acts);
     card.appendChild(el('p', { class: 'ma-note', text: t('cors') }));
     card.appendChild(el('p', { class: 'ma-note', text: t('logHint') }));
-    body.appendChild(card);
-
-    var choices = speciesChoices();
-    var f = store.filters;
-    function setF(k) { return function (v) { store.filters[k] = v; persist(); render(); }; }
-    var spec = function (cur) { return [['', t('any')]].concat(choices.map(function (o) { return [o.value, o.label]; })); };
-    var box = el('div', { class: 'panel ma-card' });
-    var grid = el('div', { class: 'ma-filters' });
-    grid.appendChild(fieldSelect(t('fResult'), f.result, [['', t('any')], ['win', t('fWin')], ['loss', t('fLoss')]], setF('result')));
-    grid.appendChild(fieldSelect(t('fOppTeam'), f.oppTeam, spec(), setF('oppTeam')));
-    grid.appendChild(fieldSelect(t('fOppLead'), f.oppLead, spec(), setF('oppLead')));
-    grid.appendChild(fieldSelect(t('fOppBack'), f.oppBack, spec(), setF('oppBack')));
-    grid.appendChild(fieldSelect(t('fMyLead'), f.myLead, spec(), setF('myLead')));
-    grid.appendChild(fieldSelect(t('fMyBack'), f.myBack, spec(), setF('myBack')));
-    grid.appendChild(fieldSelect(t('fMyUsed'), f.myUsed, spec(), setF('myUsed')));
-    grid.appendChild(fieldSelect(t('fSheet'), f.sheet, [['', t('any')], ['ots', t('sheetOts')], ['cts', t('sheetCts')]], setF('sheet')));
-    grid.appendChild(fieldSelect(t('fMega'), f.mega, [['', t('any')], ['mega', t('megaOnly')], ['tera', t('teraOnly')]], setF('mega')));
-    grid.appendChild(fieldSelect(t('fMegaMon'), f.megaMon, spec(), setF('megaMon')));
-    var elo = el('label', { class: 'ma-field' });
-    elo.appendChild(el('span', { text: t('fElo') }));
-    var eloIn = el('input', { type: 'number', min: '0', step: '1', value: f.minElo });
-    eloIn.addEventListener('change', function () { store.filters.minElo = eloIn.value; persist(); render(); });
-    elo.appendChild(eloIn);
-    grid.appendChild(elo);
-    var reset = el('button', { class: 'tbtn ma-go', text: t('reset') });
-    reset.addEventListener('click', function () { store.filters = freshFilters(); persist(); render(); });
-    grid.appendChild(reset);
-    box.appendChild(grid);
-    body.appendChild(box);
-
-    var all = [];
-    store.entries.forEach(function (e) { if (e.game) all.push({ entry: e, v: viewed(e) }); });
-    all.sort(function (a, b) { return ((b.v && b.v.when) || 0) - ((a.v && a.v.when) || 0); });
-    var shown = all.filter(function (r) { if (!r.v) return !filtersOn(); return pass(r.v); });
-    var head = el('div', { class: 'ma-line' });
-    var rec = recordOf(shown.map(function (r) { return r.v; }).filter(Boolean));
-    head.appendChild(el('strong', { text: t('shown', shown.length, all.length) }));
-    if (rec.n) head.appendChild(el('span', { text: t('shownRec', rec.w, rec.l, pct(rec.w, rec.n)) }));
-    body.appendChild(head);
-
-    if (!all.length) { body.appendChild(el('p', { class: 'ma-note', text: t('empty') })); return; }
-    if (!shown.length) { body.appendChild(el('p', { class: 'ma-note', text: t('emptyFilter') })); return; }
-    var list = el('div', { class: 'panel ma-list' });
-    shown.forEach(function (r) { list.appendChild(renderGame(r)); });
-    body.appendChild(list);
+    return card;
   }
 
-  function renderGame(r) {
-    var e = r.entry, v = r.v, open = store.sel === e.id;
-    var wrap = el('div');
-    var btn = el('button', { class: 'ma-game' + (open ? ' on' : '') });
-    var res = el('div', { class: 'ma-res ' + (v ? v.result : 'unk'), text: v ? letter(v.result) : '!' });
-    btn.appendChild(res);
-    var who = el('div');
-    who.appendChild(el('div', { class: 'ma-opp', text: v ? (v.foe.name || '–') : ((e.game && (e.game.p1.name + ' / ' + e.game.p2.name)) || (e.error && e.error.detail) || e.key) }));
-    var sub = v ? eloText(v.foe) : t('warnSide');
-    if (sub) who.appendChild(el('div', { class: 'ma-sub', text: sub }));
-    btn.appendChild(who);
-    if (v) {
-      var team = (v.foe.team && v.foe.team.length) ? v.foe.team : v.foe.brought;
-      btn.appendChild(block(t('teamOf'), monRow(team, v.foe.leads)));
-      var leads = el('div', { class: 'ma-line' });
-      leads.appendChild(monRow(v.you.leads));
-      leads.appendChild(el('span', { class: 'ma-sub', text: t('vs') }));
-      leads.appendChild(monRow(v.foe.leads));
-      btn.appendChild(block(t('leads'), leads));
-    } else {
-      btn.appendChild(el('div'));
-      btn.appendChild(el('div'));
-    }
-    var tags = el('div', { class: 'ma-tags' });
-    if (v) tags.appendChild(sheetTag(v.sheet));
-    tags.appendChild(srcTag(e.source));
-    if (e.source === 'demo' && e.game && e.game.source === 'battlelog') tags.appendChild(srcTag('battlelog'));
-    if (v && v.you.megas && v.you.megas.length) tags.appendChild(el('span', { class: 'ma-tag', text: t('mega') }));
-    if (v && v.you.tera && v.you.tera.species) tags.appendChild(el('span', { class: 'ma-tag', text: t('tera') }));
-    if (!v) tags.appendChild(el('span', { class: 'ma-tag bad', text: '!' }));
-    btn.appendChild(tags);
-    btn.addEventListener('click', function () { store.sel = open ? '' : e.id; persist(); render(); });
-    wrap.appendChild(btn);
-    if (open) wrap.appendChild(renderDetail(r));
-    return wrap;
+  function resultCell(result) {
+    var cls = result === 'win' ? 'ta-wl win' : result === 'loss' ? 'ta-wl loss' : 'ta-wl';
+    return cell(result ? letter(result) : '?', cls);
   }
-
-  function typePill(type) {
-    var s = el('span', { class: 'ma-type', text: A.nType(type) });
-    var c = A.TYPE_COLORS[type];
-    if (c) { s.style.background = c; s.style.color = A.DARK_TEXT_TYPES[type] ? '#1b1d21' : '#fff'; }
-    return s;
-  }
-  function renderDetail(r) {
-    var e = r.entry, v = r.v, g = e.game;
-    var box = el('div', { class: 'ma-detail' });
-    if (!v) {
-      box.appendChild(el('p', { class: 'ma-note', text: t('warnSide') }));
-    } else {
-      var grid = el('div', { class: 'ma-detail-grid' });
-      grid.appendChild(block(t('picks') + ' · ' + t('you'), monRow(v.you.brought, v.you.leads)));
-      grid.appendChild(block(t('backYou'), monRow(v.you.back)));
-      grid.appendChild(block(t('backFoe'), monRow(v.foe.back)));
-      var extra = el('div');
-      extra.appendChild(el('div', { class: 'ma-lab', text: t('mega') + ' / ' + t('tera') }));
-      var line = el('div', { class: 'ma-line' });
-      (v.you.megas || []).forEach(function (m) { line.appendChild(el('span', { text: lab(m.species) + (m.item ? ' (' + A.nItem(m.item) + ')' : '') })); });
-      if (v.you.tera && v.you.tera.species) {
-        line.appendChild(el('span', { text: lab(v.you.tera.species) }));
-        if (v.you.tera.type) line.appendChild(typePill(v.you.tera.type));
-      }
-      (v.foe.megas || []).forEach(function (m) { line.appendChild(el('span', { class: 'ma-sub', text: t('foe') + ': ' + lab(m.species) })); });
-      if (v.foe.tera && v.foe.tera.species) line.appendChild(el('span', { class: 'ma-sub', text: t('foe') + ': ' + lab(v.foe.tera.species) + (v.foe.tera.type ? ' ' + A.nType(v.foe.tera.type) : '') }));
-      if (!line.childNodes.length) line.appendChild(el('span', { class: 'ma-sub', text: '–' }));
-      extra.appendChild(line);
-      if (eloText(v.you)) extra.appendChild(el('div', { class: 'ma-sub', text: t('you') + ' ' + t('elo') + ' ' + eloText(v.you) }));
-      grid.appendChild(extra);
-      box.appendChild(grid);
-      var mv = el('div', { class: 'ma-moves' });
-      Object.keys(v.you.moves || {}).forEach(function (sp) {
-        var bag = v.you.moves[sp];
-        Object.keys(bag).forEach(function (move) {
-          mv.appendChild(el('span', { text: lab(sp) + ' · ' + A.nMove(move) + ' ×' + bag[move] }));
+  function renderEntries() {
+    var sec = section('entries', t('secEntries'), de
+      ? 'Jedes Spiel dieses Teams. W oder L und die sechs des Gegners, wie in der Teamvorschau.'
+      : 'Every game with this team. W or L and the opponent’s six, as in team preview.');
+    var rows = teamRows();
+    if (!rows.length) { sec.appendChild(el('p', { class: 'ma-note', text: t('empty') })); return sec; }
+    sec.appendChild(sheet(
+      ['#', de ? 'Erg.' : 'Res.', t('foe'), t('teamOf'), de ? 'Quelle' : 'Source', ''],
+      rows.map(function (r, i) {
+        var v = r.v, foeTeam = v ? ((v.foe.team && v.foe.team.length) ? v.foe.team : v.foe.brought) : [];
+        var src = r.entry.source === 'battlelog' || (r.entry.game && r.entry.game.source === 'battlelog') ? t('srcBattle') : r.entry.source === 'demo' ? t('srcDemo') : t('srcShowdown');
+        var del = el('button', { class: 'tbtn', text: '×', title: t('del') });
+        del.addEventListener('click', function () {
+          store.entries = store.entries.filter(function (e) { return e.id !== r.entry.id; });
+          persist(); render();
         });
-      });
-      if (mv.childNodes.length) box.appendChild(mv);
-      (v.warnings || []).forEach(function (w) {
-        var msg = w === 'partial-team' ? t('partial') : w === 'no-sheet' ? t('noSheet') : w === 'no-elo' ? t('noElo') : w === 'no-winner' ? t('noWin') : '';
-        if (msg) box.appendChild(el('p', { class: 'ma-note', text: msg }));
-      });
-      if (v.url) {
-        var a = el('a', { href: v.url, target: '_blank', rel: 'noopener', text: t('openReplay') });
-        box.appendChild(a);
-      }
-    }
-    var side = el('label', { class: 'ma-field' });
-    side.appendChild(el('span', { text: t('side') }));
-    var sel = el('select');
-    var opts = [['', t('sideAuto')]];
-    if (g) { opts.push(['p1', g.p1.name || 'P1']); opts.push(['p2', g.p2.name || 'P2']); }
-    opts.forEach(function (o) { sel.appendChild(el('option', { value: o[0], text: o[1] })); });
-    sel.value = e.side || '';
-    sel.addEventListener('change', function () { e.side = sel.value; persist(); render(); });
-    sel.addEventListener('click', function (ev) { ev.stopPropagation(); });
-    side.appendChild(sel);
-    var row = el('div', { class: 'ma-line' });
-    row.appendChild(side);
-    function chk(label, key) {
-      var c = el('label', { class: 'ma-chk' });
-      var i = el('input', { type: 'checkbox' });
-      i.checked = !!e[key];
-      i.addEventListener('change', function () { e[key] = i.checked; persist(); });
-      c.appendChild(i);
-      c.appendChild(el('span', { text: label }));
-      return c;
-    }
-    row.appendChild(chk(t('split'), 'splitBefore'));
-    row.appendChild(chk(t('bo1'), 'alone'));
-    var del = el('button', { class: 'tbtn danger', text: t('del') });
-    del.addEventListener('click', function () {
-      if (!window.confirm(t('delConfirm'))) return;
-      store.entries = store.entries.filter(function (x) { return x.id !== e.id; });
-      if (store.sel === e.id) store.sel = '';
-      persist();
-      render();
-    });
-    row.appendChild(del);
-    box.appendChild(row);
-    return box;
+        return [
+          String(i + 1),
+          v ? resultCell(v.result) : cell('!', 'ta-wl loss'),
+          v ? (v.foe.name || '–') : ((r.entry.game.p1.name || '?') + ' / ' + (r.entry.game.p2.name || '?')),
+          nodeCell(icons(foeTeam)),
+          src,
+          nodeCell(del)
+        ];
+      })
+    ));
+    return sec;
   }
 
-  function seriesRows() {
-    var rows = [];
-    store.entries.forEach(function (e) {
-      var v = viewed(e);
-      if (!v) return;
-      rows.push({ key: e.key, foe: v.foe.name || '', result: v.result, when: v.when, splitBefore: !!e.splitBefore, alone: !!e.alone, entry: e, v: v });
-    });
-    return P.groupSeries(rows);
-  }
-  function renderSeries(body) {
-    body.appendChild(el('p', { class: 'ma-note', text: t('seriesHint') }));
-    var sets = seriesRows();
-    if (!sets.length) { body.appendChild(el('p', { class: 'ma-note', text: t('seriesEmpty') })); return; }
-    var grid = el('div', { class: 'ma-series' });
-    sets.forEach(function (set) {
-      var cls = set.wins > set.losses ? 'ma-set' : set.wins < set.losses ? 'ma-set loss' : 'ma-set tie';
-      var card = el('article', { class: 'panel ' + cls });
-      var top = el('div', { class: 'ma-set-top' });
-      top.appendChild(el('div', { class: 'ma-opp', text: t('seriesVs', set.foe || '–') }));
-      top.appendChild(el('div', { class: 'ma-set-score', text: set.wins + '–' + set.losses }));
-      card.appendChild(top);
-      var full = null;
-      set.games.forEach(function (g) { if (!full && g.v.foe.team && g.v.foe.team.length >= 6) full = g.v.foe.team; });
-      if (!full && set.games[0]) full = set.games[0].v.foe.team.length ? set.games[0].v.foe.team : set.games[0].v.foe.brought;
-      card.appendChild(monRow(full || []));
-      var pips = el('div', { class: 'ma-pips' });
-      set.games.forEach(function (g) {
-        var b = el('button', { class: 'tbtn ma-pip ' + g.result, text: letter(g.result), title: (g.v.you.leads || []).map(lab).join(' + ') });
-        b.addEventListener('click', function () { store.tab = 'games'; store.sel = g.entry.id; persist(); render(); });
-        pips.appendChild(b);
-      });
-      card.appendChild(pips);
-      card.appendChild(el('div', { class: 'ma-sub', text: set.games.length === 1 ? (de ? '1 Spiel' : '1 game') : t('gamesShort', set.games.length) }));
-      grid.appendChild(card);
-    });
-    body.appendChild(grid);
-  }
-
-  function statTable(cols, rows) {
-    var wrap = el('div', { class: 'panel ma-table-wrap' });
-    var table = el('table', { class: 'ma-table' });
-    var thead = el('thead'), hr = el('tr');
-    cols.forEach(function (c) { hr.appendChild(el('th', { text: c })); });
-    thead.appendChild(hr);
-    table.appendChild(thead);
-    var tb = el('tbody');
-    rows.forEach(function (cells) {
-      var tr = el('tr');
-      cells.forEach(function (c, i) {
-        var td = el('td');
-        if (i === 0 && c && c.species) {
-          var cell = el('div', { class: 'ma-moncell' });
-          cell.appendChild(A.spriteFit(c.species));
-          cell.appendChild(el('span', { text: lab(c.species) }));
-          td.appendChild(cell);
-        } else td.textContent = c == null ? '–' : String(c);
-        tr.appendChild(td);
-      });
-      tb.appendChild(tr);
-    });
-    table.appendChild(tb);
-    wrap.appendChild(table);
-    return wrap;
-  }
-  function renderUsage(body) {
-    var rows = counted();
-    var team = teamMons();
-    var tm = currentTeam();
-    body.appendChild(el('p', { class: 'ma-note', text: t('usageHint') }));
-    body.appendChild(el('p', { class: 'ma-note', text: team.length && tm ? t('usageTeam', tm.name || '') : t('usageSeen') }));
-    var rates = sheetRates(rows);
-    var sheet = el('div', { class: 'panel ma-card' });
-    sheet.appendChild(el('h3', { text: t('sheetTitle') }));
-    if (!rates.ots.n && !rates.cts.n) sheet.appendChild(el('p', { class: 'ma-note', text: t('sheetNone') }));
-    else {
-      if (rates.ots.n) sheet.appendChild(el('div', { text: t('otsLine', rates.ots.w, rates.ots.n, pct(rates.ots.w, rates.ots.n)) }));
-      if (rates.cts.n) sheet.appendChild(el('div', { text: t('ctsLine', rates.cts.w, rates.cts.n, pct(rates.cts.w, rates.cts.n)) }));
-    }
-    body.appendChild(sheet);
+  function renderUsage() {
+    var sec = section('usage', t('secUsage'), t('usageHint'));
+    var rows = counted(), team = teamMons(), tm = currentTeam();
+    sec.appendChild(el('p', { class: 'ma-note', text: team.length && tm ? t('usageTeam', tm.name || '') : t('usageSeen') }));
     var subjects = team.length ? team : (function () {
       var map = {};
       rows.forEach(function (v) { (v.you.brought || []).forEach(function (sp) { map[P.idOf(sp)] = { species: sp, moves: [] }; }); });
       return Object.keys(map).map(function (k) { return map[k]; });
     })();
     var table = usageTable(rows, subjects);
-    body.appendChild(statTable(
+    sec.appendChild(sheet(
       [t('colMon'), t('colBrought'), t('colWins'), t('colWr'), t('colUse'), t('colLead'), t('colLeadW'), t('colLeadWr'), t('colMega'), t('colMegaWr'), t('colTera'), t('colTeraWr')],
       table.map(function (r) {
-        return [r.mon, r.brought, r.wins, pct(r.wins, r.brought), pct(r.brought, r.games), r.lead, r.leadW, pct(r.leadW, r.lead), r.mega, pct(r.megaW, r.mega), r.tera, pct(r.teraW, r.tera)];
+        return [
+          nodeCell(monLabel(r.mon.species), 'left'),
+          r.brought, r.wins, wrCell(r.wins, r.brought), wrCell(r.brought, r.games),
+          r.lead, r.leadW, wrCell(r.leadW, r.lead),
+          r.mega, wrCell(r.megaW, r.mega), r.tera, wrCell(r.teraW, r.tera)
+        ];
       })
     ));
-    if (team.length) {
-      var extra = {};
-      rows.forEach(function (v) {
-        (v.you.brought || []).forEach(function (sp) {
-          if (team.some(function (m) { return sameMon(m.species, sp); })) return;
-          extra[P.idOf(sp)] = { species: P.baseFor(sp), moves: [] };
-        });
-      });
-      var extras = Object.keys(extra).map(function (k) { return extra[k]; });
-      if (extras.length) {
-        body.appendChild(el('h3', { text: t('otherMons') }));
-        var more = usageTable(rows, extras);
-        body.appendChild(statTable(
-          [t('colMon'), t('colBrought'), t('colWins'), t('colWr')],
-          more.map(function (r) { return [r.mon, r.brought, r.wins, pct(r.wins, r.brought)]; })
-        ));
-      }
-    }
-    body.appendChild(el('h3', { text: t('leadsTitle') }));
-    var combos = leadCombos(rows);
-    if (!combos.length) body.appendChild(el('p', { class: 'ma-note', text: t('sheetNone') }));
-    else body.appendChild(statTable(
+    return sec;
+  }
+  function renderLeads() {
+    var sec = section('leads', t('secLeads'), de ? 'Wie oft dieses Lead-Paar eröffnet hat und wie oft das Spiel gewonnen wurde.' : 'How often this lead pair was brought and how often the game was won.');
+    var combos = leadCombos(counted());
+    if (!combos.length) { sec.appendChild(el('p', { class: 'ma-note', text: t('sheetNone') })); return sec; }
+    sec.appendChild(sheet(
       [t('colPair'), t('colLed'), t('colWins'), t('colWr')],
-      combos.map(function (c) { return [lab(c.a) + ' + ' + lab(c.b), c.n, c.w, pct(c.w, c.n)]; })
+      combos.map(function (c) {
+        return [nodeCell(icons([c.a, c.b]), 'left'), c.n, c.w, wrCell(c.w, c.n)];
+      })
     ));
+    return sec;
   }
-
-  function callout(title, lines) {
-    var card = el('div', { class: 'panel' });
-    card.appendChild(el('h3', { text: title }));
-    if (!lines.length) card.appendChild(el('p', { class: 'ma-note', text: t('need4') }));
-    lines.forEach(function (text) { card.appendChild(el('div', { text: text })); });
-    return card;
-  }
-  function renderMatchups(body) {
-    body.appendChild(el('p', { class: 'ma-note', text: t('matchHint') }));
+  function renderMatchups() {
+    var sec = section('matchups', t('secMatch'), t('matchHint'));
     var rows = matchups(counted());
-    var faced = rows.filter(function (r) { return r.brought >= 4; }).sort(function (a, b) {
-      return (b.wins / b.brought) - (a.wins / a.brought) || b.brought - a.brought;
-    });
-    var best = faced.slice(0, 3);
-    var worst = faced.slice().reverse().filter(function (r) { return best.indexOf(r) === -1; }).slice(0, 3);
-    var att = rows.filter(function (r) { return r.present >= 4; }).sort(function (a, b) { return (b.brought / b.present) - (a.brought / a.present); });
-    var line = function (r, kind) {
-      if (kind === 'att') return lab(r.species) + ' · ' + r.brought + '/' + r.present + ' · ' + pct(r.brought, r.present);
-      return lab(r.species) + ' · ' + r.wins + '/' + r.brought + ' · ' + pct(r.wins, r.brought);
-    };
-    var calls = el('div', { class: 'ma-call' });
-    calls.appendChild(callout(t('best'), best.map(function (r) { return line(r); })));
-    calls.appendChild(callout(t('worst'), worst.map(function (r) { return line(r); })));
-    calls.appendChild(callout(t('attHigh'), att.slice(0, 3).map(function (r) { return line(r, 'att'); })));
-    calls.appendChild(callout(t('attLow'), att.slice().reverse().slice(0, 3).map(function (r) { return line(r, 'att'); })));
-    body.appendChild(calls);
-    if (!rows.length) { body.appendChild(el('p', { class: 'ma-note', text: t('empty') })); return; }
-    body.appendChild(statTable(
+    if (!rows.length) { sec.appendChild(el('p', { class: 'ma-note', text: t('empty') })); return sec; }
+    sec.appendChild(sheet(
       [t('colMon'), t('colPresent'), t('colFaced'), t('colBeat'), t('colWr'), t('colAtt')],
-      rows.map(function (r) { return [{ species: r.species }, r.present || '–', r.brought, r.wins, pct(r.wins, r.brought), r.present ? pct(r.brought, r.present) : '–']; })
+      rows.map(function (r) {
+        return [
+          nodeCell(monLabel(r.species), 'left'),
+          r.present || '–', r.brought, r.wins,
+          wrCell(r.wins, r.brought),
+          r.present ? wrCell(r.brought, r.present) : cell('–')
+        ];
+      })
     ));
+    return sec;
   }
-
-  function renderMoves(body) {
-    body.appendChild(el('p', { class: 'ma-note', text: t('movesHint') }));
-    var rows = counted();
-    var team = teamMons();
+  function renderMoves() {
+    var sec = section('moves', t('secMoves'), t('movesHint'));
+    var rows = counted(), team = teamMons();
     var subjects = team.slice();
     if (!subjects.length) {
       var map = {};
       rows.forEach(function (v) { Object.keys(v.you.moves || {}).forEach(function (sp) { map[P.idOf(sp)] = { species: sp, moves: [] }; }); });
       subjects = Object.keys(map).map(function (k) { return map[k]; });
     }
-    if (!subjects.length) { body.appendChild(el('p', { class: 'ma-note', text: t('movesNone') })); return; }
+    if (!subjects.length) { sec.appendChild(el('p', { class: 'ma-note', text: t('movesNone') })); return sec; }
+    var grid = el('div', { class: 'ta-movegrid' });
     subjects.forEach(function (mon) {
       var counts = {};
       rows.forEach(function (v) {
@@ -1175,70 +1074,143 @@
       var names = (mon.moves || []).slice();
       Object.keys(counts).forEach(function (mv) { if (names.indexOf(mv) === -1) names.push(mv); });
       names.sort(function (a, b) { return (counts[b] || 0) - (counts[a] || 0); });
-      var card = el('div', { class: 'panel ma-card' });
-      var title = el('div', { class: 'ma-line' });
-      title.appendChild(A.spriteFit(mon.species));
-      title.appendChild(el('h3', { text: lab(mon.species) }));
-      card.appendChild(title);
+      var card = el('div', { class: 'ta-movecard' });
+      card.appendChild(monLabel(mon.species));
       if (!names.length) card.appendChild(el('p', { class: 'ma-note', text: t('movesNone') }));
-      else card.appendChild(statTable([de ? 'Attacke' : 'Move', de ? 'Mal' : 'Times'], names.map(function (mv) { return [A.nMove(mv), counts[mv] || 0]; })));
-      body.appendChild(card);
+      else card.appendChild(sheet([de ? 'Attacke' : 'Move', de ? 'Mal' : 'Times'], names.map(function (mv) { return [A.nMove(mv), counts[mv] || 0]; })));
+      grid.appendChild(card);
     });
+    sec.appendChild(grid);
+    return sec;
   }
-
+  function renderGbg() {
+    var sec = section('gbg', t('secGbg'), de
+      ? 'Filter gelten nur für diese Tabelle. Nutzung, Leads und Matchups zählen alle Spiele des Teams.'
+      : 'Filters apply only to this table. Usage, leads and matchups count every game with the team.');
+    var choices = speciesChoices();
+    var spec = [['', t('any')]].concat(choices.map(function (o) { return [o.value, o.label]; }));
+    var f = store.filters;
+    function setF(k) { return function (v) { store.filters[k] = v; persist(); render(); }; }
+    var grid = el('div', { class: 'ma-filters' });
+    grid.appendChild(fieldSelect(t('fResult'), f.result, [['', t('any')], ['win', t('fWin')], ['loss', t('fLoss')]], setF('result')));
+    grid.appendChild(fieldSelect(t('fOppTeam'), f.oppTeam, spec, setF('oppTeam')));
+    grid.appendChild(fieldSelect(t('fOppLead'), f.oppLead, spec, setF('oppLead')));
+    grid.appendChild(fieldSelect(t('fOppBack'), f.oppBack, spec, setF('oppBack')));
+    grid.appendChild(fieldSelect(t('fMyLead'), f.myLead, spec, setF('myLead')));
+    grid.appendChild(fieldSelect(t('fMyBack'), f.myBack, spec, setF('myBack')));
+    grid.appendChild(fieldSelect(t('fMyUsed'), f.myUsed, spec, setF('myUsed')));
+    grid.appendChild(fieldSelect(t('fSheet'), f.sheet, [['', t('any')], ['ots', t('sheetOts')], ['cts', t('sheetCts')]], setF('sheet')));
+    grid.appendChild(fieldSelect(t('fMega'), f.mega, [['', t('any')], ['mega', t('megaOnly')], ['tera', t('teraOnly')]], setF('mega')));
+    grid.appendChild(fieldSelect(t('fMegaMon'), f.megaMon, spec, setF('megaMon')));
+    var elo = el('label', { class: 'ma-field' });
+    elo.appendChild(el('span', { text: t('fElo') }));
+    var eloIn = el('input', { type: 'number', min: '0', step: '1', value: f.minElo });
+    eloIn.addEventListener('change', function () { store.filters.minElo = eloIn.value; persist(); render(); });
+    elo.appendChild(eloIn);
+    grid.appendChild(elo);
+    var reset = el('button', { class: 'tbtn', text: t('reset') });
+    reset.addEventListener('click', function () { store.filters = freshFilters(); persist(); render(); });
+    grid.appendChild(reset);
+    sec.appendChild(grid);
+    var all = teamRows();
+    var shown = all.filter(function (r) { if (!r.v) return !filtersOn(); return pass(r.v); });
+    var rec = recordOf(shown.map(function (r) { return r.v; }).filter(Boolean));
+    sec.appendChild(el('p', { class: 'ma-note', text: t('shown', shown.length, all.length) + (rec.n ? ' · ' + t('shownRec', rec.w, rec.l, pct(rec.w, rec.n)) : '') }));
+    if (!shown.length) { sec.appendChild(el('p', { class: 'ma-note', text: all.length ? t('emptyFilter') : t('empty') })); return sec; }
+    sec.appendChild(sheet(
+      ['#', de ? 'Erg.' : 'Res.', t('foe'), t('elo'), t('teamOf'), t('leads') + ' · ' + t('you'), t('backYou'), t('leads') + ' · ' + t('foe'), t('backFoe'), t('mega') + '/' + t('tera'), t('fSheet')],
+      shown.map(function (r, i) {
+        var v = r.v;
+        if (!v) return [String(i + 1), cell('!', 'ta-wl loss'), r.entry.key, '', '', '', '', '', '', '', ''];
+        var mega = (v.you.megas || []).map(function (m) { return lab(m.species); }).join(', ');
+        var tera = v.you.tera && v.you.tera.species ? (lab(v.you.tera.species) + (v.you.tera.type ? ' ' + A.nType(v.you.tera.type) : '')) : '';
+        var tag = [mega, tera].filter(Boolean).join(' · ') || '–';
+        var sheetName = v.sheet === 'ots' ? t('sheetOts') : v.sheet === 'cts' ? t('sheetCts') : '–';
+        return [
+          String(i + 1), resultCell(v.result), v.foe.name || '–', eloText(v.foe) || '–',
+          nodeCell(icons((v.foe.team && v.foe.team.length) ? v.foe.team : v.foe.brought)),
+          nodeCell(icons(v.you.leads)), nodeCell(icons(v.you.back)),
+          nodeCell(icons(v.foe.leads)), nodeCell(icons(v.foe.back)),
+          tag, sheetName
+        ];
+      })
+    ));
+    return sec;
+  }
+  function renderSeries() {
+    var sec = section('series', t('secSeries'), t('seriesHint'));
+    var rows = [];
+    teamEntries().forEach(function (e) {
+      var v = viewed(e);
+      if (!v) return;
+      rows.push({ key: e.key, foe: v.foe.name || '', result: v.result, when: v.when, splitBefore: !!e.splitBefore, alone: !!e.alone, entry: e, v: v });
+    });
+    var sets = P.groupSeries(rows);
+    if (!sets.length) { sec.appendChild(el('p', { class: 'ma-note', text: t('seriesEmpty') })); return sec; }
+    sec.appendChild(sheet(
+      ['#', de ? 'Serie' : 'Series', t('foe'), t('teamOf'), 'G1', 'G2', 'G3'],
+      sets.map(function (set, i) {
+        var full = null;
+        set.games.forEach(function (g) { if (!full && g.v.foe.team && g.v.foe.team.length >= 6) full = g.v.foe.team; });
+        if (!full) full = set.games[0].v.foe.team.length ? set.games[0].v.foe.team : set.games[0].v.foe.brought;
+        var gcell = function (n) {
+          var g = set.games[n];
+          return g ? resultCell(g.result) : cell('');
+        };
+        var score = set.wins + '–' + set.losses;
+        var cls = set.wins > set.losses ? 'ta-wl win' : set.wins < set.losses ? 'ta-wl loss' : 'ta-wl';
+        return [String(i + 1), cell(score, cls), set.foe || '–', nodeCell(icons(full || [])), gcell(0), gcell(1), gcell(2)];
+      })
+    ));
+    return sec;
+  }
   function renderTest(force) {
     var res = tests || (force ? runTests() : null);
     if (!res) return el('div');
-    var box = el('div', { class: 'ma-test ' + (res.ok ? 'ok' : 'bad'), text: (res.ok ? t('testOk', res.n) : t('testBad', res.fails.length)) + (res.ok ? '' : '\n' + res.fails.join('\n')) });
-    return box;
+    return el('div', { class: 'ma-test ' + (res.ok ? 'ok' : 'bad'), text: (res.ok ? t('testOk', res.n) : t('testBad', res.fails.length)) + (res.ok ? '' : '\n' + res.fails.join('\n')) });
   }
-  function renderCheck(body) {
-    body.appendChild(el('p', { class: 'ma-note', text: t('checkHint') }));
+  function renderCheck() {
+    var sec = section('check', t('secCheck'), t('checkHint'));
     var list = problems();
-    if (!list.length) body.appendChild(el('p', { class: 'ma-note', text: t('checkOk') }));
-    var box = el('div', { class: 'ma-issues' });
+    if (!list.length) sec.appendChild(el('p', { class: 'ma-note', text: t('checkOk') }));
     list.forEach(function (p) {
       var row = el('div', { class: 'ma-issue' });
       row.appendChild(el('span', { text: p.text }));
       var del = el('button', { class: 'tbtn', text: t('del') });
       del.addEventListener('click', function () {
         store.entries = store.entries.filter(function (e) { return e.id !== p.entry.id; });
-        persist();
-        render();
+        persist(); render();
       });
       row.appendChild(del);
-      box.appendChild(row);
+      sec.appendChild(row);
     });
-    body.appendChild(box);
     if (store.notices.length) {
-      body.appendChild(el('h3', { text: t('notices') }));
-      var notes = el('div', { class: 'ma-issues' });
+      sec.appendChild(el('h3', { text: t('notices') }));
       store.notices.forEach(function (n) {
         var row = el('div', { class: 'ma-issue' });
-        var text = n.code === 'dup' ? t('errDup', n.detail) : n.detail;
-        row.appendChild(el('span', { text: text }));
+        row.appendChild(el('span', { text: n.code === 'dup' ? t('errDup', n.detail) : n.detail }));
         var x = el('button', { class: 'tbtn', text: t('dismiss') });
         x.addEventListener('click', function () { store.notices = store.notices.filter(function (i) { return i.id !== n.id; }); persist(); render(); });
         row.appendChild(x);
-        notes.appendChild(row);
+        sec.appendChild(row);
       });
-      body.appendChild(notes);
     }
-    var limits = el('div', { class: 'panel ma-card' });
-    limits.appendChild(el('h3', { text: t('limitsTitle') }));
-    limits.appendChild(el('p', { class: 'ma-note', text: t('limits') }));
+    var limits = el('div', { class: 'ma-note', text: t('limits') });
+    sec.appendChild(limits);
     var btn = el('button', { class: 'tbtn', text: t('testRun') });
     btn.addEventListener('click', function () { runTests(); render(); });
-    limits.appendChild(btn);
-    if (tests) limits.appendChild(renderTest(false));
-    body.appendChild(limits);
+    sec.appendChild(btn);
+    if (tests) sec.appendChild(renderTest(false));
+    return sec;
   }
 
   window.CCMatch = {
     render: render,
     importBattleLog: function (obj) {
       var list = obj && Array.isArray(obj.logs) ? obj.logs : [obj];
+      lastTeam = '';
       var r = importBattleObjects(list);
+      if (lastTeam) store.teamId = lastTeam;
       if (r.n || r.u) persist();
       if (document.body.dataset.view === 'match') render();
       return r.n + r.u;
