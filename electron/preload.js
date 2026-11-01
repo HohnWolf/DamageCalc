@@ -1,5 +1,6 @@
 // Brücke zwischen Seite und Hauptprozess: Fensterknöpfe der eigenen Titelleiste und der Desktop-Teil des Shiny-Zählers
-// (globale Hotkeys, OBS-Overlay/Textdateien, Auswahl der Bildschirmquelle, Texterkennung) und Updates. Sonst nichts.
+// (globale Hotkeys, OBS-Overlay/Textdateien, Auswahl der Bildschirmquelle, Texterkennung). Dieselbe Bildquelle und
+// Texterkennung nutzt das Kampfprotokoll. Dazu Updates. Sonst nichts.
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {

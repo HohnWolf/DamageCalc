@@ -5,14 +5,17 @@
 // (Korrelation + mittlere Abweichung) und über eine Zustandsmaschine gezählt:
 //   bereit → Treffer in Folge ≥ N → +1 und gesperrt → Ähnlichkeit fällt unter die Schwelle → Abklingzeit → bereit
 // So zählt eine Begegnung genau einmal. Alles läuft lokal; das Bild verlässt den Rechner nicht.
+// Quelle, Ausschnitt, Bildvergleich und Texterkennung kommen aus js/capture.js (geteilt mit dem Kampfprotokoll).
 // Modus „Text suchen“ (nur Windows-App): statt eines Bildvergleichs liest die Windows-Texterkennung den Text im Rahmen
 // (electron/ocr.js) und zählt, sobald der gesuchte Name darin steht; kleine Lesefehler werden toleriert.
 (function () {
   'use strict';
   var A = window.CC;
   if (!A) return;
+  var Cap = window.CCCapture;
+  if (!Cap) return;
   var el = A.el, de = A.LANG === 'de';
-  var D = window.desktop && window.desktop.shiny ? window.desktop.shiny : null;
+  var sampler = Cap.createSampler();
   var S = de ? {
     title: 'Automatische Erkennung', off: 'aus', ready: 'bereit', latched: 'erkannt', cooldown: 'Pause', noSource: 'keine Quelle',
     screen: 'Bildschirm / Fenster', camera: 'Kamera / Capture-Karte', cameraN: 'Kamera {0}', pickSource: 'Quelle wählen', reconnect: 'Verbinden: {0}',
@@ -54,11 +57,7 @@
   var sessions = {};
   // up to 1.3.0 the decoded pixels (_g) were stored along with each reference and came back broken after a restart;
   // keep only w, h and d (the picture itself is intact in d)
-  function cleanRefs(refs) {
-    if (!Array.isArray(refs)) return [];
-    var bad = refs.some(function (r) { return !r || !r.d || Object.keys(r).length !== 3; });
-    return bad ? refs.filter(function (r) { return r && r.d && r.w && r.h; }).map(function (r) { return { w: r.w, h: r.h, d: r.d }; }) : refs;
-  }
+  function cleanRefs(refs) { return Cap.cleanRefs(refs); }
   function cfg(h) {
     h.detect = h.detect || {};
     var c = h.detect;
@@ -71,17 +70,8 @@
     return c;
   }
 
-  // ---------------- sources ----------------
-  function openStream(src) {
-    if (src.kind === 'camera') {
-      // without a size Chromium opens cameras and capture cards at 640x480; ask for Full HD (the device's best below that otherwise)
-      var v = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
-      if (src.id) v.deviceId = { exact: src.id };
-      return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
-    }
-    if (D && src.id) D.chooseSource(src.id);
-    return navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 20 }, audio: false });
-  }
+  // ---------------- sources (js/capture.js) ----------------
+  function openStream(src) { return Cap.openStream(src); }
   function connect(h, src, api) {
     stop(h.id);
     return openStream(src).then(function (stream) {
@@ -101,72 +91,14 @@
     try { s.stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) { /* already stopped */ }
     delete sessions[id];
   }
-  function chooseScreen(cb) {
-    if (!D) { cb({ kind: 'screen', id: '', label: t('screen') }); return; }
-    D.captureSources().then(function (list) {
-      var m = el('div', { class: 'modal' });
-      var bx = el('div', { class: 'modal-box wide' });
-      bx.appendChild(el('h3', { text: t('sources') }));
-      var grid = el('div', { class: 'det-sources' });
-      list.forEach(function (s) {
-        var b = el('button', { class: 'det-src' });
-        if (s.thumb) b.appendChild(el('img', { src: s.thumb, alt: '' }));
-        b.appendChild(el('span', { text: s.name }));
-        b.addEventListener('click', function () { m.remove(); cb({ kind: 'screen', id: s.id, label: s.name }); });
-        grid.appendChild(b);
-      });
-      bx.appendChild(grid);
-      var act = el('div', { class: 'modal-actions' });
-      var cc = el('button', { text: t('cancel') });
-      cc.addEventListener('click', function () { m.remove(); });
-      act.appendChild(cc); bx.appendChild(act);
-      m.appendChild(bx);
-      m.addEventListener('mousedown', function (ev) { if (ev.target === m) m.remove(); });
-      document.body.appendChild(m);
-    });
-  }
+  function chooseScreen(cb) { Cap.chooseScreen(cb); }
 
-  // ---------------- image comparison ----------------
-  var work = document.createElement('canvas');
-  var wctx = work.getContext('2d', { willReadFrequently: true });
-  function regionPx(video, r) {
-    var vw = video.videoWidth, vh = video.videoHeight;
-    return { x: Math.round(r.x * vw), y: Math.round(r.y * vh), w: Math.max(2, Math.round(r.w * vw)), h: Math.max(2, Math.round(r.h * vh)) };
-  }
-  function sampleSize(video, r) {
-    var p = regionPx(video, r), w = 48, h = Math.max(6, Math.min(64, Math.round(48 * p.h / p.w)));
-    return { w: w, h: h, p: p };
-  }
-  function sample(video, r, size) {
-    var z = size || sampleSize(video, r), p = z.p || regionPx(video, r);
-    work.width = z.w; work.height = z.h;
-    wctx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, z.w, z.h);
-    var d = wctx.getImageData(0, 0, z.w, z.h).data, g = new Uint8Array(z.w * z.h);
-    for (var i = 0, j = 0; i < d.length; i += 4, j++) g[j] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
-    return { w: z.w, h: z.h, g: g };
-  }
-  function similarity(a, b) {
-    var n = a.length, ma = 0, mb = 0, i;
-    for (i = 0; i < n; i++) { ma += a[i]; mb += b[i]; }
-    ma /= n; mb /= n;
-    var va = 0, vb = 0, cov = 0, mad = 0;
-    for (i = 0; i < n; i++) { var x = a[i] - ma, y = b[i] - mb; va += x * x; vb += y * y; cov += x * y; mad += Math.abs(a[i] - b[i]); }
-    mad /= n;
-    var sMad = Math.max(0, 1 - mad / 64);
-    var sa = Math.sqrt(va / n), sb = Math.sqrt(vb / n);
-    if (sa < 4 || sb < 4) return sMad; // flat areas: only the brightness difference counts
-    var r = cov / Math.sqrt(va * vb);
-    return 0.6 * Math.max(0, r) + 0.4 * sMad;
-  }
-  function b64(u8) { var s = ''; for (var i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return btoa(s); }
-  function unb64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
-  // decoded reference pixels live only in memory: the stored reference is just { w, h, d } (d = base64)
-  var refCache = new WeakMap();
-  function refData(ref) {
-    var g = refCache.get(ref);
-    if (!g) { g = unb64(ref.d); refCache.set(ref, g); }
-    return g;
-  }
+  // ---------------- image comparison (js/capture.js) ----------------
+  function regionPx(video, r) { return sampler.regionPx(video, r); }
+  function sample(video, r, size) { return sampler.sample(video, r, size); }
+  function similarity(a, b) { return Cap.similarity(a, b); }
+  function b64(u8) { return Cap.b64(u8); }
+  function refData(ref) { return Cap.refData(ref); }
   function scoreNow(s, c) {
     var v = s.video;
     if (!c.region || !c.refs.length || v.readyState < 2 || !v.videoWidth) return null;
@@ -177,57 +109,16 @@
     return best;
   }
 
-  // ---------------- text search (Windows OCR, electron/ocr.js) ----------------
-  var TEXT_THR = 0.8;
-  var OCR = D && D.ocr ? D.ocr : null;
-  // lower case, no accents, ß → ss, everything else than letters and digits becomes a word gap
-  function normWords(s) {
-    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss')
-      .split(/[^a-z0-9]+/).filter(Boolean);
-  }
-  function lev(a, b) {
-    var m = a.length, n = b.length, prev = [], cur, i, j;
-    for (j = 0; j <= n; j++) prev[j] = j;
-    for (i = 1; i <= m; i++) {
-      cur = [i];
-      for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1));
-      prev = cur;
-    }
-    return prev[n];
-  }
-  // 1 = the wanted text stands as its own word(s); one misread letter in a 5+ letter name still reaches 0.8.
-  // Compared against 1–3 neighbouring words, so "Ratt fratz" still fits, but "Abra" does not fire on "Kadabra".
-  function textScore(read, wanted) {
-    var words = normWords(read), best = 0;
-    wanted.forEach(function (w) {
-      var target = normWords(w).join('');
-      if (!target) return;
-      for (var i = 0; i < words.length; i++) {
-        var cand = '';
-        for (var k = i; k < Math.min(words.length, i + 3); k++) {
-          cand += words[k];
-          var sc = 1 - lev(target, cand) / Math.max(target.length, cand.length);
-          if (sc > best) best = sc;
-        }
-      }
-    });
-    return best;
-  }
+  // ---------------- text search (Windows OCR, electron/ocr.js, via js/capture.js) ----------------
+  var TEXT_THR = Cap.TEXT_THR;
+  var OCR = Cap.ocr;
+  function textScore(read, wanted) { return Cap.textScore(read, wanted); }
   function wantedTexts(c, api) {
     var list = String(c.words || '').split(/[,;\n]/).map(function (x) { return x.trim(); }).filter(Boolean);
     if (!list.length && api && api.name) { var nm = api.name(); if (nm) list = [nm]; }
     return list;
   }
-  var ocrCanvas = document.createElement('canvas'), octx = ocrCanvas.getContext('2d');
-  function ocrImage(video, r) {
-    var p = regionPx(video, r);
-    // small text reads better a bit larger; Windows OCR takes at most about 2600 px per side
-    var k = Math.min(p.h < 80 ? 2 : 1, 2400 / p.w, 2400 / p.h);
-    ocrCanvas.width = Math.max(1, Math.round(p.w * k)); ocrCanvas.height = Math.max(1, Math.round(p.h * k));
-    octx.imageSmoothingQuality = 'high';
-    octx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
-    return ocrCanvas.toDataURL('image/png').split(',')[1];
-  }
+  function ocrImage(video, r) { return sampler.ocrImage(video, r); }
   // one picture at a time, at most 5 per second
   function textTick(s, c) {
     var v = s.video;

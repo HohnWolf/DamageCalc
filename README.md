@@ -27,7 +27,7 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
-- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke** und **Shiny-Zähler** (Tasten `1` bis `5`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler** und **Kampfprotokoll** (Tasten `1` bis `6`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
 - **Teambuilder** (`js/builder.js`):
   - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
@@ -64,6 +64,15 @@ Eigener Modus (`js/shiny.js`, Quoten `js/shiny_odds.js`, Erkennung `js/shiny_det
 - **Automatische Erkennung – ALPHA**: Bildschirm/Fenster oder Kamera/Capture-Karte aufnehmen, im Bild einen Bereich markieren, eine oder mehrere Referenzen aufnehmen, während die Begegnung zu sehen ist. Vergleich in Graustufen (Korrelation + mittlere Abweichung), Zustandsmaschine mit Treffern in Folge, Sperre und Pause gegen Doppelzählungen, „Ruhewert messen“ für die Schwelle, „Nur testen“ ohne Zählen. Läuft lokal, auch im Hintergrund. Kameras und Capture-Karten werden in Full HD geöffnet.
   - **Text suchen** (nur Windows-App): statt eines Bildvergleichs liest die in Windows eingebaute Texterkennung (`Windows.Media.Ocr`, über `electron/ocr.js` + `electron/ocr.ps1`, bis zu 5 Bilder/s) den Text im Rahmen und zählt, sobald der gesuchte Name darin steht. Leer = Name des Hunts, mehrere Varianten mit Komma. Unscharfer Vergleich gegen 1–3 benachbarte Wörter: ein falsch gelesener Buchstabe stört nicht, „Abra“ zählt aber nicht bei „Kadabra“. Braucht eine installierte Windows-Sprache mit Texterkennung (bei deutschem oder englischem Windows vorhanden).
 - Gespeichert unter `cc_shiny` (Hunts, Sammlung, Hotkeys, Overlay).
+## Kampfprotokoll (Alpha)
+Eigener Modus (`js/battlelog.js`). Die Spielaufzeichnung (Bildschirm, Fenster oder Kamera/Capture-Karte) kommt aus `js/capture.js`, derselben Stelle wie die automatische Erkennung des Shiny-Zählers. Die Windows-Texterkennung (`electron/ocr.js`) liest ein markiertes Kampftextfeld.
+- **Live**: Rahmen um das Textfeld ziehen, optional um die beiden KP-Leisten (jeweils die ganze Leiste, inklusive des leeren Teils), dann „Mitschneiden“. Der Verlauf wächst mit, sobald sich der Text ändert. Eine leere Textbox dazwischen erlaubt dieselbe Zeile ein zweites Mal.
+- **Was zuverlässig ist**, wenn die Zeile ein bekanntes Muster trifft und Name sowie Attacke exakt in den Daten stehen: Kampfbeginn, Runde („Turn“/„Runde“ oder „Was soll … tun?“), Einwechseln, Wechsel nach „komm zurück“, Attacke, Wirksamkeit, Volltreffer, Daneben, K.O., Schaden in Prozent, Sieg. Deutsch und Englisch, Hauptspiel- und Showdown-Sätze.
+- **Was eine Schätzung ist**: die KP-Leiste (Farbanteil Grün/Gelb/Rot, nicht die echten KP), eine Runde ohne Ansage (im Einzel nach je zwei Aktionen), unscharf gelesene Namen, Zeilen ohne Muster, ein Sieger nur daraus, dass eine Seite keine bekannten Pokémon mehr hat. Solche Zeilen sind mit „geschätzt“ markiert.
+- Zeilen lassen sich von Hand nachtragen, wenn die Erkennung eine auslässt. „Beispielkampf“ spielt einen festen Kampf ab, ohne Aufnahme.
+- **Speichern** liegt in `cc_battlelog`. **Text** und **JSON** laden eine Datei herunter. Alte Protokolle stehen links.
+- **Im Rechner** an einer Attacke öffnet den Damage Calculator mit Angreifer, Verteidiger, Attacke, KP-Stand und Volltreffer. Wesen, Werte und Item bleiben die Standardwerte, das echte Set kennt das Protokoll nicht.
+- Texterkennung gibt es nur in der Windows-App. Im Browser gehen KP-Leisten, das Beispiel, Nachtragen und der Export.
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
 - Die Oberfläche passt sich der Fenstergröße an (Basis 1180 × 800, Faktor 0,8 bis 1,9), damit kein Platz frei bleibt. Vorschau verschiedener Größen: `tools/preview.html?w=1920&h=1080` (braucht den lokalen Server).
