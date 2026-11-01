@@ -780,6 +780,7 @@
     TYPES: TYPES, NATURES: NATURES, NAT_STATS: NAT_STATS, AB: AB, EF: EF,
     parseRom: parseRom, parseSave: parseSave, parseSav: parseSav, decodeMon: decodeMon, decode: decode,
     fromSave: fromSave, trainerParty: trainerParty, defaultMoves: defaultMoves, calcStats: calcStats, levelFromExp: levelFromExp,
-    hiddenPower: hiddenPower, calc: calc, koChance: koChance, speedOf: speedOf, defaultNat: defaultNat, typeMultipliers: typeMultipliers
+    hiddenPower: hiddenPower, calc: calc, koChance: koChance, speedOf: speedOf, defaultNat: defaultNat, typeMultipliers: typeMultipliers,
+    dist: dist, convolve: convolve, mix: mix, inflate: inflate, blobsOf: blobsOf
   };
 })();
