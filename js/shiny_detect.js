@@ -5,7 +5,7 @@
 // (Korrelation + mittlere Abweichung) und über eine Zustandsmaschine gezählt:
 //   bereit → Treffer in Folge ≥ N → +1 und gesperrt → Ähnlichkeit fällt unter die Schwelle → Abklingzeit → bereit
 // So zählt eine Begegnung genau einmal. Alles läuft lokal; das Bild verlässt den Rechner nicht.
-// Quelle, Ausschnitt, Bildvergleich und Texterkennung kommen aus js/capture.js (geteilt mit dem Kampfprotokoll).
+// Quelle, Ausschnitt, Bildvergleich und Texterkennung kommen aus js/capture.js.
 // Modus „Text suchen“ (nur Windows-App): statt eines Bildvergleichs liest die Windows-Texterkennung den Text im Rahmen
 // (electron/ocr.js) und zählt, sobald der gesuchte Name darin steht; kleine Lesefehler werden toleriert.
 (function () {

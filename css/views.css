@@ -2,9 +2,9 @@
 
 /* ================= View switching ================= */
 body:not([data-view="start"]) .start-view, body:not([data-view="calc"]) .calc-view,
-body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="battlelog"]) .battle-view, body:not([data-view="match"]) .match-view { display: none !important; }
+body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view { display: none !important; }
 body:not([data-view="calc"]) .only-calc { display: none !important; }
-body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="battlelog"] .no-start, body[data-view="match"] .no-start { display: none !important; }
+body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start { display: none !important; }
 
 .sprite-fit { image-rendering: pixelated; }
 /* uncropped sprites (cosmetic variants) fill small boxes the same way */
@@ -89,8 +89,6 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .start-card.card-nuz:hover { border-color: #d9a13a; }
 .start-card.card-shiny { border-top-color: #f2c94c; }
 .start-card.card-shiny:hover { border-color: #f2c94c; }
-.start-card.card-bl { border-top-color: #3cb9a0; }
-.start-card.card-bl:hover { border-color: #3cb9a0; }
 .sc-art-builder { grid-template-columns: repeat(3, 1fr) !important; }
 .start-card:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 .sc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

@@ -1,6 +1,4 @@
-// Match-Analyse: Showdown-Replays und Kampfprotokolle in ein gemeinsames Spielformat bringen.
-// Kampfprotokoll (js/battlelog.js): localStorage "cc_battlelog" und JSON-Export
-// (generator "Rattata Lab BattleLog", schema 1, game "champions"). Siehe adaptBattleLog.
+// Team-Analyse: Showdown-Replays in ein gemeinsames Spielformat bringen.
 (function (root) {
   'use strict';
 
@@ -287,94 +285,6 @@
     return null;
   }
 
-  // Kampfprotokoll-Schnappschuss, wie js/battlelog.js ihn speichert (snapshot) und exportiert.
-  // Gespeichert unter cc_battlelog.logs, Export zusätzlich mit generator und limits.
-  // Feste Felder (schema 1, game "champions"): id, created, updated, youName, foeName,
-  // detected.{you,foe}, format ("doubles" ist der Standard, sonst "singles"), status, winner ("you"|"foe"|null),
-  // winnerHow, party.{you,foe}[].{id,name,species,side,hp,fainted}, active.{you,foe} als Ids,
-  // events[].{kind, side, species, name, move, lead, recall, fromSpecies, reliable, raw, text}.
-  // Leads: send/switch mit lead:true (gesetzt, solange der Kampf noch nicht engaged ist);
-  // sonst alles vor der ersten turn-Zeile. Im Einzel eine Lead, im Doppel zwei.
-  // species kann null sein, wenn die Art nicht im Champions-Dex steht; die wird ausgelassen.
-  // Das Protokoll kennt das Team von sechs, Elo und offen/geschlossen nicht.
-  // Optionale Felder, falls sie später dazukommen: teamComplete, sheet, elo, youTera/foeTera, youMegas/foeMegas,
-  // mon.tera / mon.teraType / mon.mega / mon.megaItem, und Showdown-Zeilen in events[].raw.
-  function isBattleLog(o) {
-    return !!(o && o.party && o.events && (o.party.you || o.party.foe) && !o.log);
-  }
-
-  function adaptBattleLog(b) {
-    if (!isBattleLog(b)) return null;
-    var you = blankSide(), foe = blankSide();
-    you.name = b.youName || (b.detected && b.detected.you) || '';
-    foe.name = b.foeName || (b.detected && b.detected.foe) || '';
-    var maxLeads = b.format === 'singles' ? 1 : 2;
-    function takeParty(side, list) {
-      (list || []).forEach(function (m) {
-        if (!m || !m.species) return;
-        var sp = baseFor(m.species);
-        pushUnique(side.brought, sp);
-        if (m.mega) addMega(side, m.mega, m.megaItem || '');
-        if (m.tera || m.teraType) side.tera = { species: baseFor(m.tera || m.species), type: m.teraType || '' };
-      });
-    }
-    takeParty(you, b.party.you);
-    takeParty(foe, b.party.foe);
-    var leadFlag = { you: [], foe: [] }, leadEarly = { you: [], foe: [] }, seenTurn = false;
-    (b.events || []).forEach(function (e) {
-      if (!e) return;
-      if (e.kind === 'turn') seenTurn = true;
-      var sd = e.side === 'foe' ? foe : e.side === 'you' ? you : null;
-      if (e.kind === 'move' && sd && e.species && e.move) addMove(sd, e.species, e.move);
-      if ((e.kind === 'send' || e.kind === 'switch') && sd && e.species && !e.recall) {
-        var sp = baseFor(e.species);
-        pushUnique(sd.brought, sp);
-        var bucket = e.lead ? leadFlag[e.side] : (!seenTurn ? leadEarly[e.side] : null);
-        if (bucket && bucket.length < maxLeads) pushUnique(bucket, sp);
-      }
-      if (e.raw && e.raw.charAt(0) === '|') {
-        var extra = parseLog(e.raw, { source: 'battlelog' });
-        extra.p1.megas.forEach(function (m) { if (e.side === 'foe') addMega(foe, m.forme || m.species, m.item); else addMega(you, m.forme || m.species, m.item); });
-        if (extra.p1.tera) (e.side === 'foe' ? foe : you).tera = extra.p1.tera;
-      }
-    });
-    [['you', you], ['foe', foe]].forEach(function (pair) {
-      var leads = leadFlag[pair[0]].length ? leadFlag[pair[0]] : leadEarly[pair[0]];
-      finishSide(pair[1], leads);
-      pair[1].team = pair[1].brought.slice();
-      pair[1].teamComplete = b.teamComplete === true;
-    });
-    if (b.youTera) you.tera = { species: baseFor(b.youTera.species || ''), type: b.youTera.type || '' };
-    if (b.foeTera) foe.tera = { species: baseFor(b.foeTera.species || ''), type: b.foeTera.type || '' };
-    (b.youMegas || []).forEach(function (m) { addMega(you, m.forme || m.species || m, m.item || ''); });
-    (b.foeMegas || []).forEach(function (m) { addMega(foe, m.forme || m.species || m, m.item || ''); });
-    var elo = b.elo || {};
-    if (elo.youStart != null) you.eloStart = elo.youStart;
-    if (elo.youEnd != null) you.eloEnd = elo.youEnd;
-    if (elo.foeStart != null) foe.eloStart = elo.foeStart;
-    if (elo.foeEnd != null) foe.eloEnd = elo.foeEnd;
-    var sheet = b.sheet === 'ots' || b.sheet === 'cts' ? b.sheet : 'unknown';
-    var winner = b.winner === 'you' ? 'p1' : b.winner === 'foe' ? 'p2' : null;
-    var warnings = [];
-    if (!you.teamComplete || !foe.teamComplete) warnings.push('partial-team');
-    if (sheet === 'unknown') warnings.push('no-sheet');
-    if (you.eloStart == null && foe.eloStart == null) warnings.push('no-elo');
-    if (!winner) warnings.push('no-winner');
-    return {
-      source: 'battlelog',
-      replayId: '',
-      url: '',
-      battleLogId: b.id || '',
-      when: b.created || b.updated || 0,
-      format: b.format || '',
-      formatName: '',
-      sheet: sheet,
-      p1: you, p2: foe,
-      winner: winner,
-      warnings: warnings
-    };
-  }
-
   var SERIES_GAP = 6 * 3600 * 1000;
 
   function normName(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
@@ -508,34 +418,6 @@
     eq(ots.winner, 'p1', 'ots win');
     eq(ots.p2.eloStart, null, 'unrated');
 
-    var bl = adaptBattleLog({
-      id: 'bltest', created: 1700000000000, youName: 'Rattata', foeName: 'Joey', format: 'doubles',
-      winner: 'you', winnerHow: 'text',
-      party: {
-        you: [{ species: 'Pikachu' }, { species: 'Charizard' }],
-        foe: [{ species: 'Rattata' }]
-      },
-      events: [
-        { kind: 'send', side: 'you', species: 'Pikachu', lead: true },
-        { kind: 'send', side: 'foe', species: 'Rattata', lead: true },
-        { kind: 'send', side: 'you', species: 'Charizard', lead: true },
-        { kind: 'turn' },
-        { kind: 'move', side: 'you', species: 'Pikachu', move: 'Thunderbolt' },
-        { kind: 'raw', side: 'you', raw: '|-mega|p1a: Charizard|Charizard|Charizardite Y' }
-      ]
-    });
-    eq(bl.p1.name, 'Rattata', 'bl you');
-    eq(bl.p2.name, 'Joey', 'bl foe');
-    eq(bl.winner, 'p1', 'bl win');
-    eq(bl.p1.leads, [baseFor('Pikachu'), baseFor('Charizard')], 'bl leads');
-    eq(bl.p1.teamComplete, false, 'bl partial');
-    eq(bl.sheet, 'unknown', 'bl sheet');
-    eq(bl.warnings.indexOf('partial-team') !== -1, true, 'bl warn team');
-    eq(bl.warnings.indexOf('no-elo') !== -1, true, 'bl warn elo');
-    eq(bl.p1.moves[baseFor('Pikachu')][canonMove('Thunderbolt')], 1, 'bl move');
-    eq(bl.p1.megas[0].species, baseFor('Charizard'), 'bl mega from raw');
-    eq(isBattleLog({ log: '|win|a', party: {}, events: [] }), false, 'replay is not battlelog');
-
     var series = groupSeries([
       { key: 'a', foe: 'Aqua', result: 'win', when: 1 },
       { key: 'b', foe: 'Aqua', result: 'loss', when: 2 },
@@ -571,7 +453,7 @@
   root.CCMatchParse = {
     idOf: idOf, canonSpecies: canonSpecies, baseFor: baseFor, canonMove: canonMove, canonItem: canonItem,
     parseLog: parseLog, parseReplayJson: parseReplayJson, replayIdFromInput: replayIdFromInput,
-    isBattleLog: isBattleLog, adaptBattleLog: adaptBattleLog, groupSeries: groupSeries,
+    groupSeries: groupSeries,
     hashText: hashText, SERIES_GAP: SERIES_GAP, selfTest: selfTest
   };
 })(typeof window !== 'undefined' ? window : globalThis);
