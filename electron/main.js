@@ -1,13 +1,35 @@
-// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Kampfprotokoll, Team-Analyse): öffnet index.html in einem eigenen Fenster.
+// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse): öffnet index.html in einem eigenen Fenster.
 // Die Web-App selbst bleibt unverändert und läuft auch weiterhin direkt im Browser.
 // Das Fenster hat keinen Windows-Rahmen; die Kopfzeile der App ist die Titelleiste (Ziehen, Doppelklick
 // maximiert) und zeigt eigene Knöpfe für Minimieren, Maximieren und Schließen (electron/preload.js).
-const { app, BrowserWindow, shell, Menu, ipcMain, session } = require('electron');
+const { app, BrowserWindow, shell, Menu, ipcMain, session, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
 const updater = require('./updater');
 const ocr = require('./ocr');
+const { isStreamPipeError } = require('./streamguard');
+
+function noteCrash(err) {
+  const text = (err && err.stack) ? String(err.stack) : String(err);
+  console.error(text);
+  try {
+    if (app.isReady()) fs.appendFileSync(path.join(app.getPath('userData'), 'main.log'), new Date().toISOString() + ' ' + text.replace(/\s+/g, ' ') + '\n');
+  } catch (e) { /* Log nicht schreibbar */ }
+  return text;
+}
+
+// Electron zeigt den Absturzdialog nur, solange es der einzige uncaughtException-Hörer ist.
+// Dieser Hörer schluckt "write EOF" von der Shiny-Texterkennung. Jeder andere Fehler bekommt denselben Dialog.
+process.on('uncaughtException', (err) => {
+  const text = noteCrash(err);
+  if (isStreamPipeError(err)) return;
+  try { dialog.showErrorBox('A JavaScript error occurred in the main process', 'Uncaught Exception:\n' + text); } catch (e) { /* Dialog nicht verfügbar */ }
+});
+process.on('unhandledRejection', (err) => {
+  if (isStreamPipeError(err)) { noteCrash(err); return; }
+  throw err;
+});
 
 const ROOT = path.join(__dirname, '..');
 

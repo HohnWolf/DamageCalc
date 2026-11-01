@@ -1,6 +1,6 @@
 // Team-Analyse: alle Spiele eines Teambuilder-Teams als ein Bericht.
 // Einträge liegen unter localStorage "cc_match", je Spiel mit teamId.
-// Kampfprotokolle: Speicher "cc_battlelog" (schema 1) oder JSON, gelesen über js/match_parse.js.
+// Quelle sind Showdown-Replays, gelesen über js/match_parse.js.
 (function () {
   'use strict';
   var A = window.CC;
@@ -10,7 +10,7 @@
 
   var S = de ? {
     title: 'Team-Analyse',
-    sub: 'Ein Team aus dem Teambuilder, alle Spiele dazu: Replays und Kampfprotokolle in einem Bericht.',
+    sub: 'Ein Team aus dem Teambuilder, alle Spiele dazu: Showdown-Replays in einem Bericht.',
     team: 'Team', teamNone: 'Kein Team im Teambuilder', teamPick: 'Team wählen …',
     names: 'Showdown-Namen', namesPh: 'Namen, mit Komma getrennt',
     namesHint: 'Daran erkennt das Tool deine Seite. Leer lassen geht, wenn das gewählte Team im Replay vorkommt.',
@@ -20,14 +20,11 @@
     assigned: '{0} Spiele diesem Team zugeordnet', loose: '{0} Spiele ohne Team', claim: 'Diesem Team geben',
     noTeam: 'Leg im Teambuilder zuerst ein Team an. Die sechs Pokémon sind der Bericht.',
     importTitle: 'Spiele hinzufügen',
-    pastePh: 'Ein Replay-Link pro Zeile\nhttps://replay.pokemonshowdown.com/…\n\nOder ein Showdown-Log, ein Replay-JSON oder ein Kampfprotokoll-JSON hier einfügen.',
-    load: 'Übernehmen', fromLog: 'Kampfprotokolle', demo: 'Beispiel laden', clearDemo: 'Beispiele entfernen',
+    pastePh: 'Ein Replay-Link pro Zeile\nhttps://replay.pokemonshowdown.com/…\n\nOder ein Showdown-Log oder ein Replay-JSON hier einfügen.',
+    load: 'Übernehmen', demo: 'Beispiel laden', clearDemo: 'Beispiele entfernen',
     backup: 'Sichern', restore: 'Datei laden',
     cors: 'Replays lädt der Browser direkt von replay.pokemonshowdown.com. Die Seite erlaubt das von anderen Seiten aus. Klappt der Abruf nicht (privates Replay, kein Netz), das .json oder den Log-Text oben einfügen.',
-    logHint: 'Kampfprotokolle liest „cc_battlelog“ (schema 1). Passen die Pokémon, landet das Spiel bei diesem Team. Im Kampfprotokoll übernimmt „In Team-Analyse“ das offene Protokoll. Elo, offen oder geschlossen und das Team von sechs stehen dort nicht.',
     loadingN: 'Lade {0} von {1} …', addedN: '{0} neu, {1} doppelt, {2} fehlgeschlagen',
-    noLogs: 'Keine Kampfprotokolle gespeichert. Das Kampfprotokoll legt sie unter „cc_battlelog“ ab, oder du fügst ein exportiertes JSON ein.',
-    logsIn: '{0} neu übernommen, {1} aktualisiert',
     demoIn: 'Beispiele geladen', demoOut: 'Beispiele entfernt',
     badJson: 'Das JSON konnte nicht gelesen werden.',
     restored: '{0} Einträge übernommen',
@@ -39,11 +36,11 @@
     megaOnly: 'mit Mega', teraOnly: 'mit Tera',
     fElo: 'Mindest-Elo (Gegner)', reset: 'Filter zurück',
     shown: '{0} von {1} Spielen', shownRec: '{0}–{1}, {2}',
-    empty: 'Noch nichts ausgewertet. Links einfügen, Kampfprotokolle übernehmen oder das Beispiel laden.',
+    empty: 'Noch nichts ausgewertet. Links einfügen oder das Beispiel laden.',
     emptyFilter: 'Kein Spiel passt auf den Filter.',
     teamOf: 'Team', leads: 'Leads', you: 'Du', foe: 'Gegner', back: 'Back',
     sheetOts: 'Offen', sheetCts: 'Zu', sheetUnk: 'Sheet ?',
-    srcShowdown: 'Replay', srcBattle: 'Protokoll', srcDemo: 'Beispiel',
+    srcShowdown: 'Replay', srcDemo: 'Beispiel',
     mega: 'Mega', tera: 'Tera', elo: 'Elo', openReplay: 'Replay öffnen',
     side: 'Deine Seite', sideAuto: 'Automatisch',
     split: 'Neue Serie davor', bo1: 'Eigenes Spiel (Bo1)',
@@ -79,13 +76,11 @@
     errFetch: 'Replay nicht geladen ({0}): {1}',
     errSide: 'Seite unklar bei {0}',
     errWin: 'Kein Sieger: {0}',
-    limitsTitle: 'Grenzen der Kampfprotokolle',
-    limits: 'Ein Kampfprotokoll sieht nur Pokémon, die im Bild waren, keine Elo und nicht, ob das Team offen lag. Mega und Tera stehen nur drin, wenn das Protokoll sie mitschreibt oder die Rohzeile eine Showdown-Zeile ist.',
     testRun: 'Parser prüfen', testOk: 'Parser: {0} Prüfungen in Ordnung.', testBad: 'Parser: {0} Prüfung(en) fehlgeschlagen.',
     vs: 'gegen', backYou: 'Dein Back', backFoe: 'Gegner-Back', picks: 'Eingesetzt'
   } : {
     title: 'Team-Analyse',
-    sub: 'One teambuilder team, every game with it: replays and battle logs in a single report.',
+    sub: 'One teambuilder team, every game with it: Showdown replays in a single report.',
     team: 'Team', teamNone: 'No team in the teambuilder', teamPick: 'Choose a team …',
     names: 'Showdown names', namesPh: 'Names, separated by commas',
     namesHint: 'This is how the tool finds your side. Leaving it empty is fine when the chosen team appears in the replay.',
@@ -95,14 +90,11 @@
     assigned: '{0} games filed under this team', loose: '{0} games with no team', claim: 'Add to this team',
     noTeam: 'Build a team in the teambuilder first. Those six Pokémon are the report.',
     importTitle: 'Add games',
-    pastePh: 'One replay link per line\nhttps://replay.pokemonshowdown.com/…\n\nOr paste a Showdown log, a replay JSON or a battle-log JSON here.',
-    load: 'Add', fromLog: 'Battle logs', demo: 'Load sample', clearDemo: 'Remove samples',
+    pastePh: 'One replay link per line\nhttps://replay.pokemonshowdown.com/…\n\nOr paste a Showdown log or a replay JSON here.',
+    load: 'Add', demo: 'Load sample', clearDemo: 'Remove samples',
     backup: 'Save', restore: 'Load file',
     cors: 'The browser loads replays directly from replay.pokemonshowdown.com. That site allows other pages to read them. If a fetch fails (private replay, no network), paste the .json or the log text above.',
-    logHint: 'Battle logs reads “cc_battlelog” (schema 1). When the Pokémon match, the game is filed under this team. In the battle log, “To Team-Analyse” sends the open log. Elo, open or closed sheet and the team of six are not in there.',
     loadingN: 'Loading {0} of {1} …', addedN: '{0} new, {1} duplicate, {2} failed',
-    noLogs: 'No battle logs saved. The battle log stores them under “cc_battlelog”, or paste an exported JSON.',
-    logsIn: '{0} added, {1} updated',
     demoIn: 'Samples loaded', demoOut: 'Samples removed',
     badJson: 'Could not read that JSON.',
     restored: '{0} entries added',
@@ -114,11 +106,11 @@
     megaOnly: 'with Mega', teraOnly: 'with Tera',
     fElo: 'Min Elo (foe)', reset: 'Reset filters',
     shown: '{0} of {1} games', shownRec: '{0}–{1}, {2}',
-    empty: 'Nothing analysed yet. Paste links, import battle logs or load the sample.',
+    empty: 'Nothing analysed yet. Paste links or load the sample.',
     emptyFilter: 'No game matches the filter.',
     teamOf: 'Team', leads: 'Leads', you: 'You', foe: 'Foe', back: 'Back',
     sheetOts: 'Open', sheetCts: 'Closed', sheetUnk: 'Sheet ?',
-    srcShowdown: 'Replay', srcBattle: 'Log', srcDemo: 'Sample',
+    srcShowdown: 'Replay', srcDemo: 'Sample',
     mega: 'Mega', tera: 'Tera', elo: 'Elo', openReplay: 'Open replay',
     side: 'Your side', sideAuto: 'Automatic',
     split: 'New series before this', bo1: 'Standalone game (Bo1)',
@@ -154,8 +146,6 @@
     errFetch: 'Replay not loaded ({0}): {1}',
     errSide: 'Side unknown for {0}',
     errWin: 'No winner: {0}',
-    limitsTitle: 'Battle log limits',
-    limits: 'A battle log only sees Pokémon that were on screen, no Elo and not whether the sheet was open. Mega and Tera are kept only when the log records them or the raw line is a Showdown protocol line.',
     testRun: 'Check parser', testOk: 'Parser: {0} checks passed.', testBad: 'Parser: {0} check(s) failed.',
     vs: 'vs', backYou: 'Your back', backFoe: 'Foe back', picks: 'Brought'
   };
@@ -215,7 +205,6 @@
   function guessSide(entry) {
     if (!entry || !entry.game) return '';
     if (entry.side === 'p1' || entry.side === 'p2') return entry.side;
-    if (entry.source === 'battlelog' || entry.game.source === 'battlelog') return 'p1';
     var names = nameList(), g = entry.game;
     var h1 = nameHit(g.p1.name, names), h2 = nameHit(g.p2.name, names);
     if (h1 && !h2) return 'p1';
@@ -478,36 +467,6 @@
     store.notices.unshift({ id: nid(), code: code, detail: detail || '', at: Date.now() });
     store.notices = store.notices.slice(0, 40);
   }
-  function upsertBattle(game) {
-    var key = 'bl:' + (game.battleLogId || P.hashText([game.when, game.p1.name, game.p2.name, (game.p1.brought || []).join(), (game.p2.brought || []).join()].join('|')));
-    var existing = null;
-    store.entries.forEach(function (e) { if (e.key === key) existing = e; });
-    if (existing) {
-      existing.game = game; existing.error = null;
-      if (existing.source !== 'demo') existing.source = 'battlelog';
-      if (!existing.side) existing.side = 'p1';
-      if (!existing.pinned && !existing.teamId) assignEntry(existing, store.teamId);
-      lastTeam = existing.teamId || lastTeam;
-      return 'upd';
-    }
-    // The battle log already knows which side is the player (party.you → p1).
-    var entry = makeEntry(key, 'battlelog', '', game, { side: 'p1' });
-    assignEntry(entry, store.teamId);
-    lastTeam = entry.teamId || lastTeam;
-    store.entries.push(entry);
-    return 'new';
-  }
-  function importBattleObjects(list) {
-    var n = 0, u = 0;
-    (list || []).forEach(function (item) {
-      var g = P.adaptBattleLog(item);
-      if (!g) return;
-      var r = upsertBattle(g);
-      if (r === 'new') n++; else u++;
-    });
-    return { n: n, u: u };
-  }
-
   var busy = '';
   function setBusy(s) { busy = s || ''; var n = document.getElementById('maBusy'); if (n) n.textContent = busy; }
 
@@ -534,7 +493,7 @@
       cb('fail');
     });
   }
-  var lastTeam = '', batchTeams = {};
+  var batchTeams = {};
   function runIds(ids, done) {
     var i = 0, added = 0, dup = 0, failed = 0;
     batchTeams = {};
@@ -589,12 +548,6 @@
         });
         return;
       }
-      if (obj.logs && Array.isArray(obj.logs) && !obj.log) {
-        var r = importBattleObjects(obj.logs);
-        added += r.n;
-        return;
-      }
-      if (P.isBattleLog(obj)) { var b = importBattleObjects([obj]); added += b.n; return; }
       if (typeof obj.log === 'string') {
         var game = P.parseReplayJson(obj);
         var key = 'sd:' + (game.replayId || ('json:' + P.hashText(obj.log)));
@@ -636,15 +589,6 @@
       A.toast(t('addedN', r.added, r.dup, r.failed));
       render();
     });
-    render();
-  }
-  function importStoredLogs() {
-    var st = A.load('cc_battlelog', null);
-    var logs = st && st.logs;
-    if (!logs || !logs.length) { A.toast(t('noLogs')); return; }
-    var r = importBattleObjects(logs);
-    persist();
-    A.toast(t('logsIn', r.n, r.u));
     render();
   }
 
@@ -709,26 +653,6 @@
       var entry = makeEntry(sp.key, 'demo', '', game, { side: 'p1', teamId: store.teamId || '', pinned: true });
       store.entries.push(entry);
     });
-    if (!store.entries.some(function (e) { return e.key === 'demo:bl'; })) {
-      var bl = P.adaptBattleLog({
-        id: 'demo-bl', created: T0 + 24 * 3600000, youName: 'Rattata', foeName: 'Joey', format: 'doubles', winner: 'you',
-        party: { you: [{ species: 'Pikachu' }, { species: 'Charizard' }, { species: 'Garchomp' }, { species: 'Pelipper' }], foe: [{ species: 'Rattata' }, { species: 'Pidgey' }] },
-        events: [
-          { kind: 'send', side: 'you', species: 'Charizard', lead: true },
-          { kind: 'send', side: 'you', species: 'Pikachu', lead: true },
-          { kind: 'send', side: 'foe', species: 'Rattata', lead: true },
-          { kind: 'send', side: 'foe', species: 'Pidgey', lead: true },
-          { kind: 'turn' },
-          { kind: 'move', side: 'you', species: 'Pikachu', move: 'Thunderbolt' },
-          { kind: 'move', side: 'you', species: 'Charizard', move: 'Heat Wave' },
-          { kind: 'move', side: 'foe', species: 'Rattata', move: 'Quick Attack' },
-          { kind: 'switch', side: 'you', species: 'Garchomp', lead: false },
-          { kind: 'move', side: 'you', species: 'Garchomp', move: 'Earthquake' }
-        ]
-      });
-      var be = makeEntry('demo:bl', 'demo', '', bl, { side: 'p1', teamId: store.teamId || '', pinned: true });
-      store.entries.push(be);
-    }
     if (!store.names) store.names = 'Rattata';
     persist();
     A.toast(t('demoIn'));
@@ -947,7 +871,6 @@
     var acts = el('div', { class: 'ma-actions' });
     function btn(cls, label, fn) { var b = el('button', { class: cls, text: label }); b.addEventListener('click', fn); return b; }
     acts.appendChild(btn('primary-btn', t('load'), function () { var v = paste.value; paste.value = ''; importText(v); }));
-    acts.appendChild(btn('tbtn', t('fromLog'), importStoredLogs));
     acts.appendChild(btn('tbtn', t('demo'), loadDemo));
     if (teamEntries().some(function (e) { return e.source === 'demo'; })) acts.appendChild(btn('tbtn', t('clearDemo'), clearDemo));
     acts.appendChild(btn('tbtn', t('backup'), backup));
@@ -965,7 +888,6 @@
     acts.appendChild(el('span', { class: 'ma-busy', id: 'maBusy', text: busy }));
     card.appendChild(acts);
     card.appendChild(el('p', { class: 'ma-note', text: t('cors') }));
-    card.appendChild(el('p', { class: 'ma-note', text: t('logHint') }));
     return card;
   }
 
@@ -983,7 +905,7 @@
       ['#', de ? 'Erg.' : 'Res.', t('foe'), t('teamOf'), de ? 'Quelle' : 'Source', ''],
       rows.map(function (r, i) {
         var v = r.v, foeTeam = v ? ((v.foe.team && v.foe.team.length) ? v.foe.team : v.foe.brought) : [];
-        var src = r.entry.source === 'battlelog' || (r.entry.game && r.entry.game.source === 'battlelog') ? t('srcBattle') : r.entry.source === 'demo' ? t('srcDemo') : t('srcShowdown');
+        var src = r.entry.source === 'demo' ? t('srcDemo') : t('srcShowdown');
         var del = el('button', { class: 'tbtn', text: '×', title: t('del') });
         del.addEventListener('click', function () {
           store.entries = store.entries.filter(function (e) { return e.id !== r.entry.id; });
@@ -1195,8 +1117,6 @@
         sec.appendChild(row);
       });
     }
-    var limits = el('div', { class: 'ma-note', text: t('limits') });
-    sec.appendChild(limits);
     var btn = el('button', { class: 'tbtn', text: t('testRun') });
     btn.addEventListener('click', function () { runTests(); render(); });
     sec.appendChild(btn);
@@ -1206,15 +1126,6 @@
 
   window.CCMatch = {
     render: render,
-    importBattleLog: function (obj) {
-      var list = obj && Array.isArray(obj.logs) ? obj.logs : [obj];
-      lastTeam = '';
-      var r = importBattleObjects(list);
-      if (lastTeam) store.teamId = lastTeam;
-      if (r.n || r.u) persist();
-      if (document.body.dataset.view === 'match') render();
-      return r.n + r.u;
-    },
     selfTest: function () { return runTests(); }
   };
 })();

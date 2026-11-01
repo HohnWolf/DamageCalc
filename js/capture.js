@@ -1,7 +1,7 @@
-// Gemeinsame Spielaufzeichnung für den Shiny-Zähler und das Kampfprotokoll.
+// Spielaufzeichnung für den Shiny-Zähler.
 // Quelle (Bildschirm/Fenster über getDisplayMedia bzw. die Desktop-Quellenliste, oder Kamera/Capture-Karte),
 // Ausschnitt im Bild, Graustufen-Vergleich und Windows-Texterkennung (electron/ocr.js, nur Desktop-App).
-// Das Bild verlässt den Rechner nicht. Die Zustandsmaschinen bleiben in den jeweiligen Werkzeugen.
+// Das Bild verlässt den Rechner nicht. Die Zustandsmaschine bleibt im Shiny-Zähler.
 (function () {
   'use strict';
   var A = window.CC;
@@ -68,7 +68,6 @@
     return { w: w, h: h, p: p };
   }
 
-  // one canvas per caller so the shiny counter and the battle log can sample in the same turn
   function createSampler() {
     var work = document.createElement('canvas');
     var wctx = work.getContext('2d', { willReadFrequently: true });
@@ -81,8 +80,7 @@
       for (var i = 0, j = 0; i < d.length; i += 4, j++) g[j] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
       return { w: z.w, h: z.h, g: g };
     }
-    var lastOutline = '';
-    function ocrImage(video, r, mode) {
+    function ocrImage(video, r) {
       var p = regionPx(video, r);
       var dw = p.w, dh = p.h;
       if (dw > 1800) { var s = 1800 / dw; dw = 1800; dh = Math.max(1, Math.round(p.h * s)); }
@@ -92,60 +90,9 @@
       octx.imageSmoothingEnabled = true;
       octx.imageSmoothingQuality = 'high';
       octx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
-      if (mode === 'outline' && window.CCTextPrep) {
-        var src = octx.getImageData(0, 0, ocrCanvas.width, ocrCanvas.height);
-        var prepped = window.CCTextPrep.prepOutlinedText(src.data, ocrCanvas.width, ocrCanvas.height, 4);
-        ocrCanvas.width = prepped.w; ocrCanvas.height = prepped.h;
-        octx.putImageData(new ImageData(prepped.data, prepped.w, prepped.h), 0, 0);
-        lastOutline = ocrCanvas.toDataURL('image/png');
-      }
       return ocrCanvas.toDataURL('image/png').split(',')[1];
     }
-    // Share of a left-aligned HP bar that is still green, yellow or red. null when the crop does not look like a bar.
-    // The empty part of the bar has to be inside the frame; the value is a rough percentage, not the game's HP.
-    function hpFill(video, r) {
-      if (!r || video.readyState < 2 || !video.videoWidth) return null;
-      var p = regionPx(video, r);
-      var w = 120, h = Math.max(4, Math.min(20, Math.round(120 * p.h / Math.max(1, p.w))));
-      work.width = w; work.height = h;
-      wctx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, w, h);
-      return hpFromPixels(wctx.getImageData(0, 0, w, h).data, w, h);
-    }
-    return { regionPx: regionPx, sampleSize: function (video, r) { return sampleSize(video, r); }, sample: sample, ocrImage: ocrImage, hpFill: hpFill, lastOutline: function () { return lastOutline; } };
-  }
-
-  function hpHue(R, G, B) {
-    var max = Math.max(R, G, B), min = Math.min(R, G, B);
-    if (max < 45 || max - min < 28) return null;
-    var d = max - min, h;
-    if (max === R) h = ((G - B) / d) % 6;
-    else if (max === G) h = (B - R) / d + 2;
-    else h = (R - G) / d + 4;
-    h *= 60;
-    if (h < 0) h += 360;
-    // red ~0, yellow ~50, green ~120; blue and purple UI chrome is ignored
-    if (h <= 75 || h >= 350 || (h >= 75 && h <= 165)) return h;
-    return null;
-  }
-  function hpFromPixels(data, w, h) {
-    var mid0 = Math.floor(h * 0.3), mid1 = Math.ceil(h * 0.7);
-    if (mid1 <= mid0) { mid0 = 0; mid1 = h; }
-    var last = -1, filled = 0, dark = 0;
-    for (var x = 0; x < w; x++) {
-      var fillN = 0, darkN = 0, n = 0;
-      for (var y = mid0; y < mid1; y++) {
-        var i = (y * w + x) * 4;
-        var R = data[i], G = data[i + 1], B = data[i + 2];
-        n++;
-        if (hpHue(R, G, B) != null) fillN++;
-        else if (Math.max(R, G, B) < 50) darkN++;
-      }
-      if (fillN * 2 >= n) { last = x; filled++; }
-      else if (darkN * 2 >= n) dark++;
-    }
-    // a bar is a left-aligned run of colour followed by empty (dark) columns
-    if (last < 0 || filled < 2 || dark + filled < w * 0.5) return null;
-    return (last + 1) / w;
+    return { regionPx: regionPx, sampleSize: function (video, r) { return sampleSize(video, r); }, sample: sample, ocrImage: ocrImage };
   }
 
   function similarity(a, b) {
@@ -208,7 +155,6 @@
     openStream: openStream, chooseScreen: chooseScreen, cleanRefs: cleanRefs, createSampler: createSampler,
     similarity: similarity, b64: b64, unb64: unb64, refData: refData,
     normWords: normWords, lev: lev, textScore: textScore, TEXT_THR: TEXT_THR,
-    hpFromPixels: hpFromPixels, hpHue: hpHue,
     ocr: D && D.ocr ? D.ocr : null,
     hasOCR: function () { return !!(D && D.ocr); },
     screenLabel: function () { return t('screen'); },
