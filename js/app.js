@@ -87,7 +87,7 @@
 
   // ======================= storage =======================
   function load(key, def) { try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? def : v; } catch (e) { return def; } }
-  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignore */ } }
+  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; } }
 
   // ======================= i18n (Deutsch / English) =======================
   var LANG = load('cc_lang', 'de');

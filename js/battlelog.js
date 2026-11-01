@@ -25,7 +25,7 @@
     noOcr: 'Texterkennung gibt es nur in der Windows-App. KP-Leisten gehen auch hier, Zeilen kannst du unten nachtragen.',
     manual: 'Zeile nachtragen', manualPh: 'z. B. Fuegro setzt Mogelhieb ein!', addLine: 'Übernehmen',
     save: 'Speichern', exportJson: 'JSON', exportText: 'Text', del: 'Löschen', delConfirm: 'Dieses Protokoll löschen?',
-    saved: 'Protokoll gespeichert', calc: 'Im Rechner', calcTip: 'Diese Attacke im Damage Calculator öffnen (Arten und Werte sind die Standards, nicht das echte Set).',
+    saved: 'Protokoll gespeichert', saveFail: 'Speichern fehlgeschlagen: der Browser-Speicher ist voll. Exportiere das Protokoll, bevor es verloren geht.', saveFailShort: 'nicht gespeichert', calc: 'Im Rechner', calcTip: 'Diese Attacke im Damage Calculator öffnen (Arten und Werte sind die Standards, nicht das echte Set).',
     turnN: 'Runde {0}', turnGuess: 'Runde ~{0}', started: 'Kampf beginnt', ended: 'Kampf beendet',
     winnerYou: 'Du gewinnst', winnerFoe: 'Gegner gewinnt', winnerNone: 'Kein Sieger erkannt', inferred: 'geschätzt', unclear: 'unklar',
     hpEst: 'KP-Leiste {0} ≈ {1} %', hpRead: 'KP {0} {1} %', party: 'Gesehen', noParty: 'noch niemand', fainted: 'besiegt',
@@ -54,7 +54,7 @@
     noOcr: 'Text recognition is only in the Windows app. HP bars work here too, and you can add a line below.',
     manual: 'Add a line', manualPh: 'e.g. Incineroar used Fake Out!', addLine: 'Add',
     save: 'Save', exportJson: 'JSON', exportText: 'Text', del: 'Delete', delConfirm: 'Delete this log?',
-    saved: 'Log saved', calc: 'Open in calc', calcTip: 'Open this move in the damage calculator (species and stats are the defaults, not the real set).',
+    saved: 'Log saved', saveFail: 'Could not save: browser storage is full. Export the log before it is lost.', saveFailShort: 'not saved', calc: 'Open in calc', calcTip: 'Open this move in the damage calculator (species and stats are the defaults, not the real set).',
     turnN: 'Turn {0}', turnGuess: 'Turn ~{0}', started: 'Battle started', ended: 'Battle ended',
     winnerYou: 'You win', winnerFoe: 'Foe wins', winnerNone: 'No winner detected', inferred: 'estimated', unclear: 'unclear',
     hpEst: 'HP bar {0} ≈ {1}%', hpRead: 'HP {0} {1}%', party: 'Seen', noParty: 'nobody yet', fainted: 'fainted',
@@ -277,6 +277,8 @@
       cur += c;
       var nxt = src.charAt(i + 1) || '', nxt2 = src.charAt(i + 2) || '';
       var end = /[!?…]/.test(c) || (c === '.' && /\s/.test(nxt) && /[A-ZÄÖÜ]/.test(nxt2 === ' ' ? src.charAt(i + 3) || '' : nxt2));
+      // "Go! Incineroar!" / "Los! Fuegro!" is one message. The bang belongs to the word, not a new sentence.
+      if (end && c === '!' && /^(?:go|los)!$/i.test(normLine(cur.replace(/§/g, '.')))) end = false;
       if (end) {
         var j = i + 1;
         while (src.charAt(j) === ' ') j++;
@@ -306,6 +308,13 @@
       if (ok) { best = k; break; }
     }
     return next.slice(best);
+  }
+  // After the text box was actually empty, one line that comes back unchanged counts again (Protect twice).
+  // A box with more than one line is not replayed: that would log the whole visible text a second time.
+  function takeLines(prev, lines, gap) {
+    prev = prev || []; lines = lines || [];
+    if (gap && lines.length === 1 && prev.length === 1 && linesClose(lines[0], prev[0])) return { fresh: lines.slice(), again: true };
+    return { fresh: diffLines(prev, lines), again: false };
   }
 
   var FOE_PRE = ['the opposing ', "the foe's ", "foe's ", 'foe ',
@@ -537,11 +546,15 @@
     return null;
   }
 
-  function feedLine(b, raw) {
+  function feedLine(b, raw, opt) {
     var line = normLine(raw);
     if (!line || !b) return [];
-    var last = b.events[b.events.length - 1];
-    if (last && last.raw === line && last.kind !== 'turn') return [];
+    // The capture loop drops a line that is still the last one on screen. opt.again is a real repeat
+    // (the box went blank, or the user typed the line in again).
+    if (!(opt && opt.again)) {
+      var last = b.events[b.events.length - 1];
+      if (last && last.raw === line && last.kind !== 'turn') return [];
+    }
     var recallBefore = b.pendingRecall;
     var evs = interpret(b, line);
     if (!evs) {
@@ -767,9 +780,28 @@
     eq(prompt.events.filter(function (e) { return e.kind === 'turn'; })[0].reliable, true, 'prompt reliable');
     eq(prompt.events.some(function (e) { return /what will/i.test(e.raw || ''); }), false, 'prompt not logged');
 
+    var held = takeLines(['Incineroar used Protect!'], ['Incineroar used Protect!'], false);
+    eq(held.fresh.length, 0, 'same line without a blank adds nothing');
+    eq(held.again, false, 'no blank is not a repeat');
+    var repeated = takeLines(['Incineroar used Protect!'], ['Incineroar used Protect!'], true);
+    eq(repeated.fresh.length, 1, 'blank then the same line');
+    eq(repeated.again, true, 'blank marks a repeat');
+    var box = takeLines(['Incineroar used Fake Out!', "It's super effective!"], ['Incineroar used Fake Out!', "It's super effective!"], true);
+    eq(box.fresh.length, 0, 'blank does not replay a multi-line box');
+    var rep = createBattle({ format: 'singles' });
+    feedLine(rep, 'Incineroar used Protect!');
+    var once = rep.events.filter(function (e) { return e.raw === 'Incineroar used Protect!'; }).length;
+    eq(once, 1, 'protect once');
+    feedLine(rep, 'Incineroar used Protect!');
+    eq(rep.events.filter(function (e) { return e.raw === 'Incineroar used Protect!'; }).length, once, 'same raw dropped');
+    feedLine(rep, 'Incineroar used Protect!', { again: true });
+    eq(rep.events.filter(function (e) { return e.raw === 'Incineroar used Protect!'; }).length, once + 1, 'again counts the repeat');
+
     eq(diffLines(['A', 'B'], ['B', 'C']).join('|'), 'C', 'diff scroll');
     eq(diffLines(['Incineroar used Fake Out!'], ['Incineroar used Fake Out!']).length, 0, 'diff same');
     eq(diffLines(['Incineroar used Fake Out!'], ['Incineroar used Fake Ou!']).length, 0, 'diff fuzzy');
+    eq(splitMessages('Go! Incineroar and Charizard!').join('|'), 'Go! Incineroar and Charizard!', 'go bang stays one line');
+    eq(splitMessages('Los! Fuegro und Glurak!').join('|'), 'Los! Fuegro und Glurak!', 'los bang stays one line');
     eq(splitMessages('Incineroar used Fake Out! It\'s super effective!').length, 2, 'split bang');
     eq(splitMessages('The opposing Rillaboom lost 12.5% of its health!').length, 1, 'split decimal');
     eq(parseHpText('87%'), 87, 'hp pct');
@@ -815,7 +847,7 @@
   var store = A.load('cc_battlelog', null) || { logs: [], cfg: {} };
   if (!store.cfg) store.cfg = {};
   if (!store.cfg.regions) store.cfg.regions = {};
-  var current = null, saveTimer = null, demoTimer = null, root = null;
+  var current = null, saveTimer = null, demoTimer = null, root = null, saveFailed = false, connectGen = 0;
   var cap = null, sampler = null, drawKey = 'text', ocrNote = '';
 
   function revive(snap) {
@@ -851,15 +883,33 @@
       events: b.events
     };
   }
-  function persist() {
-    if (current) {
-      var snap = snapshot(current);
-      var at = -1;
-      store.logs.forEach(function (l, i) { if (l.id === current.id) at = i; });
-      if (at < 0) store.logs.unshift(snap); else store.logs[at] = snap;
+  function writeLog(b) {
+    if (!b) return;
+    var snap = snapshot(b);
+    var at = -1;
+    store.logs.forEach(function (l, i) { if (l.id === b.id) at = i; });
+    if (at < 0) store.logs.unshift(snap); else store.logs[at] = snap;
+  }
+  // Drop a battle that never received a line. Otherwise keep it, and end it when a new one starts.
+  function archiveCurrent(endIt) {
+    if (!current) return;
+    var id = current.id;
+    if (!current.events.length) {
+      store.logs = store.logs.filter(function (l) { return l.id !== id; });
+      return;
     }
+    if (endIt && !current.ended) endBattle(current);
+    writeLog(current);
+  }
+  function persist(fromClick) {
+    if (current) writeLog(current);
     store.logs = store.logs.slice(0, 30);
-    A.save('cc_battlelog', store);
+    var ok = A.save('cc_battlelog', store) !== false;
+    var was = saveFailed;
+    saveFailed = !ok;
+    if (!ok && (!was || fromClick)) A.toast(t('saveFail'));
+    if (was !== saveFailed) paint();
+    return ok;
   }
   function persistSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(function () { saveTimer = null; persist(); }, 150); }
   (store.logs || []).forEach(function (l, i) { if (l && l.active && l.active.you && typeof l.active.you[0] !== 'string' && l.active.you[0] && l.active.you[0].id) store.logs[i] = snapshot(revive(l)); });
@@ -875,11 +925,12 @@
   function feed(raw) {
     if (!current) { current = createBattle({}); }
     if (current.ended) return;
-    feedLine(current, raw);
+    feedLine(current, raw, { again: true });
     onChange();
   }
 
   function stopCap() {
+    connectGen++;
     if (!cap) return;
     clearInterval(cap.loop);
     try { cap.stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) { /* already stopped */ }
@@ -888,17 +939,27 @@
   function connect(src) {
     if (!Cap) return;
     stopCap();
+    var gen = connectGen;
     Cap.openStream(src).then(function (stream) {
+      if (gen !== connectGen) {
+        try { stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) { /* replaced */ }
+        return;
+      }
       if (!sampler) sampler = Cap.createSampler();
       var video = document.createElement('video');
       video.muted = true; video.playsInline = true; video.srcObject = stream;
       video.play().catch(function () {});
-      cap = { stream: stream, video: video, src: src, running: false, ocrBusy: false, stableLines: [], lastLines: [], blankHits: 0, hpHist: {}, hpAt: {}, hpReadAt: {}, hpOi: 0, hpOcrAt: 0 };
-      stream.getVideoTracks().forEach(function (tr) { tr.addEventListener('ended', function () { stopCap(); persist(); render(); }); });
+      cap = { stream: stream, video: video, src: src, token: gen, running: false, ocrBusy: false, stableLines: [], lastLines: [], blankHits: 0, gap: false, hpHist: {}, hpAt: {}, hpReadAt: {}, hpOi: 0, hpOcrAt: 0 };
+      stream.getVideoTracks().forEach(function (tr) {
+        tr.addEventListener('ended', function () {
+          if (gen !== connectGen) return;
+          stopCap(); persist(); render();
+        });
+      });
       store.cfg.source = { kind: src.kind, id: src.id || '', label: src.label || '' };
       persist();
       render();
-    }, function (e) { A.toast(t('errSource', e && e.message ? e.message : e)); });
+    }, function (e) { if (gen === connectGen) A.toast(t('errSource', e && e.message ? e.message : e)); });
   }
   function medianPush(arr, v) {
     arr.push(v);
@@ -928,8 +989,9 @@
         try { img = sampler.ocrImage(cap.video, regs.text); } catch (e) { img = null; }
         if (img) {
           cap.ocrBusy = true; cap.ocrAt = Date.now();
+          var token = cap.token;
           Cap.ocr(img).then(function (r) {
-            if (!cap) return;
+            if (!cap || cap.token !== token) return;
             cap.ocrBusy = false;
             if (!r || r.error) { ocrNote = t('ocrErr', r ? r.error : '?'); paintOcr(); return; }
             var text = r.text || '';
@@ -937,19 +999,20 @@
             var lines = splitMessages(text);
             if (!lines.length) {
               cap.blankHits++;
-              if (cap.blankHits >= 3) { cap.stableLines = []; cap.lastLines = []; }
+              if (cap.blankHits >= 3 && cap.running) cap.gap = true;
             } else {
               cap.blankHits = 0;
               cap.lastLines = lines;
+              var got = takeLines(cap.stableLines, lines, cap.gap);
+              cap.gap = false;
+              cap.stableLines = lines;
               if (cap.running && current && !current.ended) {
-                var fresh = diffLines(cap.stableLines, lines);
-                cap.stableLines = lines;
-                fresh.forEach(function (ln) { feedLine(current, ln); });
-                if (fresh.length) onChange();
-              } else cap.stableLines = lines;
+                got.fresh.forEach(function (ln) { feedLine(current, ln, got.again ? { again: true } : null); });
+                if (got.fresh.length) onChange();
+              }
             }
             paintOcr();
-          }, function (e) { if (cap) cap.ocrBusy = false; ocrNote = t('ocrErr', e && e.message || e); paintOcr(); });
+          }, function (e) { if (cap && cap.token === token) { cap.ocrBusy = false; ocrNote = t('ocrErr', e && e.message || e); paintOcr(); } });
         }
       }
       if (Cap.ocr && !cap.ocrBusy && cap.running && current && !current.ended && Date.now() - cap.hpOcrAt >= 700) {
@@ -961,14 +1024,15 @@
           try { hpImg = sampler.ocrImage(cap.video, regs[h.key]); } catch (e2) { hpImg = null; }
           if (hpImg) {
             cap.ocrBusy = true; cap.hpOcrAt = Date.now();
+            var hpToken = cap.token;
             Cap.ocr(hpImg).then(function (r) {
-              if (!cap) return;
+              if (!cap || cap.token !== hpToken) return;
               cap.ocrBusy = false;
               var n = r && !r.error ? parseHpText(r.text) : null;
               if (n == null || !current || current.ended) return;
               cap.hpReadAt[h.key] = Date.now();
               if (feedHp(current, h.side, n, { slot: h.slot, reliable: true })) onChange();
-            }, function () { if (cap) cap.ocrBusy = false; });
+            }, function () { if (cap && cap.token === hpToken) cap.ocrBusy = false; });
           }
         }
       }
@@ -1110,7 +1174,7 @@
     if (log) fillLog(log, current);
     var st = document.getElementById('blState');
     if (st) {
-      st.textContent = current.ended ? t('done') : t('live');
+      st.textContent = (current.ended ? t('done') : t('live')) + (saveFailed ? ' · ' + t('saveFailShort') : '');
       st.className = 'bl-state ' + (current.ended ? 'done' : 'live');
     }
     var wn = document.getElementById('blWinner');
@@ -1150,12 +1214,16 @@
 
   function playDemo() {
     clearTimeout(demoTimer);
-    if (current && current.status === 'live' && current.events.length) endBattle(current);
+    demoTimer = null;
+    if (cap) { cap.running = false; cap.gap = false; }
+    archiveCurrent(true);
     current = createBattle({});
     persist(); render();
-    var lines = de ? DEMO_DE : DEMO_EN, i = 0;
+    var lines = de ? DEMO_DE : DEMO_EN, i = 0, battle = current;
     function step() {
-      if (!current || i >= lines.length) { if (current && !current.ended) endBattle(current); onChange(); A.toast(t('demoDone')); return; }
+      demoTimer = null;
+      if (document.body.dataset.view !== 'battlelog' || current !== battle) return;
+      if (i >= lines.length) { if (current && !current.ended) endBattle(current); onChange(); A.toast(t('demoDone')); return; }
       feedLine(current, lines[i++]);
       onChange();
       demoTimer = setTimeout(step, 380);
@@ -1176,7 +1244,6 @@
   function render() {
     root = document.getElementById('battleView');
     if (!root) return;
-    if (location.hash !== '#battlelogdemo' && location.hash !== '#battlelogcalc') clearTimeout(demoTimer);
     bootHash();
     root.innerHTML = '';
     root.dataset.log = current ? current.id : '';
@@ -1198,7 +1265,8 @@
     var nb = el('button', { class: 'primary-btn bl-new', text: t('new') });
     nb.addEventListener('click', function () {
       clearTimeout(demoTimer);
-      if (current && current.status === 'live') { if (current.events.length) endBattle(current); }
+      demoTimer = null;
+      archiveCurrent(true);
       current = createBattle({}); persist(); render();
     });
     side.appendChild(nb);
@@ -1217,10 +1285,15 @@
       b.appendChild(el('span', { class: 'bl-item-sub', text: sub }));
       b.addEventListener('click', function () {
         clearTimeout(demoTimer);
+        demoTimer = null;
         if (current && current.id === l.id) return;
-        if (current && current.status === 'live') persist();
+        if (cap) { cap.running = false; cap.gap = false; }
+        if (current && !current.events.length) {
+          var eid = current.id;
+          store.logs = store.logs.filter(function (x) { return x.id !== eid; });
+        } else if (current) writeLog(current);
         current = revive(JSON.parse(JSON.stringify(l)));
-        render();
+        persist(); render();
       });
       side.appendChild(b);
     });
@@ -1291,10 +1364,13 @@
       A.showModal(t('exportTitle'), text);
     });
     var sv = el('button', { class: 'tbtn', text: t('save') });
-    sv.addEventListener('click', function () { persist(); A.toast(t('saved')); render(); });
+    sv.addEventListener('click', function () { if (persist(true)) A.toast(t('saved')); render(); });
     var dl = el('button', { class: 'tbtn danger', text: t('del') });
     dl.addEventListener('click', function () {
       if (!confirm(t('delConfirm'))) return;
+      clearTimeout(demoTimer);
+      demoTimer = null;
+      stopCap();
       store.logs = store.logs.filter(function (l) { return l.id !== current.id; });
       current = store.logs[0] ? revive(JSON.parse(JSON.stringify(store.logs[0]))) : null;
       persist(); render();
@@ -1366,17 +1442,23 @@
     var ctx = cv.getContext('2d');
     var drag = null;
     function rel(ev) { var r = cv.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) }; }
-    cv.addEventListener('mousedown', function (ev) { drag = { a: rel(ev), b: rel(ev) }; });
-    window.addEventListener('mousemove', function mm(ev) { if (!document.contains(cv)) { window.removeEventListener('mousemove', mm); return; } if (drag) drag.b = rel(ev); });
-    window.addEventListener('mouseup', function mu() {
-      if (!document.contains(cv)) { window.removeEventListener('mouseup', mu); return; }
+    function finishDrag(ev) {
       if (!drag) return;
+      if (ev) drag.b = rel(ev);
       var x = Math.min(drag.a.x, drag.b.x), y = Math.min(drag.a.y, drag.b.y), w = Math.abs(drag.a.x - drag.b.x), h = Math.abs(drag.a.y - drag.b.y);
       drag = null;
       if (w < 0.01 || h < 0.01) return;
       store.cfg.regions[drawKey] = { x: x, y: y, w: w, h: h };
       persist();
+    }
+    cv.addEventListener('pointerdown', function (ev) {
+      if (ev.button != null && ev.button !== 0) return;
+      drag = { a: rel(ev), b: rel(ev) };
+      try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* the pointer still moves over the canvas */ }
     });
+    cv.addEventListener('pointermove', function (ev) { if (drag) drag.b = rel(ev); });
+    cv.addEventListener('pointerup', finishDrag);
+    cv.addEventListener('pointercancel', function () { drag = null; });
     var cols = { text: '#f2c94c', youHp: '#3a7bd5', youHp2: '#7eb6ff', foeHp: '#c8283c', foeHp2: '#ff8a80' };
     function draw() {
       if (!document.contains(cv) || !cap) return;
@@ -1404,9 +1486,10 @@
         var regs = store.cfg.regions || {};
         if (!regs.text && !regs.youHp && !regs.foeHp && !regs.youHp2 && !regs.foeHp2) { A.toast(t('needRegion')); return; }
         cap.running = true;
+        cap.gap = false;
         cap.stableLines = (cap.lastLines || []).slice();
         if (!current) current = createBattle({});
-      } else cap.running = false;
+      } else { cap.running = false; cap.gap = false; }
       paint();
     });
     run.appendChild(rb);
