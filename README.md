@@ -27,7 +27,7 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
-- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler** und **Kampfprotokoll** (Tasten `1` bis `6`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler**, **Kampfprotokoll** und **Match-Analyse** (Tasten `1` bis `7`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
 - **Teambuilder** (`js/builder.js`):
   - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
@@ -64,6 +64,20 @@ Eigener Modus (`js/shiny.js`, Quoten `js/shiny_odds.js`, Erkennung `js/shiny_det
 - **Automatische Erkennung – ALPHA**: Bildschirm/Fenster oder Kamera/Capture-Karte aufnehmen, im Bild einen Bereich markieren, eine oder mehrere Referenzen aufnehmen, während die Begegnung zu sehen ist. Vergleich in Graustufen (Korrelation + mittlere Abweichung), Zustandsmaschine mit Treffern in Folge, Sperre und Pause gegen Doppelzählungen, „Ruhewert messen“ für die Schwelle, „Nur testen“ ohne Zählen. Läuft lokal, auch im Hintergrund. Kameras und Capture-Karten werden in Full HD geöffnet.
   - **Text suchen** (nur Windows-App): statt eines Bildvergleichs liest die in Windows eingebaute Texterkennung (`Windows.Media.Ocr`, über `electron/ocr.js` + `electron/ocr.ps1`, bis zu 5 Bilder/s) den Text im Rahmen und zählt, sobald der gesuchte Name darin steht. Leer = Name des Hunts, mehrere Varianten mit Komma. Unscharfer Vergleich gegen 1–3 benachbarte Wörter: ein falsch gelesener Buchstabe stört nicht, „Abra“ zählt aber nicht bei „Kadabra“. Braucht eine installierte Windows-Sprache mit Texterkennung (bei deutschem oder englischem Windows vorhanden).
 - Gespeichert unter `cc_shiny` (Hunts, Sammlung, Hotkeys, Overlay).
+## Match-Analyse
+Eigener Modus (`js/match.js`, Auswertung `js/match_parse.js`, Taste `7`). Ausgewertet wird ein Team aus dem **Teambuilder** (kein PokéPaste). Showdown-Namen oben helfen, die eigene Seite zu erkennen; ohne Namen reicht es, wenn das gewählte Team im Replay vorkommt.
+- **Replays:** Links von `replay.pokemonshowdown.com` einfügen (ein Link pro Zeile, auch `.json` oder `.log`). Der Browser lädt `https://replay.pokemonshowdown.com/<id>.json` direkt. Showdown setzt `Access-Control-Allow-Origin: *`, deshalb klappt das in der normalen Seite und in der Desktop-App ohne Proxy. Private Replays oder ein blockierter Abruf: das JSON oder den Log-Text ins selbe Feld einfügen.
+- Pro Spiel: Sieg oder Niederlage, die sechs des Gegners (Teamvorschau), Leads und Back beider Seiten (die vier Eingesetzten, Leads sind das, was vor Runde 1 auf dem Feld steht), Mega (`|-mega|`) und Tera (`|-terastallize|`), offen oder geschlossen (Item in der Vorschauzeile = offen), Elo aus der Spielerzeile und der Wertungszeile am Ende.
+- **Serien:** aufeinanderfolgende Spiele gegen denselben Gegner, bis eine Seite zwei Siege hat oder drei Spiele gespielt sind. Mehr als sechs Stunden Abstand trennt. Am Spiel stehen „Neue Serie davor“ und „Eigenes Spiel (Bo1)“.
+- **Nutzung** je Pokémon des Teams: dabei, Siege, Siegquote, Anteil an allen Spielen, Lead-Quote, Mega- und Tera-Quote, dazu Lead-Paare und die Siegquote bei offenem und geschlossenem Team Sheet.
+- **Matchups** gegen gegnerische Pokémon (im Team, eingesetzt, eigene Siege, Einsatzquote). Beste und schwächste Listen ab vier Einsätzen.
+- **Attacken:** wie oft jede Attacke der eigenen Pokémon vorkam. Attacken aus dem Teambuilder-Set stehen auch bei null.
+- **Filter** in der Spieleliste: Ergebnis, Gegner im Team, Gegner-Lead, Gegner-Back, eigenes Lead, eigenes Back, selbst eingesetzt, Mega oder Tera, Team Sheet, Mindest-Elo des Gegners. Die Statistik darüber zählt alle Spiele mit Sieger, der Filter nur die Liste.
+- **Prüfen:** doppelte Links (werden nicht zweimal übernommen), ungültige Adressen, fehlgeschlagene Abrufe, Spiele ohne erkennbare Seite oder ohne Sieger.
+- **Kampfprotokolle:** „Kampfprotokolle“ liest `cc_battlelog.logs` (dasselbe Objekt wie der JSON-Export, `schema: 1`, `game: "champions"`). Im Kampfprotokoll legt „In Match-Analyse“ das offene Protokoll direkt ab. Übernommen werden Ergebnis (`winner` `you`/`foe`), Namen, gesehenes Team (`party`, englische Champions-Namen), Leads (`events` mit `kind` `send` oder `switch` und `lead: true`, sonst alles vor der ersten `turn`-Zeile, zwei im Doppel und eins im Einzel) und Attacken (`kind: "move"`). Das Protokoll kennt das Team von sechs, Elo und offen/geschlossen nicht. Mega und Tera nur, wenn am Pokémon `mega`/`tera` steht oder `events[].raw` eine Showdown-Zeile `|-mega|` / `|-terastallize|` ist. Ein schon übernommenes Protokoll wird beim nächsten Lesen aktualisiert.
+- Gespeichert unter `cc_match` (Einträge, Namen, gewähltes Team, Filter). „Sichern“ / „Datei laden“ schreibt eine JSON-Datei `{ kind: "rattata-match" }`. „Beispiel laden“ legt fünf fertige Spiele an, darunter ein Kampfprotokoll, und lässt sich wieder entfernen.
+- Die Idee, aus Replay-Links diese Auswertungen zu bauen, stammt vom PALKIA Academy Showdown Reporting Spreadsheet v7.0 (PASRS, Bauerdad und v0Lt). Übernommen ist davon nichts außer der Fragestellung.
+
 ## Kampfprotokoll (Alpha)
 Eigener Modus für **Pokémon Champions** (`js/battlelog.js`), nicht für wilde Begegnungen oder den Nationaldex. Die Spielaufzeichnung (Bildschirm, Fenster oder Kamera/Capture-Karte) kommt aus `js/capture.js`, derselben Stelle wie die automatische Erkennung des Shiny-Zählers. Die Windows-Texterkennung (`electron/ocr.js`) liest ein markiertes Kampftextfeld. Neue Kämpfe starten als Doppel, Einzel lässt sich umschalten. Erkannt werden nur Arten und Attacken aus dem Champions-Dex des Rechners.
 - **Live**: Rahmen um das Textfeld ziehen, dazu um die KP-Leisten (im Doppel je eine pro Pokémon, die ganze Leiste inklusive Zahl und leerem Teil), dann „Mitschneiden“. Der Verlauf wächst mit, sobald sich der Text ändert. Ist das Textfeld leer und danach steht dieselbe einzelne Zeile wieder da, zählt sie erneut. Ein kurzes Leeren spielt nicht den ganzen sichtbaren Text noch einmal ab. „Mitschneiden stoppen“ beendet den Kampf nicht. Ein anderes Protokoll öffnen pausiert das Mitschneiden. Löschen trennt die Quelle. „Neuer Kampf“ beendet das laufende Protokoll und schreibt im neuen weiter, die Quelle bleibt.
@@ -71,7 +85,7 @@ Eigener Modus für **Pokémon Champions** (`js/battlelog.js`), nicht für wilde 
 - **Was eine Schätzung ist**: die Farbe der KP-Leiste, wenn die Zahl nicht lesbar ist; eine Runde ohne Ansage (im Doppel nach vier Aktionen, im Einzel nach zwei); unscharf gelesene Namen; Zeilen ohne Muster; ein Sieger nur daraus, dass eine Seite keine bekannten Pokémon mehr hat. „Turn“/„Runde“ und „verlor N %“ werden mitgelesen, sind aber keine bestätigte Champions-Anzeige. Solche Zeilen sind mit „geschätzt“ markiert.
 - Zeilen lassen sich von Hand nachtragen, wenn die Erkennung eine auslässt. „Beispielkampf“ spielt einen festen Champions-Doppelkampf ab, ohne Aufnahme.
 - **Speichern** liegt in `cc_battlelog` (`localStorage`, in der Desktop-App die App-Daten). **Text** und **JSON** laden eine Datei herunter. Alte Protokolle stehen links. Das JSON ist dasselbe Objekt wie ein Eintrag in `cc_battlelog.logs` (`schema: 1`, `game: "champions"`), plus `generator` und `limits`. `format` ist `"doubles"` oder `"singles"`, `winner` ist `"you"`, `"foe"` oder `null`, `winnerHow` ist `"text"`, `"inferred"` oder `null`. `active` speichert nur die Ids, `party` die Pokémon (`species` ist der englische Champions-Name, `name` der gelesene Text). `events[].kind` ist `start`, `turn`, `send`, `switch`, `move`, `effect`, `crit`, `miss`, `status`, `damage`, `heal`, `hp`, `faint`, `win`, `end`, `note` oder `field`. `move` ist der englische Attackenname, `reliable` sagt, ob das Muster exakt getroffen hat. Ein anderes Werkzeug kann diese Logs lesen, ohne `battlelog.js` zu laden.
-- **Im Rechner** an einer Attacke öffnet den Damage Calculator mit Angreifer, Verteidiger, Attacke, KP-Stand, Volltreffer und Einzel/Doppel. Im Doppel nur, wenn genau ein Ziel übrig ist. Wesen, Werte und Item bleiben die Standardwerte, das echte Set kennt das Protokoll nicht.
+- **Im Rechner** an einer Attacke öffnet den Damage Calculator mit Angreifer, Verteidiger, Attacke, KP-Stand, Volltreffer und Einzel/Doppel. Im Doppel nur, wenn genau ein Ziel übrig ist. Wesen, Werte und Item bleiben die Standardwerte, das echte Set kennt das Protokoll nicht. **In Match-Analyse** übernimmt das offene Protokoll dorthin.
 - Texterkennung gibt es nur in der Windows-App. Im Browser gehen die Farbe der KP-Leiste, das Beispiel, Nachtragen und der Export.
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
@@ -87,7 +101,7 @@ Zahnrad oben rechts:
 - **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm), *Alle Modi* oder *Keine* (Wechsel nur über das Logo)
 - **Pokémon im Teambuilder**: animiertes 3D-Modell oder Pixel-Sprite
 - **Design**: dunkel oder hell
-- **Beim Öffnen der App**: Startbildschirm, Damage Calculator oder Teambuilder
+- **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Kampfprotokoll oder Match-Analyse
 - **Sprache**: Deutsch oder English
 
 ## Sprache (Deutsch / English)
@@ -141,6 +155,8 @@ Beide Knöpfe oben rechts laden Daten direkt im Browser (Internet nötig, kein S
 - `js/calc.js`: Schadensformel (Gen 9 mit Champions-Anpassungen)
 - `js/app.js`: Oberfläche, Set-Auswahl, Import/Export
 - `js/online.js`: Online-Aktualisierung von Sets und Regulation
+- `js/battlelog.js`, `js/capture.js`: Kampfprotokoll (live aus der Spielaufzeichnung)
+- `js/match_parse.js`, `js/match.js`: Match-Analyse (Showdown-Replays und Kampfprotokolle)
 - `data/`: Pokédex, Attacken, Items, Fähigkeiten und Sets aus dem NCP-Repo (Credits: Alex Collins / Jake White)
 
 Neue Regulationen: aktuelle Dateien aus `https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/script_res/`

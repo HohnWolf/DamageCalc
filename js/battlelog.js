@@ -24,7 +24,7 @@
     read: 'Gelesen: {0}', readNone: '(kein Text)', reading: 'Lese …', ocrErr: 'Texterkennung: {0}',
     noOcr: 'Texterkennung gibt es nur in der Windows-App. KP-Leisten gehen auch hier, Zeilen kannst du unten nachtragen.',
     manual: 'Zeile nachtragen', manualPh: 'z. B. Fuegro setzt Mogelhieb ein!', addLine: 'Übernehmen',
-    save: 'Speichern', exportJson: 'JSON', exportText: 'Text', del: 'Löschen', delConfirm: 'Dieses Protokoll löschen?',
+    save: 'Speichern', exportJson: 'JSON', exportText: 'Text', toMatch: 'In Match-Analyse', toMatchDone: 'In der Match-Analyse geöffnet', del: 'Löschen', delConfirm: 'Dieses Protokoll löschen?',
     saved: 'Protokoll gespeichert', saveFail: 'Speichern fehlgeschlagen: der Browser-Speicher ist voll. Exportiere das Protokoll, bevor es verloren geht.', saveFailShort: 'nicht gespeichert', calc: 'Im Rechner', calcTip: 'Diese Attacke im Damage Calculator öffnen (Arten und Werte sind die Standards, nicht das echte Set).',
     turnN: 'Runde {0}', turnGuess: 'Runde ~{0}', started: 'Kampf beginnt', ended: 'Kampf beendet',
     winnerYou: 'Du gewinnst', winnerFoe: 'Gegner gewinnt', winnerNone: 'Kein Sieger erkannt', inferred: 'geschätzt', unclear: 'unklar',
@@ -53,7 +53,7 @@
     read: 'Read: {0}', readNone: '(no text)', reading: 'Reading …', ocrErr: 'Text recognition: {0}',
     noOcr: 'Text recognition is only in the Windows app. HP bars work here too, and you can add a line below.',
     manual: 'Add a line', manualPh: 'e.g. Incineroar used Fake Out!', addLine: 'Add',
-    save: 'Save', exportJson: 'JSON', exportText: 'Text', del: 'Delete', delConfirm: 'Delete this log?',
+    save: 'Save', exportJson: 'JSON', exportText: 'Text', toMatch: 'To Match-Analyse', toMatchDone: 'Opened in Match-Analyse', del: 'Delete', delConfirm: 'Delete this log?',
     saved: 'Log saved', saveFail: 'Could not save: browser storage is full. Export the log before it is lost.', saveFailShort: 'not saved', calc: 'Open in calc', calcTip: 'Open this move in the damage calculator (species and stats are the defaults, not the real set).',
     turnN: 'Turn {0}', turnGuess: 'Turn ~{0}', started: 'Battle started', ended: 'Battle ended',
     winnerYou: 'You win', winnerFoe: 'Foe wins', winnerNone: 'No winner detected', inferred: 'estimated', unclear: 'unclear',
@@ -1375,7 +1375,15 @@
       current = store.logs[0] ? revive(JSON.parse(JSON.stringify(store.logs[0]))) : null;
       persist(); render();
     });
-    tools.appendChild(exT); tools.appendChild(exJ); tools.appendChild(sv); tools.appendChild(dl);
+    var toM = el('button', { class: 'tbtn', text: t('toMatch') });
+    toM.addEventListener('click', function () {
+      if (!current || !window.CCMatch || !window.CCMatch.importBattleLog) return;
+      persist(true);
+      window.CCMatch.importBattleLog(snapshot(current));
+      A.toast(t('toMatchDone'));
+      if (A.showView) A.showView('match');
+    });
+    tools.appendChild(exT); tools.appendChild(exJ); tools.appendChild(toM); tools.appendChild(sv); tools.appendChild(dl);
     main.appendChild(tools);
     paint();
     if (cap) capLoop();
