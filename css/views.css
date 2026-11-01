@@ -2,9 +2,9 @@
 
 /* ================= View switching ================= */
 body:not([data-view="start"]) .start-view, body:not([data-view="calc"]) .calc-view,
-body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view { display: none !important; }
+body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view { display: none !important; }
 body:not([data-view="calc"]) .only-calc { display: none !important; }
-body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start { display: none !important; }
+body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start { display: none !important; }
 
 .sprite-fit { image-rendering: pixelated; }
 /* uncropped sprites (cosmetic variants) fill small boxes the same way */
@@ -75,7 +75,10 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .start-logo { width: 96px; height: auto; image-rendering: pixelated; display: block; margin: 0 auto 8px; }
 .start-inner h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: .2px; }
 .start-sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
-.start-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 28px; text-align: left; }
+.start-cards { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 28px; text-align: left; }
+@media (max-width: 1180px) {
+  .start-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 .start-card {
   position: relative; height: auto; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; align-items: stretch;
   background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--accent-2); border-radius: var(--radius); text-align: left;

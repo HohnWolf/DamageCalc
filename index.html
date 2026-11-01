@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rattata Lab</title>
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=61">
-  <link rel="stylesheet" href="css/views.css?v=61">
-  <link rel="stylesheet" href="css/nuz.css?v=61">
-  <link rel="stylesheet" href="css/shiny.css?v=61">
+  <link rel="stylesheet" href="css/style.css?v=62">
+  <link rel="stylesheet" href="css/views.css?v=62">
+  <link rel="stylesheet" href="css/nuz.css?v=62">
+  <link rel="stylesheet" href="css/shiny.css?v=62">
+  <link rel="stylesheet" href="css/match.css?v=63">
 </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
@@ -69,6 +70,15 @@
           <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span><span class="sc-key">5</span></span>
           <span class="sc-text" data-t="startShinyText"></span>
         </button>
+        <button class="start-card card-match" data-go="match">
+          <span class="sc-art sc-art-match">
+            <span class="sc-dmg">8–4 <small>66,7 %</small></span>
+            <span class="sc-bar"><span style="width:67%"></span></span>
+            <span class="sc-ko">Bo3 · Leads · Matchups</span>
+          </span>
+          <span class="sc-head"><span class="sc-title">Match-Analyse</span><span class="sc-key">6</span></span>
+          <span class="sc-text" data-t="startMatchText"></span>
+        </button>
       </div>
       <p class="start-foot" data-t="startFoot"></p>
     </div>
@@ -78,6 +88,7 @@
   <main id="slView" class="wrap sl-view"></main>
   <main id="nuzView" class="wrap nuz-view"></main>
   <main id="shinyView" class="wrap shiny-view"></main>
+  <main id="matchView" class="wrap match-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -126,31 +137,33 @@
     </div>
   </div>
 
-  <script src="js/shim.js?v=61"></script>
-  <script src="data/pokedex.js?v=61"></script>
-  <script src="data/move_data.js?v=61"></script>
-  <script src="data/move_acc.js?v=61"></script>
-  <script src="data/forms_champ.js?v=61"></script>
-  <script src="data/item_data.js?v=61"></script>
-  <script src="data/ability_data.js?v=61"></script>
-  <script src="data/setdex_ncp-g10.js?v=61"></script>
-  <script src="data/names_de.js?v=61"></script>
-  <script src="data/learnsets_champ.js?v=61"></script>
-  <script src="data/sprite_boxes.js?v=61"></script>
-  <script src="js/online.js?v=61"></script>
-  <script src="js/calc.js?v=61"></script>
-  <script src="js/app.js?v=61"></script>
-  <script src="js/builder.js?v=61"></script>
-  <script src="data/natdex.js?v=61"></script>
-  <script src="data/gen3_names.js?v=61"></script>
-  <script src="js/gen3.js?v=61"></script>
-  <script src="data/nds_names.js?v=61"></script>
-  <script src="js/nds_calc.js?v=61"></script>
-  <script src="js/nds.js?v=61"></script>
-  <script src="js/nuz.js?v=61"></script>
-  <script src="js/nuzcalc.js?v=61"></script>
-  <script src="js/shiny_odds.js?v=61"></script>
-  <script src="js/shiny_detect.js?v=61"></script>
-  <script src="js/shiny.js?v=61"></script>
+  <script src="js/shim.js?v=62"></script>
+  <script src="data/pokedex.js?v=62"></script>
+  <script src="data/move_data.js?v=62"></script>
+  <script src="data/move_acc.js?v=62"></script>
+  <script src="data/forms_champ.js?v=62"></script>
+  <script src="data/item_data.js?v=62"></script>
+  <script src="data/ability_data.js?v=62"></script>
+  <script src="data/setdex_ncp-g10.js?v=62"></script>
+  <script src="data/names_de.js?v=62"></script>
+  <script src="data/learnsets_champ.js?v=62"></script>
+  <script src="data/sprite_boxes.js?v=62"></script>
+  <script src="js/online.js?v=62"></script>
+  <script src="js/calc.js?v=62"></script>
+  <script src="js/app.js?v=62"></script>
+  <script src="js/builder.js?v=62"></script>
+  <script src="data/natdex.js?v=62"></script>
+  <script src="data/gen3_names.js?v=62"></script>
+  <script src="js/gen3.js?v=62"></script>
+  <script src="data/nds_names.js?v=62"></script>
+  <script src="js/nds_calc.js?v=62"></script>
+  <script src="js/nds.js?v=62"></script>
+  <script src="js/nuz.js?v=62"></script>
+  <script src="js/nuzcalc.js?v=62"></script>
+  <script src="js/shiny_odds.js?v=62"></script>
+  <script src="js/shiny_detect.js?v=62"></script>
+  <script src="js/shiny.js?v=62"></script>
+  <script src="js/match_parse.js?v=62"></script>
+  <script src="js/match.js?v=62"></script>
 </body>
 </html>

@@ -27,7 +27,7 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
-- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke** und **Shiny-Zähler** (Tasten `1` bis `5`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler** und **Match-Analyse** (Tasten `1` bis `6`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
 - **Teambuilder** (`js/builder.js`):
   - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
@@ -64,6 +64,21 @@ Eigener Modus (`js/shiny.js`, Quoten `js/shiny_odds.js`, Erkennung `js/shiny_det
 - **Automatische Erkennung – ALPHA**: Bildschirm/Fenster oder Kamera/Capture-Karte aufnehmen, im Bild einen Bereich markieren, eine oder mehrere Referenzen aufnehmen, während die Begegnung zu sehen ist. Vergleich in Graustufen (Korrelation + mittlere Abweichung), Zustandsmaschine mit Treffern in Folge, Sperre und Pause gegen Doppelzählungen, „Ruhewert messen“ für die Schwelle, „Nur testen“ ohne Zählen. Läuft lokal, auch im Hintergrund. Kameras und Capture-Karten werden in Full HD geöffnet.
   - **Text suchen** (nur Windows-App): statt eines Bildvergleichs liest die in Windows eingebaute Texterkennung (`Windows.Media.Ocr`, über `electron/ocr.js` + `electron/ocr.ps1`, bis zu 5 Bilder/s) den Text im Rahmen und zählt, sobald der gesuchte Name darin steht. Leer = Name des Hunts, mehrere Varianten mit Komma. Unscharfer Vergleich gegen 1–3 benachbarte Wörter: ein falsch gelesener Buchstabe stört nicht, „Abra“ zählt aber nicht bei „Kadabra“. Braucht eine installierte Windows-Sprache mit Texterkennung (bei deutschem oder englischem Windows vorhanden).
 - Gespeichert unter `cc_shiny` (Hunts, Sammlung, Hotkeys, Overlay).
+
+## Match-Analyse
+Eigener Modus (`js/match.js`, Auswertung `js/match_parse.js`). Ausgewertet wird ein Team aus dem **Teambuilder** (kein PokéPaste). Showdown-Namen oben helfen, die eigene Seite zu erkennen; ohne Namen reicht es, wenn das gewählte Team im Replay vorkommt.
+- **Replays:** Links von `replay.pokemonshowdown.com` einfügen (ein Link pro Zeile, auch `.json` oder `.log`). Der Browser lädt `https://replay.pokemonshowdown.com/<id>.json` direkt. Showdown setzt `Access-Control-Allow-Origin: *`, deshalb klappt das in der normalen Seite und in der Desktop-App ohne Proxy. Private Replays oder ein blockierter Abruf: das JSON oder den Log-Text ins selbe Feld einfügen.
+- Pro Spiel: Sieg oder Niederlage, die sechs des Gegners (Teamvorschau), Leads und Back beider Seiten (die vier Eingesetzten, Leads sind das, was vor Runde 1 auf dem Feld steht), Mega (`|-mega|`) und Tera (`|-terastallize|`), offen oder geschlossen (Item in der Vorschauzeile = offen), Elo aus der Spielerzeile und der Wertungszeile am Ende.
+- **Serien:** aufeinanderfolgende Spiele gegen denselben Gegner, bis eine Seite zwei Siege hat oder drei Spiele gespielt sind. Mehr als sechs Stunden Abstand trennt. Am Spiel stehen „Neue Serie davor“ und „Eigenes Spiel (Bo1)“.
+- **Nutzung** je Pokémon des Teams: dabei, Siege, Siegquote, Anteil an allen Spielen, Lead-Quote, Mega- und Tera-Quote, dazu Lead-Paare und die Siegquote bei offenem und geschlossenem Team Sheet.
+- **Matchups** gegen gegnerische Pokémon (im Team, eingesetzt, eigene Siege, Einsatzquote). Beste und schwächste Listen ab vier Einsätzen.
+- **Attacken:** wie oft jede Attacke der eigenen Pokémon vorkam. Attacken aus dem Teambuilder-Set stehen auch bei null.
+- **Filter** in der Spieleliste: Ergebnis, Gegner im Team, Gegner-Lead, Gegner-Back, eigenes Lead, eigenes Back, selbst eingesetzt, Mega oder Tera, Team Sheet, Mindest-Elo des Gegners. Die Statistik darüber zählt alle Spiele mit Sieger, der Filter nur die Liste.
+- **Prüfen:** doppelte Links (werden nicht zweimal übernommen), ungültige Adressen, fehlgeschlagene Abrufe, Spiele ohne erkennbare Seite oder ohne Sieger.
+- **Kampfprotokolle:** „Kampfprotokolle“ liest `localStorage` `cc_battlelog` (`{ logs: [Schnappschuss], cfg }`), sobald das Kampfprotokoll in derselben App speichert. Zusätzlich akzeptiert das Eingabefeld den JSON-Export (`generator: "Rattata Lab BattleLog"`) und den ganzen Speicher. `window.CCMatch.importBattleLog(obj)` ist der Anschluss, falls das Protokoll später selbst übergibt. Übernommen werden Ergebnis (`winner` `you`/`foe`), Namen, gesehenes Team (`party`), Leads (`events` mit `kind` `send`/`switch` und `lead: true`, sonst alles vor der ersten `turn`-Zeile) und Attacken (`kind: "move"`). **Annahme, solange das Kampfprotokoll nicht auf main liegt** (Stand Zweig `cursor/battlelog-c456`): kein Team von sechs, keine Elo, kein offen/geschlossen. Mega und Tera nur, wenn am Pokémon `mega`/`tera` steht oder `events[].raw` eine Showdown-Zeile `|-mega|` / `|-terastallize|` ist. Ein schon übernommenes Protokoll wird beim nächsten Lesen aktualisiert.
+- Gespeichert unter `cc_match` (Einträge, Namen, gewähltes Team, Filter). „Sichern“ / „Datei laden“ schreibt eine JSON-Datei `{ kind: "rattata-match" }`. „Beispiel laden“ legt fünf fertige Spiele an, darunter ein Kampfprotokoll, und lässt sich wieder entfernen.
+- Die Idee, aus Replay-Links diese Auswertungen zu bauen, stammt vom PALKIA Academy Showdown Reporting Spreadsheet v7.0 (PASRS, Bauerdad und v0Lt). Übernommen ist davon nichts außer der Fragestellung.
+
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
 - Die Oberfläche passt sich der Fenstergröße an (Basis 1180 × 800, Faktor 0,8 bis 1,9), damit kein Platz frei bleibt. Vorschau verschiedener Größen: `tools/preview.html?w=1920&h=1080` (braucht den lokalen Server).
@@ -78,7 +93,7 @@ Zahnrad oben rechts:
 - **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm), *Alle Modi* oder *Keine* (Wechsel nur über das Logo)
 - **Pokémon im Teambuilder**: animiertes 3D-Modell oder Pixel-Sprite
 - **Design**: dunkel oder hell
-- **Beim Öffnen der App**: Startbildschirm, Damage Calculator oder Teambuilder
+- **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler oder Match-Analyse
 - **Sprache**: Deutsch oder English
 
 ## Sprache (Deutsch / English)
@@ -132,6 +147,7 @@ Beide Knöpfe oben rechts laden Daten direkt im Browser (Internet nötig, kein S
 - `js/calc.js`: Schadensformel (Gen 9 mit Champions-Anpassungen)
 - `js/app.js`: Oberfläche, Set-Auswahl, Import/Export
 - `js/online.js`: Online-Aktualisierung von Sets und Regulation
+- `js/match_parse.js`, `js/match.js`: Match-Analyse (Showdown-Replays und Kampfprotokolle)
 - `data/`: Pokédex, Attacken, Items, Fähigkeiten und Sets aus dem NCP-Repo (Credits: Alex Collins / Jake White)
 
 Neue Regulationen: aktuelle Dateien aus `https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/script_res/`
