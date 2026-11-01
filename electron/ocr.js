@@ -5,7 +5,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-let proc = null, ready = null, fatal = '', buf = '';
+let proc = null, ready = null, fatal = '', buf = '', ocrLang = '';
 const queue = []; // { resolve, timer } in Reihenfolge der Anfragen
 
 function fail(msg) {
@@ -34,7 +34,7 @@ function start() {
         if (!line) continue;
         let msg;
         try { msg = JSON.parse(line.replace(/^﻿/, '')); } catch (e) { continue; }
-        if (msg.ready) { finish({ ok: true, lang: msg.lang }); continue; }
+        if (msg.ready) { ocrLang = msg.lang || ''; finish({ ok: true, lang: ocrLang }); continue; }
         if (msg.fatal) { fatal = msg.fatal; finish({ error: fatal }); continue; }
         const q = queue.shift();
         if (q) { clearTimeout(q.timer); q.resolve(msg); }
@@ -55,7 +55,7 @@ async function recognize(b64) {
     const q = { resolve, timer: setTimeout(() => { const i = queue.indexOf(q); if (i >= 0) queue.splice(i, 1); resolve({ error: 'Zeitüberschreitung' }); if (proc) proc.kill(); }, 8000) };
     queue.push(q);
     proc.stdin.write(String(b64).replace(/[^A-Za-z0-9+/=]/g, '') + '\n');
-  });
+  }).then((msg) => { if (msg && typeof msg === 'object' && ocrLang && !msg.lang) msg.lang = ocrLang; return msg; });
 }
 
 function init() {

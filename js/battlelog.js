@@ -12,14 +12,16 @@
 
   var S = de ? {
     title: 'Kampfprotokoll', sub: 'Für Pokémon Champions. Nutzt dieselbe Spielaufzeichnung wie der Shiny-Zähler.',
-    alpha: 'Frühe Testversion für Champions, Standard ist Doppel. Attacke, Wechsel, K.O. und Sieg gelten, wenn die Zeile stimmt und Art sowie Attacke im Champions-Dex stehen. Die Prozentzahl auf der KP-Leiste gilt, die Farbe nur als Ersatz. Runden ohne „Was soll … tun?“ sind Schätzungen.',
+    alpha: 'Die Kampfzeile ist weiße Schrift mit dunkler Kontur, direkt auf dem Bild, links unten, ohne Kasten. „Untere Zeile“ legt den Rahmen dorthin, gemessen an einem echten Einwechsel-Bild („Jake716 sent out Rillaboom and Sneasler!“). Darunter steht jedes gelesene Bild und der Rohtext, zum Kopieren.',
     new: 'Neuer Kampf', demo: 'Beispielkampf', live: 'läuft', done: 'beendet', empty: 'Noch kein Kampf. Leg einen neuen an oder spiele das Beispiel ab.',
     you: 'Du', foe: 'Gegner', youName: 'Dein Name', foeName: 'Name des Gegners', namesHint: 'Trainername aus Champions, damit „Gary schickt …“ der richtigen Seite zugeordnet wird. Leer lassen geht auch.',
     format: 'Modus', singles: 'Einzel', doubles: 'Doppel',
     capture: 'Spielaufzeichnung', screen: 'Bildschirm / Fenster', camera: 'Kamera / Capture-Karte', cameraN: 'Kamera {0}',
     reconnect: 'Verbinden: {0}', disconnect: 'Quelle trennen', noSource: 'keine Quelle',
     regionText: 'Textfeld', regionYou: 'Deine KP-Leiste', regionYou2: 'Deine zweite Leiste', regionFoe: 'Gegner-KP-Leiste', regionFoe2: 'Gegner, zweite Leiste',
-    regionHint: 'Rahmen wählen und im Bild aufziehen. Zuerst das Kampftextfeld. Champions zeigt die Prozentzahl auf der KP-Leiste: die ganze Leiste markieren, inklusive Zahl und leerem Teil. Im Doppel je eine Leiste pro Pokémon.',
+    regionHint: '„Untere Zeile“ ist die Kampfzeile links unten (an champions_sendout.png gemessen, die Glyphen liegen etwa bei x 0,18–0,47 und y 0,74–0,77). „Kampflog“ ist die große Fläche von Battle Info, an einem anderen 16:9-Bild gemessen. Den gelben Rahmen kannst du ziehen, wenn das Spiel nicht das ganze Bild füllt.',
+    presetLog: 'Kampflog', presetLine: 'Untere Zeile', presetApplied: 'Rahmen auf die untere Zeile gelegt. Wenn das Spiel nicht das ganze Bild füllt, zieh den gelben Rahmen auf den weißen Text.',
+    diagLang: 'OCR-Sprache {0}', diagNone: 'Noch nichts gelesen.', diagOk: 'erkannt', diagOpen: 'nicht erkannt', diagDup: 'schon da', diagName: 'nur ein Name', diagCopy: 'Rohtext kopieren', diagCopied: 'Rohtext kopiert',
     start: 'Mitschneiden', stop: 'Mitschneiden stoppen', end: 'Kampf beenden', resume: 'Wieder aufnehmen',
     read: 'Gelesen: {0}', readNone: '(kein Text)', reading: 'Lese …', ocrErr: 'Texterkennung: {0}',
     noOcr: 'Texterkennung gibt es nur in der Windows-App. KP-Leisten gehen auch hier, Zeilen kannst du unten nachtragen.',
@@ -34,21 +36,23 @@
     vs: '{0} gegen {1}', when: '{0} · {1} Zeilen', listYou: 'Du', listFoe: 'Gegner',
     kind_start: 'Beginn', kind_turn: 'Runde', kind_send: 'Eingewechselt', kind_switch: 'Wechsel', kind_move: 'Attacke',
     kind_effect: 'Wirkung', kind_crit: 'Volltreffer', kind_miss: 'Daneben', kind_status: 'Status', kind_damage: 'Schaden',
-    kind_heal: 'Heilung', kind_hp: 'KP-Leiste', kind_faint: 'K.O.', kind_win: 'Sieg', kind_end: 'Ende', kind_note: 'Zeile', kind_field: 'Feld',
+    kind_heal: 'Heilung', kind_hp: 'KP-Leiste', kind_faint: 'K.O.', kind_win: 'Sieg', kind_end: 'Ende', kind_note: 'Zeile', kind_field: 'Feld', kind_mega: 'Mega',
     limits: 'Für Pokémon Champions. Zuverlässig, wenn die Zeile ein bekanntes Kampftext-Muster trifft und Art sowie Attacke exakt im Champions-Dex stehen: Kampfbeginn, Einwechseln, Wechsel nach „komm zurück“, Attacke, Wirksamkeit, Volltreffer, Daneben, K.O., Sieg, und die Prozentzahl auf der KP-Leiste. „Was soll … tun?“ ist die Rundengrenze. Schätzung: Farbe der Leiste, wenn die Zahl fehlt, Runde ohne Ansage (Doppel nach vier Aktionen, Einzel nach zwei), unscharfe Namen, unklare Zeilen, Sieger nur weil eine Seite keine bekannten Pokémon mehr hat. „Turn“/„Runde“ und „verlor N %“ werden mitgelesen, sind aber keine bestätigte Champions-Anzeige. Wilde Pokémon und Arten außerhalb der Regulation zählen nicht.',
     demoDone: 'Beispielkampf abgespielt', openCalc: 'Im Damage Calculator geöffnet', unknownCalc: 'Dafür müssen beide Pokémon und die Attacke erkannt sein.',
     super: 'sehr effektiv', weak: 'nicht sehr effektiv', immune: 'keine Wirkung',
     exportTitle: 'Kampfprotokoll', copy: 'Der Text liegt in der Datei und hier zum Kopieren.'
   } : {
     title: 'Battle log', sub: 'For Pokémon Champions. Uses the same game recording as the shiny counter.',
-    alpha: 'Early test version for Champions, doubles by default. A move, switch, KO and the win count when the line is read and the species and move are in the Champions dex. The percent on the HP bar counts; the bar colour is only a fallback. Turns without “What will … do?” are estimates.',
+    alpha: 'The battle line is white text with a dark outline, drawn on the picture in the lower left, with no box behind it. “Bottom line” places the frame there, measured on a real send-out shot (“Jake716 sent out Rillaboom and Sneasler!”). Under it is every frame that was read, and the raw text, ready to copy.',
     new: 'New battle', demo: 'Sample battle', live: 'live', done: 'ended', empty: 'No battle yet. Start a new one or play the sample.',
     you: 'You', foe: 'Foe', youName: 'Your name', foeName: 'Opponent name', namesHint: 'Champions trainer name, so “Gary sent out …” lands on the right side. Leaving this empty is fine.',
     format: 'Format', singles: 'Singles', doubles: 'Doubles',
     capture: 'Game recording', screen: 'Screen / window', camera: 'Camera / capture card', cameraN: 'Camera {0}',
     reconnect: 'Connect: {0}', disconnect: 'Disconnect source', noSource: 'no source',
     regionText: 'Text box', regionYou: 'Your HP bar', regionYou2: 'Your second bar', regionFoe: 'Foe HP bar', regionFoe2: 'Foe second bar',
-    regionHint: 'Pick a frame and drag it in the picture. The battle text first. Champions prints the percent on the HP bar: mark the whole bar, including the number and the empty part. In doubles, one bar per Pokémon.',
+    regionHint: '“Bottom line” is the battle line at the lower left (measured on champions_sendout.png; the glyphs sit near x 0.18–0.47, y 0.74–0.77). “Battle log” is the big Battle Info panel, measured on a different 16:9 shot. Drag the yellow frame if the game does not fill the picture.',
+    presetLog: 'Battle log', presetLine: 'Bottom line', presetApplied: 'Frame placed on the bottom line. If the game does not fill the picture, drag the yellow frame onto the white text.',
+    diagLang: 'OCR language {0}', diagNone: 'Nothing read yet.', diagOk: 'read', diagOpen: 'not recognized', diagDup: 'already there', diagName: 'name only', diagCopy: 'Copy raw text', diagCopied: 'Raw text copied',
     start: 'Record', stop: 'Stop recording', end: 'End battle', resume: 'Record again',
     read: 'Read: {0}', readNone: '(no text)', reading: 'Reading …', ocrErr: 'Text recognition: {0}',
     noOcr: 'Text recognition is only in the Windows app. HP bars work here too, and you can add a line below.',
@@ -63,7 +67,7 @@
     vs: '{0} vs {1}', when: '{0} · {1} lines', listYou: 'You', listFoe: 'Foe',
     kind_start: 'Start', kind_turn: 'Turn', kind_send: 'Sent out', kind_switch: 'Switch', kind_move: 'Move',
     kind_effect: 'Effect', kind_crit: 'Critical hit', kind_miss: 'Miss', kind_status: 'Status', kind_damage: 'Damage',
-    kind_heal: 'Heal', kind_hp: 'HP bar', kind_faint: 'KO', kind_win: 'Win', kind_end: 'End', kind_note: 'Line', kind_field: 'Field',
+    kind_heal: 'Heal', kind_hp: 'HP bar', kind_faint: 'KO', kind_win: 'Win', kind_end: 'End', kind_note: 'Line', kind_field: 'Field', kind_mega: 'Mega',
     limits: 'For Pokémon Champions. Reliable when the line matches a known battle-text pattern and the species and move are in the Champions dex exactly: battle start, send-out, switch after "come back", move, effectiveness, critical hit, miss, KO, win, and the percent printed on the HP bar. "What will … do?" is the turn boundary. Estimate: bar colour when the number is missing, a turn with no prompt (after four actions in doubles, two in singles), fuzzy names, unclear lines, a winner guessed only because one side has no known Pokémon left. "Turn"/"Runde" and "lost N%" are still read, but they are not a confirmed Champions message. Wild Pokémon and species outside the regulation are not treated as known.',
     demoDone: 'Sample battle finished', openCalc: 'Opened in the damage calculator', unknownCalc: 'Both Pokémon and the move have to be recognized for that.',
     super: 'super effective', weak: 'not very effective', immune: 'no effect',
@@ -213,6 +217,24 @@
     b.recall[side] = null;
     return prev;
   }
+  // An HP arrow can name the Pokémon before any line says whose side it is ("Baxcalibur's HP" with no "opposing").
+  function claimHp(b, mon, rawName) {
+    if (!b.hpWait || !mon) return;
+    var w = b.hpWait[nid(rawName)] || (mon.name && b.hpWait[nid(mon.name)]);
+    if (!w) return;
+    delete b.hpWait[nid(rawName)];
+    if (mon.name) delete b.hpWait[nid(mon.name)];
+    if (w.pct != null) { mon.hp = w.pct; mon.hpBar = w.pct; if (w.pct === 0) mon.fainted = true; }
+    for (var i = b.events.length - 1; i >= 0 && i >= b.events.length - 12; i--) {
+      var e = b.events[i];
+      if (e.kind === 'hp' && e.raw === w.line && !e.side) {
+        e.side = mon.side; e.species = mon.species; e.name = mon.name;
+        if (w.pct != null) e.hp = w.pct;
+        e.reliable = true;
+        break;
+      }
+    }
+  }
   function living(b, side) {
     return b.active[side].filter(function (m) { return m && !m.fainted; });
   }
@@ -266,6 +288,11 @@
   }
   function splitMessages(text) {
     var src = String(text || '').replace(/(\d)\.(\d)/g, '$1§$2');
+    // Windows OCR often returns the whole Battle Info panel as one paragraph.
+    // Break after an HP arrow and before the next message, so "100% → 51% The opposing …" stays two lines.
+    src = src.replace(/((?:HP|KP)\s*:\s*\d+(?:[.,]\d+)?\s*%?\s*(?:→|->|–|—)\s*\d+(?:[.,]\d+)?\s*%?)\s+(?=\S)/gi, '$1\n');
+    src = src.replace(/\s+(?=(?:The opposing |Das gegnerische ))/g, '\n');
+    src = src.replace(/\s+(?=[A-ZÄÖÜ][^!\n]{0,40}(?:'s|’s) (?:HP|KP)\s*:)/g, '\n');
     var out = [], cur = '';
     for (var i = 0; i < src.length; i++) {
       var c = src.charAt(i);
@@ -340,6 +367,60 @@
     [/trick room|bizarroraum/i, 'Trick Room']
   ];
 
+  // "Baxcalibur's HP: 100% → 51%" and "Golisopod's HP: 151 → 136" are the lines on the English Battle Info log.
+  // A percent overwrites the bar. A pair above 100 is the point total and does not replace the percent.
+  function readHpArrow(b, out, line) {
+    var m = /^((?:the opposing |das gegnerische )?.+?)\s*(?:'s|’s)?\s*(?:hp|kp)\s*:\s*(\d+(?:[.,]\d+)?)\s*(%)?\s*(?:→|->|–|—)\s*(\d+(?:[.,]\d+)?)\s*(%)?/i.exec(line);
+    if (!m) m = /^(?:hp|kp)\s+(?:of|von)\s+((?:the opposing |das gegnerische )?.+?)\s*:\s*(\d+(?:[.,]\d+)?)\s*(%)?\s*(?:→|->|–|—)\s*(\d+(?:[.,]\d+)?)\s*(%)?/i.exec(line);
+    if (!m) return false;
+    var from = parseFloat(String(m[2]).replace(',', '.'));
+    var to = parseFloat(String(m[4]).replace(',', '.'));
+    if (isNaN(from) || isNaN(to)) return false;
+    ensureStarted(b, out);
+    var rawName = cleanName(m[1]);
+    var asPct = !!(m[3] || m[5]) || (from <= 100 && to <= 100 && /%/.test(line));
+    var fs = foeSplit(rawName);
+    var sp = lookup(idx().species, fs.rest);
+    var hit = findMon(b, fs.rest, sp, fs.foe ? 'foe' : null);
+    var side = fs.foe ? 'foe' : (hit ? hit.side : null);
+    if (!side && sp && sp.score === 1) {
+      var only = [];
+      ['you', 'foe'].forEach(function (sd) {
+        if (b.party[sd].some(function (x) { return x.species === sp.name || namesEqual(x.name, fs.rest); })) only.push(sd);
+      });
+      if (only.length === 1) side = only[0];
+    }
+    var mon = hit && (!side || hit.side === side) ? hit.mon : null;
+    var ev = { kind: 'hp', side: side, species: (mon && mon.species) || (sp && sp.name) || null, name: (mon && mon.name) || fs.rest, reliable: !!(side && sp && sp.score === 1), text: line };
+    if (asPct) {
+      var n = Math.max(0, Math.min(100, Math.round(to)));
+      ev.hp = n; ev.delta = Math.round(to - from);
+      if (mon) { mon.hp = n; mon.hpBar = n; if (n === 0) mon.fainted = true; }
+      else { b.hpWait = b.hpWait || {}; b.hpWait[nid(fs.rest)] = { pct: n, line: line }; ev.reliable = false; ev.side = null; }
+    } else {
+      ev.points = true; ev.pointsFrom = from; ev.pointsTo = to;
+      if (!mon) ev.reliable = false;
+    }
+    out.push(ev);
+    return true;
+  }
+
+  // "Jake716 sent out Rillaboom and Sneasler!" is the line on the user's send-out frame.
+  // OCR often splits the digits ("Jake7 16"); those spaces are closed so the trainer name still matches.
+  function readSendOut(line) {
+    var low = line.toLowerCase();
+    var at = low.lastIndexOf(' sent out ');
+    if (at > 0) {
+      var trainer = line.slice(0, at).replace(/^[^A-Za-z0-9]+/, '').replace(/(\d)\s+(?=\d)/g, '$1').trim();
+      var who = cleanName(line.slice(at + ' sent out '.length));
+      trainer = cleanName(trainer);
+      if (trainer && who) return { trainer: trainer, who: who };
+    }
+    var m = /^(.+?) schickt (.+?) (?:in den kampf|heraus)[!.…]*$/i.exec(line);
+    if (m) return { trainer: cleanName(m[1]), who: cleanName(m[2]) };
+    return null;
+  }
+
   function interpret(b, line) {
     var out = [], m;
     m = /^(?:turn|runde)\s+(\d+)\b/i.exec(line);
@@ -381,10 +462,10 @@
       });
       return out;
     }
-    m = /^(.+?) sent out (.+?)[!.…]*$/i.exec(line) || /^(.+?) schickt (.+?) (?:in den kampf|heraus)[!.…]*$/i.exec(line);
-    if (m) {
+    var sent = readSendOut(line);
+    if (sent) {
       ensureStarted(b, out);
-      var trainer = cleanName(m[1]), who = cleanName(m[2]);
+      var trainer = sent.trainer, who = sent.who;
       var side = isYouName(b, trainer) ? 'you' : 'foe';
       if (side === 'foe') b.detected.foe = b.detected.foe || trainer;
       else b.detected.you = b.detected.you || trainer;
@@ -423,6 +504,28 @@
       b.pendingRecall = { side: sideR, name: whoR, species: monR && monR.mon.species, raw: line };
       return out;
     }
+    m = /^(.+?) has mega evolved into (.+?)[!.…]*$/i.exec(line)
+      || /^(.+?) (?:hat sich zu|entwickelt sich zu) (mega[- ]?.+?) entwickelt[!.…]*$/i.exec(line);
+    if (m && /mega/i.test(m[2])) {
+      ensureStarted(b, out);
+      var megaFs = foeSplit(cleanName(m[1]));
+      var intoName = cleanName(m[2]);
+      var baseSp = lookup(idx().species, megaFs.rest);
+      var intoSp = lookup(idx().species, intoName);
+      var megaHit = findMon(b, megaFs.rest, baseSp, megaFs.foe ? 'foe' : null);
+      var megaSide = megaFs.foe ? 'foe' : (megaHit ? megaHit.side : (baseSp && baseSp.score === 1 ? 'you' : null));
+      var megaMon = megaHit && megaHit.side === megaSide ? megaHit.mon : null;
+      if (!megaMon && megaSide && baseSp && baseSp.score === 1) {
+        megaMon = ensureMon(b, megaSide, megaFs.rest, baseSp);
+        setActive(b, megaSide, megaMon);
+      }
+      if (megaMon && intoSp && intoSp.score === 1) { megaMon.mega = intoSp.name; megaMon.species = intoSp.name; }
+      else if (megaMon) megaMon.mega = intoName;
+      if (megaMon) claimHp(b, megaMon, megaFs.rest);
+      out.push({ kind: 'mega', side: megaSide, species: megaMon && megaMon.species, name: (megaMon && megaMon.name) || megaFs.rest, into: intoSp ? intoSp.name : intoName, reliable: !!(megaSide && intoSp && intoSp.score === 1), text: line });
+      return out;
+    }
+    if (readHpArrow(b, out, line)) return out;
     var fs = foeSplit(line);
     m = /^(.+?) used (.+?)[!.…]*$/i.exec(fs.rest) || /^(.+?) setzt (.+?) ein[!.…]*$/i.exec(fs.rest) || /^(.+?) greift mit (.+?) an[!.…]*$/i.exec(fs.rest);
     if (m) {
@@ -434,10 +537,16 @@
       var side = fs.foe ? 'foe' : (found ? found.side : null);
       if (!fs.foe && !found && spA && spA.score === 1) {
         var only = [];
-        ['you', 'foe'].forEach(function (sd) { if (b.party[sd].some(function (x) { return x.species === spA.name && !x.fainted; })) only.push(sd); });
+        ['you', 'foe'].forEach(function (sd) { if (b.party[sd].some(function (x) { return (x.species === spA.name || x.mega === spA.name) && !x.fainted; })) only.push(sd); });
         if (only.length === 1) side = only[0];
+        else if (!only.length) side = 'you';
       }
-      var mon = found && found.side === side ? found.mon : (side ? (living(b, side).filter(function (x) { return namesEqual(x.name, actor) || (spA && x.species === spA.name); })[0] || null) : null);
+      var mon = found && found.side === side ? found.mon : (side ? (living(b, side).filter(function (x) { return namesEqual(x.name, actor) || (spA && (x.species === spA.name || x.mega === spA.name)); })[0] || null) : null);
+      if (!mon && side && spA && spA.score === 1) {
+        mon = ensureMon(b, side, actor, spA);
+        setActive(b, side, mon);
+      }
+      if (mon) claimHp(b, mon, actor);
       if (b.engaged || b.started) noteAction(b, out);
       var defs = side ? living(b, side === 'you' ? 'foe' : 'you') : [];
       var def = defs.length === 1 ? defs[0] : null;
@@ -546,6 +655,13 @@
     return null;
   }
 
+  var pending = [];
+  function rememberSuggestion(line) {
+    if (pending.indexOf(line) >= 0) return;
+    pending.push(line);
+    if (pending.length > 8) pending.shift();
+  }
+
   function feedLine(b, raw, opt) {
     var line = normLine(raw);
     if (!line || !b) return [];
@@ -558,9 +674,11 @@
     var recallBefore = b.pendingRecall;
     var evs = interpret(b, line);
     if (!evs) {
-      if (line.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').length < 4) evs = [];
-      else evs = [{ kind: 'note', reliable: false, text: line }];
+      if (line.replace(/[^a-zA-ZäöüÄÖÜß]/g, '').length < 4) return [];
+      if (opt && opt.suggest) { rememberSuggestion(line); return []; }
+      evs = [{ kind: 'note', reliable: false, text: line }];
     }
+    pending = pending.filter(function (p) { return p !== line; });
     var setRecall = b.pendingRecall && b.pendingRecall !== recallBefore;
     if (!setRecall && b.pendingRecall) {
       var used = evs.some(function (e) { return e && (e.kind === 'switch' || e.kind === 'send'); });
@@ -804,6 +922,22 @@
     eq(splitMessages('Los! Fuegro und Glurak!').join('|'), 'Los! Fuegro und Glurak!', 'los bang stays one line');
     eq(splitMessages('Incineroar used Fake Out! It\'s super effective!').length, 2, 'split bang');
     eq(splitMessages('The opposing Rillaboom lost 12.5% of its health!').length, 1, 'split decimal');
+
+    var sendOut = createBattle({});
+    feedLine(sendOut, 'Jake716 sent out Rillaboom and Sneasler!');
+    eq(sendOut.detected.foe, 'Jake716', 'sendout trainer');
+    eq(sendOut.party.foe.length, 2, 'sendout pair');
+    eq(sendOut.party.foe[0].species, 'Rillaboom', 'sendout rilla');
+    eq(sendOut.party.foe[1].species, 'Sneasler', 'sendout sneas');
+    eq(sendOut.active.foe[0] && sendOut.active.foe[0].species, 'Rillaboom', 'sendout active rilla');
+    eq(sendOut.active.foe[1] && sendOut.active.foe[1].species, 'Sneasler', 'sendout active sneas');
+    eq(sendOut.events.filter(function (e) { return e.kind === 'send' && e.reliable && e.lead; }).length, 2, 'sendout leads');
+    var noisySend = createBattle({});
+    feedLine(noisySend, 'Jake7 16 sent out Rillaboom and Sneasler!');
+    eq(noisySend.detected.foe, 'Jake716', 'split digits repaired');
+    eq(noisySend.party.foe[0].species, 'Rillaboom', 'noisy rilla');
+    eq(noisySend.party.foe[1].species, 'Sneasler', 'noisy sneas');
+    eq(noisySend.party.you.length, 0, 'sendout is the foe');
     eq(parseHpText('87%'), 87, 'hp pct');
     eq(parseHpText('KP 12 %'), 12, 'hp de');
     eq(parseHpText('64'), 64, 'hp bare');
@@ -848,7 +982,43 @@
   if (!store.cfg) store.cfg = {};
   if (!store.cfg.regions) store.cfg.regions = {};
   var current = null, saveTimer = null, demoTimer = null, root = null, saveFailed = false, connectGen = 0;
-  var cap = null, sampler = null, drawKey = 'text', ocrNote = '';
+  var cap = null, sampler = null, drawKey = 'text', ocrNote = '', ocrLang = '';
+  var ocrFrames = [];
+  // Lower-left battle line on test/fixtures/champions_sendout.png (2991×1439). The glyphs themselves
+  // sit near x 0.18–0.47, y 0.74–0.77; the frame is padded so a letterboxed window still covers them.
+  var PRESET_LINE = { x: 0.02, y: 0.66, w: 0.58, h: 0.20 };
+  // Battle Info panel on one public 16:9 screenshot. Not the line from the send-out frame.
+  var PRESET_LOG = { x: 0.074, y: 0.102, w: 0.851, h: 0.78 };
+  function applyPreset(which) {
+    var src = which === 'log' ? PRESET_LOG : PRESET_LINE;
+    store.cfg.regions = store.cfg.regions || {};
+    store.cfg.regions.text = { x: src.x, y: src.y, w: src.w, h: src.h };
+    store.cfg.preset = which === 'log' ? 'log' : 'line';
+    drawKey = 'text';
+    persist();
+  }
+  function pushFrame(raw, rows) {
+    var prev = ocrFrames[ocrFrames.length - 1];
+    if (prev && prev.raw === raw) { prev.n++; prev.t = Date.now(); prev.rows = rows; return; }
+    ocrFrames.push({ t: Date.now(), raw: raw, n: 1, rows: rows });
+    if (ocrFrames.length > 40) ocrFrames.shift();
+  }
+  function transcript() {
+    return ocrFrames.map(function (f) {
+      var stamp = new Date(f.t).toISOString();
+      var body = (f.rows || []).map(function (r) {
+        return '  [' + r.status + (r.kind ? ' ' + r.kind : '') + '] ' + r.line;
+      }).join('\n');
+      return stamp + (f.n > 1 ? ' x' + f.n : '') + '\n' + (f.raw || '(leer)') + (body ? '\n' + body : '');
+    }).join('\n\n');
+  }
+  function verdictOf(line, made) {
+    if (made && made.length) return { status: 'ok', kind: made[0].kind };
+    var sp = lookup(idx().species, line);
+    if (sp && sp.score === 1 && nid(line) === nid(sp.name)) return { status: 'name', kind: '' };
+    if (pending.indexOf(line) >= 0) return { status: 'open', kind: '' };
+    return { status: 'dup', kind: '' };
+  }
 
   function revive(snap) {
     var b = snap;
@@ -986,17 +1156,24 @@
       var regs = store.cfg.regions || {};
       if (regs.text && Cap.ocr && !cap.ocrBusy && Date.now() - (cap.ocrAt || 0) >= 280) {
         var img;
-        try { img = sampler.ocrImage(cap.video, regs.text); } catch (e) { img = null; }
+        try { img = sampler.ocrImage(cap.video, regs.text, 'outline'); } catch (e) { img = null; }
         if (img) {
           cap.ocrBusy = true; cap.ocrAt = Date.now();
           var token = cap.token;
           Cap.ocr(img).then(function (r) {
             if (!cap || cap.token !== token) return;
             cap.ocrBusy = false;
-            if (!r || r.error) { ocrNote = t('ocrErr', r ? r.error : '?'); paintOcr(); return; }
+            if (!r || r.error) {
+              ocrNote = t('ocrErr', r ? r.error : '?');
+              pushFrame(ocrNote, []);
+              paintOcr();
+              return;
+            }
+            if (r.lang) ocrLang = r.lang;
             var text = r.text || '';
-            ocrNote = t('read', text ? '„' + text.replace(/\s+/g, ' ').slice(0, 110) + '“' : t('readNone'));
+            ocrNote = text ? text : t('readNone');
             var lines = splitMessages(text);
+            var rows = [];
             if (!lines.length) {
               cap.blankHits++;
               if (cap.blankHits >= 3 && cap.running) cap.gap = true;
@@ -1007,10 +1184,18 @@
               cap.gap = false;
               cap.stableLines = lines;
               if (cap.running && current && !current.ended) {
-                got.fresh.forEach(function (ln) { feedLine(current, ln, got.again ? { again: true } : null); });
+                got.fresh.forEach(function (ln) {
+                  var made = feedLine(current, ln, { again: !!got.again, suggest: true });
+                  var v = verdictOf(ln, made);
+                  rows.push({ line: ln, status: v.status, kind: v.kind });
+                });
+                lines.forEach(function (ln) {
+                  if (!rows.some(function (row) { return row.line === ln; })) rows.push({ line: ln, status: 'dup', kind: '' });
+                });
                 if (got.fresh.length) onChange();
               }
             }
+            pushFrame(text, rows);
             paintOcr();
           }, function (e) { if (cap && cap.token === token) { cap.ocrBusy = false; ocrNote = t('ocrErr', e && e.message || e); paintOcr(); } });
         }
@@ -1164,7 +1349,29 @@
   }
   function paintOcr() {
     var n = document.getElementById('blOcr');
-    if (n) n.textContent = ocrNote || (Cap && Cap.hasOCR() ? t('reading') : t('noOcr'));
+    if (n) n.textContent = ocrLang ? t('diagLang', ocrLang) : (Cap && Cap.hasOCR() ? t('reading') : t('noOcr'));
+    var pre = document.getElementById('blRaw');
+    if (pre) pre.textContent = ocrFrames.length ? (ocrFrames[ocrFrames.length - 1].raw || t('readNone')) : t('diagNone');
+    var img = document.getElementById('blPrep');
+    if (img && sampler && sampler.lastOutline) {
+      var url = sampler.lastOutline();
+      if (url) img.src = url;
+    }
+    var box = document.getElementById('blFrames');
+    if (!box) return;
+    box.innerHTML = '';
+    if (!ocrFrames.length) { box.appendChild(el('div', { class: 'hint', text: t('diagNone') })); return; }
+    ocrFrames.slice().reverse().forEach(function (f) {
+      var row = el('div', { class: 'bl-frame' });
+      var head = new Date(f.t).toLocaleTimeString() + (f.n > 1 ? ' ×' + f.n : '');
+      row.appendChild(el('div', { class: 'bl-frame-t', text: head }));
+      row.appendChild(el('pre', { class: 'bl-frame-raw', text: f.raw || t('readNone') }));
+      (f.rows || []).forEach(function (r) {
+        var label = r.status === 'ok' ? t('diagOk') + (r.kind ? ' · ' + t('kind_' + r.kind) : '') : r.status === 'name' ? t('diagName') : r.status === 'dup' ? t('diagDup') : t('diagOpen');
+        row.appendChild(el('div', { class: 'bl-frame-v ' + r.status, text: label + ' — ' + r.line }));
+      });
+      box.appendChild(row);
+    });
   }
   function paint() {
     if (!current) return;
@@ -1182,6 +1389,7 @@
       wn.textContent = current.winner === 'you' ? t('winnerYou') : current.winner === 'foe' ? t('winnerFoe') : current.ended ? t('winnerNone') : '';
       if (current.winner && current.winnerHow === 'inferred') wn.textContent += ' (' + t('inferred') + ')';
     }
+    paintOcr();
     var tn = document.getElementById('blTurn');
     if (tn) tn.textContent = current.turn ? ((current.turnHow === 'guess' ? t('turnGuess', current.turn) : t('turnN', current.turn))) : '';
     paintOcr();
@@ -1444,6 +1652,13 @@
       rg.appendChild(b);
     });
     box.appendChild(rg);
+    var presets = el('div', { class: 'btn-group' });
+    [['line', t('presetLine')], ['log', t('presetLog')]].forEach(function (o) {
+      var b = el('button', { class: store.cfg.preset === o[0] ? 'on' : '', text: o[1] });
+      b.addEventListener('click', function () { applyPreset(o[0]); render(); });
+      presets.appendChild(b);
+    });
+    box.appendChild(presets);
     var cv = el('canvas', { class: 'det-preview', id: 'blPreview' });
     box.appendChild(cv);
     box.appendChild(el('div', { class: 'hint', text: t('regionHint') }));
@@ -1492,7 +1707,7 @@
     rb.addEventListener('click', function () {
       if (!cap.running) {
         var regs = store.cfg.regions || {};
-        if (!regs.text && !regs.youHp && !regs.foeHp && !regs.youHp2 && !regs.foeHp2) { A.toast(t('needRegion')); return; }
+        if (!regs.text) { applyPreset('line'); A.toast(t('presetApplied')); }
         cap.running = true;
         cap.gap = false;
         cap.stableLines = (cap.lastLines || []).slice();
@@ -1506,6 +1721,18 @@
     run.appendChild(dc);
     box.appendChild(run);
     box.appendChild(el('div', { id: 'blOcr', class: 'hint', text: Cap.hasOCR() ? t('reading') : t('noOcr') }));
+    var shot = el('img', { id: 'blPrep', class: 'bl-prep', alt: '' });
+    box.appendChild(shot);
+    box.appendChild(el('pre', { id: 'blRaw', class: 'bl-raw', text: t('diagNone') }));
+    var copyBtn = el('button', { class: 'tbtn', text: t('diagCopy') });
+    copyBtn.addEventListener('click', function () {
+      var text = transcript() || t('diagNone');
+      var done = function () { A.toast(t('diagCopied')); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { A.showModal(t('diagCopy'), text); });
+      else A.showModal(t('diagCopy'), text);
+    });
+    box.appendChild(copyBtn);
+    box.appendChild(el('div', { id: 'blFrames', class: 'bl-frames' }));
     return box;
   }
 
