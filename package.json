@@ -2,7 +2,7 @@
   "name": "rattata-lab",
   "productName": "Rattata Lab",
   "version": "1.5.0",
-  "description": "Rattata Lab: Damage Calculator und Teambuilder für Pokémon Champions, Soul-Link-Planer, Nuzlocke-Rechner (Alpha), Shiny-Zähler und Match-Analyse",
+  "description": "Rattata Lab: Damage Calculator und Teambuilder für Pokémon Champions, Soul-Link-Planer, Nuzlocke-Rechner (Alpha), Shiny-Zähler, Kampfprotokoll und Match-Analyse",
   "author": "HohnWolf",
   "license": "UNLICENSED",
   "private": true,

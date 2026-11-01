@@ -1,6 +1,6 @@
 // Match-Analyse: Showdown-Replays und Kampfprotokolle in ein gemeinsames Spielformat bringen.
-// Kampfprotokoll (Zweig cursor/battlelog-c456, noch nicht auf main): localStorage "cc_battlelog"
-// bzw. JSON mit generator "Rattata Lab BattleLog". Annahmen stehen bei adaptBattleLog.
+// Kampfprotokoll (js/battlelog.js): localStorage "cc_battlelog" und JSON-Export
+// (generator "Rattata Lab BattleLog", schema 1, game "champions"). Siehe adaptBattleLog.
 (function (root) {
   'use strict';
 
@@ -287,15 +287,18 @@
     return null;
   }
 
-  // Kampfprotokoll-Schnappschuss (js/battlelog.js, Export "Rattata Lab BattleLog").
-  // Gelesen wird: id, created, youName, foeName, detected.{you,foe}, format, winner ("you"|"foe"|null),
-  // party.{you,foe}[].{species,name,fainted}, events[].{kind, side, species, move, lead, recall, raw}.
-  // kind "send"/"switch" mit lead:true sind die Leads (sonst alles vor der ersten "turn"-Zeile, max. 2).
-  // Das Protokoll kennt das Team von sechs, Elo und offen/geschlossen nicht: teamComplete bleibt false,
-  // sheet "unknown", Elo leer. Optionale Felder, falls das Protokoll sie später schreibt:
-  // teamComplete, sheet ("ots"|"cts"), elo.{youStart,youEnd,foeStart,foeEnd},
-  // youTera/foeTera {species,type}, youMegas/foeMegas, sowie mon.tera / mon.teraType / mon.mega / mon.megaItem.
-  // Steht in events[].raw eine Showdown-Zeile (|-mega| / |-terastallize|), wird sie mitgelesen.
+  // Kampfprotokoll-Schnappschuss, wie js/battlelog.js ihn speichert (snapshot) und exportiert.
+  // Gespeichert unter cc_battlelog.logs, Export zusätzlich mit generator und limits.
+  // Feste Felder (schema 1, game "champions"): id, created, updated, youName, foeName,
+  // detected.{you,foe}, format ("doubles" ist der Standard, sonst "singles"), status, winner ("you"|"foe"|null),
+  // winnerHow, party.{you,foe}[].{id,name,species,side,hp,fainted}, active.{you,foe} als Ids,
+  // events[].{kind, side, species, name, move, lead, recall, fromSpecies, reliable, raw, text}.
+  // Leads: send/switch mit lead:true (gesetzt, solange der Kampf noch nicht engaged ist);
+  // sonst alles vor der ersten turn-Zeile. Im Einzel eine Lead, im Doppel zwei.
+  // species kann null sein, wenn die Art nicht im Champions-Dex steht; die wird ausgelassen.
+  // Das Protokoll kennt das Team von sechs, Elo und offen/geschlossen nicht.
+  // Optionale Felder, falls sie später dazukommen: teamComplete, sheet, elo, youTera/foeTera, youMegas/foeMegas,
+  // mon.tera / mon.teraType / mon.mega / mon.megaItem, und Showdown-Zeilen in events[].raw.
   function isBattleLog(o) {
     return !!(o && o.party && o.events && (o.party.you || o.party.foe) && !o.log);
   }

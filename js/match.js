@@ -21,7 +21,7 @@
     load: 'Übernehmen', fromLog: 'Kampfprotokolle', demo: 'Beispiel laden', clearDemo: 'Beispiele entfernen',
     backup: 'Sichern', restore: 'Datei laden',
     cors: 'Replays lädt der Browser direkt von replay.pokemonshowdown.com. Die Seite erlaubt das von anderen Seiten aus. Klappt der Abruf nicht (privates Replay, kein Netz), das .json oder den Log-Text oben einfügen.',
-    logHint: 'Kampfprotokolle liest fertige Kämpfe aus dem Kampfprotokoll dieser App (Speicher „cc_battlelog“) und übernimmt Ergebnis, gesehene Pokémon, Leads und Attacken. Elo, offen oder geschlossen und das Team von sechs stehen dort nicht. Ein exportiertes JSON kannst du oben einfügen.',
+    logHint: 'Kampfprotokolle liest die gespeicherten Kämpfe des Kampfprotokolls (Speicher „cc_battlelog“, schema 1). Im Kampfprotokoll übernimmt „In Match-Analyse“ das offene Protokoll direkt. Elo, offen oder geschlossen und das Team von sechs stehen dort nicht. Ein exportiertes JSON kannst du oben einfügen.',
     loadingN: 'Lade {0} von {1} …', addedN: '{0} neu, {1} doppelt, {2} fehlgeschlagen',
     noLogs: 'Keine Kampfprotokolle gespeichert. Das Kampfprotokoll legt sie unter „cc_battlelog“ ab, oder du fügst ein exportiertes JSON ein.',
     logsIn: '{0} neu übernommen, {1} aktualisiert',
@@ -93,7 +93,7 @@
     load: 'Add', fromLog: 'Battle logs', demo: 'Load sample', clearDemo: 'Remove samples',
     backup: 'Save', restore: 'Load file',
     cors: 'The browser loads replays directly from replay.pokemonshowdown.com. That site allows other pages to read them. If a fetch fails (private replay, no network), paste the .json or the log text above.',
-    logHint: 'Battle logs reads finished battles from this app’s battle log (storage “cc_battlelog”) and keeps the result, the Pokémon that appeared, leads and moves. Elo, open or closed sheet and the team of six are not in there. You can paste an exported JSON above.',
+    logHint: 'Battle logs reads the battles saved by the battle log (storage “cc_battlelog”, schema 1). In the battle log, “To Match-Analyse” sends the open log straight here. Elo, open or closed sheet and the team of six are not in there. You can paste an exported JSON above.',
     loadingN: 'Loading {0} of {1} …', addedN: '{0} new, {1} duplicate, {2} failed',
     noLogs: 'No battle logs saved. The battle log stores them under “cc_battlelog”, or paste an exported JSON.',
     logsIn: '{0} added, {1} updated',
@@ -436,8 +436,9 @@
     var key = 'bl:' + (game.battleLogId || P.hashText([game.when, game.p1.name, game.p2.name, (game.p1.brought || []).join(), (game.p2.brought || []).join()].join('|')));
     var existing = null;
     store.entries.forEach(function (e) { if (e.key === key) existing = e; });
-    if (existing) { existing.game = game; existing.error = null; existing.source = existing.source === 'demo' ? 'demo' : 'battlelog'; return 'upd'; }
-    store.entries.push(makeEntry(key, 'battlelog', '', game));
+    if (existing) { existing.game = game; existing.error = null; if (existing.source !== 'demo') existing.source = 'battlelog'; return 'upd'; }
+    // The battle log already knows which side is the player (party.you → p1).
+    store.entries.push(makeEntry(key, 'battlelog', '', game, { side: 'p1' }));
     return 'new';
   }
   function importBattleObjects(list) {

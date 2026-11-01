@@ -87,7 +87,7 @@
 
   // ======================= storage =======================
   function load(key, def) { try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? def : v; } catch (e) { return def; } }
-  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ignore */ } }
+  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; } }
 
   // ======================= i18n (Deutsch / English) =======================
   var LANG = load('cc_lang', 'de');
@@ -152,8 +152,9 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Match-Analyse', homeTitle: 'Zum Startbildschirm',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navBattle: 'Kampfprotokoll', navMatch: 'Match-Analyse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
+      startBattleText: 'Pokémon-Champions-Kampf live mitschreiben: Spielaufzeichnung wie beim Shiny-Zähler, Runden, Pokémon, Attacken, Wechsel, KP, K.O. und Sieger. Protokoll speichern und eine Attacke im Rechner öffnen.',
       startMatchText: 'Showdown-Replays und Kampfprotokolle auswerten: Siege, Leads, Mega und Tera, Nutzungs- und Matchup-Statistik.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
       startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
@@ -161,8 +162,8 @@
       startCalcKo: '43,8 % Chance auf OHKO',
       startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
-      startSub: 'Damage Calculator & Teambuilder für Pokémon Champions',
-      startFoot: 'Tasten 1–6 zum Öffnen · Zurück zum Start über das Logo oben links',
+      startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler, Kampfprotokoll und Match-Analyse für Pokémon Champions',
+      startFoot: 'Tasten 1–7 zum Öffnen · Zurück zum Start über das Logo oben links',
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
@@ -244,8 +245,9 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Match-Analyse', homeTitle: 'Back to the start screen',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navBattle: 'Battle log', navMatch: 'Match-Analyse', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
+      startBattleText: 'Record a Pokémon Champions battle live: the same game recording as the shiny counter, turns, Pokémon, moves, switches, HP, KOs and the winner. Save the log and open a move in the calculator.',
       startMatchText: 'Read Showdown replays and battle logs: wins, leads, Mega and Tera, usage and matchup stats.',
       startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
       startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Early test version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
@@ -253,8 +255,8 @@
       startCalcKo: '43.8% chance to OHKO',
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
-      startSub: 'Damage Calculator & Teambuilder for Pokémon Champions',
-      startFoot: 'Press 1–6 to open · Back to the start via the logo in the top left',
+      startSub: 'Damage Calculator, Teambuilder, Shiny counter, Battle log and Match-Analyse for Pokémon Champions',
+      startFoot: 'Press 1–7 to open · Back to the start via the logo in the top left',
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
@@ -2022,7 +2024,7 @@
       });
       row(T('setTheme'), '', [['dark', T('setDark')], ['light', T('setLight')]], document.body.classList.contains('light') ? 'light' : 'dark', function (v) { setTheme(v === 'light'); });
       row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
-      row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['match', T('navMatch')]], setting('start'), function (v) { setSetting('start', v); });
+      row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['battlelog', T('navBattle')], ['match', T('navMatch')]], setting('start'), function (v) { setSetting('start', v); });
       row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
       if (window.desktop && window.desktop.update) updRow(bx);
     }
@@ -2031,7 +2033,7 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match'];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'battlelog', 'match'];
   function showView(v) {
     if (VIEWS.indexOf(v) === -1) v = 'start';
     document.body.dataset.view = v;
@@ -2042,13 +2044,14 @@
     if (v === 'soullink' && window.CCSoulLink) window.CCSoulLink.render();
     if (v === 'nuz' && window.CCNuz) window.CCNuz.render();
     if (v === 'shiny' && window.CCShiny) window.CCShiny.render();
+    if (v === 'battlelog' && window.CCBattleLog) window.CCBattleLog.render();
     if (v === 'match' && window.CCMatch) window.CCMatch.render();
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') renderStartTeam();
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
   }
   // ---- top navigation: tabs (only the opened modes, closable), all modes, or none (setting "nav") ----
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['match', 'navMatch']];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['battlelog', 'navBattle', true], ['match', 'navMatch']];
   var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
   function closeTab(v) {
     var i = openTabs.indexOf(v);
@@ -2112,7 +2115,8 @@
       if (ev.key === '3') showView('soullink');
       if (ev.key === '4') showView('nuz');
       if (ev.key === '5') showView('shiny');
-      if (ev.key === '6') showView('match');
+      if (ev.key === '6') showView('battlelog');
+      if (ev.key === '7') showView('match');
     });
     var sub = document.getElementById('startSub');
     if (sub) sub.textContent = T('startSub') + ' · VGC 2026 · ' + REG_NAME;
@@ -2155,6 +2159,7 @@
     else if (location.hash === '#nuz') v = 'nuz';
     else if (location.hash === '#soullink') v = 'soullink';
     else if (location.hash === '#shiny') v = 'shiny';
+    else if (/^#battlelog(test|demo|calc)?$/.test(location.hash)) v = 'battlelog';
     else if (location.hash === '#match' || location.hash === '#matchtest') v = 'match';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
@@ -2176,6 +2181,33 @@
     recalc();
   }
 
+  // a logged move: put attacker and defender into the calculator and open it. Stats stay the defaults.
+  function prefillCalc(o) {
+    o = o || {};
+    function one(side, species, move, hp) {
+      if (!species) return false;
+      var known = DEX[species] ? species : (DEX[baseOf(species)] ? baseOf(species) : null);
+      if (!known) return false;
+      var set = defaultSet(baseOf(known));
+      if (move && MOVES[move]) set.moves = [move];
+      if (species !== known && formesOf(baseOf(known)).indexOf(species) !== -1) set.forme = species;
+      loadSet(side, known, set, 'BattleLog');
+      if (hp != null && isFinite(+hp)) setHP(side, +hp, 'pct');
+      return true;
+    }
+    var a = one(sides[0], o.attacker, o.move, o.atkHp);
+    var d = one(sides[1], o.defender, null, o.defHp);
+    if (o.crit && a && sides[0].$('mcrit0')) sides[0].$('mcrit0').checked = true;
+    if (o.format === 'singles' || o.format === 'doubles') {
+      field.format = o.format === 'doubles' ? 'Doubles' : 'Singles';
+      save('cc_field', field);
+      renderField();
+    }
+    recalc();
+    if (a || d) showView('calc');
+    return !!(a && d);
+  }
+
   // shared helpers for js/builder.js (teambuilder)
   window.CC = {
     C: C, DEX: DEX, MOVES: MOVES, ITEMS: ITEMS, ABILITIES: ABILITIES, SPECIES: SPECIES, NATURE_NAMES: NATURE_NAMES, LANG: LANG,
@@ -2185,7 +2217,7 @@
     natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
     el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, speciesGroups: speciesGroups, defaultSet: defaultSet,
-    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, showView: showView,
+    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, showView: showView, prefillCalc: prefillCalc,
     setting: setting, openSettings: openSettings
   };
   // expose for debugging
