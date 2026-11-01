@@ -4,13 +4,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rattata Lab</title>
+  <script>
+  /* Theme before first paint. cc_theme is JSON (same as js/app.js save); older builds only stored cc_light. */
+  (function () {
+    var ok = { dark: 1, light: 1, oled: 1, poke: 1, rattata: 1, ocean: 1, system: 1 };
+    var theme = 'dark';
+    try {
+      var raw = localStorage.getItem('cc_theme');
+      var t = raw ? JSON.parse(raw) : null;
+      if (ok[t]) theme = t;
+      else if (JSON.parse(localStorage.getItem('cc_light') || 'false')) theme = 'light';
+    } catch (e) { /* keep dark */ }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+  </script>
+  <style>
+    html{background:#1b1d21}
+    html[data-theme="light"]{background:#e8eaed}
+    html[data-theme="oled"]{background:#000}
+    html[data-theme="poke"]{background:#3c0d14}
+    html[data-theme="rattata"]{background:#170e26}
+    html[data-theme="ocean"]{background:#04262c}
+    html[data-theme="system"]{background:#1b1d21}
+    @media (prefers-color-scheme: light){html[data-theme="system"]{background:#e8eaed}}
+  </style>
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=66">
-  <link rel="stylesheet" href="css/views.css?v=66">
-  <link rel="stylesheet" href="css/nuz.css?v=66">
-  <link rel="stylesheet" href="css/shiny.css?v=66">
-  <link rel="stylesheet" href="css/match.css?v=66">
+  <link rel="stylesheet" href="css/style.css?v=67">
+  <link rel="stylesheet" href="css/views.css?v=67">
+  <link rel="stylesheet" href="css/nuz.css?v=67">
+  <link rel="stylesheet" href="css/shiny.css?v=67">
+  <link rel="stylesheet" href="css/match.css?v=67">
 </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
@@ -138,34 +162,34 @@
     </div>
   </div>
 
-  <script src="js/shim.js?v=66"></script>
-  <script src="data/pokedex.js?v=66"></script>
-  <script src="data/move_data.js?v=66"></script>
-  <script src="data/move_acc.js?v=66"></script>
-  <script src="data/forms_champ.js?v=66"></script>
-  <script src="data/item_data.js?v=66"></script>
-  <script src="data/ability_data.js?v=66"></script>
-  <script src="data/setdex_ncp-g10.js?v=66"></script>
-  <script src="data/names_de.js?v=66"></script>
-  <script src="data/learnsets_champ.js?v=66"></script>
-  <script src="data/sprite_boxes.js?v=66"></script>
-  <script src="js/online.js?v=66"></script>
-  <script src="js/calc.js?v=66"></script>
-  <script src="js/app.js?v=66"></script>
-  <script src="js/builder.js?v=66"></script>
-  <script src="data/natdex.js?v=66"></script>
-  <script src="data/gen3_names.js?v=66"></script>
-  <script src="js/gen3.js?v=66"></script>
-  <script src="data/nds_names.js?v=66"></script>
-  <script src="js/nds_calc.js?v=66"></script>
-  <script src="js/nds.js?v=66"></script>
-  <script src="js/nuz.js?v=66"></script>
-  <script src="js/nuzcalc.js?v=66"></script>
-  <script src="js/shiny_odds.js?v=66"></script>
-  <script src="js/capture.js?v=66"></script>
-  <script src="js/shiny_detect.js?v=66"></script>
-  <script src="js/shiny.js?v=66"></script>
-  <script src="js/match_parse.js?v=66"></script>
-  <script src="js/match.js?v=66"></script>
+  <script src="js/shim.js?v=67"></script>
+  <script src="data/pokedex.js?v=67"></script>
+  <script src="data/move_data.js?v=67"></script>
+  <script src="data/move_acc.js?v=67"></script>
+  <script src="data/forms_champ.js?v=67"></script>
+  <script src="data/item_data.js?v=67"></script>
+  <script src="data/ability_data.js?v=67"></script>
+  <script src="data/setdex_ncp-g10.js?v=67"></script>
+  <script src="data/names_de.js?v=67"></script>
+  <script src="data/learnsets_champ.js?v=67"></script>
+  <script src="data/sprite_boxes.js?v=67"></script>
+  <script src="js/online.js?v=67"></script>
+  <script src="js/calc.js?v=67"></script>
+  <script src="js/app.js?v=67"></script>
+  <script src="js/builder.js?v=67"></script>
+  <script src="data/natdex.js?v=67"></script>
+  <script src="data/gen3_names.js?v=67"></script>
+  <script src="js/gen3.js?v=67"></script>
+  <script src="data/nds_names.js?v=67"></script>
+  <script src="js/nds_calc.js?v=67"></script>
+  <script src="js/nds.js?v=67"></script>
+  <script src="js/nuz.js?v=67"></script>
+  <script src="js/nuzcalc.js?v=67"></script>
+  <script src="js/shiny_odds.js?v=67"></script>
+  <script src="js/capture.js?v=67"></script>
+  <script src="js/shiny_detect.js?v=67"></script>
+  <script src="js/shiny.js?v=67"></script>
+  <script src="js/match_parse.js?v=67"></script>
+  <script src="js/match.js?v=67"></script>
 </body>
 </html>

@@ -176,6 +176,8 @@
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
       setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setSprite: 'Pixel-Sprite',
       setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
+      setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
+      setOled: 'OLED', setPoke: 'Poké-Rot', setRattata: 'Rattata-Lila', setOcean: 'Ozean', setSystem: 'System',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: immer alle Modi. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
@@ -268,6 +270,8 @@
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
       setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setSprite: 'Pixel sprite',
       setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
+      setThemeHint: 'Applies to the whole app right away and stays saved.',
+      setOled: 'OLED', setPoke: 'Poké red', setRattata: 'Rattata purple', setOcean: 'Ocean', setSystem: 'System',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: always every mode. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
@@ -1768,8 +1772,13 @@
       selected.side = 1 - selected.side;
       recalc();
     });
-    setTheme = function (light) { document.body.classList.toggle('light', light); save('cc_light', light); };
-    document.body.classList.toggle('light', !!load('cc_light', false));
+    setTheme = function (theme) { applyTheme(theme, true); };
+    applyTheme(currentTheme(), false);
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+        if (currentTheme() === 'system') applyTheme('system', false);
+      });
+    }
     function saveState() {
       save('cc_state', [0, 1].map(function (s) {
         var side = sides[s], slots = side.slots.slice();
@@ -1937,9 +1946,21 @@
   }
 
   // ======================= settings =======================
-  // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder' }; theme and language keep their own keys
+  // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
   var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs' };
+  var THEMES = ['dark', 'light', 'oled', 'poke', 'rattata', 'ocean', 'system'];
+  var THEME_LABEL = { dark: 'setDark', light: 'setLight', oled: 'setOled', poke: 'setPoke', rattata: 'setRattata', ocean: 'setOcean', system: 'setSystem' };
   var setTheme = function () {}, setLang = function () {};
+  function currentTheme() {
+    var t = load('cc_theme', null);
+    if (THEMES.indexOf(t) !== -1) return t;
+    return load('cc_light', false) ? 'light' : 'dark';
+  }
+  function applyTheme(theme, persist) {
+    if (THEMES.indexOf(theme) === -1) theme = 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    if (persist) { save('cc_theme', theme); save('cc_light', theme === 'light'); }
+  }
   function setting(k) { var s = load('cc_settings', {}) || {}; return s[k] != null ? s[k] : SETTING_DEFAULTS[k]; }
   function setSetting(k, v) { var s = load('cc_settings', {}) || {}; s[k] = v; save('cc_settings', s); }
   var settingsModal = null, settingsRedraw = null;
@@ -2020,7 +2041,34 @@
         setSetting('model', v);
         if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
       });
-      row(T('setTheme'), '', [['dark', T('setDark')], ['light', T('setLight')]], document.body.classList.contains('light') ? 'light' : 'dark', function (v) { setTheme(v === 'light'); });
+      (function () {
+        var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        var r = el('div', { class: 'set-row set-themes-row' });
+        var lab = el('div', { class: 'set-label' });
+        lab.appendChild(el('div', { class: 'set-name', text: T('setTheme') }));
+        lab.appendChild(el('div', { class: 'hint', text: T('setThemeHint') }));
+        r.appendChild(lab);
+        var g = el('div', { class: 'set-themes', role: 'radiogroup', 'aria-label': T('setTheme') });
+        THEMES.forEach(function (id) {
+          var b = el('button', { class: 'theme-swatch' + (id === cur ? ' on' : ''), type: 'button', role: 'radio', 'aria-checked': id === cur ? 'true' : 'false', text: '' });
+          b.appendChild(el('span', { class: 'swatch sw-' + id, 'aria-hidden': 'true' }));
+          b.appendChild(el('span', { text: T(THEME_LABEL[id]) }));
+          b.addEventListener('click', function () { if (id !== cur) { setTheme(id); draw(); } });
+          g.appendChild(b);
+        });
+        g.addEventListener('keydown', function (ev) {
+          var dir = ev.key === 'ArrowRight' || ev.key === 'ArrowDown' ? 1 : ev.key === 'ArrowLeft' || ev.key === 'ArrowUp' ? -1 : 0;
+          if (!dir) return;
+          ev.preventDefault();
+          var i = THEMES.indexOf(cur);
+          setTheme(THEMES[(i + dir + THEMES.length) % THEMES.length]);
+          draw();
+          var on = bx.querySelector('.theme-swatch.on');
+          if (on) on.focus();
+        });
+        r.appendChild(g);
+        bx.appendChild(r);
+      })();
       row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
       row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['match', T('navMatch')]], setting('start'), function (v) { setSetting('start', v); });
       row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });

@@ -22,6 +22,7 @@
     errRom: 'Diese Datei konnte nicht gelesen werden ({0}).', errNotRom: 'Das ist keine ROM eines unterstützten Spiels. Unterstützt werden Pokémon-Spiele für Game Boy Advance (.gba) und Nintendo DS (.nds).', errNdsGame: 'Das ist eine DS-ROM, aber kein unterstütztes Pokémon-Spiel (Spielcode {0}). Unterstützt: Diamant, Perl, Platin, HeartGold, SoulSilver, Schwarz, Weiß, Schwarz 2, Weiß 2 und Hacks davon.', errNdsData: 'In dieser DS-ROM wurden die Spieldaten nicht gefunden (Spielcode {0}). Vielleicht ist der Hack zu stark umgebaut.', errSave: 'In dieser Datei wurden keine Pokémon gefunden.',
     romWarn: 'Hinweis: Nicht alles wurde gefunden ({0}). Vermutlich ein ROM-Hack mit geändertem Aufbau.',
     mine: 'Deine Pokémon', team: 'Team', box: 'Box', hideDead: 'Tote ausblenden', dead: 'Tot', markDead: 'Als tot markieren', unmarkDead: 'Lebt wieder',
+    roleYou: 'Dein Pokémon', roleFoe: 'Gegner', listKeys: 'Pfeiltasten wählen, Enter übernimmt',
     trainers: 'Kämpfe', search: 'Trainer suchen …', bosses: 'Nur wichtige', all: 'Alle', lv: 'Lv. {0}', lvRange: 'Lv. {0}–{1}', double: 'Doppel',
     pickMine: 'Wähle links eines deiner Pokémon.', pickFoe: 'Wähle rechts einen Kampf und dann ein Pokémon des Gegners.',
     needRom: 'Lade zuerst dein Spiel (die ROM). Daraus kommen alle Trainer mit ihren Teams.',
@@ -63,6 +64,7 @@
     errRom: 'This file could not be read ({0}).', errNotRom: 'This is not a ROM of a supported game. Supported are Pokémon games for Game Boy Advance (.gba) and Nintendo DS (.nds).', errNdsGame: 'This is a DS ROM, but not a supported Pokémon game (game code {0}). Supported: Diamond, Pearl, Platinum, HeartGold, SoulSilver, Black, White, Black 2, White 2 and hacks of them.', errNdsData: 'The game data was not found in this DS ROM (game code {0}). The hack may be changed too much.', errSave: 'No Pokémon were found in this file.',
     romWarn: 'Note: not everything was found ({0}). Probably a ROM hack with a changed layout.',
     mine: 'Your Pokémon', team: 'Party', box: 'Box', hideDead: 'Hide dead', dead: 'Dead', markDead: 'Mark as dead', unmarkDead: 'Alive again',
+    roleYou: 'Your Pokémon', roleFoe: 'Opponent', listKeys: 'Arrow keys select, Enter confirms',
     trainers: 'Battles', search: 'Search trainers …', bosses: 'Important only', all: 'All', lv: 'Lv. {0}', lvRange: 'Lv. {0}–{1}', double: 'Double',
     pickMine: 'Pick one of your Pokémon on the left.', pickFoe: 'Pick a battle on the right and then one of the opponent’s Pokémon.',
     needRom: 'Load your game (the ROM) first. All trainers and their teams come from it.',
@@ -251,7 +253,36 @@
 
   // ---------------- render ----------------
   var host = null;
-  function rerender() { if (host) render(host); }
+  // After a redraw, put the keyboard focus back on the row the user was moving through.
+  var focusBack = null;
+  function focusAfter(kind, id) { focusBack = { kind: kind, id: String(id) }; }
+  function rerender() {
+    if (!focusBack && host) {
+      var ae = document.activeElement;
+      if (ae && host.contains(ae) && ae.getAttribute('data-nc-k')) focusBack = { kind: ae.getAttribute('data-nc-k'), id: ae.getAttribute('data-nc-id') };
+    }
+    if (host) render(host);
+    var back = focusBack;
+    focusBack = null;
+    if (back && host) {
+      var v = back.id.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      var q = host.querySelector('[data-nc-k="' + back.kind + '"][data-nc-id="' + v + '"]');
+      if (q) q.focus();
+    }
+  }
+  // Listbox keys: arrows move the selection, Enter/Space activates the current row.
+  function listKeys(ev, ids, cur, kind, apply) {
+    if (ev.target !== ev.currentTarget) return;
+    var i = ids.indexOf(cur), n = i;
+    if (ev.key === 'ArrowDown') n = Math.min(ids.length - 1, i + 1);
+    else if (ev.key === 'ArrowUp') n = Math.max(0, i - 1);
+    else if (ev.key === 'Home') n = 0;
+    else if (ev.key === 'End') n = ids.length - 1;
+    else if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); apply(cur); return; }
+    else return;
+    ev.preventDefault();
+    if (n !== i && ids[n] != null) { focusAfter(kind, ids[n]); apply(ids[n]); }
+  }
   function render(body) {
     host = body;
     body.innerHTML = '';
@@ -291,8 +322,10 @@
       }
       return s;
     }
-    bar.appendChild(slot(t('loadRom'), rom ? t('romInfo', gameLabel(), rom.trainers.length) : t('noRom'), !!rom, '.gba,.bin,.agb,.nds,.srl', 'rom', t('romHelp'), 'removeRom'));
-    bar.appendChild(slot(t('loadSave'), save ? t('saveInfo', save.trainer.name || '—', save.party.length, save.boxes.length) : t('noSave'), !!save, '*', 'save', t('saveHelp'), 'removeSave'));
+    var files = el('div', { class: 'nc-files' });
+    files.appendChild(slot(t('loadRom'), rom ? t('romInfo', gameLabel(), rom.trainers.length) : t('noRom'), !!rom, '.gba,.bin,.agb,.nds,.srl', 'rom', t('romHelp'), 'removeRom'));
+    files.appendChild(slot(t('loadSave'), save ? t('saveInfo', save.trainer.name || '—', save.party.length, save.boxes.length) : t('noSave'), !!save, '*', 'save', t('saveHelp'), 'removeSave'));
+    bar.appendChild(files);
     // field
     var f = st.field;
     var fl = el('div', { class: 'nc-field' });
@@ -308,18 +341,20 @@
     // badges only raise stats in Gen 3
     if (!isNds()) fl.appendChild(sel(t('badges'), [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return [n, String(n)]; }), f.badges, function (v) { f.badges = +v; }, t('badgesT')));
     fl.appendChild(sel(t('weather'), ['none', 'rain', 'sun', 'sand', 'hail'].map(function (w) { return [w, t('w_' + w)]; }), f.weather, function (v) { f.weather = v; }));
-    function tog(key, label, title) {
+    function tog(parent, key, label, title) {
       var b = el('button', { class: 'nc-tog' + (f[key] ? ' on' : ''), text: label, title: title || '' });
       b.addEventListener('click', function () { f[key] = !f[key]; persist(); rerender(); });
-      fl.appendChild(b);
+      parent.appendChild(b);
     }
-    tog('double', t('double'));
-    fl.appendChild(el('span', { class: 'nc-flbl', text: t('onYouShort') }));
-    tog('myReflect', t('reflect'), t('reflect') + ' ' + t('onYou'));
-    tog('myLight', t('lightScreen'), t('lightScreen') + ' ' + t('onYou'));
-    fl.appendChild(el('span', { class: 'nc-flbl', text: t('onFoeShort') }));
-    tog('foeReflect', t('reflect'), t('reflect') + ' ' + t('onFoe'));
-    tog('foeLight', t('lightScreen'), t('lightScreen') + ' ' + t('onFoe'));
+    tog(fl, 'double', t('double'));
+    function togGroup(label, keys) {
+      var g = el('div', { class: 'nc-toggroup' });
+      g.appendChild(el('span', { class: 'nc-flbl', text: label }));
+      keys.forEach(function (k) { tog(g, k[0], k[1], k[2]); });
+      fl.appendChild(g);
+    }
+    togGroup(t('onYouShort'), [['myReflect', t('reflect'), t('reflect') + ' ' + t('onYou')], ['myLight', t('lightScreen'), t('lightScreen') + ' ' + t('onYou')]]);
+    togGroup(t('onFoeShort'), [['foeReflect', t('reflect'), t('reflect') + ' ' + t('onFoe')], ['foeLight', t('lightScreen'), t('lightScreen') + ' ' + t('onFoe')]]);
     bar.appendChild(fl);
     return bar;
   }
@@ -341,11 +376,11 @@
     cb.addEventListener('change', function () { st.hideDead = cb.checked; persist(); rerender(); });
     hd.appendChild(cb); hd.appendChild(document.createTextNode(' ' + t('hideDead')));
     p.appendChild(hd);
-    var list = el('div', { class: 'nc-list' });
+    var list = el('div', { class: 'nc-list', role: 'listbox', 'aria-label': t('mine') });
     if (!save) list.appendChild(guide(t('needSave'), S.saveGuide));
     else {
       var mons = st.listTab === 'team' ? save.party : save.boxes;
-      var lastBox = null;
+      var lastBox = null, order = [];
       mons.forEach(function (m) {
         if (m.egg) return;
         var dead = !!st.dead[m.pid];
@@ -356,7 +391,8 @@
         }
         var sp = rom && rom.species[m.species] ? rom.species[m.species] : null;
         var lv = m.level || (sp ? E().levelFromExp(sp.growth, m.exp) : '?');
-        var row = el('div', { class: 'nc-monrow' + (m.pid === st.mine ? ' on' : '') + (dead ? ' dead' : '') });
+        order.push(m.pid);
+        var row = el('div', { class: 'nc-monrow' + (m.pid === st.mine ? ' on' : '') + (dead ? ' dead' : ''), tabindex: '0', role: 'option', 'aria-selected': m.pid === st.mine ? 'true' : 'false', 'data-nc-k': 'mine', 'data-nc-id': String(m.pid), title: t('listKeys') });
         row.appendChild(sprite(m.species, 'nc-mini-img'));
         var tx = el('div', { class: 'nc-mon-txt' });
         tx.appendChild(el('div', { class: 'nc-mon-name', text: titleCase(m.nick) || spName(m.species) }));
@@ -365,7 +401,9 @@
         var d = el('button', { class: 'nc-skull' + (dead ? ' on' : ''), title: dead ? t('unmarkDead') : t('markDead') }, SKULL);
         d.addEventListener('click', function (ev) { ev.stopPropagation(); if (dead) delete st.dead[m.pid]; else st.dead[m.pid] = 1; persist(); rerender(); });
         row.appendChild(d);
-        row.addEventListener('click', function () { st.mine = m.pid; st.my = { hp: null, status: '', stages: {} }; persist(); rerender(); });
+        function pickMine(pid) { st.mine = pid; st.my = { hp: null, status: '', stages: {} }; persist(); rerender(); }
+        row.addEventListener('click', function () { pickMine(m.pid); });
+        row.addEventListener('keydown', function (ev) { listKeys(ev, order, m.pid, 'mine', pickMine); });
         list.appendChild(row);
       });
     }
@@ -388,12 +426,13 @@
     var q = el('input', { type: 'text', placeholder: t('search'), class: 'nc-search' });
     q.value = query;
     p.appendChild(q);
-    var list = el('div', { class: 'nc-list' });
+    var list = el('div', { class: 'nc-list', role: 'listbox', 'aria-label': t('trainers') });
     p.appendChild(list);
     function fill() {
       list.innerHTML = '';
       if (!rom) { list.appendChild(guide(t('needRom'), S.romGuide)); return; }
       var qq = query.toLowerCase();
+      var order = [];
       var trs = rom.trainers.filter(function (tr) {
         if (st.filter === 'boss' && !(tr.custom || tr.items.length)) return false;
         if (qq && trainerName(tr).toLowerCase().indexOf(qq) === -1 && !tr.party.some(function (pm) { return spName(pm.species).toLowerCase().indexOf(qq) !== -1; })) return false;
@@ -401,7 +440,8 @@
       });
       trs.sort(function (a, b) { return maxLv(a) - maxLv(b) || a.id - b.id; });
       trs.slice(0, 400).forEach(function (tr) {
-        var row = el('div', { class: 'nc-trow' + (tr.id === st.trainer ? ' on' : '') });
+        order.push(tr.id);
+        var row = el('div', { class: 'nc-trow' + (tr.id === st.trainer ? ' on' : ''), tabindex: '0', role: 'option', 'aria-selected': tr.id === st.trainer ? 'true' : 'false', 'data-nc-k': 'trainer', 'data-nc-id': String(tr.id), title: t('listKeys') });
         var top = el('div', { class: 'nc-trow-top' });
         top.appendChild(el('span', { class: 'nc-tname', text: trainerName(tr) }));
         var lvs = tr.party.map(function (x) { return x.level; });
@@ -411,10 +451,17 @@
         var sps = el('div', { class: 'nc-tmons' });
         tr.party.forEach(function (pm) { sps.appendChild(sprite(pm.species, 'nc-tiny-img')); });
         row.appendChild(sps);
-        row.addEventListener('click', function () { st.trainer = tr.id; st.foe = 0; st.op = { hp: 100, status: '', stages: {} }; persist(); rerender(); });
+        function pickTrainer(id) { st.trainer = id; st.foe = 0; st.op = { hp: 100, status: '', stages: {} }; persist(); rerender(); }
+        row.addEventListener('click', function () { pickTrainer(tr.id); });
+        row.addEventListener('keydown', function (ev) { listKeys(ev, order, tr.id, 'trainer', pickTrainer); });
         list.appendChild(row);
       });
     }
+    q.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'ArrowDown') return;
+      var first = list.querySelector('.nc-trow');
+      if (first) { ev.preventDefault(); first.focus(); }
+    });
     q.addEventListener('input', function () { query = q.value; fill(); });
     fill();
     return p;
@@ -437,7 +484,17 @@
         tx.appendChild(el('span', { class: 'nc-mon-name', text: spName(m.species) }));
         tx.appendChild(el('span', { class: 'nc-mon-sub', text: t('lv', m.level) + (m.item ? ' · ' + itemName(m.item) : '') }));
         b.appendChild(tx);
+        b.setAttribute('data-nc-k', 'foe');
+        b.setAttribute('data-nc-id', String(i));
         b.addEventListener('click', function () { st.foe = i; st.op = { hp: 100, status: '', stages: {} }; persist(); rerender(); });
+        b.addEventListener('keydown', function (ev) {
+          if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+          ev.preventDefault();
+          var n = i + (ev.key === 'ArrowRight' ? 1 : -1);
+          if (n < 0 || n >= party.length) return;
+          focusAfter('foe', n);
+          st.foe = n; st.op = { hp: 100, status: '', stages: {} }; persist(); rerender();
+        });
         row.appendChild(b);
       });
       strip.appendChild(row);
@@ -460,11 +517,13 @@
     var sp = el('div', { class: 'nc-speed ' + (sm > sf ? 'good' : sm < sf ? 'bad' : '') });
     sp.textContent = t('speedLine', sm > sf ? t('faster') : sm < sf ? t('slower') : t('tie'), sm, sf);
     p.appendChild(sp);
-    // damage tables
+    // damage tables: your moves beside the opponent's, so both results stay in view
     var fMe = { weather: f.weather, double: f.double, badges: f.badges, reflect: f.foeReflect, lightScreen: f.foeLight };
     var fFoe = { weather: f.weather, double: f.double, badges: f.badges, reflect: f.myReflect, lightScreen: f.myLight };
-    p.appendChild(moveTable(t('yourMoves'), me, foe, fMe, 'my'));
-    p.appendChild(moveTable(t('foeMoves') + (fb.defaultMoves ? ' · ' + t('defaultMoves') : ''), foe, me, fFoe, 'op'));
+    var res = el('div', { class: 'nc-results' });
+    res.appendChild(moveTable(t('yourMoves'), me, foe, fMe, 'my'));
+    res.appendChild(moveTable(t('foeMoves') + (fb.defaultMoves ? ' · ' + t('defaultMoves') : ''), foe, me, fFoe, 'op'));
+    p.appendChild(res);
     return p;
   }
 
@@ -474,6 +533,7 @@
     var top = el('div', { class: 'nc-card-top' });
     top.appendChild(sprite(m.species, 'nc-big-img'));
     var tx = el('div', { class: 'nc-card-txt' });
+    tx.appendChild(el('div', { class: 'nc-role', text: side === 'my' ? t('roleYou') : t('roleFoe') }));
     tx.appendChild(el('div', { class: 'nc-card-name', text: (saveEntry && titleCase(saveEntry.nick)) || spName(m.species) }));
     tx.appendChild(el('div', { class: 'nc-mon-sub', text: spName(m.species) + ' · ' + t('lv', m.level) }));
     var ty = el('div', { class: 'nc-types' });
@@ -483,9 +543,15 @@
     top.appendChild(tx);
     c.appendChild(top);
     var info = el('div', { class: 'nc-info' });
-    info.appendChild(el('div', null, '<b>' + A.esc(t('ability')) + '</b> ' + A.esc(abilityName(m.ability))));
-    info.appendChild(el('div', null, '<b>' + A.esc(t('item')) + '</b> ' + A.esc(itemName(m.item) || t('noItem'))));
-    info.appendChild(el('div', null, '<b>' + A.esc(t('nature')) + '</b> ' + A.esc(m.natureKnown === false ? t('natureGuess') : natureName(m.nature))));
+    function infoLine(label, value) {
+      var d = el('div', { title: value });
+      d.appendChild(el('b', { text: label }));
+      d.appendChild(el('span', { text: value }));
+      return d;
+    }
+    info.appendChild(infoLine(t('ability'), abilityName(m.ability)));
+    info.appendChild(infoLine(t('item'), itemName(m.item) || t('noItem')));
+    info.appendChild(infoLine(t('nature'), m.natureKnown === false ? t('natureGuess') : natureName(m.nature)));
     c.appendChild(info);
     // stats line
     var stl = el('div', { class: 'nc-stats' });
@@ -497,6 +563,7 @@
       if (k[0] !== 'hp') {
         var sel = el('select', { class: 'nc-stage' + ((o.stages[k[0]] || 0) ? ' set' : '') });
         for (var i = 6; i >= -6; i--) { var op = el('option', { value: i, text: (i > 0 ? '+' : '') + i }); if ((o.stages[k[0]] || 0) === i) op.selected = true; sel.appendChild(op); }
+        sel.setAttribute('aria-label', lab);
         sel.addEventListener('change', function () { o.stages[k[0]] = +sel.value; persist(); rerender(); });
         s.appendChild(sel);
       }
@@ -512,11 +579,13 @@
     bar.appendChild(fill);
     hpRow.appendChild(bar);
     var rng = el('input', { type: 'range', min: 1, max: 100, value: Math.max(1, Math.round(hpPct * 100)) });
+    rng.setAttribute('aria-label', t('currentHp'));
     rng.addEventListener('change', function () { o.hp = +rng.value; persist(); rerender(); });
     hpRow.appendChild(rng);
     hpRow.appendChild(el('span', { class: 'nc-hp-txt', text: m.hp + '/' + m.maxHP }));
     var ss = el('select', { class: 'nc-status' });
     ['', 'brn', 'par', 'psn', 'slp', 'frz'].forEach(function (k) { var op = el('option', { value: k, text: t('st_' + k) }); if ((o.status || '') === k) op.selected = true; ss.appendChild(op); });
+    ss.setAttribute('aria-label', t('status'));
     ss.addEventListener('change', function () { o.status = ss.value; persist(); rerender(); });
     hpRow.appendChild(ss);
     c.appendChild(hpRow);
@@ -562,10 +631,14 @@
         dm.appendChild(bar);
         var ko = E().koChance(r, def.hp);
         var kt = el('div', { class: 'nc-ko' + (ko && ko.n === 1 && ko.chance > 0 ? ' ohko' : '') });
-        kt.textContent = koText(ko) + (r.critChance ? ' · ' + t('crit', r.critMin + '–' + r.critMax + ' (' + pct(r.critMin / def.maxHP) + ' – ' + pct(r.critMax / def.maxHP) + ' %)') : '');
-        r.notes.forEach(function (n) { if (S['note_' + n]) kt.textContent += ' · ' + t('note_' + n); });
-        if (r.eff !== 1) kt.textContent = '×' + (de ? String(r.eff).replace('.', ',') : r.eff) + ' · ' + kt.textContent;
+        var koLine = koText(ko);
+        if (r.eff !== 1) koLine = '×' + (de ? String(r.eff).replace('.', ',') : r.eff) + (koLine ? ' · ' + koLine : '');
+        kt.textContent = koLine;
         dm.appendChild(kt);
+        var bits = [];
+        if (r.critChance) bits.push(t('crit', r.critMin + '–' + r.critMax + ' (' + pct(r.critMin / def.maxHP) + ' – ' + pct(r.critMax / def.maxHP) + ' %)'));
+        r.notes.forEach(function (n) { if (S['note_' + n]) bits.push(t('note_' + n)); });
+        if (bits.length) dm.appendChild(el('div', { class: 'nc-notes', text: bits.join(' · ') }));
       }
       row.appendChild(dm);
       box.appendChild(row);
