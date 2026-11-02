@@ -152,18 +152,20 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', homeTitle: 'Zum Startbildschirm',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
+      startCatchText: 'Fangwahrscheinlichkeiten für alle Hauptspiele (Gen 1–9): KP-IV-Spannen, alle Pokébälle im Direktvergleich, Kritischer Fang, Orden-Caps und Fangkraft.',
+      startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
       startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
       startCalcKo: '43,8 % Chance auf OHKO',
       startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
-      startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler und Team-Analyse für Pokémon Champions',
-      startFoot: 'Tasten 1–7 zum Öffnen · Zurück zum Start über das Logo oben links',
+      startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions',
+      startFoot: 'Tasten 1–8 zum Öffnen · Zurück zum Start über das Logo oben links',
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
@@ -185,7 +187,8 @@
       setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
       setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
-      setOled: 'OLED', setPoke: 'Poké-Rot', setRattata: 'Rattata-Lila', setOcean: 'Ozean', setSystem: 'System',
+      setOled: 'OLED', setPoke: 'Poké-Rot', setRattata: 'Rattata-Lila', setOcean: 'Ozean', setEmerald: 'Smaragd', setGold: 'HeartGold', setCyber: 'Cyber-Neon', setSakura: 'Sakura (Hell)', setSunset: 'Abendrot', setArctic: 'Arktis-Eis', setSystem: 'System',
+      setUiStyle: 'Oberflächen-Stil', setUiStyleHint: 'Formensprache für Rahmen, Ecken, Schatten und Abstände der gesamten App.', uiClassic: 'Klassisch (Flach)', uiModern: 'Modern (Weich)', uiGlass: 'Glas (Transluzent)', uiRetro: 'Retro (Pixel)', uiCompact: 'Kompakt (Turnier)',
       setZoom: 'Oberflächengröße', setZoomHint: 'Automatisch passt die Größe ans Fenster an. Feste Stufen vergrößern oder verkleinern die gesamte Oberfläche.', setZoomAuto: 'Automatisch',
       setBackup: 'Daten-Backup', setBackupHint: 'Alle Teams, eigenen Sets, Hunts, Soul Links, Replays und Einstellungen als Datei sichern oder wiederherstellen.',
       setBackupSave: 'Backup speichern', setBackupLoad: 'Backup laden …', backupSaved: 'Backup gespeichert', backupLoaded: 'Backup geladen – Seite lädt neu …', backupInvalid: 'Ungültige Backup-Datei',
@@ -194,6 +197,7 @@
       tbSpShowFoe: 'Gegner-Team (Damage Calc)', tbSpShowBench: 'Meta-Benchmarks (VGC)', tbSpTrickRoom: 'Trick Room (langsamste zuerst)',
       tbSpColMon: 'Pokémon', tbSpColBase: 'Basis', tbSpColSpread: 'SP / Wesen', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Schal ×1,5', tbSpColTW: 'Rückenw. ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0,5',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
+      setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm, in der oberen Leiste und bei den Tastenkürzeln ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
       setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: immer alle Modi. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
       setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
@@ -261,18 +265,20 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', homeTitle: 'Back to the start screen',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: Showdown replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
+      startCatchText: 'Exact capture probabilities across all main-series games (Gen 1–9): HP IV ranges, all Poké Balls compared live, Critical Capture, badge caps and Catching Power.',
+      startDexText: 'National Pokédex (Gen 1–9, all 1025 Pokémon): 3D models & sprites, all forms (Mega, Primal, Alola, Galar, Hisui, Paldea), types, abilities, base stats and evolution chains with methods.',
       startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
       startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Early test version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
       winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
       startCalcKo: '43.8% chance to OHKO',
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
-      startSub: 'Damage Calculator, Teambuilder, Shiny counter and Team-Analyse for Pokémon Champions',
-      startFoot: 'Press 1–7 to open · Back to the start via the logo in the top left',
+      startSub: 'Damage Calculator, Teambuilder, Shiny counter, Catch Calculator and Team-Analyse for Pokémon Champions',
+      startFoot: 'Press 1–8 to open · Back to the start via the logo in the top left',
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
@@ -294,7 +300,8 @@
       setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
       setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setThemeHint: 'Applies to the whole app right away and stays saved.',
-      setOled: 'OLED', setPoke: 'Poké red', setRattata: 'Rattata purple', setOcean: 'Ocean', setSystem: 'System',
+      setOled: 'OLED', setPoke: 'Poké red', setRattata: 'Rattata purple', setOcean: 'Ocean', setEmerald: 'Emerald', setGold: 'HeartGold', setCyber: 'Cyber Neon', setSakura: 'Sakura (Light)', setSunset: 'Sunset', setArctic: 'Arctic Ice', setSystem: 'System',
+      setUiStyle: 'Interface style', setUiStyleHint: 'Visual style for borders, corners, shadows and spacing across the app.', uiClassic: 'Classic (Flat)', uiModern: 'Modern (Rounded)', uiGlass: 'Glass (Translucent)', uiRetro: 'Retro (Pixel)', uiCompact: 'Compact (Esports)',
       setZoom: 'UI scale', setZoomHint: 'Auto scales the interface to fit the window. Fixed levels zoom the entire interface in or out.', setZoomAuto: 'Auto',
       setBackup: 'Data backup', setBackupHint: 'Save or restore all teams, custom sets, hunts, Soul Links, replays and settings as a file.',
       setBackupSave: 'Save backup', setBackupLoad: 'Load backup …', backupSaved: 'Backup saved', backupLoaded: 'Backup loaded – reloading …', backupInvalid: 'Invalid backup file',
@@ -303,6 +310,7 @@
       tbSpShowFoe: 'Opponent team (damage calc)', tbSpShowBench: 'Meta benchmarks (VGC)', tbSpTrickRoom: 'Trick Room (slowest first)',
       tbSpColMon: 'Pokémon', tbSpColBase: 'Base', tbSpColSpread: 'SP / Nature', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Scarf ×1.5', tbSpColTW: 'Tailwind ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0.5',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
+      setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen, in the top bar and from keyboard shortcuts. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
       setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: always every mode. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
       setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
@@ -1749,9 +1757,14 @@
       b.style.zoom = ''; b.style.height = '';
     }
   }
+  var fitRaf = 0;
+  function scheduleFit() {
+    if (fitRaf) return;
+    fitRaf = requestAnimationFrame(function () { fitRaf = 0; fitToWindow(); });
+  }
   function init() {
     fitToWindow();
-    window.addEventListener('resize', fitToWindow);
+    window.addEventListener('resize', scheduleFit);
     document.documentElement.lang = LANG;
     document.body.classList.add('lang-' + LANG);
     applyStatic(document);
@@ -1828,6 +1841,7 @@
     });
     setTheme = function (theme) { applyTheme(theme, true); };
     applyTheme(currentTheme(), false);
+    applyUiStyle(setting('uiStyle'));
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
         if (currentTheme() === 'system') applyTheme('system', false);
@@ -2001,9 +2015,29 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs', zoom: 'auto' };
-  var THEMES = ['dark', 'light', 'oled', 'poke', 'rattata', 'ocean', 'system'];
-  var THEME_LABEL = { dark: 'setDark', light: 'setLight', oled: 'setOled', poke: 'setPoke', rattata: 'setRattata', ocean: 'setOcean', system: 'setSystem' };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs', zoom: 'auto', uiStyle: 'classic', disabledTools: [] };
+  function disabledToolsList() {
+    var d = setting('disabledTools');
+    return Array.isArray(d) ? d : [];
+  }
+  function isToolEnabled(id) {
+    if (id === 'start') return true;
+    return disabledToolsList().indexOf(id) === -1;
+  }
+  function enabledModes() {
+    return MODES.filter(function (m) { return isToolEnabled(m[0]); });
+  }
+  var UI_STYLES = ['classic', 'modern', 'glass', 'retro', 'compact'];
+  var THEMES = ['dark', 'light', 'oled', 'poke', 'rattata', 'ocean', 'emerald', 'gold', 'cyber', 'sakura', 'sunset', 'arctic', 'system'];
+  var THEME_LABEL = {
+    dark: 'setDark', light: 'setLight', oled: 'setOled', poke: 'setPoke', rattata: 'setRattata',
+    ocean: 'setOcean', emerald: 'setEmerald', gold: 'setGold', cyber: 'setCyber',
+    sakura: 'setSakura', sunset: 'setSunset', arctic: 'setArctic', system: 'setSystem'
+  };
+  function applyUiStyle(st) {
+    if (UI_STYLES.indexOf(st) === -1) st = 'classic';
+    document.documentElement.setAttribute('data-ui-style', st);
+  }
   var setTheme = function () {}, setLang = function () {};
   function currentTheme() {
     var t = load('cc_theme', null);
@@ -2095,6 +2129,11 @@
         setSetting('model', v);
         if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
       });
+      row(T('setUiStyle'), T('setUiStyleHint'), [['classic', T('uiClassic')], ['modern', T('uiModern')], ['glass', T('uiGlass')], ['retro', T('uiRetro')], ['compact', T('uiCompact')]], setting('uiStyle'), function (v) {
+        setSetting('uiStyle', v);
+        applyUiStyle(v);
+        fitToWindow();
+      });
       row(T('setZoom'), T('setZoomHint'), [['auto', T('setZoomAuto')], ['85', '85 %'], ['100', '100 %'], ['115', '115 %'], ['130', '130 %'], ['150', '150 %']], String(setting('zoom') || 'auto'), function (v) {
         setSetting('zoom', v);
         fitToWindow();
@@ -2127,11 +2166,61 @@
         r.appendChild(g);
         bx.appendChild(r);
       })();
+      (function () {
+        var r = el('div', { class: 'set-row set-themes-row' });
+        var lab = el('div', { class: 'set-label set-tools-head' });
+        var titleWrap = el('div');
+        titleWrap.appendChild(el('div', { class: 'set-name', text: T('setTools') }));
+        titleWrap.appendChild(el('div', { class: 'hint', text: T('setToolsHint') }));
+        lab.appendChild(titleWrap);
+        var dis = disabledToolsList();
+        if (dis.length > 0) {
+          var btnAll = el('button', { type: 'button', class: 'tbtn set-tools-all', text: T('setToolsAll') });
+          btnAll.addEventListener('click', function () {
+            setSetting('disabledTools', []);
+            syncDisabledTools();
+            draw();
+          });
+          lab.appendChild(btnAll);
+        }
+        r.appendChild(lab);
+        var g = el('div', { class: 'set-tools-grid' });
+        MODES.forEach(function (m) {
+          var id = m[0], on = isToolEnabled(id);
+          var b = el('button', { type: 'button', class: 'tool-toggle' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false' });
+          b.appendChild(el('span', { class: 'tool-chk', text: on ? '✓' : '✕' }));
+          b.appendChild(el('span', { class: 'tool-nm', text: T(m[1]) }));
+          if (m[2]) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+          b.addEventListener('click', function () {
+            var curDis = disabledToolsList().slice();
+            var idx = curDis.indexOf(id);
+            if (idx === -1) {
+              if (enabledModes().length <= 1) {
+                toast(T('setToolsMin1'));
+                return;
+              }
+              curDis.push(id);
+            } else {
+              curDis.splice(idx, 1);
+            }
+            setSetting('disabledTools', curDis);
+            syncDisabledTools();
+            draw();
+          });
+          g.appendChild(b);
+        });
+        r.appendChild(g);
+        bx.appendChild(r);
+      })();
       row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
-      row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['match', T('navMatch')], ['overlay', T('navOverlay')]], setting('start'), function (v) { setSetting('start', v); });
+      (function () {
+        var startOpts = [['start', T('setStartScreen')]];
+        enabledModes().forEach(function (m) { startOpts.push([m[0], T(m[1])]); });
+        row(T('setStart'), T('setStartHint'), startOpts, setting('start'), function (v) { setSetting('start', v); });
+      })();
       row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
       (function () {
-        var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay'];
+        var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex'];
         var r = el('div', { class: 'set-row' });
         var lab = el('div', { class: 'set-label' });
         lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2140,7 +2229,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.9.6', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.10.0', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2182,9 +2271,52 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay'];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['match', 'navMatch'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['dex', 'navDex']];
+  var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
+
+  function syncStartCards() {
+    var grid = document.querySelector('#startView .start-cards');
+    if (!grid) return;
+    var visIdx = 0;
+    MODES.forEach(function (m) {
+      var card = grid.querySelector('.start-card[data-go="' + m[0] + '"]');
+      if (!card) return;
+      var on = isToolEnabled(m[0]);
+      card.hidden = !on;
+      if (on) {
+        visIdx++;
+        var keyEl = card.querySelector('.sc-key');
+        if (keyEl) keyEl.textContent = String(visIdx);
+      }
+    });
+    var cols = visIdx <= 4 ? Math.max(1, visIdx) : Math.ceil(visIdx / 2);
+    grid.style.setProperty('--start-cols', String(cols));
+    var foot = document.querySelector('#startView .start-foot');
+    if (foot) {
+      if (LANG === 'de') {
+        foot.textContent = (visIdx === 1 ? 'Taste 1 zum Öffnen' : 'Tasten 1–' + visIdx + ' zum Öffnen') + ' · Zurück zum Start über das Logo oben links';
+      } else {
+        foot.textContent = (visIdx === 1 ? 'Press 1 to open' : 'Press 1–' + visIdx + ' to open') + ' · Back to the start via the logo in the top left';
+      }
+    }
+  }
+
+  function syncDisabledTools() {
+    openTabs = openTabs.filter(function (v) { return isToolEnabled(v); });
+    save('cc_tabs', openTabs);
+    if (!isToolEnabled(setting('start'))) setSetting('start', 'start');
+    syncStartCards();
+    var cur = document.body.dataset.view;
+    if (cur && cur !== 'start' && !isToolEnabled(cur)) {
+      showView(openTabs[openTabs.length - 1] || 'start');
+    } else {
+      renderNav();
+    }
+  }
+
   function showView(v) {
-    if (VIEWS.indexOf(v) === -1) v = 'start';
+    if (VIEWS.indexOf(v) === -1 || !isToolEnabled(v)) v = 'start';
     document.body.dataset.view = v;
     try { sessionStorage.setItem('cc_view', v); } catch (e) { /* ignore */ }
     if (v !== 'start' && openTabs.indexOf(v) === -1) { openTabs.push(v); save('cc_tabs', openTabs); }
@@ -2195,13 +2327,13 @@
     if (v === 'shiny' && window.CCShiny) window.CCShiny.render();
     if (v === 'match' && window.CCMatch) window.CCMatch.render();
     if (v === 'overlay' && window.CCOverlay) (window.CCOverlay.open || window.CCOverlay.render)();
+    if (v === 'catch' && window.CCCatchCalc) window.CCCatchCalc.render();
+    if (v === 'dex' && window.CCDex) window.CCDex.render();
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
-    if (v === 'start') renderStartTeam();
+    if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
   }
   // ---- top navigation: tabs (only the opened modes, closable), all modes, or none (setting "nav") ----
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['match', 'navMatch'], ['overlay', 'navOverlay']];
-  var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
   function closeTab(v) {
     var i = openTabs.indexOf(v);
     if (i === -1) return;
@@ -2216,7 +2348,7 @@
     nav.innerHTML = '';
     nav.className = 'view-nav nav-' + mode;
     if (mode === 'off' || (mode === 'all' && cur === 'start')) return;
-    MODES.forEach(function (m) {
+    enabledModes().forEach(function (m) {
       if (mode === 'tabs' && openTabs.indexOf(m[0]) === -1) return;
       var b = el('button', { class: 'nav-tab' + (m[0] === cur ? ' on' : ''), 'data-go': m[0] });
       b.appendChild(el('span', { class: 'nav-label', text: T(m[1]) }));
@@ -2259,15 +2391,34 @@
     });
     document.getElementById('btnHome').addEventListener('click', function () { showView('start'); });
     document.getElementById('btnSettings').addEventListener('click', openSettings);
+    var vNav = document.getElementById('viewNav');
+    if (vNav) {
+      vNav.addEventListener('wheel', function (ev) {
+        if (ev.deltaY && vNav.scrollWidth > vNav.clientWidth) {
+          vNav.scrollLeft += ev.deltaY;
+          ev.preventDefault();
+        }
+      }, { passive: false });
+    }
+    syncDisabledTools();
     document.addEventListener('keydown', function (ev) {
+      if (ev.altKey && !ev.ctrlKey && !ev.metaKey && ev.key === '0') {
+        ev.preventDefault();
+        showView('start');
+        return;
+      }
+      var n = parseInt(ev.key, 10);
+      if (!(n >= 1 && n <= 9)) return;
+      var act = enabledModes();
+      var target = act[n - 1] && act[n - 1][0];
+      if (!target) return;
+      if (ev.altKey && !ev.ctrlKey && !ev.metaKey) {
+        ev.preventDefault();
+        showView(target);
+        return;
+      }
       if (document.body.dataset.view !== 'start' || ev.ctrlKey || ev.altKey || ev.metaKey) return;
-      if (ev.key === '1') showView('calc');
-      if (ev.key === '2') showView('builder');
-      if (ev.key === '3') showView('soullink');
-      if (ev.key === '4') showView('nuz');
-      if (ev.key === '5') showView('shiny');
-      if (ev.key === '6') showView('match');
-      if (ev.key === '7') showView('overlay');
+      showView(target);
     });
     var sub = document.getElementById('startSub');
     if (sub) sub.textContent = T('startSub') + ' · VGC 2026 · ' + REG_NAME;
@@ -2312,6 +2463,8 @@
     else if (location.hash === '#shiny') v = 'shiny';
     else if (location.hash === '#match' || location.hash === '#matchtest') v = 'match';
     else if (location.hash === '#overlay') v = 'overlay';
+    else if (location.hash === '#catch') v = 'catch';
+    else if (location.hash === '#dex') v = 'dex';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

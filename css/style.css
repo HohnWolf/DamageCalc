@@ -234,6 +234,234 @@ html[data-theme="ocean"] {
   --wr-mid: rgba(255, 224, 138, .28);
   --wr-lo: rgba(255, 180, 188, .28);
 }
+html[data-theme="emerald"] {
+  color-scheme: dark;
+  --bg: #082419;
+  --panel: #0e3425;
+  --panel-head: #144431;
+  --line: #256e51;
+  --line-soft: #1a523c;
+  --accent: #ff9eb0;
+  --accent-2: #5ef2a8;
+  --on-accent: #380913;
+  --on-accent-2: #042916;
+  --accent-soft: rgba(94, 242, 168, .16);
+  --red-soft: rgba(255, 158, 176, .16);
+  --text: #ebfff5;
+  --muted: #b6e3cc;
+  --input: #051911;
+  --input-line: #2e8562;
+  --btn: #17503a;
+  --btn-hover: #1f684c;
+  --btn-on: #3dd68c;
+  --btn-on-hover: #64e8a8;
+  --on-btn: #042414;
+  --good: #7affa8;
+  --warn: #ffe07d;
+  --bad: #ff9ea6;
+  --on-good: #052912;
+  --on-warn: #2a1c00;
+  --on-bad: #360b0f;
+  --shiny: #ffe27a;
+  --shiny-bg: #f5c842;
+  --on-shiny: #1f1600;
+  --sl: #dec4ff;
+  --match: #7cf5e6;
+  --scroll: #2e8562;
+  --wr-hi: rgba(122, 255, 168, .26);
+  --wr-mid: rgba(255, 224, 125, .28);
+  --wr-lo: rgba(255, 158, 166, .28);
+}
+html[data-theme="gold"] {
+  color-scheme: dark;
+  --bg: #16130d;
+  --panel: #211c13;
+  --panel-head: #2b2418;
+  --line: #57472b;
+  --line-soft: #3d321f;
+  --accent: #ff7a8a;
+  --accent-2: #f5c451;
+  --on-accent: #2e060b;
+  --on-accent-2: #241900;
+  --accent-soft: rgba(245, 196, 81, .16);
+  --red-soft: rgba(255, 122, 138, .16);
+  --text: #fcf6e8;
+  --muted: #d4c5a9;
+  --input: #100d09;
+  --input-line: #735d38;
+  --btn: #332a1b;
+  --btn-hover: #453824;
+  --btn-on: #e5b23a;
+  --btn-on-hover: #f5c756;
+  --on-btn: #1f1500;
+  --good: #52d985;
+  --warn: #ffd15c;
+  --bad: #ff6e75;
+  --on-good: #062411;
+  --on-warn: #241800;
+  --on-bad: #2b0608;
+  --shiny: #ffe07d;
+  --shiny-bg: #f2c94c;
+  --on-shiny: #1b1400;
+  --sl: #cfb3ff;
+  --match: #5ce0d2;
+  --scroll: #735d38;
+  --wr-hi: rgba(82, 217, 133, .28);
+  --wr-mid: rgba(255, 209, 92, .28);
+  --wr-lo: rgba(255, 110, 117, .28);
+}
+html[data-theme="cyber"] {
+  color-scheme: dark;
+  --bg: #0d0f24;
+  --panel: #151836;
+  --panel-head: #1c2047;
+  --line: #384182;
+  --line-soft: #262c5c;
+  --accent: #ff4da6;
+  --accent-2: #2be4ff;
+  --on-accent: #2b0015;
+  --on-accent-2: #002229;
+  --accent-soft: rgba(43, 228, 255, .17);
+  --red-soft: rgba(255, 77, 166, .17);
+  --text: #eef4ff;
+  --muted: #b4c2eb;
+  --input: #090a1a;
+  --input-line: #4b56a8;
+  --btn: #232859;
+  --btn-hover: #2f3675;
+  --btn-on: #00d2f5;
+  --btn-on-hover: #5ce6ff;
+  --on-btn: #021d24;
+  --good: #3df598;
+  --warn: #ffd859;
+  --bad: #ff5c8a;
+  --on-good: #032412;
+  --on-warn: #241900;
+  --on-bad: #2b0410;
+  --shiny: #ffe680;
+  --shiny-bg: #f2c94c;
+  --on-shiny: #1b1400;
+  --sl: #d9b8ff;
+  --match: #4df7e6;
+  --scroll: #4b56a8;
+  --wr-hi: rgba(61, 245, 152, .26);
+  --wr-mid: rgba(255, 216, 89, .28);
+  --wr-lo: rgba(255, 92, 138, .28);
+}
+html[data-theme="sakura"] {
+  color-scheme: light;
+  --bg: #f7edf2;
+  --panel: #ffffff;
+  --panel-head: #fadfe9;
+  --line: #dfb6c6;
+  --line-soft: #eed2dd;
+  --accent: #b81d4e;
+  --accent-2: #c93072;
+  --on-accent: #fff;
+  --on-accent-2: #fff;
+  --accent-soft: rgba(201, 48, 114, .13);
+  --red-soft: rgba(184, 29, 78, .11);
+  --text: #2e1521;
+  --muted: #6e4256;
+  --input: #ffffff;
+  --input-line: #c991a7;
+  --btn: #f7e4ec;
+  --btn-hover: #efd1de;
+  --btn-on: #c93072;
+  --btn-on-hover: #b02561;
+  --on-btn: #fff;
+  --good: #0d7a3e;
+  --warn: #855800;
+  --bad: #c4233b;
+  --on-good: #fff;
+  --on-warn: #fff;
+  --on-bad: #fff;
+  --shiny: #785b00;
+  --shiny-bg: #e6b325;
+  --on-shiny: #1b1400;
+  --sl: #7338b8;
+  --match: #0e706a;
+  --scroll: #c991a7;
+  --wr-hi: #c8f0d8;
+  --wr-mid: #ffe3a3;
+  --wr-lo: #ffc9d2;
+}
+html[data-theme="sunset"] {
+  color-scheme: dark;
+  --bg: #24110b;
+  --panel: #331911;
+  --panel-head: #422116;
+  --line: #753d29;
+  --line-soft: #572c1d;
+  --accent: #ff8093;
+  --accent-2: #ff9e44;
+  --on-accent: #30060c;
+  --on-accent-2: #291100;
+  --accent-soft: rgba(255, 158, 68, .18);
+  --red-soft: rgba(255, 128, 147, .17);
+  --text: #fff3ed;
+  --muted: #e6bfb0;
+  --input: #1a0c07;
+  --input-line: #965038;
+  --btn: #4f281b;
+  --btn-hover: #663423;
+  --btn-on: #f58225;
+  --btn-on-hover: #ff9c47;
+  --on-btn: #240e00;
+  --good: #6be896;
+  --warn: #ffd86b;
+  --bad: #ff7a82;
+  --on-good: #052610;
+  --on-warn: #261900;
+  --on-bad: #2e0609;
+  --shiny: #ffe27d;
+  --shiny-bg: #f2c94c;
+  --on-shiny: #1b1400;
+  --sl: #dfbaff;
+  --match: #6ef0e3;
+  --scroll: #965038;
+  --wr-hi: rgba(107, 232, 150, .26);
+  --wr-mid: rgba(255, 216, 107, .28);
+  --wr-lo: rgba(255, 122, 130, .28);
+}
+html[data-theme="arctic"] {
+  color-scheme: dark;
+  --bg: #0f1924;
+  --panel: #172535;
+  --panel-head: #1e3045;
+  --line: #345375;
+  --line-soft: #263e59;
+  --accent: #ff859d;
+  --accent-2: #7ce0ff;
+  --on-accent: #2e0610;
+  --on-accent-2: #04222e;
+  --accent-soft: rgba(124, 224, 255, .17);
+  --red-soft: rgba(255, 133, 157, .17);
+  --text: #f0f8ff;
+  --muted: #b8d2eb;
+  --input: #0a121a;
+  --input-line: #456d96;
+  --btn: #243952;
+  --btn-hover: #2f4b6b;
+  --btn-on: #54c8f0;
+  --btn-on-hover: #82dcff;
+  --on-btn: #041f2b;
+  --good: #5ee69c;
+  --warn: #ffd86b;
+  --bad: #ff7582;
+  --on-good: #052612;
+  --on-warn: #261900;
+  --on-bad: #2e060a;
+  --shiny: #ffe380;
+  --shiny-bg: #f2c94c;
+  --on-shiny: #1b1400;
+  --sl: #d4baff;
+  --match: #6bf2e6;
+  --scroll: #456d96;
+  --wr-hi: rgba(94, 230, 156, .26);
+  --wr-mid: rgba(255, 216, 107, .28);
+  --wr-lo: rgba(255, 117, 130, .28);
+}
 html[data-theme="system"] { color-scheme: light dark; }
 @media (prefers-color-scheme: light) {
   html[data-theme="system"] {
@@ -675,4 +903,91 @@ button.on, .btn-group button.on { background: var(--btn-on); border-color: var(-
 }
 @media (max-width: 700px) {
   .columns, .results { grid-template-columns: 1fr; }
+}
+
+
+/* ================= UI Design Styles (data-ui-style) ================= */
+/* 1. Modern (Abgerundet, feine Tiefe & sanfte Schatten) */
+html[data-ui-style="modern"] {
+  --radius: 9px;
+}
+html[data-ui-style="modern"] .panel,
+html[data-ui-style="modern"] .start-card,
+html[data-ui-style="modern"] .tb-slot,
+html[data-ui-style="modern"] .modal-box {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+html[data-ui-style="modern"] .start-card,
+html[data-ui-style="modern"] .tb-slot {
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+html[data-ui-style="modern"] .start-card:hover,
+html[data-ui-style="modern"] .tb-slot:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.30);
+}
+html[data-ui-style="modern"] button,
+html[data-ui-style="modern"] input,
+html[data-ui-style="modern"] select {
+  border-radius: 6px;
+}
+
+/* 2. Glass (Frosted-Glass-Optik, weiche Lichtkanten & Hintergrund-Schimmer) */
+html[data-ui-style="glass"] {
+  --radius: 12px;
+}
+html[data-ui-style="glass"] body {
+  background-image:
+    radial-gradient(circle at 12% 8%, var(--accent-soft), transparent 42%),
+    radial-gradient(circle at 88% 92%, var(--red-soft), transparent 45%);
+}
+html[data-ui-style="glass"] .panel,
+html[data-ui-style="glass"] .start-card,
+html[data-ui-style="glass"] .tb-slot,
+html[data-ui-style="glass"] .modal-box {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(12px);
+}
+html[data-ui-style="glass"] .topbar {
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+}
+html[data-ui-style="glass"] .pill,
+html[data-ui-style="glass"] .tbtn {
+  border-radius: 999px;
+}
+
+/* 3. Retro / Pixel (Scharfe 0px-Kanten & klassischer Handheld-Rahmen-Look) */
+html[data-ui-style="retro"] {
+  --radius: 0px;
+}
+html[data-ui-style="retro"] * {
+  border-radius: 0px !important;
+}
+html[data-ui-style="retro"] .panel,
+html[data-ui-style="retro"] .start-card,
+html[data-ui-style="retro"] .tb-slot,
+html[data-ui-style="retro"] .modal-box {
+  border-width: 2px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.42);
+}
+html[data-ui-style="retro"] button:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+/* 4. Kompakt / Esport (Maximale Platz-Effizienz) */
+html[data-ui-style="compact"] {
+  --radius: 3px;
+  --h: 22px;
+}
+html[data-ui-style="compact"] .topbar {
+  height: 38px;
+}
+html[data-ui-style="compact"] .wrap {
+  padding: 5px 1vw 6px;
+}
+html[data-ui-style="compact"] .columns,
+html[data-ui-style="compact"] .tb,
+html[data-ui-style="compact"] .catch-grid {
+  gap: 6px;
 }

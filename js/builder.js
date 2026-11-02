@@ -21,12 +21,40 @@
     store.teams.push(t0); store.cur = t0.id;
     A.save('cc_builder', store);
   }
-  function persist() { A.save('cc_builder', store); }
+  function ensureVersions(t) {
+    if (!t) return null;
+    if (!Array.isArray(t.versions) || !t.versions.length) {
+      var v0 = { id: newId(), name: 'v1', mons: Array.isArray(t.mons) ? t.mons : [] };
+      t.versions = [v0];
+      t.curVer = v0.id;
+    }
+    var cur = null;
+    t.versions.some(function (v) { if (v.id === t.curVer) { cur = v; return true; } return false; });
+    if (!cur) { cur = t.versions[0]; t.curVer = cur.id; }
+    if (!Array.isArray(cur.mons)) cur.mons = [];
+    t.mons = cur.mons;
+    return cur;
+  }
+  function nextVerName(t) {
+    var n = (t.versions ? t.versions.length : 0) + 1;
+    var used = {};
+    (t.versions || []).forEach(function (v) { used[v.name] = 1; });
+    while (used['v' + n]) n++;
+    return 'v' + n;
+  }
+  function persist() {
+    store.teams.forEach(ensureVersions);
+    A.save('cc_builder', store);
+  }
   function team() {
     var t = null;
     store.teams.some(function (x) { if (x.id === store.cur) { t = x; return true; } return false; });
     if (!t) { t = store.teams[0]; if (!t) { t = { id: newId(), name: T('tbDefaultName', 1), mons: [] }; store.teams.push(t); } store.cur = t.id; }
+    ensureVersions(t);
     return t;
+  }
+  function curVersion(t) {
+    return ensureVersions(t || team());
   }
   var sel = 0; // selected slot (0-5); equal to mons.length = "add a new Pokémon"
   var tab = 'edit'; // lower panel: 'edit' (Pokémon editor) or 'cover' (type coverage)
@@ -199,7 +227,9 @@
   function render() {
     root = document.getElementById('builderView');
     if (!root) return;
+    if (tab !== 'edit' && tab !== 'cover') tab = 'edit';
     var t = team();
+    var cv = curVersion(t);
     if (sel > t.mons.length || sel > 5) sel = Math.min(t.mons.length, 5);
     root.innerHTML =
       '<div class="tb">' +
@@ -220,19 +250,26 @@
       '<button class="tbtn to-you" id="tbToYou">' + T('tbToCalcYou') + '</button>' +
       '<button class="tbtn to-foe" id="tbToFoe">' + T('tbToCalcFoe') + '</button>' +
       '</span></div>' +
+      '<div class="tb-ver-bar" id="tbVerBar">' +
+      '<span class="tb-ver-lbl">' + (de ? 'Versionen:' : 'Versions:') + '</span>' +
+      '<div class="tb-ver-pills" id="tbVerPills"></div>' +
+      '<button class="tbtn tb-ver-add" id="tbVerAdd" title="' + (de ? 'Aktuelle Version kopieren und als neue Version anlegen' : 'Clone current version as a new version') + '">' + (de ? '+ Neue Version' : '+ New version') + '</button>' +
+      '<input id="tbVerName" class="tb-ver-name" spellcheck="false" placeholder="' + (de ? 'Versionsname (z. B. v1, Turnier …)' : 'Version name (e.g. v1, Tournament …)') + '" title="' + (de ? 'Name der aktiven Version bearbeiten' : 'Edit active version name') + '">' +
+      '</div>' +
       '<div class="tb-slots" id="tbSlots"></div>' +
       '<div class="panel tb-work tab-' + tab + '" id="tbWork">' +
-      '<div class="tb-tabs"><button data-tab="edit">' + T('tbTabMon') + '</button><button data-tab="cover">' + T('tbWeak') + '</button><button data-tab="speed">' + T('tbSpeedTiers') + '</button></div>' +
+      '<div class="tb-tabs"><button data-tab="edit">' + T('tbTabMon') + '</button><button data-tab="cover">' + T('tbWeak') + '</button></div>' +
       '<div class="tb-edit" id="tbEdit"></div>' +
       '<div class="tb-cover" id="tbCover"></div>' +
-      '<div class="tb-speed" id="tbSpeed"></div>' +
       '</div>' +
       '</section></div>';
     R = {
       list: root.querySelector('#tbList'), slots: root.querySelector('#tbSlots'), edit: root.querySelector('#tbEdit'),
-      cover: root.querySelector('#tbCover'), speed: root.querySelector('#tbSpeed'), name: root.querySelector('#tbName'), count: root.querySelector('#tbCount')
+      cover: root.querySelector('#tbCover'), name: root.querySelector('#tbName'), count: root.querySelector('#tbCount'),
+      verPills: root.querySelector('#tbVerPills'), verName: root.querySelector('#tbVerName')
     };
     R.name.value = t.name;
+    R.verName.value = cv.name || 'v1';
     var work = root.querySelector('#tbWork');
     work.querySelectorAll('.tb-tabs button').forEach(function (b) {
       b.classList.toggle('on', b.dataset.tab === tab);
@@ -244,18 +281,47 @@
     });
     R.name.addEventListener('input', function () { team().name = R.name.value; persist(); renderList(); });
     R.name.addEventListener('blur', function () { if (!team().name.trim()) { team().name = T('tbDefaultName', store.teams.indexOf(team()) + 1); R.name.value = team().name; persist(); renderList(); } });
+    R.verName.addEventListener('input', function () {
+      var v = curVersion();
+      v.name = R.verName.value;
+      persist(); renderVersions(); renderList();
+    });
+    R.verName.addEventListener('blur', function () {
+      var v = curVersion();
+      if (!v.name || !v.name.trim()) {
+        v.name = 'v' + (team().versions.indexOf(v) + 1);
+        R.verName.value = v.name;
+        persist(); renderVersions(); renderList();
+      }
+    });
+    root.querySelector('#tbVerAdd').addEventListener('click', function () {
+      var tm = team();
+      var nv = { id: newId(), name: nextVerName(tm), mons: clone(tm.mons) };
+      tm.versions.push(nv);
+      tm.curVer = nv.id;
+      ensureVersions(tm);
+      persist();
+      render();
+      A.toast(de ? 'Neue Version „' + nv.name + '“ erstellt' : 'Created version “' + nv.name + '”');
+    });
     root.querySelector('#tbNew').addEventListener('click', function () {
-      var nt = { id: newId(), name: T('tbDefaultName', store.teams.length + 1), mons: [] };
+      var v0 = { id: newId(), name: 'v1', mons: [] };
+      var nt = { id: newId(), name: T('tbDefaultName', store.teams.length + 1), mons: v0.mons, versions: [v0], curVer: v0.id };
       store.teams.push(nt); store.cur = nt.id; sel = 0; persist(); render();
       setTimeout(function () { var i = root.querySelector('.tb-pick input'); if (i) i.focus(); }, 30);
     });
     root.querySelector('#tbImport').addEventListener('click', openImport);
     root.querySelector('#tbExport').addEventListener('click', function () {
-      var tm = team();
-      A.showModal(T('tbExportTitle') + ': ' + tm.name, tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n'));
+      var tm = team(), v = curVersion(tm);
+      var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
+      A.showModal(T('tbExportTitle') + ': ' + title, tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n'));
     });
     root.querySelector('#tbDup').addEventListener('click', function () {
-      var tm = team(), nt = { id: newId(), name: T('tbCopyName', tm.name), mons: clone(tm.mons) };
+      var tm = team();
+      var copiedVers = (tm.versions || []).map(function (v) { return { id: newId(), name: v.name, mons: clone(v.mons) }; });
+      if (!copiedVers.length) copiedVers = [{ id: newId(), name: 'v1', mons: clone(tm.mons) }];
+      var curIdx = Math.max(0, tm.versions.indexOf(curVersion(tm)));
+      var nt = { id: newId(), name: T('tbCopyName', tm.name), versions: copiedVers, curVer: copiedVers[curIdx].id, mons: copiedVers[curIdx].mons };
       store.teams.splice(store.teams.indexOf(tm) + 1, 0, nt); store.cur = nt.id; persist(); render();
     });
     root.querySelector('#tbDel').addEventListener('click', function () {
@@ -275,15 +341,60 @@
         A.toast(T(b[2]));
       });
     });
-    renderList(); renderSlots(); renderEditor(); renderCover(); renderSpeed();
+    renderVersions(); renderList(); renderSlots(); renderEditor(); renderCover();
+  }
+
+  function renderVersions() {
+    if (!R.verPills) return;
+    var tm = team();
+    ensureVersions(tm);
+    R.verPills.innerHTML = '';
+    tm.versions.forEach(function (v, idx) {
+      var isCur = v.id === tm.curVer;
+      var pill = el('button', { type: 'button', class: 'tb-ver-pill' + (isCur ? ' on' : '') });
+      pill.appendChild(el('span', { class: 'tb-ver-txt', text: v.name || ('v' + (idx + 1)) }));
+      if (tm.versions.length > 1) {
+        var del = el('span', { class: 'tb-ver-del', text: '×', title: de ? 'Diese Version löschen' : 'Delete this version' });
+        del.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          var vName = v.name || ('v' + (idx + 1));
+          if (!confirm(de ? 'Version „' + vName + '“ wirklich löschen?' : 'Delete version “' + vName + '”?')) return;
+          var vi = tm.versions.indexOf(v);
+          if (vi !== -1) tm.versions.splice(vi, 1);
+          if (tm.curVer === v.id) {
+            tm.curVer = tm.versions[Math.max(0, vi - 1)].id;
+          }
+          ensureVersions(tm);
+          if (sel > tm.mons.length) sel = tm.mons.length;
+          persist();
+          render();
+        });
+        pill.appendChild(del);
+      }
+      pill.addEventListener('click', function () {
+        if (tm.curVer !== v.id) {
+          tm.curVer = v.id;
+          ensureVersions(tm);
+          if (sel > tm.mons.length) sel = Math.min(tm.mons.length, 5);
+          persist();
+          render();
+        }
+      });
+      R.verPills.appendChild(pill);
+    });
   }
 
   function renderList() {
     R.list.innerHTML = '';
     store.teams.forEach(function (tm) {
+      ensureVersions(tm);
       var row = el('div', { class: 'tb-team' + (tm.id === store.cur ? ' on' : '') });
       var top = el('div', { class: 'tb-team-top' });
       top.appendChild(el('span', { class: 'tb-team-name', text: tm.name || '–' }));
+      if (tm.versions.length > 1) {
+        var cv = curVersion(tm);
+        top.appendChild(el('span', { class: 'tb-team-vbadge', text: (cv.name || 'v1') + ' · ' + tm.versions.length + 'v', title: de ? tm.versions.length + ' Versionen' : tm.versions.length + ' versions' }));
+      }
       top.appendChild(el('span', { class: 'tb-team-n', text: T('tbMonCount', tm.mons.length) }));
       row.appendChild(top);
       var mini = el('div', { class: 'tb-team-mons' });
@@ -293,6 +404,23 @@
         mini.appendChild(c);
       }
       row.appendChild(mini);
+      if (tm.versions.length > 1) {
+        var vbar = el('div', { class: 'tb-team-vers' });
+        tm.versions.forEach(function (v, idx) {
+          var vp = el('button', { type: 'button', class: 'tb-mini-ver' + (v.id === tm.curVer ? ' on' : ''), text: v.name || ('v' + (idx + 1)) });
+          vp.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            store.cur = tm.id;
+            tm.curVer = v.id;
+            ensureVersions(tm);
+            if (sel > tm.mons.length) sel = Math.min(tm.mons.length, 5);
+            persist();
+            render();
+          });
+          vbar.appendChild(vp);
+        });
+        row.appendChild(vbar);
+      }
       row.addEventListener('click', function () { if (store.cur !== tm.id) { store.cur = tm.id; sel = 0; persist(); render(); } });
       R.list.appendChild(row);
     });
@@ -325,7 +453,7 @@
         var bt = el('button', { title: T(b[1]), text: b[0] });
         bt.addEventListener('click', function (ev) {
           ev.stopPropagation();
-          var x = tm.mons[i]; tm.mons[i] = tm.mons[j]; tm.mons[j] = x; sel = j; persist(); renderSlots(); renderList(); renderCover(); renderSpeed();
+          var x = tm.mons[i]; tm.mons[i] = tm.mons[j]; tm.mons[j] = x; sel = j; persist(); renderSlots(); renderList(); renderCover();
         });
         tools.appendChild(bt);
       });
@@ -342,9 +470,9 @@
     tm.mons.splice(i, 1);
     if (sel > tm.mons.length) sel = tm.mons.length;
     if (sel === tm.mons.length && sel > 0 && i <= sel) sel = Math.max(0, Math.min(i, tm.mons.length - 1));
-    persist(); renderSlots(); renderEditor(); renderCover(); renderSpeed(); renderList();
+    persist(); renderSlots(); renderEditor(); renderCover(); renderList();
   }
-  function changed() { persist(); renderSlots(); renderCover(); renderSpeed(); renderList(); }
+  function changed() { persist(); renderSlots(); renderCover(); renderList(); }
   function focusPick() { setTimeout(function () { var i = R.edit.querySelector('.tb-pick input'); if (i) i.focus(); }, 20); }
 
   // ---------------- species search ----------------
@@ -1161,100 +1289,6 @@
     R.cover.appendChild(el('div', { class: 'hint tb-cv-hint', text: T('tbWeakHint') }));
   }
 
-  // ---------------- speed tiers ----------------
-  var spShowFoe = true, spShowBench = false;
-  var SPEED_BENCH = [
-    { species: 'Dragapult', label: 'Dragapult (252+)', sp: 213 },
-    { species: 'Sneasler', label: 'Sneasler (252+)', sp: 189 },
-    { species: 'Meowscarada', label: 'Meowscarada (252+)', sp: 192 },
-    { species: 'Garchomp', label: 'Garchomp (252+)', sp: 169 },
-    { species: 'Dragonite', label: 'Dragonite (252+)', sp: 145 },
-    { species: 'Gholdengo', label: 'Gholdengo (252+)', sp: 149 },
-    { species: 'Incineroar', label: 'Incineroar (0)', sp: 80 },
-    { species: 'Ursaluna-Bloodmoon', label: 'Ursaluna-BM (0-)', sp: 51 }
-  ];
-  function effSpeedOf(m, f) {
-    var d = DEX[f] || DEX[m.species];
-    if (!d) return 100;
-    var raw = C.calcStat(d.bs.sp, (m.set.sps && m.set.sps.sp) || 0, m.set.nature, 'sp', false);
-    if (m.set.item === 'Choice Scarf' && f.indexOf('Mega ') !== 0) raw = Math.floor(raw * 1.5);
-    else if (m.set.item === 'Iron Ball') raw = Math.floor(raw * 0.5);
-    return raw;
-  }
-  function renderSpeed() {
-    if (!R.speed) return;
-    var tm = team();
-    R.speed.innerHTML = '';
-    if (!tm.mons.length) { R.speed.appendChild(el('div', { class: 'tb-empty', text: T('tbEmptyTeam') })); return; }
-    var head = el('div', { class: 'tb-speed-head' });
-    head.appendChild(el('span', { class: 'hint', text: T('tbSpeedHint') }));
-    var chkFoe = el('label', { class: 'check-chip' });
-    var cbF = el('input', { type: 'checkbox' }); cbF.checked = spShowFoe;
-    cbF.addEventListener('change', function () { spShowFoe = cbF.checked; renderSpeed(); });
-    chkFoe.appendChild(cbF); chkFoe.appendChild(el('span', { text: T('tbSpeedShowFoe') }));
-    head.appendChild(chkFoe);
-    var chkB = el('label', { class: 'check-chip' });
-    var cbB = el('input', { type: 'checkbox' }); cbB.checked = spShowBench;
-    cbB.addEventListener('change', function () { spShowBench = cbB.checked; renderSpeed(); });
-    chkB.appendChild(cbB); chkB.appendChild(el('span', { text: T('tbSpeedBench') }));
-    head.appendChild(chkB);
-    R.speed.appendChild(head);
-
-    var rows = [];
-    tm.mons.forEach(function (m) {
-      var bf = baseForme(m), mf = battleForme(m);
-      var sp0 = effSpeedOf(m, bf);
-      rows.push({ kind: 'you', m: m, f: bf, name: A.nSpecies(bf), item: m.set.item, sp: sp0, nature: m.set.nature, ev: (m.set.sps && m.set.sps.sp) || 0 });
-      if (mf !== bf && mf.indexOf('Mega ') === 0) {
-        rows.push({ kind: 'you', m: m, f: mf, name: A.nSpecies(mf), item: m.set.item, sp: effSpeedOf(m, mf), nature: m.set.nature, ev: (m.set.sps && m.set.sps.sp) || 0 });
-      }
-    });
-    if (spShowFoe && A.getCalcTeams) {
-      var foe = (A.getCalcTeams()[1] || []);
-      foe.forEach(function (m) {
-        if (!m || !m.species) return;
-        var bf = baseForme(m);
-        rows.push({ kind: 'foe', m: m, f: bf, name: A.nSpecies(bf) + (de ? ' (Gegner)' : ' (Foe)'), item: m.set.item, sp: effSpeedOf(m, bf), nature: m.set.nature, ev: (m.set.sps && m.set.sps.sp) || 0 });
-      });
-    }
-    if (spShowBench) {
-      SPEED_BENCH.forEach(function (b) {
-        if (!DEX[b.species]) return;
-        rows.push({ kind: 'bench', f: b.species, name: A.nSpecies(b.species) + ' (' + b.label.replace(/^.*?\(/, ''), sp: b.sp });
-      });
-    }
-    rows.sort(function (a, b) { return b.sp - a.sp; });
-    var maxSp = Math.max(220, rows.length ? rows[0].sp : 200);
-    var tbl = el('table', { class: 'tb-speed-table' });
-    var thead = el('thead'), trh = el('tr');
-    [T('tbSpeedColMon'), T('tbSpeedColBase'), ' ', T('tbSpeedColP1'), T('tbSpeedColScarf'), T('tbSpeedColTW'), T('tbSpeedColM1'), T('tbSpeedColPara')].forEach(function (lbl, i) {
-      trh.appendChild(el('th', { class: i >= 1 && i !== 2 ? 'num' : '', text: lbl }));
-    });
-    thead.appendChild(trh); tbl.appendChild(thead);
-    var tbody = el('tbody');
-    rows.forEach(function (r) {
-      var tr = el('tr', { class: r.kind === 'foe' ? 'is-foe' : r.kind === 'bench' ? 'is-bench' : '' });
-      var tdM = el('td'), wrap = el('div', { class: 'tb-sp-mon' });
-      wrap.appendChild(A.spriteFit(r.f, r.m && r.m.set && r.m.set.shiny));
-      var txt = el('span', { text: r.name });
-      wrap.appendChild(txt);
-      if (r.item === 'Choice Scarf' && r.f.indexOf('Mega ') !== 0) wrap.appendChild(el('span', { class: 'tb-sp-tag', text: 'Scarf' }));
-      tdM.appendChild(wrap); tr.appendChild(tdM);
-      tr.appendChild(el('td', { class: 'num cur', text: String(r.sp) }));
-      var tdBar = el('td', { class: 'tb-sp-barcell' }), bar = el('div', { class: 'tb-sp-bar' }), fill = el('span');
-      fill.style.width = Math.min(100, Math.round(r.sp / maxSp * 100)) + '%';
-      bar.appendChild(fill); tdBar.appendChild(bar); tr.appendChild(tdBar);
-      tr.appendChild(el('td', { class: 'num', text: String(Math.floor(r.sp * 1.5)) }));
-      tr.appendChild(el('td', { class: 'num', text: String(r.item === 'Choice Scarf' && r.f.indexOf('Mega ') !== 0 ? r.sp : Math.floor(r.sp * 1.5)) }));
-      tr.appendChild(el('td', { class: 'num', text: String(r.sp * 2) }));
-      tr.appendChild(el('td', { class: 'num', text: String(Math.floor(r.sp * 2 / 3)) }));
-      tr.appendChild(el('td', { class: 'num', text: String(Math.floor(r.sp * 0.5)) }));
-      tbody.appendChild(tr);
-    });
-    tbl.appendChild(tbody);
-    R.speed.appendChild(tbl);
-  }
-
   // ---------------- import ----------------
   var imp = null;
   function openImport() {
@@ -1262,7 +1296,7 @@
       imp = el('div', { class: 'modal hidden', id: 'tbImportModal' });
       imp.innerHTML = '<div class="modal-box wide"><div class="modal-head"><h3>' + A.esc(T('tbImportTitle')) + '</h3><button class="icon-btn" data-x>✕</button></div>' +
         '<p class="hint">' + T('importHintH') + '</p><textarea spellcheck="false"></textarea>' +
-        '<div class="import-actions"><button data-new class="primary-btn">' + A.esc(T('tbImportNew')) + '</button><button data-into>' + A.esc(T('tbImportInto')) + '</button>' +
+        '<div class="import-actions"><button data-new class="primary-btn">' + A.esc(T('tbImportNew')) + '</button><button data-newver>' + (de ? 'Als neue Version' : 'As new version') + '</button><button data-into>' + A.esc(T('tbImportInto')) + '</button>' +
         '<button data-calcyou class="tbtn">' + A.esc(T('tbFromCalcYou')) + '</button><button data-calcfoe class="tbtn">' + A.esc(T('tbFromCalcFoe')) + '</button>' +
         '<span class="hint" data-msg></span></div></div>';
       document.body.appendChild(imp);
@@ -1270,18 +1304,30 @@
       imp.querySelector('[data-x]').addEventListener('click', close);
       imp.addEventListener('mousedown', function (ev) { if (ev.target === imp) close(); });
       document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') close(); });
-      function run(asNew) {
+      function run(mode) {
         var res = A.parseShowdown(imp.querySelector('textarea').value), msg = imp.querySelector('[data-msg]');
         if (!res.mons.length) { msg.textContent = T('importNothing') + (res.errors.length ? ' (' + T('unknown', res.errors.join(', ')) + ')' : ''); return; }
         var mons = res.mons.slice(0, 6).map(function (m) { m.set.species = m.species; fixGender(m); return m; });
-        if (asNew) { var nt = { id: newId(), name: T('tbDefaultName', store.teams.length + 1), mons: mons }; store.teams.push(nt); store.cur = nt.id; }
-        else team().mons = mons;
+        if (mode === 'new') {
+          var v0 = { id: newId(), name: 'v1', mons: mons };
+          var nt = { id: newId(), name: T('tbDefaultName', store.teams.length + 1), mons: mons, versions: [v0], curVer: v0.id };
+          store.teams.push(nt); store.cur = nt.id;
+        } else if (mode === 'ver') {
+          var tm = team();
+          var nv = { id: newId(), name: nextVerName(tm), mons: mons };
+          tm.versions.push(nv); tm.curVer = nv.id; ensureVersions(tm);
+        } else {
+          var cv = curVersion();
+          cv.mons = mons;
+          team().mons = mons;
+        }
         sel = 0; persist(); render();
         A.toast(T('tbImportDone', mons.length) + (res.errors.length ? ' · ' + T('unknown', res.errors.join(', ')) : ''));
         close();
       }
-      imp.querySelector('[data-new]').addEventListener('click', function () { run(true); });
-      imp.querySelector('[data-into]').addEventListener('click', function () { run(false); });
+      imp.querySelector('[data-new]').addEventListener('click', function () { run('new'); });
+      imp.querySelector('[data-newver]').addEventListener('click', function () { run('ver'); });
+      imp.querySelector('[data-into]').addEventListener('click', function () { run('into'); });
       [['[data-calcyou]', 0], ['[data-calcfoe]', 1]].forEach(function (pair) {
         imp.querySelector(pair[0]).addEventListener('click', function () {
           var ct = A.getCalcTeams ? A.getCalcTeams() : [[], []];

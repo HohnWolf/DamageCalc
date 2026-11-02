@@ -1,0 +1,671 @@
+/* Fangrechner (Catch Calculator) – css/catch.css */
+
+.start-card.card-catch { border-top-color: #ef4444; }
+.start-card.card-catch:hover { border-color: #ef4444; }
+.sc-art-catch {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.catch-view {
+  padding: 10px 1.5vw 16px;
+}
+
+.catch-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(420px, 490px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.catch-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.catch-gen-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  border: 1px solid var(--accent-2);
+}
+
+.catch-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.catch-section {
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.catch-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.catch-sec-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catch-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.catch-row-2col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.catch-lbl {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.catch-sel, .catch-num, .catch-mon-inp {
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+/* Pokémon-Auswahlkarte */
+.catch-mon-card {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+
+.catch-mon-sprite {
+  width: 62px;
+  height: 62px;
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.catch-mon-sprite .sprite-fit {
+  width: 100%;
+  height: 100%;
+}
+
+.catch-mon-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catch-poke-pick {
+  position: relative;
+}
+
+.catch-mon-inp {
+  font-weight: 700;
+}
+
+.catch-poke-dd {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--accent-2);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 40;
+}
+
+.catch-dd-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12.5px;
+}
+
+.catch-dd-row:hover, .catch-dd-row.on {
+  background: var(--btn-hover);
+}
+
+.catch-dd-num {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  width: 38px;
+  flex: none;
+}
+
+.catch-dd-name {
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catch-dd-rate {
+  font-size: 11px;
+  color: var(--muted);
+  flex: none;
+}
+
+.catch-dd-empty {
+  padding: 10px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+
+.catch-mon-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.catch-mon-types {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.catch-meta-pill {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.catch-meta-pill b {
+  color: var(--text);
+}
+
+/* KP-Steuerung */
+.catch-hp-tabs button {
+  height: 24px;
+  font-size: 11.5px;
+  padding: 0 8px;
+}
+
+.catch-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catch-slider-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent-2);
+}
+
+.catch-hp-readout {
+  min-width: 56px;
+  text-align: right;
+  font-weight: 800;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.catch-hp-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.catch-hp-presets .tbtn {
+  height: 25px;
+  padding: 0 8px;
+  font-size: 11.5px;
+}
+
+.catch-hp-presets .tbtn.on {
+  background: var(--btn-on);
+  border-color: var(--btn-on);
+  color: var(--on-btn);
+}
+
+.catch-fs-btn {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.catch-hp-range-hint {
+  margin-top: 4px;
+  font-size: 11.5px;
+}
+
+/* Status-Buttons */
+.catch-status-btns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.catch-status-btns button {
+  height: 28px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* RECHTE SPALTE: POKÉBALL-AUSWAHL (MIT BILDERN) & ERGEBNIS */
+.catch-right {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catch-ball-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.catch-ball-panel-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Visuelle Pokéball-Kacheln mit Ball-Sprites */
+.catch-ball-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 6px;
+}
+
+.catch-ball-tile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-soft);
+  background: var(--input);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.1s ease;
+}
+
+.catch-ball-tile:hover {
+  background: var(--btn-hover);
+  border-color: var(--line);
+}
+
+.catch-ball-tile.on {
+  background: var(--accent-soft);
+  border-color: var(--accent-2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+.catch-ball-tile .item-ic {
+  flex: none;
+  transform: scale(1.18);
+}
+
+.catch-ball-tile-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Info-Banner für den aktuell gewählten Ball */
+.catch-ball-active-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent-2);
+  border-radius: var(--radius);
+}
+
+.catch-ball-ic {
+  width: 34px;
+  height: 34px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.catch-ball-ic .item-ic {
+  transform: scale(1.25);
+}
+
+.catch-ball-active-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.catch-ball-active-text b {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Kampf- & Ball-Bedingungen unterhalb der Ball-Auswahl */
+.catch-cond-box {
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.catch-cond-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.catch-turn-ctrl {
+  display: flex;
+  gap: 4px;
+}
+
+.catch-turn-ctrl .catch-num {
+  width: 58px;
+  text-align: center;
+  flex: none;
+}
+
+.catch-turn-ctrl .tbtn {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.catch-turn-ctrl .tbtn.on {
+  background: var(--btn-on);
+  border-color: var(--btn-on);
+  color: var(--on-btn);
+}
+
+.catch-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catch-checks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 6px 14px;
+}
+
+.catch-chk {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Ergebnis-Panel für den ausgewählten Pokéball */
+.catch-res-panel {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.catch-hero {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catch-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.catch-hero-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.catch-hero-ball-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--input);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.catch-hero-ball-ic .item-ic {
+  transform: scale(1.55);
+}
+
+.catch-hero-ball {
+  font-size: 19px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.catch-mult-tag {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  border: 1px solid var(--accent-2);
+}
+
+.catch-hero-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.catch-hero-pct {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.catch-big-num {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.catch-big-lbl {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.catch-prog-bar {
+  height: 12px;
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.catch-prog-bar span {
+  display: block;
+  height: 100%;
+  transition: width 0.15s ease;
+}
+
+.catch-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 680px) {
+  .catch-stat-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.catch-stat-card {
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 9px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.catch-stat-card.highlight {
+  border-color: var(--accent-2);
+  background: var(--accent-soft);
+}
+
+.cs-val {
+  font-size: 19px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.cs-lbl {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.catch-detail-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.catch-dpill {
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--input);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.catch-dpill b {
+  color: var(--text);
+}
+
+/* KP-IV-Varianz (Dragonfly Cave Feature) */
+.catch-iv-notice {
+  background: var(--input);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent-2);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catch-iv-head {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.catch-iv-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.catch-iv-table th {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.catch-iv-table th, .catch-iv-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+}
+
+@media (max-width: 980px) {
+  .catch-grid {
+    grid-template-columns: 1fr;
+  }
+}

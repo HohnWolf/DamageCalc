@@ -27,9 +27,10 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
-- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler**, **Team-Analyse** und **Match-Overlay** (Tasten `1` bis `7`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler**, **Team-Analyse**, **Match-Overlay** und **Fangrechner** (Tasten `1` bis `8`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
 - **Teambuilder** (`js/builder.js`):
-  - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
+  - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team, als neue Version oder in das aktuelle Team.
+  - **Mehrere Versionen pro Team:** Über die Versionsleiste (`v1`, `v2`, `+ Neue Version`) lassen sich beliebig viele Varianten eines Teams anlegen, frei benennen (z. B. `v1`, `v2 · Turnier`) und direkt umschalten. Die aktive Version gilt automatisch für Export, Damage Calc, Team-Analyse und Match-Overlay.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
   - Darunter der Editor: Pokémon-Suche (deutsch/englisch), „Set übernehmen …“ (beliebte, eigene und Online-Sets), Form, Item, Fähigkeit, Wesen, vier Attacken (nur legale, mit Typ, Kategorie, Stärke, Genauigkeit und AP), Wesen und Stat Points als Balken; bei Mega-Steinen stehen die Mega-Werte daneben. Unter Attacken, Item und Fähigkeit steht jeweils der Effekt.
   - **Auswahlfenster für Attacken, Item und Fähigkeit** (wie bei Wesen): Ein Klick auf das Feld öffnet ein eigenes Fenster mit Suchfeld und einer Zeile je Eintrag, dazu der Effekt wie bei Showdown. Es springt zur aktuellen Auswahl; ↑ ↓ wählen, `Enter` übernimmt, `Esc` schließt.
@@ -125,6 +126,30 @@ Eigener Modus (`js/overlay.js`, Desktop-Teil `electron/match.js`, Seiten in `ele
   - Logos liegen unter `MatchOverlaylogos`.
 - Gespeichert unter `cc_overlay`. Selbsttest in der Konsole: `CCOverlay.selfTest()`.
 
+## Fangrechner (Catch Calculator)
+Eigener Modus (`js/catch_calc.js`, Daten `data/catch_data.js`, Styles `css/catch.css`, Taste `8`), nach Vorbild des Catch Rate Calculators von Dragonfly Cave – unterstützt alle Pokémon-Hauptspiele von **Generation 1 bis Generation 9**:
+- **Wählbare Hauptspiele:** *Rot / Blau / Gelb* (Gen 1), *Gold / Silber / Kristall* (Gen 2), *Rubin / Saphir / Smaragd* & *Feuerrot / Blattgrün* (Gen 3), *Diamant / Perl*, *Platin* & *HeartGold / SoulSilver* (Gen 4), *Schwarz / Weiß* & *Schwarz 2 / Weiß 2* (Gen 5), *X / Y* & *Omega Rubin / Alpha Saphir* (Gen 6), *Sonne / Mond* & *Ultrasonne / Ultramond* (Gen 7), *Schwert / Schild* & *Strahlender Diamant / Leuchtende Perle* (Gen 8) sowie *Karmesin / Purpur* (Gen 9).
+- **Spielspezifische Fangraten:** Automatische Berücksichtigung geänderter Fangraten je Edition (z. B. Dialga/Palkia `30` in DP/BDSP vs. `3` in Platin, Rayquaza `45` in ORAS, Reshiram/Zekrom `45` in BW/B2W2/XY, Necrozma `255` in USUM, Endynalos `255` in SwSh) sowie optionales Feld für eine eigene Fangrate (`1–255`).
+- **KP-Berechnung über alle 32 KP-IVs (bzw. 16 KP-DVs in Gen 1–2):**
+  - Wahlweise **KP in %** (Schieberegler `1–100 %` + Schnellwahl `100 %`, `75 %`, `50 %`, `25 %`, `10 %`, `1 KP (Trugschlag)`) oder **Exakte KP** (`Aktuelle KP` / `Maximale KP`).
+  - Im Prozent-/Trugschlag-Modus wird über alle möglichen KP-DVs/IVs gerechnet und bei Abweichungen eine ausklappbare KP-IV-Aufschlüsselung angezeigt.
+- **Exakte Generations-Mechaniken:**
+  - *Gen 1 (RBY):* Authentischer RBY-Algorithmus mit ballabhängigem Zufallsbereich (`0..255` / `0..200` / `0..150`) und direktem Status-Offset.
+  - *Gen 2 (GSC):* Aprikokobälle und originale GSC-Bugs (Status-Bug bei Paralyse/Brand/Gift, Mond-/Sympa-/Turboball), per Checkbox auf beabsichtigte Werte umschaltbar.
+  - *Gen 3 & 4:* Klassische Wackel-Formel mit 4 Wackel-Checks.
+  - *Gen 5:* 4096-Festkomma-Arithmetik, Dunkles Gras, Kontaktebenen-Fangkraft, Kritischer Fang und 3 Wackel-Checks.
+  - *Gen 6 & 7:* O-Kraft / Rotom-Fang, Fangpin (Catching Charm), Ultrabestien-Malus (`×0,1`) bzw. Ultraball (`×5`).
+  - *Gen 8 & 9:* Niedriglevel-Bonus (SwSh), Orden-Level-Cap-Strafen (SwSh `×0,1`, BDSP/SV `0,8^Differenz`), Überrascht / Backstrike (`×2`), Starker Wanderer (`×0,5`) und Sandwich-Fangkraft (SV).
+- **Bebilderte Pokéball-Auswahl & Einzelball-Auswertung:** Visuelle Auswahl aller im gewählten Spiel verfügbaren Pokébälle inklusive Pokéball-Sprite und Effektbeschreibung; zeigt für den ausgewählten Ball den aktuellen Faktor, die Fangchance pro Wurf, die Krit-Erfolgschance, den Erwartungswert (`Ø Bälle`) und die benötigten Bälle für `≥ 50 % / 75 % / 95 % / 99 %` Fangwahrscheinlichkeit.
+- Gespeichert unter `cc_catch`. Selbsttest in der Konsole: `CCCatchCalc.selfTest()`.
+
+## Nationaler Pokédex (Gen 1–9)
+Eigener Modus (`js/pokedex.js`, Daten `data/dex_gen1.js`, Styles `css/pokedex.css`, Taste `9`):
+- **Alle 1025 Pokémon (`#001` Bisasam bis `#1025` Infamomo):** Filterbar nach Generation (`Alle`, `G1` bis `G9`), Typ, Name/Nummer sowie über den Schnellfilter **„Nur vollentwickelt“**.
+- **3D-Modelle, HOME-Renders & Pixel-Sprites:** Direkt umschaltbar inklusive **★ Shiny**-Ansicht.
+- **Form-Umschalter:** Eigene Knopfleiste für alle Pokémon mit mehreren Formen (Mega, Protomorphose, Alola, Galar, Hisui, Paldea, Gigadynamax sowie Spezialformen wie Rotom, Deoxys, Wolwerock, Ogerpon, Terapagos u. v. m.) – aktualisiert Modell, Typen, Typ-Schwächen, Fähigkeiten, Basiswerte und Entwicklungsreihe.
+- **Fähigkeiten, Basiswerte & Entwicklungsreihen:** Alle Fähigkeiten (inkl. Versteckter Fähigkeit) mit Effektbeschreibung, Basiswerte mit Balken, Level-50-Min–Max-Spanne und `(+/-)`-Form-Differenz sowie interaktive Entwicklungsbäume inklusive Entwicklungsmethode.
+
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
 - Die Oberfläche passt sich der Fenstergröße an (Basis 1180 × 800, Faktor 0,8 bis 1,9), damit kein Platz frei bleibt. Vorschau verschiedener Größen: `tools/preview.html?w=1920&h=1080` (braucht den lokalen Server).
@@ -136,12 +161,14 @@ Eigener Modus (`js/overlay.js`, Desktop-Teil `electron/match.js`, Seiten in `ele
 
 ## Einstellungen
 Zahnrad oben rechts:
-- **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm), *Alle Modi* oder *Keine* (Wechsel nur über das Logo)
+- **Aktive Tools**: Jedes der 8 Tools (*Damage Calculator*, *Teambuilder*, *Soul Link*, *Nuzlocke*, *Shiny-Zähler*, *Team-Analyse*, *Match-Overlay*, *Fangrechner*) lässt sich einzeln ein- und ausschalten. Deaktivierte Tools verschwinden auf dem Startbildschirm (inkl. automatischer Spalten- und Tastenkürzel-Anpassung `1–N`), in der oberen Leiste und aus den Start-Optionen; gespeicherte Daten bleiben erhalten.
+- **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm, bei vielen Tabs per Mausrad horizontal scrollbar), *Alle Modi* oder *Keine* (Wechsel nur über das Logo oder `Alt+1` bis `Alt+8` bzw. `Alt+0`)
 - **Pokémon im Teambuilder**: animiertes 3D-Modell, HD-Render (HOME) oder Pixel-Sprite
+- **Oberflächen-Stil**: *Klassisch (Flach)*, *Modern (Weich, mit feinen Tiefenschatten)*, *Glas (Transluzent)*, *Retro (Pixel-Kantig)* oder *Kompakt (Turnier)*
 - **Oberflächengröße**: Automatisch (passt sich dem Fenster an) oder feste Skalierung (85 %, 100 %, 115 %, 130 %, 150 %)
-- **Design**: Dunkel, Hell, OLED-Schwarz, Pokéball-Rot, Rattfratz-Violett, Ozean-Blau oder System
-- **Daten-Backup**: Alle Teams, Sets, Runs, Shiny-Hunts und Overlays als `.json`-Datei sichern und wiederherstellen
-- **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse oder Match-Overlay
+- **Design**: 13 Farbschemata – *Dunkel*, *Hell*, *OLED*, *Poké-Rot*, *Rattata-Lila*, *Ozean*, *Smaragd*, *HeartGold*, *Cyber-Neon*, *Sakura (Hell)*, *Abendrot*, *Arktis-Eis* oder *System*
+- **Daten-Backup**: Alle Teams, Sets, Runs, Shiny-Hunts, Fangrechner-Stände und Overlays als `.json`-Datei sichern und wiederherstellen
+- **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse, Match-Overlay oder Fangrechner
 - **Sprache**: Deutsch oder English
 
 ## Sprache (Deutsch / English)
