@@ -1,8 +1,9 @@
 // Desktop-Teil des Shiny-Zählers (Hauptprozess):
 // - globale Hotkeys (zählen, auch wenn das Spiel/der Emulator im Vordergrund ist)
-// - lokaler OBS-Server nur auf 127.0.0.1: Browser-Quelle /overlay und Daten /state
+// - lokaler OBS-Server nur auf 127.0.0.1: Browser-Quelle /overlay und Daten /state (dazu /match/… aus electron/match.js)
 // - Textdateien für OBS-Textquellen (Ordner "OBS" in den App-Daten)
-// - Auswahl von Bildschirm/Fenster für die automatische Erkennung (getDisplayMedia)
+// - Auswahl von Bildschirm/Fenster für die automatische Erkennung und die Clips (getDisplayMedia, Clips mit Systemton)
+// - Clips speichern und öffnen (Ordner "Videos\Rattata Lab Clips", js/shiny_clip.js)
 const { app, globalShortcut, ipcMain, desktopCapturer, session, shell } = require('electron');
 const http = require('http');
 const path = require('path');
@@ -13,6 +14,8 @@ let win = null;
 let state = { hunts: [], active: null, overlay: null, updated: 0 };
 let port = 0;
 let chosenSource = null;
+// weitere Seiten auf demselben Server (Match-Overlays, electron/match.js): handler(req, res, url) -> true, wenn erledigt
+const routes = [];
 
 // ---------------- hotkeys ----------------
 let keys = {};
@@ -33,6 +36,9 @@ function setHotkeys(map) {
 
 // ---------------- OBS: text files ----------------
 function obsDir() { return path.join(app.getPath('userData'), 'OBS'); }
+function clipDir() { return path.join(app.getPath('videos'), 'Rattata Lab Clips'); }
+// nur Dateien in diesem Ordner dürfen geöffnet werden
+function inClipDir(p) { const r = path.relative(clipDir(), path.resolve(String(p || ''))); return !!r && !r.startsWith('..') && !path.isAbsolute(r); }
 let writeTimer = null;
 function writeFiles() {
   clearTimeout(writeTimer);
@@ -69,7 +75,7 @@ function startServer() {
     } else if (url.pathname === '/state') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify(state));
-    } else { res.writeHead(404); res.end(); }
+    } else if (!routes.some((h) => h(req, res, url))) { res.writeHead(404); res.end(); }
   });
   let tries = 0;
   const listen = () => server.listen(BASE_PORT + tries, '127.0.0.1');
@@ -98,12 +104,28 @@ function init(mainWindow) {
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
     desktopCapturer.getSources({ types: ['screen', 'window'] }).then((list) => {
       const src = list.find((s) => s.id === chosenSource) || list[0];
-      callback(src ? { video: src } : {});
+      // Clips mit Ton: Systemton (Loopback) nur, wenn die Seite Audio verlangt; die Erkennung fragt ohne Audio
+      callback(src ? (request.audioRequested && process.platform === 'win32' ? { video: src, audio: 'loopback' } : { video: src }) : {});
     }).catch(() => callback({}));
   });
+  // clips (js/shiny_clip.js): only plain file names, written into the clip folder
+  ipcMain.handle('shiny-clip-save', (e, name, bytes) => {
+    try {
+      const base = path.basename(String(name || '')).replace(/[\\/:*?"<>|]+/g, '');
+      if (!/\.(mp4|webm)$/i.test(base)) return { error: 'name' };
+      fs.mkdirSync(clipDir(), { recursive: true });
+      let file = path.join(clipDir(), base), n = 1;
+      while (fs.existsSync(file)) file = path.join(clipDir(), base.replace(/(\.\w+)$/, ' (' + (++n) + ')$1'));
+      fs.writeFileSync(file, Buffer.from(bytes || []));
+      return { ok: true, path: file };
+    } catch (err) { return { error: String(err && err.message || err) }; }
+  });
+  ipcMain.on('shiny-clip-open', (e, p) => { if (inClipDir(p) && fs.existsSync(p)) shell.openPath(p); });
+  ipcMain.on('shiny-clip-show', (e, p) => { if (inClipDir(p) && fs.existsSync(p)) shell.showItemInFolder(p); });
+  ipcMain.on('shiny-clip-dir', () => { try { fs.mkdirSync(clipDir(), { recursive: true }); } catch (err) { /* */ } shell.openPath(clipDir()); });
   startServer();
 }
 
 app.on('will-quit', () => globalShortcut.unregisterAll());
 
-module.exports = { init };
+module.exports = { init, addRoute: (h) => routes.push(h), port: () => port };

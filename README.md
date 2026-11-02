@@ -1,6 +1,6 @@
 # Rattata Lab
 
-Damage Calculator, Teambuilder, Shiny-Zähler und Team-Analyse für **Pokémon Champions** (VGC 2026, Level 50, Stat Points, Reg M-C). Früher „Champions Damage Calc“.
+Damage Calculator, Teambuilder, Shiny-Zähler, Team-Analyse und Match-Overlays für OBS für **Pokémon Champions** (VGC 2026, Level 50, Stat Points, Reg M-C). Früher „Champions Damage Calc“.
 
 Eigener VGC-Schadensrechner für **Pokémon Champions** (Level 50, Stat Points), nach Vorbild des
 [NCP VGC Damage Calculator](https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/).
@@ -27,7 +27,7 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - Hinweis: Electron lädt sein Programm beim `npm install` per Install-Skript nach. Falls `node_modules/electron/dist/electron.exe` fehlt: `node node_modules/electron/install.js` ausführen.
 
 ## Startbildschirm und Teambuilder
-- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler** und **Team-Analyse** (Tasten `1` bis `6`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
+- Beim Start erscheint die Auswahl zwischen **Damage Calculator**, **Teambuilder**, **Soul Link**, **Nuzlocke**, **Shiny-Zähler**, **Team-Analyse** und **Match-Overlay** (Tasten `1` bis `7`). Das Logo oben links führt zurück zum Start, die Reiter daneben wechseln direkt.
 - **Teambuilder** (`js/builder.js`):
   - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
@@ -60,12 +60,25 @@ Zwei eigene Modi, unabhängig voneinander.
 ## Shiny-Zähler
 Eigener Modus (`js/shiny.js`, Quoten `js/shiny_odds.js`, Erkennung `js/shiny_detect.js`, Desktop-Teil `electron/shiny.js` und `electron/overlay.html`), angelehnt an die Funktionen von Encounty, aber selbst geschrieben (kein Code übernommen).
 - **Hunts**: beliebig viele parallel. Pro Hunt Pokémon (alle 1025), Spiel (Gen 2 bis Legenden: Z-A), Methode, Schillerpin und Schrittweite (z. B. 5 bei Horden). Zählen per Knopf, mit `+`/`−` im Fenster oder per globalem Hotkey.
+- **Zähler und Zeit von Hand festlegen**: „✎ Festlegen“ in der Zähler-Karte (oder Doppelklick auf die Zahl oder die Zeit), etwa um einen Hunt aus einem anderen Zähler zu übernehmen.
+  - Felder: Begegnungen der aktuellen Phase, Gesamt und Zeit (Stunden : Minuten : Sekunden).
+  - Bleibt „Gesamt“ leer, ändert es sich um denselben Betrag wie die Begegnungen.
+  - Ein laufender Timer läuft ab der neuen Zeit weiter. „Heute“ bleibt unverändert.
 - **Quoten** pro Spiel und Methode: Zufallsbegegnung/Soft Reset, Masuda, Zucht mit Shiny-Elternteil (Gen 2), Pokéradar, Angelkette, Kontaktsafari, Horden, SOS-Kette, Fangkombo mit Lockparfüm, Besiegt-Zähler (SwSh), Dyna-Raid-Abenteuer, Massenauftreten und Forschung (PLA), Massenauftreten und Sandwich (KP), eigene Quote. Näherungen sind mit „ca.“ markiert.
 - **Statistik**: Wahrscheinlichkeit, bis jetzt ein Shiny gefunden zu haben, Vielfaches der Quote, Meilensteine (50/75/90/99 %) mit verbleibenden Begegnungen und geschätzter Zeit, Begegnungen heute und pro Stunde, Timer.
 - **Phasen**: „Phase“ (anderes Shiny erschienen, optional in die Sammlung), „Entkommen“ (gesehen, nicht gefangen), letzte Phase rückgängig. „Gefunden!“ beendet den Hunt und trägt das Shiny mit Details in die Sammlung ein.
 - **Sammlung**: alle Fänge mit Spitzname, Geschlecht, Wesen, Level, Ball, Fundort, Spiel, Methode, Begegnungen, Phasen, Datum, Notizen; manuell eintragen und bearbeiten. **Shiny-Dex** pro Generation mit Fortschritt (gefangen, gesehen, fehlt).
-- **Globale Hotkeys** (Desktop-App, Standard `Strg+Alt+↑` zählen, `Strg+Alt+↓` zurück, `Strg+Alt+T` Timer, Phase frei belegbar): wirken auf alle Hunts mit Haken „Hotkeys zählen diesen Hunt“, auch wenn das Spiel im Vordergrund ist.
+- **Globale Hotkeys** (Desktop-App, Standard `Strg+Alt+↑` zählen, `Strg+Alt+↓` zurück, `Strg+Alt+T` Timer, Phase und Clip frei belegbar): wirken auf alle Hunts mit Haken „Hotkeys zählen diesen Hunt“, auch wenn das Spiel im Vordergrund ist.
 - **OBS** (Desktop-App): Browser-Quelle `http://127.0.0.1:39151/overlay` (Server nur lokal, fremde Hosts werden abgewiesen) mit Layout, Größe, Farben und Teilen zum Ein-/Ausblenden, Vorschau in der App. Layout **„Frei anordnen“**: Bühnengröße einstellbar, Sprite, Name, Zahl, Quote, Phase und Timer in der Vorschau mit der Maus verschieben, Mausrad = Größe je Teil, Pfeiltasten = genau verschieben. Die Vorschau ist das echte Overlay mit `edit=1` und meldet jede Änderung per `postMessage` an die App; die Anordnung (`overlay.free` in `cc_shiny`) geht über `/state` live an OBS, die Adresse bleibt `…/overlay?layout=free`. Dazu Textdateien im Ordner `OBS` der App-Daten (`zaehler.txt`, `gesamt.txt`, `phase.txt`, `quote.txt`, `chance.txt`, `timer.txt`, `pokemon.txt`, `methode.txt`, `spiel.txt`).
+- **Clips** (`js/shiny_clip.js`), ein Replay-Puffer wie in OBS:
+  - Die Spielquelle (Bildschirm/Fenster, Kamera/Capture-Karte oder die Quelle der automatischen Erkennung) wird im Hintergrund aufgenommen.
+  - Ein Clip speichert die letzten *Sekunden davor* (5–120, Standard 30) und *Sekunden danach* (0–30, Standard 5).
+  - Auslöser: „● Clip speichern“, globaler Hotkey „Clip speichern“ und automatisch bei „Gefunden!“ sowie bei Phase/Entkommen (beides abschaltbar).
+  - Der Shiny-Clip hängt am Fang und lässt sich in der Sammlung mit ▶ abspielen.
+  - Einstellungen: Qualität 720p oder 1080p, Ton: keiner, Systemton (Bildschirm, Windows-Loopback) oder ein Audio-Eingang, z. B. die Capture-Karte. Die letzte Quelle merkt sich die App („Verbinden: …“).
+  - Format MP4 (H.264), wo der Rekorder es kann, sonst WebM. Gespeichert unter `VideosRattata Lab Clips` (Desktop-App), im Browser als Download.
+  - Technik: MediaRecorder lassen sich vorn nicht kürzen. Deshalb startet alle *davor* Sekunden ein neuer Rekorder, alte werden verworfen. Beim Clip nimmt der älteste weiter auf, so ist der Clip *davor* bis 2 × *davor* Sekunden lang und immer eine vollständige Datei.
+  - Einstellungen und die letzten Clips liegen in `cc_shiny` unter `clip`.
 - **Automatische Erkennung – ALPHA**: Bildschirm/Fenster oder Kamera/Capture-Karte aufnehmen, im Bild einen Bereich markieren, eine oder mehrere Referenzen aufnehmen, während die Begegnung zu sehen ist. Vergleich in Graustufen (Korrelation + mittlere Abweichung), Zustandsmaschine mit Treffern in Folge, Sperre und Pause gegen Doppelzählungen, „Ruhewert messen“ für die Schwelle, „Nur testen“ ohne Zählen. Läuft lokal, auch im Hintergrund. Kameras und Capture-Karten werden in Full HD geöffnet.
   - **Text suchen** (nur Windows-App): statt eines Bildvergleichs liest die in Windows eingebaute Texterkennung (`Windows.Media.Ocr`, über `electron/ocr.js` + `electron/ocr.ps1`, bis zu 5 Bilder/s) den Text im Rahmen und zählt, sobald der gesuchte Name darin steht. Leer = Name des Hunts, mehrere Varianten mit Komma. Unscharfer Vergleich gegen 1–3 benachbarte Wörter: ein falsch gelesener Buchstabe stört nicht, „Abra“ zählt aber nicht bei „Kadabra“. Braucht eine installierte Windows-Sprache mit Texterkennung (bei deutschem oder englischem Windows vorhanden).
 - Gespeichert unter `cc_shiny` (Hunts, Sammlung, Hotkeys, Overlay).
@@ -82,6 +95,36 @@ Eigener Modus (`js/match.js`, Auswertung `js/match_parse.js`, Taste `6`). Ein Te
 - Der Bericht ist eine Tabelle: sechs Pokémon und Bilanz oben, Replay-Einträge, Nutzung (dabei, Siege, Quote, Anteil, Mega/Tera), Lead-Paare, Matchups, Attacken, Spiel für Spiel mit Filter, Serie für Serie. Siegquoten sind grün, gelb oder rot. Gespeichert unter `cc_match`, jedes Spiel mit `teamId`. „Sichern“ / „Datei laden“ schreibt `{ kind: "rattata-match", v: 2 }`. „Beispiel laden“ legt vier Spiele an das gerade gewählte Team.
 - Die Idee, aus Replay-Links diese Auswertungen zu bauen, stammt vom PALKIA Academy Showdown Reporting Spreadsheet v7.0 (PASRS, Bauerdad und v0Lt). Übernommen ist davon nichts außer der Fragestellung.
 
+## Match-Overlay
+Eigener Modus (`js/overlay.js`, Desktop-Teil `electron/match.js`, Seiten in `electron/match/`, Taste `7`). Er enthält die beiden früheren Python-Overlays „Team Overlay“ (`vgc_team_overlay.py`) und „Teampreview“ (`pokemon_team_overlay.py`). Aussehen und Verhalten sind übernommen, Python und Flask braucht es nicht mehr. Die Seiten laufen auf dem lokalen OBS-Server des Shiny-Zählers (nur `127.0.0.1`, gleicher Port). Deshalb gehen sie nur in der Desktop-App.
+- **Ein- und Ausschalten:** Oben stehen drei Schalter: *Team-Overlay*, *Teampreview* und *Matchup-Banner*. Jeder blendet sein Overlay in OBS weich aus und wieder ein, ohne die Adresse zu ändern. Dazu kommt die Sprache der Overlays (Deutsch/English, unabhängig von der App-Sprache) und „▶ Start-Screen abspielen“.
+- **Team-Overlay** (Browserquellen je 320 × 1080):
+  - `http://127.0.0.1:39151/match/team?side=me` zeigt das eigene Team, `…?side=opp` den Gegner.
+  - Pro Pokémon: Name, KP-Balken, Item, Fähigkeit · Wesen und Attacken. Das Bild kommt aus Pokémon HOME, bei passendem Mega-Stein die Mega-Form.
+  - Editor mit sechs Plätzen je Seite: Pokémon, Fähigkeit (nur legale), Item, Wesen, vier Attacken (Vorschläge aus dem Lernset, ⚠ bei nicht legalen), KP in % und K.O.
+  - Ein Klick aufs Bild markiert „mitgebracht“. Beim Gegner werden bis zu drei Gewählte hervorgehoben, ab vier stehen nur noch diese im Overlay. Beim eigenen Team stehen nur noch die Gewählten im Overlay, sobald eines markiert ist.
+  - Füllen: aus dem **Teambuilder**, per Showdown-Text oder von Hand. Beim Tippen ergänzt das Feld den Namen, `Tab` übernimmt, und `Tab` im Pokémon-Feld springt zum nächsten Pokémon.
+  - Modus *Turnier* oder *Ladder*: Im Ladder-Modus zeigt der Gegner kein Wesen, und „Neuer Gegner“ leert die Seite.
+  - Jede Seite lässt sich einzeln aus- und einblenden.
+- **Teampreview** (`/match/preview`, 1920 × 1080): beide Teams mit Typen, Fähigkeit, Wesen (↑/↓ Werte), Attacken mit Typ-Symbol und Item-Symbol.
+  - Optional die Bank (bis zu vier Namen je Team) und *Closed Team Sheet* (nur Pokémon und Typen).
+  - Hintergrund transparent oder lila animiert (`?bg=solid` erzwingt ihn).
+  - Teams kommen als Showdown-Export, aus dem Teambuilder oder vom Team-Overlay; Megas werden dabei als `…-Mega` ausgeschrieben.
+  - Pokémon außerhalb von Champions erkennt es über den Nationaldex.
+  - Unbekannte Namen stehen als Hinweis darunter. Dazu gibt es eine Vorschau.
+- **Matchup-Banner** (`/match/matchup`, 1920 × 200) und **Startseite „Wer gegen wen“** (`/match/start`, 1920 × 1080):
+  - Name, Standing, Spielstand (±), Teamlogos (PNG/JPG/WEBP/GIF/SVG bis 5 MB, große Bilder werden auf 720 × 400 verkleinert), Liga und Woche.
+  - Knöpfe für „Seiten tauschen“ (mit Logos) und „Stand 0:0“.
+  - „Start-Screen abspielen“ blendet die Startseite für 15 s im Teampreview ein (`?intro=<Sekunden>`).
+- Die App schickt den fertig aufbereiteten Stand an `/match/state` (Namen in der Overlay-Sprache, Typen, Bildadressen), und die Seiten fragen jede Sekunde nach. Nach einem Neustart der App laden sich offene Overlays in OBS selbst neu.
+- **Bilder:**
+  - Pokémon kommen aus Pokémon HOME über die PokéAPI-Nummer (`data/pokeapi_ids.js`), Ausweichquellen sind Showdown HOME und Gen 5. Im Teampreview wird der leere Rand abgeschnitten.
+  - Items kommen zuerst als Champions-Symbole vom PokéWiki (`electron/match/pokewiki_items.json`), dann von PokéAPI, zuletzt aus dem Showdown-Sheet.
+  - Alles läuft über `/match/img` (nur bekannte Hosts) und wird unter `%APPDATA%Rattata LabMatchOverlaycache` gespeichert. Danach geht es auch offline.
+  - Die Typ-Symbole stammen aus dem alten Teampreview (`electron/match/types/`).
+  - Logos liegen unter `MatchOverlaylogos`.
+- Gespeichert unter `cc_overlay`. Selbsttest in der Konsole: `CCOverlay.selfTest()`.
+
 ## Bedienung auf einen Blick
 - Alles passt ohne Scrollen auf den Bildschirm, ab etwa 1050 × 650 Pixeln. Bei kleineren Fenstern scrollt die Seite.
 - Die Oberfläche passt sich der Fenstergröße an (Basis 1180 × 800, Faktor 0,8 bis 1,9), damit kein Platz frei bleibt. Vorschau verschiedener Größen: `tools/preview.html?w=1920&h=1080` (braucht den lokalen Server).
@@ -96,7 +139,7 @@ Zahnrad oben rechts:
 - **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm), *Alle Modi* oder *Keine* (Wechsel nur über das Logo)
 - **Pokémon im Teambuilder**: animiertes 3D-Modell oder Pixel-Sprite
 - **Design**: dunkel oder hell
-- **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler oder Team-Analyse
+- **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse oder Match-Overlay
 - **Sprache**: Deutsch oder English
 
 ## Sprache (Deutsch / English)
@@ -151,8 +194,10 @@ Beide Knöpfe oben rechts laden Daten direkt im Browser (Internet nötig, kein S
 - `js/app.js`: Oberfläche, Set-Auswahl, Import/Export
 - `js/online.js`: Online-Aktualisierung von Sets und Regulation
 - `js/builder.js`: Teambuilder, inklusive der Auswahlfenster (`openPicker`)
-- `js/capture.js`, `js/shiny_detect.js`: Spielaufzeichnung und automatische Erkennung des Shiny-Zählers
+- `js/capture.js`, `js/shiny_detect.js`, `js/shiny_clip.js`: Spielaufzeichnung, automatische Erkennung und Clips des Shiny-Zählers
 - `js/match_parse.js`, `js/match.js`: Team-Analyse (ein Teambuilder-Team, Showdown-Replays)
+- `js/overlay.js`, `electron/match.js`, `electron/match/`: Match-Overlay (Team-Overlay, Teampreview, Matchup-Banner, Startseite für OBS)
+- `data/pokeapi_ids.js`: PokéAPI-Nummern für die HOME-Bilder der Overlays. Erzeugt mit `node tools/build_pokeapi_ids.mjs pokemon.csv pokemon_species.csv data/pokeapi_ids.js` (beide CSV aus `PokeAPI/pokeapi`, `data/v2/csv/`)
 - `data/`: Pokédex, Attacken, Items, Fähigkeiten und Sets aus dem NCP-Repo (Credits: Alex Collins / Jake White)
 - `data/desc_en.js`, `data/desc_de.js`, `data/pick_meta.js`: Effekttexte (englisch aus Pokémon Showdown, mit den Änderungen von Champions; deutsch aus den Spieltexten von PokeAPI, dazu eigene Übersetzungen für Gen-9-Inhalte und Champions-Änderungen), PP der Attacken und Symbol-Nummern der Items. Erzeugt mit `tools/build_pick.mjs`. Gibt es für einen neu geladenen Eintrag keinen deutschen Text, steht der englische da, sonst keiner.
 - `img/types/`: runde Typ-Symbole (18 SVG) von [partywhale/pokemon-type-icons](https://github.com/partywhale/pokemon-type-icons), MIT-Lizenz (`img/types/LICENSE.txt`). Die Item-Symbole kommen wie die Sprites online von Pokémon Showdown (`itemicons-sheet.png`) und brauchen Internet.

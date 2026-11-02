@@ -1,0 +1,77 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Team-Overlay</title>
+<!-- Team-Overlay für OBS (übernommen aus vgc_team_overlay.py): eine Spalte je Seite, Browserquelle 320 × 1080.
+     /match/team?side=me (mein Team) oder ?side=opp (Gegner). Daten: /match/state → team. -->
+<style>
+  html,body{margin:0;height:100%;background:transparent;font-family:'Segoe UI',sans-serif;color:#fff;overflow:hidden}
+  #t{display:flex;flex-direction:column;gap:6px;padding:6px;height:100%;box-sizing:border-box;transition:opacity .6s ease}
+  #t.hid{opacity:0}
+  .c{flex:1;min-height:0;background:rgba(15,15,25,.85);border:1px solid rgba(255,255,255,.15);
+     border-radius:10px;padding:6px 8px;display:flex;align-items:center;gap:8px}
+  .img{width:110px;height:110px;flex:none;display:flex;align-items:center;justify-content:center}
+  .img img{max-width:110px;max-height:110px;object-fit:contain}
+  .i{flex:1;min-width:0}
+  .n{font-weight:700;font-size:20px;line-height:1.15}
+  .hpb{position:relative;height:16px;margin:2px 0 3px;background:rgba(255,255,255,.15);border-radius:8px;overflow:hidden}
+  .hpb div{height:100%;border-radius:8px}
+  .hpb span{position:absolute;inset:0;text-align:center;font-size:12px;font-weight:700;line-height:16px;
+    text-shadow:0 0 3px #000,0 0 3px #000}
+  .c.ko{opacity:.45;filter:grayscale(1)}
+  .c.ko .n{text-decoration:line-through}
+  .it{font-size:15px;color:#ffd866;line-height:1.2}
+  .s{font-size:13px;opacity:.75;margin-bottom:3px;line-height:1.2}
+  .m{font-size:15px;line-height:1.28}
+  .m div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.me .c{border-color:rgba(90,160,255,.75)}
+  body.opp .c{border-color:rgba(255,100,100,.75)}
+  body.opp .c.hl{border-color:#4cd964;border-width:2px;background:rgba(30,70,40,.9);box-shadow:0 0 12px #4cd964}
+</style></head><body>
+<div id="t"></div>
+<script>
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const side = new URLSearchParams(location.search).get('side') === 'me' ? 'me' : 'opp';
+document.body.className = side;
+const px = u => u && u.indexOf('/') === 0 ? u : '/match/img?u=' + encodeURIComponent(u);
+function nextSprite(img){
+  const l = JSON.parse(img.dataset.l), i = +img.dataset.i + 1;
+  if (i < l.length){ img.dataset.i = i; img.src = l[i]; } else img.style.visibility = 'hidden';
+}
+function hpBar(p){
+  const hp = p.ko ? 0 : p.hp;
+  const col = hp > 50 ? '#4cd964' : hp > 20 ? '#ffcc00' : '#ff4d4d';
+  return `<div class="hpb"><div style="width:${hp}%;background:${col}"></div><span>${p.ko ? 'KO' : hp + '%'}</span></div>`;
+}
+let last = '', boot = null;
+async function load(){
+  try{
+    const d = await (await fetch('/match/state', {cache: 'no-store'})).json();
+    if (boot && d.v !== boot){ location.reload(); return; }
+    boot = d.v;
+    const T = d.team || {};
+    document.getElementById('t').classList.toggle('hid', T.show === false);
+    const all = T[side] || [];
+    // Gegner: alle zeigen, gewählte hervorheben; ab 4 gewählten nur noch diese 4.
+    // Mein Team: sobald eines gewählt ist, nur die gewählten.
+    const picked = all.filter(p => p.brought);
+    const team = side === 'opp' ? (picked.length >= 4 ? picked : all) : (picked.length ? picked : all);
+    const hl = side === 'opp' && picked.length > 0 && picked.length < 4;
+    const j = JSON.stringify([hl, team]);
+    if (j === last) return;
+    last = j;
+    document.getElementById('t').innerHTML = team.map(p => {
+      const list = (p.sprites || []).map(px);
+      return `
+      <div class="c${p.ko ? ' ko' : ''}${hl && p.brought ? ' hl' : ''}">
+        <div class="img"><img src="${esc(list[0] || '')}" data-i="0" data-l="${esc(JSON.stringify(list))}" onerror="nextSprite(this)"></div>
+        <div class="i">
+          <div class="n">${esc(p.name)}</div>
+          ${(p.ko || (p.hp != null && p.hp < 100)) ? hpBar(p) : ''}
+          ${(p.item || p.tera) ? '<div class="it">' + esc(p.item || '') + (p.tera ? ' · Tera ' + esc(p.tera) : '') + '</div>' : ''}
+          <div class="s">${esc(p.ability || '')}${p.nature ? ' · ' + esc(p.nature) : ''}</div>
+          <div class="m">${(p.moves || []).map(m => '<div>' + esc(m) + '</div>').join('')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+load(); setInterval(load, 1000);
+</script></body></html>

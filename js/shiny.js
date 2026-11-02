@@ -1,6 +1,6 @@
 // Shiny-Zähler (eigener Modus #shinyView): beliebig viele parallele Hunts mit Quote pro Spiel und Methode,
-// Phasen, Timer, Statistik, Shiny-Sammlung mit Shiny-Dex, globale Hotkeys und OBS-Overlay (Desktop-App).
-// Automatische Erkennung: js/shiny_detect.js (Alpha).
+// Phasen, Timer (Zähler und Zeit auch von Hand), Statistik, Shiny-Sammlung mit Shiny-Dex, globale Hotkeys und OBS-Overlay (Desktop-App).
+// Automatische Erkennung: js/shiny_detect.js (Alpha). Clips (Replay-Puffer): js/shiny_clip.js.
 // Gespeichert im Browser unter localStorage "cc_shiny".
 (function () {
   'use strict';
@@ -38,6 +38,9 @@
     show: 'Anzeigen', sh_sprite: 'Sprite', sh_name: 'Name', sh_odds: 'Quote', sh_phase: 'Phase', sh_timer: 'Timer', color: 'Schrift', accent: 'Zahl', bg: 'Hintergrund',
     transparent: 'durchsichtig', size: 'Größe', which: 'Hunt', whichSel: 'immer der ausgewählte', preview: 'Vorschau', files: 'Textdateien für OBS',
     filesHint: 'Werden bei jeder Änderung aktualisiert (zaehler.txt, gesamt.txt, phase.txt, quote.txt, chance.txt, timer.txt, pokemon.txt, methode.txt, spiel.txt).',
+    setBtn: '✎ Festlegen', setT: 'Begegnungen und Zeit von Hand festlegen (auch per Doppelklick auf Zahl oder Zeit)', setTitle: 'Zähler und Zeit festlegen',
+    setCount: 'Begegnungen (diese Phase)', setTotal: 'Gesamt (alle Phasen)', setTotalT: 'Leer lassen: ändert sich um denselben Betrag wie die Begegnungen', setTime: 'Zeit (Stunden : Minuten : Sekunden)',
+    setHint: 'Zum Übernehmen eines Hunts aus einem anderen Zähler oder zum Korrigieren. „Heute“ bleibt unverändert.', act_clip: 'Clip speichern', clipPlay: 'Clip abspielen',
     openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
@@ -67,6 +70,9 @@
     show: 'Show', sh_sprite: 'Sprite', sh_name: 'Name', sh_odds: 'Odds', sh_phase: 'Phase', sh_timer: 'Timer', color: 'Text', accent: 'Number', bg: 'Background',
     transparent: 'transparent', size: 'Size', which: 'Hunt', whichSel: 'always the selected one', preview: 'Preview', files: 'Text files for OBS',
     filesHint: 'Updated on every change (zaehler.txt = count, gesamt.txt = total, phase.txt, quote.txt = odds, chance.txt, timer.txt, pokemon.txt, methode.txt, spiel.txt).',
+    setBtn: '✎ Set', setT: 'Set encounters and time by hand (also by double-clicking the number or the time)', setTitle: 'Set counter and time',
+    setCount: 'Encounters (this phase)', setTotal: 'Total (all phases)', setTotalT: 'Leave empty: changes by the same amount as the encounters', setTime: 'Time (hours : minutes : seconds)',
+    setHint: 'To take over a hunt from another counter or to correct it. "Today" stays as it is.', act_clip: 'Save clip', clipPlay: 'Play clip',
     openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
@@ -166,6 +172,9 @@
     persist();
   });
   store.tab = store.tab || 'hunts';
+  if (store.hotkeys.clip == null) store.hotkeys.clip = '';
+  var Clip = window.CCShinyClip || null;
+  if (Clip) store.clip = Clip.init(store.clip, function () { persist(); });
   store.dexGen = store.dexGen || 0;
   store.dexView = store.dexView || 'catches';
   var saveTimer = null;
@@ -237,8 +246,50 @@
     return { id: newId('c'), species: species, nick: '', gender: '', nature: '', ball: '', location: '', level: '', game: h.game, method: h.method,
       encounters: n, phases: h.phases.length, date: today(), notes: '', hunt: h.id };
   }
+  // clips (js/shiny_clip.js): automatically on "Found!" and on a phase, when switched on
+  function autoClip(h, reason) {
+    if (!Clip || !Clip.active() || !h) return;
+    if (reason === 'found' ? !store.clip.autoFound : !store.clip.autoPhase) return;
+    var at = Date.now();
+    Clip.trigger(reason, huntName(h), h.id).then(function (c) {
+      if (!c || reason !== 'found' || !c.path) return;
+      h.lastClip = c.path; h.lastClipAt = at;
+      // the catch may already be saved: link the clip there
+      var e = store.collection.filter(function (x) { return x.hunt === h.id && !x.clip && (x.savedAt || 0) >= at - 1000; })[0];
+      if (e) e.clip = c.path;
+      persist(); rerender();
+    });
+  }
+  // set encounters, total and time by hand (taking over a hunt, corrections)
+  function openSetCount(h) {
+    modal(t('setTitle'), function (body) {
+      body.appendChild(el('div', { class: 'hint', text: t('setHint') }));
+      var c = field(body, t('setCount'), el('input', { type: 'number', min: 0, step: 1, value: h.count }));
+      var tot = field(body, t('setTotal'), el('input', { type: 'number', min: 0, step: 1, placeholder: fmt(h.total || 0), title: t('setTotalT') }));
+      var ms = timeOf(h), tw = el('div', { class: 'sh-settime' });
+      var hh = el('input', { type: 'number', min: 0, max: 99999, value: Math.floor(ms / 3600000) });
+      var mm = el('input', { type: 'number', min: 0, max: 59, value: Math.floor(ms % 3600000 / 60000) });
+      var ss = el('input', { type: 'number', min: 0, max: 59, value: Math.floor(ms % 60000 / 1000) });
+      tw.appendChild(hh); tw.appendChild(document.createTextNode(':')); tw.appendChild(mm); tw.appendChild(document.createTextNode(':')); tw.appendChild(ss);
+      field(body, t('setTime'), tw);
+      setTimeout(function () { c.select(); }, 0);
+      return function () {
+        var n = function (x, hi) { var v = Math.floor(+x.value); return isNaN(v) || v < 0 ? 0 : Math.min(hi, v); };
+        return { count: n(c, 1e9), total: tot.value === '' ? null : n(tot, 1e9), ms: ((n(hh, 99999) * 60 + n(mm, 59)) * 60 + n(ss, 59)) * 1000 };
+      };
+    }, function (v) {
+      var d = v.count - h.count;
+      h.count = v.count;
+      h.total = v.total != null ? Math.max(v.total, v.count) : Math.max(v.count, (h.total || 0) + d);
+      h.timeMs = v.ms;
+      if (h.runStart) h.runStart = Date.now();
+      persist(); render();
+    });
+  }
   // global hotkeys and the window keys
   function hotkeyAction(action) {
+    if (action === 'clip') { if (Clip) Clip.trigger('manual', sel() ? huntName(sel()) : '', sel() ? sel().id : ''); return; }
+    if (action === 'phase') autoClip(sel(), 'phase');
     var list = store.hunts.filter(function (h) { return h.hotkey && h.status !== 'found'; });
     if (!list.length && sel()) list = [sel()];
     list.forEach(function (h) {
@@ -435,7 +486,8 @@
     stage.appendChild(shinyImg(h.species, 'sh-big', true));
     cc.appendChild(stage);
     cc.appendChild(el('div', { class: 'sh-name', text: huntName(h) + (h.title && h.species ? ' · ' + monName(h.species) : '') }));
-    var num = el('div', { class: 'sh-count', 'data-count': h.id, text: fmt(h.count) });
+    var num = el('div', { class: 'sh-count', 'data-count': h.id, text: fmt(h.count), title: t('setT') });
+    num.addEventListener('dblclick', function () { openSetCount(h); });
     var row = el('div', { class: 'sh-countrow' });
     var minus = el('button', { class: 'sh-minus', text: '−', title: t('act_dec') });
     minus.addEventListener('click', function () { count(h, -1); });
@@ -454,21 +506,25 @@
       var pb = el('button', { class: 'tbtn', text: t('phaseBtn'), title: t('phaseT') });
       pb.addEventListener('click', function () { openPhase(h); });
       var fb = el('button', { class: 'tbtn', text: t('failedBtn'), title: t('failedT') });
-      fb.addEventListener('click', function () { finishPhase(h, h.species, true, false); render(); });
+      fb.addEventListener('click', function () { autoClip(h, 'phase'); finishPhase(h, h.species, true, false); render(); });
       var gb = el('button', { class: 'primary-btn sh-foundbtn', text: t('foundBtn') });
-      gb.addEventListener('click', function () { openCatch(null, h); });
+      gb.addEventListener('click', function () { autoClip(h, 'found'); openCatch(null, h); });
       var rb = el('button', { class: 'tbtn', text: t('resetBtn') });
       rb.addEventListener('click', function () {
         if (!confirm(t('resetConfirm'))) return;
         h.count = 0; h.total = 0; h.phases = []; h.timeMs = 0; h.runStart = h.runStart ? Date.now() : 0; h.days = {}; persist(); render();
       });
-      acts.appendChild(pb); acts.appendChild(fb); acts.appendChild(gb); acts.appendChild(rb);
+      var setb = el('button', { class: 'tbtn', text: t('setBtn'), title: t('setT') });
+      setb.addEventListener('click', function () { openSetCount(h); });
+      acts.appendChild(pb); acts.appendChild(fb); acts.appendChild(gb); acts.appendChild(setb); acts.appendChild(rb);
       cc.appendChild(acts);
     }
     // timer
     var tm = el('div', { class: 'sh-timer' });
     tm.appendChild(el('span', { class: 'sh-lbl', text: t('timer') }));
-    tm.appendChild(el('span', { class: 'sh-time', 'data-timer': h.id, text: dur(timeOf(h)) }));
+    var tme = el('span', { class: 'sh-time', 'data-timer': h.id, text: dur(timeOf(h)), title: t('setT') });
+    tme.addEventListener('dblclick', function () { openSetCount(h); });
+    tm.appendChild(tme);
     var tb = el('button', { class: 'tbtn' + (h.runStart ? ' running' : ''), text: h.runStart ? '⏸ ' + t('pause') : '▶ ' + t('start') });
     tb.addEventListener('click', function () { setRunning(h, !h.runStart); persist(); render(); });
     tm.appendChild(tb);
@@ -511,6 +567,12 @@
       grid.appendChild(dp);
       window.CCShinyDetect.panel(dp, h, { count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
         name: function () { return h.species ? monName(h.species) : ''; } });
+    }
+    if (Clip) {
+      var cp = el('div', { class: 'sh-detect sh-clip panel' });
+      grid.appendChild(cp);
+      Clip.panel(cp, { name: function () { return huntName(h); }, hunt: function () { return h.id; },
+        stream: function () { return window.CCShinyDetect && window.CCShinyDetect.stream ? window.CCShinyDetect.stream(h.id) : null; } });
     }
   }
 
@@ -609,6 +671,7 @@
       return function () { return { species: picked, add: c.checked }; };
     }, function (v) {
       var n = h.count;
+      autoClip(h, 'phase');
       finishPhase(h, v.species, false, false);
       if (v.add) { var c = catchFromHunt(h, v.species, n); store.collection.unshift(c); h.phases[h.phases.length - 1].catchId = c.id; persist(); }
       render();
@@ -648,7 +711,8 @@
       if (!v.species) { A.toast(t('pick')); return false; }
       if (h) {
         h.status = 'found'; h.foundAt = v.date; setRunning(h, false);
-        v.phases = h.phases.length;
+        v.phases = h.phases.length; v.savedAt = Date.now();
+        if (h.lastClip && Date.now() - (h.lastClipAt || 0) < 15 * 60000) v.clip = h.lastClip;
         store.collection.unshift(v);
         A.toast(t('huntFound', monName(v.species)));
       } else if (isNew) store.collection.unshift(v);
@@ -726,6 +790,7 @@
       ed.addEventListener('click', function () { openCatch(c, null); });
       var dl = el('button', { class: 'tbtn danger', text: '✕', title: t('delCatch') });
       dl.addEventListener('click', function () { if (!confirm(t('delCatchConfirm'))) return; store.collection = store.collection.filter(function (x) { return x !== c; }); persist(); render(); });
+      if (c.clip && Clip && D) { var pl = el('button', { class: 'tbtn', text: '▶', title: t('clipPlay') }); pl.addEventListener('click', function () { Clip.open(c.clip); }); tools.appendChild(pl); }
       tools.appendChild(ed); tools.appendChild(dl);
       card.appendChild(tools);
       cards.appendChild(card);
@@ -760,7 +825,7 @@
     var hp = el('div', { class: 'panel sh-card' });
     hp.appendChild(el('h3', { text: t('hkTitle') }));
     hp.appendChild(el('div', { class: 'hint', text: D ? t('hkHint') : t('hkDesktop') }));
-    ['inc', 'dec', 'phase', 'timer'].forEach(function (a) {
+    ['inc', 'dec', 'phase', 'timer', 'clip'].forEach(function (a) {
       var r = el('div', { class: 'sh-hk-row' });
       r.appendChild(el('span', { class: 'sh-hk-name', text: t('act_' + a) }));
       var key = el('span', { class: 'sh-hk-key', text: accelLabel(store.hotkeys[a]) });
