@@ -2,9 +2,10 @@
 <!-- Matchup-Banner für OBS (übernommen aus pokemon_team_overlay.py): Namen, Standing, Spielstand, Woche, Teamlogos.
      Browserquelle 1920 × 200: /match/matchup. Daten: /match/state → match. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;overflow:hidden}
 #view{position:fixed;inset:0;transition:opacity .7s ease}
 #view.hid{opacity:0}
 #stage{position:absolute;left:0;top:0;width:1920px;height:200px;transform-origin:0 0;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased;backface-visibility:hidden;font-family:"Bahnschrift","Arial Narrow","Segoe UI",system-ui,sans-serif;color:#fff}

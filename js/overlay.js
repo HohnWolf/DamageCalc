@@ -550,6 +550,11 @@
 
     var swWrap = el('div', { class: 'mo-switches' });
     if (curMode === 'own') {
+      swWrap.appendChild(seg([['tournament', t('tournament')], ['ladder', t('ladder')]], store.team.mode, function (v) { store.team.mode = v; persist(); render(); }));
+      if (store.team.mode === 'ladder') {
+        swWrap.appendChild(btn(t('newOpp'), 'primary-btn', function () { store.team.opp.hidden = false; applyMons('opp', []); persist(); render(); }));
+      }
+      swWrap.appendChild(btn(t('hideAll'), '', function () { store.team.me.hidden = true; store.team.opp.hidden = true; persist(); render(); }));
       swWrap.appendChild(toggle(t('ovTeam'), store.team.show, function () { store.team.show = !store.team.show; persist(); render(); }));
     } else {
       swWrap.appendChild(toggle(t('ovPreview'), store.preview.show, function () { store.preview.show = !store.preview.show; persist(); render(); }));
@@ -762,8 +767,6 @@
     var box = el('div', { class: 'panel mo-side ' + side, id: 'moSide_' + side });
     var hd = el('div', { class: 'mo-shead' });
     hd.appendChild(el('b', { id: 'moSideTitle_' + side, text: sideLabel(side) }));
-    if (side === 'opp') hd.appendChild(seg([['tournament', t('tournament')], ['ladder', t('ladder')]], store.team.mode, function (v) { store.team.mode = v; persist(); render(); }));
-    if (side === 'opp' && store.team.mode === 'ladder') hd.appendChild(btn(t('newOpp'), 'primary-btn', function () { sd.hidden = false; applyMons('opp', []); persist(); render(); }));
     hd.appendChild(builderSelect(function (tm) {
       applyMons(side, (tm.mons || []).map(function (m) {
         var s = m.set || {};
@@ -785,7 +788,6 @@
     hd.appendChild(btn(t('paste'), '', function () { pasteBox.hidden = !pasteBox.hidden; if (!pasteBox.hidden) ta.focus(); }));
     hd.appendChild(btn(t('clear'), '', function () { applyMons(side, []); persist(); render(); }));
     hd.appendChild(btn(sd.hidden ? t('unhide') : t('hide'), sd.hidden ? 'mo-off' : '', function () { sd.hidden = !sd.hidden; persist(); render(); }));
-    if (side === 'opp') hd.appendChild(btn(t('hideAll'), '', function () { store.team.me.hidden = true; store.team.opp.hidden = true; persist(); render(); }));
     hd.appendChild(el('span', { class: 'hint mo-msg', id: 'moMsg_' + side }));
     box.appendChild(hd);
     var ta = el('textarea', { class: 'mo-ta', spellcheck: 'false', placeholder: t('pasteTitle') });
@@ -797,18 +799,20 @@
     pa.appendChild(pmsg);
     pasteBox.appendChild(pa);
     box.appendChild(pasteBox);
-    for (var i = 0; i < 6; i++) box.appendChild(renderSlot(side, i));
+    var slotsWrap = el('div', { class: 'mo-slots-wrap' });
+    for (var i = 0; i < 6; i++) slotsWrap.appendChild(renderSlot(side, i));
+    box.appendChild(slotsWrap);
     box.classList.toggle('hasbr', sd.slots.some(function (s) { return s.brought; }));
     box.classList.toggle('is-hidden', sd.hidden);
     return box;
   }
   function renderTeam() {
-    var w = el('div', { class: 'mo-tab' });
+    var w = el('div', { class: 'mo-tab own-tab' });
     var urls = el('div', { class: 'panel mo-urls-bar' });
     urls.appendChild(urlRow('/match/team?side=me', 320, 1080, el('b', { class: 'mo-tag me', text: t('me') })));
     urls.appendChild(urlRow('/match/team?side=opp', 320, 1080, el('b', { class: 'mo-tag opp', text: t('opp') })));
     w.appendChild(urls);
-    var g = el('div', { class: 'mo-two' });
+    var g = el('div', { class: 'mo-two own-two' });
     g.appendChild(renderSide('me'));
     g.appendChild(renderSide('opp'));
     w.appendChild(g);
@@ -824,19 +828,12 @@
     return i;
   }
   function renderRecordingMatch() {
-    var p = store.preview, m = store.match, w = el('div', { class: 'mo-tab' });
-    var card = el('div', { class: 'panel mo-card' });
+    var p = store.preview, m = store.match, w = el('div', { class: 'mo-tab rec-tab' });
 
-    // 1. Compact URLs bar (Teampreview + Matchup-Banner + Startseite)
-    var sopen = el('a', { href: '#', class: 'hint', text: t('open') });
-    sopen.addEventListener('click', function (e) { e.preventDefault(); if (base) window.open(base + '/match/start', '_blank'); });
-    var urls = el('div', { class: 'mo-urls-bar three' });
-    urls.appendChild(urlRow('/match/preview', 1920, 1080, el('b', { class: 'mo-tag', text: t('ovPreview') })));
-    urls.appendChild(urlRow('/match/matchup', 1920, 200, el('b', { class: 'mo-tag', text: t('ovMatch') })));
-    urls.appendChild(urlRow('/match/start', 1920, 1080, el('b', { class: 'mo-tag', text: t('start') }), sopen));
-    card.appendChild(urls);
+    var split = el('div', { class: 'mo-rec-split' });
+    var leftPane = el('div', { class: 'panel mo-card mo-rec-left' });
 
-    // 2. Compact Matchup Event & Teampreview Options bar (Score, Swap, League, Week, Background, Bench, Closed, Sample, Clear)
+    // 1. Compact Matchup Event & Teampreview Options bar (Score, Swap, League, Week, Background, Bench, Closed, Sample, Clear)
     var metaBar = el('div', { class: 'mo-pbar mo-rec-bar' });
     var scBox = el('div', { class: 'mo-score-inline' });
     var vL = el('b', { text: String(m.scoreL) }), vR = el('b', { text: String(m.scoreR) });
@@ -884,15 +881,14 @@
       p.t1 = p.t2 = p.b1 = p.b2 = '';
       persist(); render();
     }));
-    card.appendChild(metaBar);
+    leftPane.appendChild(metaBar);
 
-    // 3. Two unified player columns: Player Name (once!) + Standing + Logo + Team Showdown export + Bench
-    var g = el('div', { class: 'mo-two' });
+    // 2. Two unified player columns: Player Name (once!) + Standing + Logo + Team Showdown export + Bench
+    var g = el('div', { class: 'mo-two rec-two' });
     [1, 2].forEach(function (n) {
       var k = n === 1 ? 'L' : 'R', sideCls = n === 1 ? 'me' : 'opp';
       var col = el('div', { class: 'mo-col mo-mcol ' + sideCls });
 
-      // Player header: Name (single input!), Standing, and Logo in one compact row
       var pHead = el('div', { class: 'mo-phead' });
       pHead.appendChild(el('span', { class: 'mo-plbl ' + sideCls, text: 'P' + n }));
       var nameIn = el('input', { type: 'text', class: 'mo-pin ' + sideCls, placeholder: t(n === 1 ? 'playerL' : 'playerR') });
@@ -930,7 +926,6 @@
       pHead.appendChild(lg);
       col.appendChild(pHead);
 
-      // Team import toolbar + Showdown textarea
       var tb = el('div', { class: 'mo-bar mo-col-head ' + sideCls });
       var ta = el('textarea', { class: 'mo-ta tall', spellcheck: 'false', placeholder: t('teamPh') });
       ta.value = p['t' + n];
@@ -954,21 +949,33 @@
       }
       g.appendChild(col);
     });
-    card.appendChild(g);
-    card.appendChild(el('div', { class: 'mo-warn', id: 'moUnknown' }));
-    w.appendChild(card);
+    leftPane.appendChild(g);
+    leftPane.appendChild(el('div', { class: 'mo-warn', id: 'moUnknown' }));
+    split.appendChild(leftPane);
+
+    // 3. Right pane: OBS URLs + Live Previews (Matchup-Banner & Teampreview)
+    var rightPane = el('div', { class: 'panel mo-card mo-rec-right' });
+    var sopen = el('a', { href: '#', class: 'hint', text: t('open') });
+    sopen.addEventListener('click', function (e) { e.preventDefault(); if (base) window.open(base + '/match/start', '_blank'); });
+    var urls = el('div', { class: 'mo-urls-stack' });
+    urls.appendChild(urlRow('/match/preview', 1920, 1080, el('b', { class: 'mo-tag', text: t('ovPreview') })));
+    urls.appendChild(urlRow('/match/matchup', 1920, 200, el('b', { class: 'mo-tag', text: t('ovMatch') })));
+    urls.appendChild(urlRow('/match/start', 1920, 1080, el('b', { class: 'mo-tag', text: t('start') }), sopen));
+    rightPane.appendChild(urls);
 
     if (D) {
-      var pv = el('div', { class: 'panel mo-card mo-prev-box' });
-      var frBanner = el('div', { class: 'mo-frame banner' });
+      var frBanner = el('div', { class: 'mo-frame banner is-trans' });
+      frBanner.appendChild(el('span', { class: 'mo-trans-badge', text: t('ovMatch') + ' · ' + t('bgT') }));
       frBanner.appendChild(el('iframe', { src: base + '/match/matchup', title: t('ovMatch') }));
-      pv.appendChild(frBanner);
-      var frWide = el('div', { class: 'mo-frame wide' });
+      rightPane.appendChild(frBanner);
+
+      var frWide = el('div', { class: 'mo-frame wide' + (p.bg === 't' ? ' is-trans' : '') });
+      frWide.appendChild(el('span', { class: 'mo-trans-badge', text: t('ovPreview') + ' · ' + (p.bg === 't' ? t('bgT') : t('bgS')) }));
       frWide.appendChild(el('iframe', { src: base + '/match/preview', title: t('tabPreview') }));
-      pv.appendChild(frWide);
-      pv.appendChild(el('div', { class: 'hint', text: t('preview') }));
-      w.appendChild(pv);
+      rightPane.appendChild(frWide);
     }
+    split.appendChild(rightPane);
+    w.appendChild(split);
     return w;
   }
 

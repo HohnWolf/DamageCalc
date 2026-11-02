@@ -24,9 +24,9 @@
 .hint { color: var(--muted); font-size: 12px; }
 
 /* ---------- start screen card ---------- */
-.sc-art-nuz { flex-direction: row; align-items: stretch; justify-content: space-around; gap: 6px; padding: 4px 8px; }
-.sc-link { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 1px; }
-.sc-link-img { width: 100%; height: 42%; margin: 0; object-fit: contain; image-rendering: pixelated; flex: none; }
+.sc-art-nuz { flex-direction: row !important; align-items: center; justify-content: space-around; gap: 6px; padding: 4px 8px; }
+.sc-link { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.sc-link-img { width: clamp(26px, 4vh, 35px); height: clamp(26px, 4vh, 35px); margin: 0; object-fit: contain; image-rendering: pixelated; flex: none; }
 .sc-chain { color: var(--sl); font-size: 10px; line-height: 1; flex: none; }
 
 /* ---------- Soul Link ---------- */

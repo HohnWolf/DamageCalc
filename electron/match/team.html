@@ -1,8 +1,9 @@
 <!doctype html><html lang="de"><head><meta charset="utf-8"><title>Team-Overlay</title>
 <!-- Team-Overlay für OBS (übernommen aus vgc_team_overlay.py): eine Spalte je Seite, Browserquelle 320 × 1080.
      /match/team?side=me (mein Team) oder ?side=opp (Gegner). Daten: /match/state → team. -->
+<meta name="color-scheme" content="dark light">
 <style>
-  html,body{margin:0;height:100%;background:transparent;font-family:'Segoe UI',sans-serif;color:#fff;overflow:hidden}
+  html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;font-family:'Segoe UI',sans-serif;color:#fff;overflow:hidden}
   #t{display:flex;flex-direction:column;gap:6px;padding:6px;height:100%;box-sizing:border-box;transition:opacity .6s ease}
   #t.hid{opacity:0}
   .c{flex:1;min-height:0;background:rgba(15,15,25,.85);border:1px solid rgba(255,255,255,.15);
