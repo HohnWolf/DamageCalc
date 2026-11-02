@@ -24,10 +24,10 @@
 .hint { color: var(--muted); font-size: 12px; }
 
 /* ---------- start screen card ---------- */
-.sc-art-nuz { flex-direction: row; align-items: center; justify-content: space-around; gap: 6px; padding: 8px 10px; }
-.sc-link { display: flex; flex-direction: column; align-items: center; gap: 0; }
-.sc-link-img { width: clamp(28px, 4.6vh, 48px); height: clamp(28px, 4.6vh, 48px); margin: 0; object-fit: contain; image-rendering: pixelated; }
-.sc-chain { color: var(--sl); font-size: 11px; line-height: 1; }
+.sc-art-nuz { flex-direction: row; align-items: stretch; justify-content: space-around; gap: 6px; padding: 4px 8px; }
+.sc-link { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 1px; }
+.sc-link-img { width: 100%; height: 42%; margin: 0; object-fit: contain; image-rendering: pixelated; flex: none; }
+.sc-chain { color: var(--sl); font-size: 10px; line-height: 1; flex: none; }
 
 /* ---------- Soul Link ---------- */
 .sl-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 8px; padding-top: 8px; }
@@ -64,7 +64,7 @@
 .sl-card.bad { border-color: var(--warn); }
 .sl-card-route { font-size: 11.5px; font-weight: 700; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sl-card-mon { display: flex; align-items: center; gap: 6px; border-left: 3px solid var(--pc); padding-left: 4px; min-width: 0; }
-.sl-card-img { width: 56px; height: 56px; margin: -8px -8px -8px -10px; flex: none; object-fit: contain; image-rendering: pixelated; }
+.sl-card-img { width: 36px; height: 36px; margin: 0; flex: none; object-fit: contain; image-rendering: pixelated; }
 .sl-card-txt { min-width: 0; }
 .sl-card-name { font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sl-card-sub { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -85,11 +85,11 @@
 .sl-grp-head { font-size: 12px; font-weight: 700; padding: 8px 0 2px; }
 .sl-row.bad { background: rgba(217, 161, 58, .08); }
 .sl-row.bad .sl-mon { border-left-color: var(--warn); }
-.sl-row.st-dead .sl-mon img, .sl-row.st-missed .sl-mon img { filter: grayscale(1); opacity: .55; }
+.sl-row.st-dead .sl-mon .sl-sprite, .sl-row.st-missed .sl-mon .sl-sprite, .sl-row.st-dead .sl-mon img, .sl-row.st-missed .sl-mon img { filter: grayscale(1); opacity: .55; }
 .sl-row.st-dead .sl-mon input:not(.sl-nick) { text-decoration: line-through; }
 .sl-route { height: 28px; }
 .sl-mon { display: flex; align-items: center; gap: 4px; border-left: 3px solid var(--pc); padding-left: 4px; min-width: 0; }
-.sl-sprite { width: 62px; height: 62px; margin: -9px -8px -9px -10px; flex: none; object-fit: contain; image-rendering: pixelated; }
+.sl-sprite { width: 42px; height: 42px; margin: 0 2px 0 0; flex: none; object-fit: contain; image-rendering: pixelated; }
 .sl-sprite.none, .nz-body img.none, .sc-link-img.none { visibility: hidden; }
 .sl-mon-f { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .sl-mon-f input { height: 24px; width: 100%; min-width: 0; }
@@ -157,9 +157,9 @@
 .nc-monrow:focus-visible, .nc-trow:focus-visible, .nc-foe-mon:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 1px; }
 .nc-monrow.dead { opacity: .5; }
 .nc-monrow.dead .nc-mini-img { filter: grayscale(1); }
-.nc-mini-img { width: 48px; height: 48px; margin: -6px -6px -6px -4px; flex: none; object-fit: contain; image-rendering: pixelated; }
-.nc-tiny-img { width: 34px; height: 34px; margin: -5px -4px; object-fit: contain; image-rendering: pixelated; }
-.nc-big-img { width: 84px; height: 84px; margin: -10px -6px -10px -10px; flex: none; object-fit: contain; image-rendering: pixelated; }
+.nc-mini-img { width: 34px; height: 34px; margin: 0; flex: none; object-fit: contain; image-rendering: pixelated; }
+.nc-tiny-img { width: 22px; height: 22px; margin: 0; object-fit: contain; image-rendering: pixelated; }
+.nc-big-img { width: 58px; height: 58px; margin: 0; flex: none; object-fit: contain; image-rendering: pixelated; }
 .nc-mon-txt { flex: 1; min-width: 0; }
 .nc-mon-name { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 .nc-mon-sub { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }

@@ -97,7 +97,7 @@ Eigener Modus (`js/match.js`, Auswertung `js/match_parse.js`, Taste `6`). Ein Te
 
 ## Match-Overlay
 Eigener Modus (`js/overlay.js`, Desktop-Teil `electron/match.js`, Seiten in `electron/match/`, Taste `7`). Er enthält die beiden früheren Python-Overlays „Team Overlay“ (`vgc_team_overlay.py`) und „Teampreview“ (`pokemon_team_overlay.py`). Aussehen und Verhalten sind übernommen, Python und Flask braucht es nicht mehr. Die Seiten laufen auf dem lokalen OBS-Server des Shiny-Zählers (nur `127.0.0.1`, gleicher Port). Deshalb gehen sie nur in der Desktop-App.
-- **Ein- und Ausschalten:** Oben stehen drei Schalter: *Team-Overlay*, *Teampreview* und *Matchup-Banner*. Jeder blendet sein Overlay in OBS weich aus und wieder ein, ohne die Adresse zu ändern. Dazu kommt die Sprache der Overlays (Deutsch/English, unabhängig von der App-Sprache) und „▶ Start-Screen abspielen“.
+- **Auswahl beim Öffnen:** Beim Klick auf *Match-Overlay* wählt man zwischen **Eigenes Match** (*Team-Overlay*) und **Aufnahme Match** (*Teampreview + Matchup & Start* vereint auf einer kompakten Seite). Jedes Overlay lässt sich einzeln in OBS ein- und ausschalten; dazu kommen die Sprache der Overlays (Deutsch/English) und „▶ Start-Screen abspielen“.
 - **Team-Overlay** (Browserquellen je 320 × 1080):
   - `http://127.0.0.1:39151/match/team?side=me` zeigt das eigene Team, `…?side=opp` den Gegner.
   - Pro Pokémon: Name, KP-Balken, Item, Fähigkeit · Wesen und Attacken. Das Bild kommt aus Pokémon HOME, bei passendem Mega-Stein die Mega-Form.
@@ -137,8 +137,10 @@ Eigener Modus (`js/overlay.js`, Desktop-Teil `electron/match.js`, Seiten in `ele
 ## Einstellungen
 Zahnrad oben rechts:
 - **Leiste oben**: *Tabs* (Standard: nur die geöffneten Modi, mit × oder mittlerer Maustaste schließbar, + öffnet den Startbildschirm), *Alle Modi* oder *Keine* (Wechsel nur über das Logo)
-- **Pokémon im Teambuilder**: animiertes 3D-Modell oder Pixel-Sprite
-- **Design**: dunkel oder hell
+- **Pokémon im Teambuilder**: animiertes 3D-Modell, HD-Render (HOME) oder Pixel-Sprite
+- **Oberflächengröße**: Automatisch (passt sich dem Fenster an) oder feste Skalierung (85 %, 100 %, 115 %, 130 %, 150 %)
+- **Design**: Dunkel, Hell, OLED-Schwarz, Pokéball-Rot, Rattfratz-Violett, Ozean-Blau oder System
+- **Daten-Backup**: Alle Teams, Sets, Runs, Shiny-Hunts und Overlays als `.json`-Datei sichern und wiederherstellen
 - **Beim Öffnen der App**: Startbildschirm, Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse oder Match-Overlay
 - **Sprache**: Deutsch oder English
 

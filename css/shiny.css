@@ -1,8 +1,8 @@
 /* Shiny counter (#shinyView) and its auto detection. Uses the variables from style.css. */
 .shiny-view { padding: 8px 1.5vw 10px; }
 .sh-body { padding-top: 8px; }
-.sc-art-shiny { flex-direction: row; align-items: center; justify-content: space-around; gap: 4px; position: relative; padding-bottom: 16px; }
-.sc-shiny-img { width: clamp(28px, 5vh, 52px); height: clamp(28px, 5vh, 52px); margin: 0; object-fit: contain; image-rendering: pixelated; }
+.sc-art-shiny { flex-direction: row; align-items: center; justify-content: space-around; gap: 6px; position: relative; padding: 4px 8px 16px; }
+.sc-shiny-img { width: 30%; height: 100%; max-height: 54px; margin: 0; object-fit: contain; image-rendering: pixelated; }
 .sc-shiny-count { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 11px; color: var(--shiny); font-weight: 700; }
 
 /* ---------- hunts ---------- */
@@ -14,7 +14,7 @@
 .sh-item:hover { border-color: var(--line); }
 .sh-item.on { border-color: var(--shiny); box-shadow: inset 3px 0 0 var(--shiny); }
 .sh-item.found { opacity: .8; }
-.sh-item-img { width: 48px; height: 48px; margin: -6px -6px -6px -4px; flex: none; object-fit: contain; image-rendering: pixelated; }
+.sh-item-img { width: 34px; height: 34px; margin: 0 2px; flex: none; object-fit: contain; image-rendering: pixelated; }
 .sh-item-img.none { visibility: hidden; }
 .sh-item-txt { flex: 1; min-width: 0; }
 .sh-item-name { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -82,7 +82,7 @@
 .sh-ph-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; border-top: 1px solid var(--line-soft); padding: 2px 0; }
 .sh-ph-row.failed { color: var(--muted); }
 .sh-ph-row .hint { margin-left: auto; }
-.sh-ph-img { width: 36px; height: 36px; margin: -4px; object-fit: contain; image-rendering: pixelated; }
+.sh-ph-img { width: 26px; height: 26px; margin: 0; object-fit: contain; image-rendering: pixelated; }
 
 /* ---------- dialogs ---------- */
 .sh-form { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
@@ -100,7 +100,7 @@
 .sh-dexprog .sh-cbar { flex: 1; }
 .sh-dexgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 4px; }
 .sh-dexcell { position: relative; height: 74px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.sh-dexcell .sh-dex-img { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; filter: grayscale(1) brightness(.6); opacity: .35; }
+.sh-dexcell .sh-dex-img { width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated; filter: grayscale(1) brightness(.6); opacity: .35; }
 .sh-dexcell.seen { border-color: var(--muted); }
 .sh-dexcell.seen .sh-dex-img { opacity: .6; }
 .sh-dexcell.caught { border-color: var(--shiny); background: color-mix(in srgb, var(--shiny) 14%, transparent); }
@@ -109,7 +109,7 @@
 .sh-dexn { position: absolute; right: 4px; bottom: 2px; font-size: 10.5px; font-weight: 700; color: var(--shiny); }
 .sh-catches { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px; }
 .sh-catch { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); padding: 4px 8px 4px 2px; min-width: 0; }
-.sh-catch-img { width: 64px; height: 64px; margin: -6px -4px -6px -6px; flex: none; object-fit: contain; image-rendering: pixelated; }
+.sh-catch-img { width: 46px; height: 46px; margin: 0 2px 0 4px; flex: none; object-fit: contain; image-rendering: pixelated; }
 .sh-catch-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .sh-catch-txt .sh-item-sub { white-space: normal; }
 .sh-catch-tools { display: flex; gap: 4px; flex: none; }

@@ -182,10 +182,17 @@
       pkAllTypes: 'Alle Typen', pkClearFilter: 'Filter zurücksetzen', pkSortT: 'Sortieren nach {0}',
       pkGroupFit: 'Passt zu diesem Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Beeren', pkGroupStones: 'Mega-Steine', tbPP: 'AP {0}',
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
-      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setSprite: 'Pixel-Sprite',
+      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
       setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
       setOled: 'OLED', setPoke: 'Poké-Rot', setRattata: 'Rattata-Lila', setOcean: 'Ozean', setSystem: 'System',
+      setZoom: 'Oberflächengröße', setZoomHint: 'Automatisch passt die Größe ans Fenster an. Feste Stufen vergrößern oder verkleinern die gesamte Oberfläche.', setZoomAuto: 'Automatisch',
+      setBackup: 'Daten-Backup', setBackupHint: 'Alle Teams, eigenen Sets, Hunts, Soul Links, Replays und Einstellungen als Datei sichern oder wiederherstellen.',
+      setBackupSave: 'Backup speichern', setBackupLoad: 'Backup laden …', backupSaved: 'Backup gespeichert', backupLoaded: 'Backup geladen – Seite lädt neu …', backupInvalid: 'Ungültige Backup-Datei',
+      tbFromCalcYou: 'Aus Damage Calc: Du', tbFromCalcFoe: 'Aus Damage Calc: Gegner',
+      tbSpeedHint: 'Effektive Initiative auf Level 50 (inkl. Wesen & SP). Zeigt Rückenwind (×2), Wahlschal (×1,5), +1, −1 (Eiswind/Elektronetz) und Paralyse (×0,5).',
+      tbSpShowFoe: 'Gegner-Team (Damage Calc)', tbSpShowBench: 'Meta-Benchmarks (VGC)', tbSpTrickRoom: 'Trick Room (langsamste zuerst)',
+      tbSpColMon: 'Pokémon', tbSpColBase: 'Basis', tbSpColSpread: 'SP / Wesen', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Schal ×1,5', tbSpColTW: 'Rückenw. ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0,5',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: immer alle Modi. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
@@ -284,10 +291,17 @@
       pkAllTypes: 'All types', pkClearFilter: 'Reset filters', pkSortT: 'Sort by {0}',
       pkGroupFit: 'Fits this Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Berries', pkGroupStones: 'Mega Stones', tbPP: 'PP {0}',
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
-      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setSprite: 'Pixel sprite',
+      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
       setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setThemeHint: 'Applies to the whole app right away and stays saved.',
       setOled: 'OLED', setPoke: 'Poké red', setRattata: 'Rattata purple', setOcean: 'Ocean', setSystem: 'System',
+      setZoom: 'UI scale', setZoomHint: 'Auto scales the interface to fit the window. Fixed levels zoom the entire interface in or out.', setZoomAuto: 'Auto',
+      setBackup: 'Data backup', setBackupHint: 'Save or restore all teams, custom sets, hunts, Soul Links, replays and settings as a file.',
+      setBackupSave: 'Save backup', setBackupLoad: 'Load backup …', backupSaved: 'Backup saved', backupLoaded: 'Backup loaded – reloading …', backupInvalid: 'Invalid backup file',
+      tbFromCalcYou: 'From damage calc: You', tbFromCalcFoe: 'From damage calc: Foe',
+      tbSpeedHint: 'Effective Speed at level 50 (incl. nature & SP). Shows Tailwind (×2), Choice Scarf (×1.5), +1, −1 (Icy Wind/Electroweb) and Paralysis (×0.5).',
+      tbSpShowFoe: 'Opponent team (damage calc)', tbSpShowBench: 'Meta benchmarks (VGC)', tbSpTrickRoom: 'Trick Room (slowest first)',
+      tbSpColMon: 'Pokémon', tbSpColBase: 'Base', tbSpColSpread: 'SP / Nature', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Scarf ×1.5', tbSpColTW: 'Tailwind ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0.5',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: always every mode. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
@@ -523,6 +537,28 @@
     var t = document.createElementNS(SVGNS, 'title'); t.textContent = nSpecies(species); svg.appendChild(t);
     var im = document.createElementNS(SVGNS, 'image');
     im.setAttribute('href', url); im.setAttribute('width', b[4]); im.setAttribute('height', b[4]);
+    svg.appendChild(im);
+    return svg;
+  }
+  function spriteById(id, cls, shiny, titleText) {
+    var boxes = window.SPRITE_BOXES || {}, b = boxes[id];
+    var url = 'https://play.pokemonshowdown.com/sprites/' + (shiny ? 'gen5-shiny/' : 'gen5/') + id + '.png';
+    if (!b) {
+      var img = el('img', { class: cls || '', alt: titleText || '', title: titleText || '', src: url, loading: 'lazy' });
+      img.onerror = function () { img.onerror = null; img.src = 'https://play.pokemonshowdown.com/sprites/' + (shiny ? 'home-shiny/' : 'dex/') + id + '.png'; };
+      return img;
+    }
+    var pad = 2, svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('class', 'sprite-fit' + (cls ? ' ' + cls : ''));
+    svg.setAttribute('viewBox', (b[0] - pad) + ' ' + (b[1] - pad) + ' ' + (b[2] + 2 * pad) + ' ' + (b[3] + 2 * pad));
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    if (titleText) { var t = document.createElementNS(SVGNS, 'title'); t.textContent = titleText; svg.appendChild(t); }
+    var im = document.createElementNS(SVGNS, 'image');
+    im.setAttribute('href', url); im.setAttribute('width', b[4]); im.setAttribute('height', b[4]);
+    im.addEventListener('error', function () {
+      var fb = 'https://play.pokemonshowdown.com/sprites/' + (shiny ? 'home-shiny/' : 'dex/') + id + '.png';
+      if (im.getAttribute('href') !== fb) im.setAttribute('href', fb);
+    });
     svg.appendChild(im);
     return svg;
   }
@@ -1701,9 +1737,10 @@
   // (zoom), so the space below is used instead of staying empty. Smaller windows keep the scroll fallback.
   var BASE_W = 1180, BASE_H = 800;
   function fitToWindow() {
-    var b = document.body;
-    var z = Math.min(innerWidth / BASE_W, innerHeight / BASE_H, 1.9);
-    if (z < 0.8) z = 1; // very small windows: keep 100 % and let the page scroll (CSS fallback)
+    var b = document.body, pref = setting('zoom');
+    var fixed = pref && pref !== 'auto' && isFinite(+pref);
+    var z = fixed ? (+pref / 100) : Math.min(innerWidth / BASE_W, innerHeight / BASE_H, 1.9);
+    if (!fixed && z < 0.8) z = 1; // very small windows: keep 100 % and let the page scroll (CSS fallback)
     if (Math.abs(z - 1) > 0.02) {
       z = Math.floor(z * 100) / 100;
       b.style.zoom = z;
@@ -1964,7 +2001,7 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs' };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs', zoom: 'auto' };
   var THEMES = ['dark', 'light', 'oled', 'poke', 'rattata', 'ocean', 'system'];
   var THEME_LABEL = { dark: 'setDark', light: 'setLight', oled: 'setOled', poke: 'setPoke', rattata: 'setRattata', ocean: 'setOcean', system: 'setSystem' };
   var setTheme = function () {}, setLang = function () {};
@@ -2054,9 +2091,13 @@
         r.appendChild(g);
         bx.appendChild(r);
       }
-      row(T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['sprite', T('setSprite')]], setting('model'), function (v) {
+      row(T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]], setting('model'), function (v) {
         setSetting('model', v);
         if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
+      });
+      row(T('setZoom'), T('setZoomHint'), [['auto', T('setZoomAuto')], ['85', '85 %'], ['100', '100 %'], ['115', '115 %'], ['130', '130 %'], ['150', '150 %']], String(setting('zoom') || 'auto'), function (v) {
+        setSetting('zoom', v);
+        fitToWindow();
       });
       (function () {
         var cur = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -2089,6 +2130,51 @@
       row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
       row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['match', T('navMatch')], ['overlay', T('navOverlay')]], setting('start'), function (v) { setSetting('start', v); });
       row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
+      (function () {
+        var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay'];
+        var r = el('div', { class: 'set-row' });
+        var lab = el('div', { class: 'set-label' });
+        lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
+        lab.appendChild(el('div', { class: 'hint', text: T('setBackupHint') }));
+        r.appendChild(lab);
+        var g = el('div', { class: 'btn-group set-opts' });
+        var bSave = el('button', { text: T('setBackupSave') });
+        bSave.addEventListener('click', function () {
+          var data = { app: 'RattataLab', version: '1.9.5', date: new Date().toISOString().slice(0, 10), storage: {} };
+          BACKUP_KEYS.forEach(function (k) {
+            try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
+          });
+          var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          var a = el('a', { href: URL.createObjectURL(blob), download: 'rattata-lab-backup-' + data.date + '.json' });
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+          toast(T('backupSaved'));
+        });
+        var bLoad = el('button', { text: T('setBackupLoad') });
+        bLoad.addEventListener('click', function () {
+          var inp = el('input', { type: 'file', accept: '.json,application/json' });
+          inp.addEventListener('change', function () {
+            var f = inp.files && inp.files[0];
+            if (!f) return;
+            var rd = new FileReader();
+            rd.onload = function () {
+              try {
+                var parsed = JSON.parse(String(rd.result || ''));
+                var st = parsed && parsed.storage && typeof parsed.storage === 'object' ? parsed.storage : null;
+                if (!st) { toast(T('backupInvalid')); return; }
+                BACKUP_KEYS.forEach(function (k) { if (st[k] !== undefined) save(k, st[k]); });
+                toast(T('backupLoaded'));
+                setTimeout(function () { location.reload(); }, 400);
+              } catch (e) { toast(T('backupInvalid')); }
+            };
+            rd.readAsText(f);
+          });
+          inp.click();
+        });
+        g.appendChild(bSave); g.appendChild(bLoad);
+        r.appendChild(g);
+        bx.appendChild(r);
+      })();
       if (window.desktop && window.desktop.update) updRow(bx);
     }
     settingsRedraw = draw;
@@ -2108,7 +2194,7 @@
     if (v === 'nuz' && window.CCNuz) window.CCNuz.render();
     if (v === 'shiny' && window.CCShiny) window.CCShiny.render();
     if (v === 'match' && window.CCMatch) window.CCMatch.render();
-    if (v === 'overlay' && window.CCOverlay) window.CCOverlay.render();
+    if (v === 'overlay' && window.CCOverlay) (window.CCOverlay.open || window.CCOverlay.render)();
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') renderStartTeam();
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2254,8 +2340,8 @@
     nSpecies: nSpecies, nMove: nMove, nItem: nItem, nAbility: nAbility, nNature: nNature, nType: nType, nStat: nStat, nStatLong: nStatLong,
     natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
     el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
-    typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, speciesGroups: speciesGroups, defaultSet: defaultSet,
-    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, showView: showView,
+    typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
+    parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
     setting: setting, openSettings: openSettings
   };
   // expose for debugging

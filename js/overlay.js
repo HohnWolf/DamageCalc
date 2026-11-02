@@ -28,7 +28,9 @@
     desktop: 'Die OBS-Overlays laufen nur in der Desktop-App (lokaler Server). Im Browser lässt sich alles vorbereiten, OBS bekommt es aber erst in der App.',
     url: 'OBS-Browserquelle', copy: 'Kopieren', size: 'Breite {0} · Höhe {1}', open: 'Ansehen',
     me: 'Mein Team', opp: 'Gegner-Team', tournament: 'Turnier', ladder: 'Ladder', newOpp: 'Neuer Gegner',
-    fromBuilder: 'Aus Teambuilder …', paste: 'Showdown einfügen', clear: 'Leeren', hide: 'Ausblenden', unhide: 'Einblenden', hideAll: 'Beide ausblenden',
+    fromBuilder: 'Aus Teambuilder …', fromCalc: 'Aus Calc', nextGame: '↻ KP 100 %', nextGameT: 'Nächstes Spiel: alle KP auf 100 %, K.O. und Mitgebracht-Haken zurücksetzen',
+    paste: 'Einfügen', clear: 'Leeren', hide: 'Ausblenden', unhide: 'Einblenden', hideAll: 'Beide aus',
+    playerL: 'Spieler 1 (links)', playerR: 'Spieler 2 (rechts)', playerHint: 'Gilt für Teampreview, Matchup-Banner und Startseite',
     pasteTitle: 'Team im Showdown-Format einfügen', take: 'Übernehmen', cancel: 'Abbrechen',
     hidden: 'Ausgeblendet', live: 'Live: {0} Pokémon', empty: 'Leer',
     brought: 'Anklicken: mitgebracht. Gegner: bis 3 werden hervorgehoben, ab 4 nur noch diese gezeigt. Mein Team: nur die gewählten.',
@@ -45,7 +47,13 @@
     logoDel: 'Entfernen', league: 'Liga-Name (oben auf der Startseite)', leaguePh: 'z. B. Pokémon Champions Liga', week: 'Mitte: Woche / Titel (Zeilenumbruch erlaubt)',
     swap: 'Seiten tauschen', reset: 'Stand 0:0', matchPrev: 'Vorschau Matchup-Banner (transparent, hier Schachbrett-Muster).',
     start: 'Startseite „Wer gegen wen“', logoErr: { type: 'Nur PNG, JPG, WEBP, GIF oder SVG', size: 'Datei größer als 5 MB', empty: 'Leere Datei' },
-    teamMe: 'Team 1 links', teamOpp: 'Team 2 rechts', toT1: 'In Team 1', toT2: 'In Team 2'
+    teamMe: 'Team 1 links', teamOpp: 'Team 2 rechts', toT1: 'In Team 1', toT2: 'In Team 2',
+    pickTitle: 'Match-Overlay wählen', pickSub: 'Wähle aus, ob du dein eigenes Match live begleitest oder ein Match für Aufnahme / Stream einrichtest.',
+    modeOwn: 'Eigenes Match', modeOwnBadge: 'Team-Overlay',
+    modeOwnDesc: 'Dein Team und das Gegner-Team als OBS-Spalten im Kampf: KP in %, K.O., Mitgebracht-Auswahl sowie Turnier- und Ladder-Modus.',
+    modeRec: 'Aufnahme Match', modeRecBadge: 'Teampreview · Matchup & Start',
+    modeRecDesc: 'Teampreview, Matchup-Banner und „Wer gegen wen“-Startseite vereint auf einer Seite: Spielernamen, Teams, Standings, Spielstand und Teamlogos.',
+    backPick: '← Auswahl'
   } : {
     title: 'Match overlay', sub: 'OBS overlays for matches: team overlay (both teams as a column) and team preview with matchup banner and start screen. Each one can be switched on and off.',
     onOff: '{0}: on', offOn: '{0}: off', ovTeam: 'Team overlay', ovPreview: 'Team preview', ovMatch: 'Matchup banner',
@@ -54,7 +62,9 @@
     desktop: 'The OBS overlays only run in the desktop app (local server). In the browser you can prepare everything, OBS only gets it in the app.',
     url: 'OBS browser source', copy: 'Copy', size: 'Width {0} · Height {1}', open: 'View',
     me: 'My team', opp: 'Opponent', tournament: 'Tournament', ladder: 'Ladder', newOpp: 'New opponent',
-    fromBuilder: 'From teambuilder …', paste: 'Paste Showdown', clear: 'Clear', hide: 'Hide', unhide: 'Show', hideAll: 'Hide both',
+    fromBuilder: 'From teambuilder …', fromCalc: 'From calc', nextGame: '↻ HP 100%', nextGameT: 'Next game: reset all HP to 100%, clear fainted and brought marks',
+    paste: 'Paste', clear: 'Clear', hide: 'Hide', unhide: 'Show', hideAll: 'Hide both',
+    playerL: 'Player 1 (left)', playerR: 'Player 2 (right)', playerHint: 'Used for team preview, matchup banner and start screen',
     pasteTitle: 'Paste a team in Showdown format', take: 'Apply', cancel: 'Cancel',
     hidden: 'Hidden', live: 'Live: {0} Pokémon', empty: 'Empty',
     brought: 'Click: brought. Opponent: up to 3 are highlighted, from 4 only these are shown. My team: only the picked ones.',
@@ -71,7 +81,13 @@
     logoDel: 'Remove', league: 'League name (top of the start screen)', leaguePh: 'e.g. Pokémon Champions League', week: 'Center: week / title (line breaks allowed)',
     swap: 'Swap sides', reset: 'Score 0:0', matchPrev: 'Preview matchup banner (transparent, checkerboard here).',
     start: 'Start screen "who vs. who"', logoErr: { type: 'Only PNG, JPG, WEBP, GIF or SVG', size: 'File larger than 5 MB', empty: 'Empty file' },
-    teamMe: 'Team 1 left', teamOpp: 'Team 2 right', toT1: 'To team 1', toT2: 'To team 2'
+    teamMe: 'Team 1 left', teamOpp: 'Team 2 right', toT1: 'To team 1', toT2: 'To team 2',
+    pickTitle: 'Choose Match Overlay', pickSub: 'Choose whether to track your own live match or set up a match for recording / streaming.',
+    modeOwn: 'Own Match', modeOwnBadge: 'Team Overlay',
+    modeOwnDesc: 'Your team and the opponent as OBS columns during the match: HP %, fainted status, brought selection, tournament and ladder mode.',
+    modeRec: 'Recording Match', modeRecBadge: 'Team Preview · Matchup & Start',
+    modeRecDesc: 'Team preview, matchup banner and "who vs. who" start screen combined on one page: player names, teams, standings, score and team logos.',
+    backPick: '← Selection'
   };
   function t(k) {
     var s = S[k] != null ? S[k] : k;
@@ -110,10 +126,19 @@
     });
     o.preview = Object.assign({}, d.preview, s.preview || {});
     o.match = Object.assign({}, d.match, s.match || {});
+    var nL = String(o.match.nameL || o.preview.p1 || '').slice(0, 60);
+    var nR = String(o.match.nameR || o.preview.p2 || '').slice(0, 60);
+    o.match.nameL = o.preview.p1 = nL;
+    o.match.nameR = o.preview.p2 = nR;
     ['scoreL', 'scoreR'].forEach(function (k) { o.match[k] = Math.max(0, Math.min(99, Math.round(+o.match[k]) || 0)); });
     return o;
   }
   var store = clean(A.load('cc_overlay', null));
+  function setPlayer(side, val) {
+    val = String(val || '').slice(0, 60);
+    if (side === 'L') store.match.nameL = store.preview.p1 = val;
+    else store.match.nameR = store.preview.p2 = val;
+  }
   var pushTimer = null;
   function persist() { A.save('cc_overlay', store); schedulePush(); }
   function schedulePush() { clearTimeout(pushTimer); pushTimer = setTimeout(push, 150); }
@@ -353,10 +378,10 @@
     });
     return {
       lang: l, team: team,
-      preview: { show: p.show, bg: p.bg, bench: p.bench, closed: p.closed, lang: l, p1: p.p1, p2: p.p2,
+      preview: { show: p.show, bg: p.bg, bench: p.bench, closed: p.closed, lang: l, p1: store.match.nameL || p.p1, p2: store.match.nameR || p.p2,
         team1: r1.mons.slice(0, 6).map(function (m) { return previewCard(m, l); }), team2: r2.mons.slice(0, 6).map(function (m) { return previewCard(m, l); }),
         bench1: k1.mons.map(function (m) { return benchCard(m, l); }), bench2: k2.mons.map(function (m) { return benchCard(m, l); }) },
-      match: Object.assign({}, store.match)
+      match: Object.assign({}, store.match, { nameL: store.match.nameL || p.p1, nameR: store.match.nameR || p.p2 })
     };
   }
   function push() {
@@ -395,14 +420,15 @@
     });
     return w;
   }
-  function urlRow(path, w, h, extra) {
+  function urlRow(path, w, h, tagEl, extra) {
     var r = el('div', { class: 'mo-url' });
-    r.appendChild(el('span', { class: 'mo-url-l', text: t('url') }));
-    var inp = el('input', { type: 'text', readonly: 'readonly' });
+    if (tagEl) r.appendChild(tagEl);
+    else r.appendChild(el('span', { class: 'mo-url-l', text: t('url') }));
+    var inp = el('input', { type: 'text', readonly: 'readonly', title: t('size', w, h) });
     inp.value = base ? base + path : path;
     r.appendChild(inp);
-    r.appendChild(btn(t('copy'), '', function () { A.copy(inp.value); }));
-    r.appendChild(el('span', { class: 'hint', text: t('size', w, h) }));
+    r.appendChild(btn(t('copy'), '', function () { A.copy(inp.value); }, t('size', w, h)));
+    r.appendChild(el('span', { class: 'hint mo-url-sz', text: w + '×' + h }));
     if (extra) r.appendChild(extra);
     return r;
   }
@@ -411,43 +437,138 @@
     b.addEventListener('click', fn);
     return b;
   }
+  function sideLabel(side) {
+    var n = side === 'me' || side === 'L' || side === 1 ? store.match.nameL : store.match.nameR;
+    var baseLbl = side === 'me' || side === 1 ? t('me') : side === 'opp' || side === 2 ? t('opp') : (side === 'L' ? t('teamMe') : t('teamOpp'));
+    return n ? baseLbl + ' · ' + n : baseLbl;
+  }
+  function updatePlayerLabels() {
+    var elMe = document.getElementById('moSideTitle_me'), elOpp = document.getElementById('moSideTitle_opp');
+    if (elMe) elMe.textContent = sideLabel('me');
+    if (elOpp) elOpp.textContent = sideLabel('opp');
+    var p1 = document.getElementById('moPrevTitle_1'), p2 = document.getElementById('moPrevTitle_2');
+    if (p1) p1.textContent = sideLabel(1);
+    if (p2) p2.textContent = sideLabel(2);
+    var mL = document.getElementById('moMatchTitle_L'), mR = document.getElementById('moMatchTitle_R');
+    if (mL) mL.textContent = sideLabel('L');
+    if (mR) mR.textContent = sideLabel('R');
+  }
+  function fromCalcMons(idx) {
+    var ct = A.getCalcTeams ? A.getCalcTeams() : A.load('cc_teams', [[], []]);
+    var list = (ct && ct[idx]) || [];
+    return list.map(function (m) {
+      var s = (m && m.set) || {};
+      return { species: s.forme && s.forme.indexOf('Mega ') !== 0 ? s.forme : (m && m.species) || '', item: s.item && s.item !== '(none)' ? s.item : '',
+        ability: s.ability || '', nature: s.nature || '', moves: (s.moves || []).filter(function (x) { return x && x !== '(No Move)'; }) };
+    });
+  }
+
+  var curMode = 'pick';
+  function open() {
+    curMode = 'pick';
+    render();
+  }
+  function selectMode(m) {
+    curMode = m;
+    store.tab = m === 'rec' ? 'preview' : 'team';
+    A.save('cc_overlay', store);
+    render();
+  }
+  function renderPick() {
+    var hub = el('div', { class: 'mo-hub' });
+    hub.appendChild(el('h2', { class: 'mo-hub-title', text: t('pickTitle') }));
+    hub.appendChild(el('p', { class: 'mo-hub-sub', text: t('pickSub') }));
+    var cards = el('div', { class: 'mo-hub-cards' });
+
+    // Card 1: Eigenes Match (Team-Overlay)
+    var cOwn = el('button', { class: 'panel mo-hub-card own', 'data-mode': 'own' });
+    var artOwn = el('div', { class: 'mo-hub-art own' });
+    var colMe = el('div', { class: 'sc-ov-col' }), colOpp = el('div', { class: 'sc-ov-col opp' });
+    for (var i = 0; i < 4; i++) { colMe.appendChild(el('span')); colOpp.appendChild(el('span')); }
+    artOwn.appendChild(colMe);
+    artOwn.appendChild(el('span', { class: 'sc-ov-vs', text: 'LIVE' }));
+    artOwn.appendChild(colOpp);
+    cOwn.appendChild(artOwn);
+    var hdOwn = el('div', { class: 'mo-hub-head' });
+    hdOwn.appendChild(el('span', { class: 'mo-hub-name', text: t('modeOwn') }));
+    hdOwn.appendChild(el('span', { class: 'mo-tag me', text: t('modeOwnBadge') }));
+    cOwn.appendChild(hdOwn);
+    cOwn.appendChild(el('p', { class: 'mo-hub-desc', text: t('modeOwnDesc') }));
+    cOwn.addEventListener('click', function () { selectMode('own'); });
+    cards.appendChild(cOwn);
+
+    // Card 2: Aufnahme Match (Teampreview + Matchup & Start merged)
+    var cRec = el('button', { class: 'panel mo-hub-card rec', 'data-mode': 'rec' });
+    var artRec = el('div', { class: 'mo-hub-art rec' });
+    var bannerMock = el('div', { class: 'mo-art-banner' });
+    bannerMock.appendChild(el('span', { class: 'b-side me', text: 'P1' }));
+    bannerMock.appendChild(el('span', { class: 'b-score', text: '1 : 0' }));
+    bannerMock.appendChild(el('span', { class: 'b-side opp', text: 'P2' }));
+    artRec.appendChild(bannerMock);
+    var gridMock = el('div', { class: 'mo-art-grid' });
+    for (var j = 0; j < 6; j++) gridMock.appendChild(el('span', { class: j < 3 ? 'me' : 'opp' }));
+    artRec.appendChild(gridMock);
+    cRec.appendChild(artRec);
+    var hdRec = el('div', { class: 'mo-hub-head' });
+    hdRec.appendChild(el('span', { class: 'mo-hub-name', text: t('modeRec') }));
+    hdRec.appendChild(el('span', { class: 'mo-tag', text: t('modeRecBadge') }));
+    cRec.appendChild(hdRec);
+    cRec.appendChild(el('p', { class: 'mo-hub-desc', text: t('modeRecDesc') }));
+    cRec.addEventListener('click', function () { selectMode('rec'); });
+    cards.appendChild(cRec);
+
+    hub.appendChild(cards);
+    return hub;
+  }
 
   function render() {
     root = document.getElementById('overlayView');
     if (!root) return;
     root.innerHTML = '';
-    var head = el('div', { class: 'nz-head' });
-    head.appendChild(el('h2', { text: t('title') }));
-    head.appendChild(el('span', { class: 'hint', text: t('sub') }));
-    root.appendChild(head);
     var body = el('div', { class: 'mo-body' });
     root.appendChild(body);
     if (!D) body.appendChild(el('div', { class: 'mo-note', text: t('desktop') }));
 
-    // switches: every overlay on its own
-    var top = el('div', { class: 'panel mo-top' });
-    top.appendChild(toggle(t('ovTeam'), store.team.show, function () { store.team.show = !store.team.show; persist(); render(); }));
-    top.appendChild(toggle(t('ovPreview'), store.preview.show, function () { store.preview.show = !store.preview.show; persist(); render(); }));
-    top.appendChild(toggle(t('ovMatch'), store.match.show, function () { store.match.show = !store.match.show; persist(); render(); }));
-    var lw = el('span', { class: 'mo-inline' });
-    lw.appendChild(el('span', { class: 'hint', text: t('lang') }));
-    lw.appendChild(seg([['de', 'Deutsch'], ['en', 'English']], store.lang, function (v) { store.lang = v; persist(); render(); }));
-    top.appendChild(lw);
-    var pb = btn(t('play'), 'primary-btn', function () { if (D) D.play(); }, t('playHint'));
-    pb.disabled = !D;
-    top.appendChild(pb);
-    body.appendChild(top);
+    if (curMode === 'pick') {
+      body.appendChild(renderPick());
+      push();
+      return;
+    }
 
+    var top = el('div', { class: 'panel mo-top' });
+    var row1 = el('div', { class: 'mo-top-row' });
+    var leftNav = el('div', { class: 'mo-switches' });
+    leftNav.appendChild(btn(t('backPick'), '', function () { curMode = 'pick'; render(); }));
     var tabs = el('nav', { class: 'mo-tabs' });
-    [['team', t('tabTeam')], ['preview', t('tabPreview')], ['match', t('tabMatch')]].forEach(function (x) {
-      var b = el('button', { class: x[0] === store.tab ? 'on' : '', text: x[1] });
-      b.addEventListener('click', function () { store.tab = x[0]; A.save('cc_overlay', store); render(); });
+    [['own', t('modeOwn')], ['rec', t('modeRec')]].forEach(function (x) {
+      var b = el('button', { class: x[0] === curMode ? 'on' : '', text: x[1] });
+      b.addEventListener('click', function () { selectMode(x[0]); });
       tabs.appendChild(b);
     });
-    body.appendChild(tabs);
-    if (store.tab === 'team') body.appendChild(renderTeam());
-    else if (store.tab === 'preview') body.appendChild(renderPreview());
-    else body.appendChild(renderMatch());
+    leftNav.appendChild(tabs);
+    row1.appendChild(leftNav);
+
+    var swWrap = el('div', { class: 'mo-switches' });
+    if (curMode === 'own') {
+      swWrap.appendChild(toggle(t('ovTeam'), store.team.show, function () { store.team.show = !store.team.show; persist(); render(); }));
+    } else {
+      swWrap.appendChild(toggle(t('ovPreview'), store.preview.show, function () { store.preview.show = !store.preview.show; persist(); render(); }));
+      swWrap.appendChild(toggle(t('ovMatch'), store.match.show, function () { store.match.show = !store.match.show; persist(); render(); }));
+    }
+    var lw = el('span', { class: 'mo-inline' });
+    lw.appendChild(seg([['de', 'DE'], ['en', 'EN']], store.lang, function (v) { store.lang = v; persist(); render(); }));
+    swWrap.appendChild(lw);
+    if (curMode === 'rec') {
+      var pb = btn(t('play'), 'primary-btn', function () { if (D) D.play(); }, t('playHint'));
+      pb.disabled = !D;
+      swWrap.appendChild(pb);
+    }
+    row1.appendChild(swWrap);
+    top.appendChild(row1);
+    body.appendChild(top);
+
+    if (curMode === 'own') body.appendChild(renderTeam());
+    else body.appendChild(renderRecordingMatch());
     push();
   }
 
@@ -640,13 +761,10 @@
     var sd = store.team[side];
     var box = el('div', { class: 'panel mo-side ' + side, id: 'moSide_' + side });
     var hd = el('div', { class: 'mo-shead' });
-    hd.appendChild(el('b', { text: t(side) }));
+    hd.appendChild(el('b', { id: 'moSideTitle_' + side, text: sideLabel(side) }));
     if (side === 'opp') hd.appendChild(seg([['tournament', t('tournament')], ['ladder', t('ladder')]], store.team.mode, function (v) { store.team.mode = v; persist(); render(); }));
-    hd.appendChild(el('span', { class: 'hint mo-msg', id: 'moMsg_' + side }));
-    box.appendChild(hd);
-    var bar = el('div', { class: 'mo-bar' });
-    if (side === 'opp' && store.team.mode === 'ladder') bar.appendChild(btn(t('newOpp'), 'primary-btn', function () { sd.hidden = false; applyMons('opp', []); persist(); render(); }));
-    bar.appendChild(builderSelect(function (tm) {
+    if (side === 'opp' && store.team.mode === 'ladder') hd.appendChild(btn(t('newOpp'), 'primary-btn', function () { sd.hidden = false; applyMons('opp', []); persist(); render(); }));
+    hd.appendChild(builderSelect(function (tm) {
       applyMons(side, (tm.mons || []).map(function (m) {
         var s = m.set || {};
         return { species: s.forme && s.forme.indexOf('Mega ') !== 0 ? s.forme : m.species, item: s.item && s.item !== '(none)' ? s.item : '',
@@ -654,12 +772,22 @@
       }));
       persist(); render();
     }));
+    hd.appendChild(btn(t('fromCalc'), '', function () {
+      var mons = fromCalcMons(side === 'me' ? 0 : 1);
+      if (!mons.length) return;
+      applyMons(side, mons); persist(); render();
+    }));
+    hd.appendChild(btn(t('nextGame'), '', function () {
+      sd.slots.forEach(function (s) { s.hp = 100; s.ko = false; s.brought = false; });
+      persist(); render();
+    }, t('nextGameT')));
     var pasteBox = el('div', { class: 'mo-paste', hidden: 'hidden' });
-    bar.appendChild(btn(t('paste'), '', function () { pasteBox.hidden = !pasteBox.hidden; if (!pasteBox.hidden) ta.focus(); }));
-    bar.appendChild(btn(t('clear'), '', function () { applyMons(side, []); persist(); render(); }));
-    bar.appendChild(btn(sd.hidden ? t('unhide') : t('hide'), sd.hidden ? 'mo-off' : '', function () { sd.hidden = !sd.hidden; persist(); render(); }));
-    if (side === 'opp') bar.appendChild(btn(t('hideAll'), '', function () { store.team.me.hidden = true; store.team.opp.hidden = true; persist(); render(); }));
-    box.appendChild(bar);
+    hd.appendChild(btn(t('paste'), '', function () { pasteBox.hidden = !pasteBox.hidden; if (!pasteBox.hidden) ta.focus(); }));
+    hd.appendChild(btn(t('clear'), '', function () { applyMons(side, []); persist(); render(); }));
+    hd.appendChild(btn(sd.hidden ? t('unhide') : t('hide'), sd.hidden ? 'mo-off' : '', function () { sd.hidden = !sd.hidden; persist(); render(); }));
+    if (side === 'opp') hd.appendChild(btn(t('hideAll'), '', function () { store.team.me.hidden = true; store.team.opp.hidden = true; persist(); render(); }));
+    hd.appendChild(el('span', { class: 'hint mo-msg', id: 'moMsg_' + side }));
+    box.appendChild(hd);
     var ta = el('textarea', { class: 'mo-ta', spellcheck: 'false', placeholder: t('pasteTitle') });
     var pmsg = el('span', { class: 'hint' });
     pasteBox.appendChild(ta);
@@ -676,10 +804,9 @@
   }
   function renderTeam() {
     var w = el('div', { class: 'mo-tab' });
-    var urls = el('div', { class: 'panel mo-card' });
+    var urls = el('div', { class: 'panel mo-urls-bar' });
     urls.appendChild(urlRow('/match/team?side=me', 320, 1080, el('b', { class: 'mo-tag me', text: t('me') })));
     urls.appendChild(urlRow('/match/team?side=opp', 320, 1080, el('b', { class: 'mo-tag opp', text: t('opp') })));
-    urls.appendChild(el('div', { class: 'hint', text: t('teamHint') }));
     w.appendChild(urls);
     var g = el('div', { class: 'mo-two' });
     g.appendChild(renderSide('me'));
@@ -691,91 +818,96 @@
   // ---------------- tab: team preview ----------------
   var SAMPLE1 = 'Flutter Mane @ Booster Energy\nAbility: Protosynthesis\nTimid Nature\n- Moonblast\n- Shadow Ball\n- Protect\n- Icy Wind\n\nUrshifu-Rapid-Strike @ Mystic Water\nAbility: Unseen Fist\nAdamant Nature\n- Surging Strikes\n- Close Combat\n- Aqua Jet\n- Detect\n\nLandorus-Therian @ Assault Vest\nAbility: Intimidate\nAdamant Nature\n- Stomping Tantrum\n- U-turn\n- Rock Slide\n- Tera Blast\n\nRillaboom @ Miracle Seed\nAbility: Grassy Surge\nAdamant Nature\n- Grassy Glide\n- Wood Hammer\n- Fake Out\n- High Horsepower\n\nNinetales-Alola @ Light Clay\nAbility: Snow Warning\nTimid Nature\n- Blizzard\n- Aurora Veil\n- Freeze-Dry\n- Protect\n\nIncineroar (M) @ Safety Goggles\nAbility: Intimidate\nCareful Nature\n- Flare Blitz\n- Knock Off\n- Fake Out\n- Parting Shot';
   var SAMPLE2 = 'Golisopod @ Sitrus Berry\nAbility: Emergency Exit\nAdamant Nature\n- Leech Life\n- Iron Head\n- Sucker Punch\n- Protect\n\nRaichu @ Focus Sash\nAbility: Lightning Rod\nTimid Nature\n- Zap Cannon\n- Focus Blast\n- Fake Out\n- Protect\n\nArchaludon @ Leftovers\nAbility: Stamina\nBold Nature\n- Electro Shot\n- Dragon Pulse\n- Flash Cannon\n- Protect\n\nBasculegion (F) @ Focus Sash\nAbility: Swift Swim\nModest Nature\n- Muddy Water\n- Shadow Ball\n- Ice Beam\n- Protect\n\nPelipper @ Damp Rock\nAbility: Drizzle\nBold Nature\n- Weather Ball\n- Hurricane\n- Helping Hand\n- Wide Guard\n\nSneasler @ White Herb\nAbility: Unburden\nAdamant Nature\n- Dire Claw\n- Close Combat\n- Rock Slide\n- Protect';
-  function renderPreview() {
-    var p = store.preview, w = el('div', { class: 'mo-tab' });
-    var card = el('div', { class: 'panel mo-card' });
-    card.appendChild(urlRow('/match/preview', 1920, 1080));
-    var g = el('div', { class: 'mo-two' });
-    [1, 2].forEach(function (n) {
-      var col = el('div', { class: 'mo-col' });
-      var pi = el('input', { type: 'text', placeholder: t('p' + n) });
-      pi.value = p['p' + n];
-      pi.addEventListener('input', function () { p['p' + n] = pi.value; persist(); });
-      col.appendChild(field(t('p' + n), pi));
-      var tb = el('div', { class: 'mo-bar' });
-      var ta = el('textarea', { class: 'mo-ta tall', spellcheck: 'false', placeholder: t('teamPh') });
-      ta.value = p['t' + n];
-      ta.addEventListener('input', function () { p['t' + n] = ta.value; persist(); });
-      tb.appendChild(builderSelect(function (tm) { ta.value = p['t' + n] = builderText(tm); persist(); }));
-      tb.appendChild(btn(n === 1 ? t('fromMe') : t('fromOpp'), '', function () { ta.value = p['t' + n] = sideText(n === 1 ? 'me' : 'opp'); persist(); }));
-      col.appendChild(tb);
-      col.appendChild(field(t('text' + n), ta));
-      var bk = el('textarea', { class: 'mo-ta bank', spellcheck: 'false', placeholder: n === 1 ? 'Amoonguss\nTornadus\nDragonite\nGholdengo' : 'Talonflame\nAmoonguss\nGarchomp\nKingambit' });
-      bk.value = p['b' + n];
-      bk.addEventListener('input', function () { p['b' + n] = bk.value; persist(); });
-      col.appendChild(field(t('bank' + n), bk));
-      g.appendChild(col);
-    });
-    card.appendChild(g);
-    var row = el('div', { class: 'mo-bar' });
-    row.appendChild(seg([['t', t('bgT')], ['s', t('bgS')]], p.bg, function (v) { p.bg = v; persist(); render(); }));
-    row.appendChild(toggle(t('bench'), p.bench, function () { p.bench = !p.bench; persist(); render(); }));
-    row.appendChild(toggle(t('closed'), p.closed, function () { p.closed = !p.closed; persist(); render(); }));
-    row.appendChild(btn(t('sample'), '', function () {
-      Object.assign(p, { p1: p.p1 || 'Spieler 1', p2: p.p2 || 'Spieler 2', t1: SAMPLE1, t2: SAMPLE2, b1: 'Amoonguss\nTornadus\nDragonite\nGholdengo', b2: 'Talonflame\nAmoonguss\nGarchomp\nKingambit', bench: true });
-      persist(); render();
-    }));
-    row.appendChild(btn(t('clearAll'), 'danger', function () {
-      if (!confirm(t('clearConfirm'))) return;
-      p.t1 = p.t2 = p.b1 = p.b2 = '';
-      persist(); render();
-    }));
-    card.appendChild(row);
-    card.appendChild(el('div', { class: 'mo-warn', id: 'moUnknown' }));
-    w.appendChild(card);
-    if (D) {
-      var pv = el('div', { class: 'panel mo-card' });
-      var fr = el('div', { class: 'mo-frame wide' });
-      fr.appendChild(el('iframe', { src: base + '/match/preview', title: t('tabPreview') }));
-      pv.appendChild(fr);
-      pv.appendChild(el('div', { class: 'hint', text: t('preview') }));
-      w.appendChild(pv);
-    }
-    return w;
-  }
-
-  // ---------------- tab: matchup banner and start screen ----------------
   function logoImg(k) {
     var i = el('img', { class: 'mo-logo', alt: '' });
     if (logoV[k] && base) i.src = base + '/match/logo/' + k + '?v=' + logoV[k];
     return i;
   }
-  function renderMatch() {
-    var m = store.match, w = el('div', { class: 'mo-tab' });
+  function renderRecordingMatch() {
+    var p = store.preview, m = store.match, w = el('div', { class: 'mo-tab' });
     var card = el('div', { class: 'panel mo-card' });
-    card.appendChild(urlRow('/match/matchup', 1920, 200, el('b', { class: 'mo-tag', text: t('ovMatch') })));
+
+    // 1. Compact URLs bar (Teampreview + Matchup-Banner + Startseite)
     var sopen = el('a', { href: '#', class: 'hint', text: t('open') });
     sopen.addEventListener('click', function (e) { e.preventDefault(); if (base) window.open(base + '/match/start', '_blank'); });
-    card.appendChild(urlRow('/match/start', 1920, 1080, el('b', { class: 'mo-tag', text: t('start') })));
+    var urls = el('div', { class: 'mo-urls-bar three' });
+    urls.appendChild(urlRow('/match/preview', 1920, 1080, el('b', { class: 'mo-tag', text: t('ovPreview') })));
+    urls.appendChild(urlRow('/match/matchup', 1920, 200, el('b', { class: 'mo-tag', text: t('ovMatch') })));
+    urls.appendChild(urlRow('/match/start', 1920, 1080, el('b', { class: 'mo-tag', text: t('start') }), sopen));
+    card.appendChild(urls);
+
+    // 2. Compact Matchup Event & Teampreview Options bar (Score, Swap, League, Week, Background, Bench, Closed, Sample, Clear)
+    var metaBar = el('div', { class: 'mo-pbar mo-rec-bar' });
+    var scBox = el('div', { class: 'mo-score-inline' });
+    var vL = el('b', { text: String(m.scoreL) }), vR = el('b', { text: String(m.scoreR) });
+    var stepL = function (d) { m.scoreL = Math.max(0, Math.min(99, m.scoreL + d)); vL.textContent = m.scoreL; persist(); };
+    var stepR = function (d) { m.scoreR = Math.max(0, Math.min(99, m.scoreR + d)); vR.textContent = m.scoreR; persist(); };
+    scBox.appendChild(btn('−', 'mo-sbtn', function () { stepL(-1); }));
+    scBox.appendChild(vL);
+    scBox.appendChild(btn('+', 'mo-sbtn', function () { stepL(1); }));
+    scBox.appendChild(el('span', { class: 'mo-score-sep', text: ':' }));
+    scBox.appendChild(btn('−', 'mo-sbtn', function () { stepR(-1); }));
+    scBox.appendChild(vR);
+    scBox.appendChild(btn('+', 'mo-sbtn', function () { stepR(1); }));
+    metaBar.appendChild(scBox);
+    metaBar.appendChild(btn('⇄ ' + t('swap'), '', function () {
+      var tmpN = m.nameL; setPlayer('L', m.nameR); setPlayer('R', tmpN);
+      ['rec', 'score'].forEach(function (x) { var a = m[x + 'L']; m[x + 'L'] = m[x + 'R']; m[x + 'R'] = a; });
+      var tTmp = p.t1; p.t1 = p.t2; p.t2 = tTmp;
+      var bTmp = p.b1; p.b1 = p.b2; p.b2 = bTmp;
+      var after = function () { persist(); render(); };
+      if (D) D.swapLogos().then(function (v) { if (v) logoV = { L: v.L || '', R: v.R || '' }; after(); }); else after();
+    }, t('swap')));
+    metaBar.appendChild(btn('0:0', '', function () { m.scoreL = 0; m.scoreR = 0; vL.textContent = '0'; vR.textContent = '0'; persist(); }, t('reset')));
+
+    var li = el('input', { type: 'text', class: 'mo-meta-in', placeholder: t('leaguePh'), title: t('league') });
+    li.value = m.league;
+    li.addEventListener('input', function () { m.league = li.value.slice(0, 60); persist(); });
+    metaBar.appendChild(li);
+
+    var wk = el('input', { type: 'text', class: 'mo-meta-in', placeholder: de ? 'Woche / Runde (z. B. Spieltag 3)' : 'Week / Round (e.g. Week 3)', title: t('week') });
+    wk.value = m.week.replace(/\n/g, ' ');
+    wk.addEventListener('input', function () { m.week = wk.value.slice(0, 60); persist(); });
+    metaBar.appendChild(wk);
+
+    metaBar.appendChild(seg([['t', t('bgT')], ['s', t('bgS')]], p.bg, function (v) { p.bg = v; persist(); render(); }));
+    metaBar.appendChild(toggle(t('bench'), p.bench, function () { p.bench = !p.bench; persist(); render(); }));
+    metaBar.appendChild(toggle(t('closed'), p.closed, function () { p.closed = !p.closed; persist(); render(); }));
+    metaBar.appendChild(btn(t('sample'), '', function () {
+      if (!store.match.nameL) setPlayer('L', 'Spieler 1');
+      if (!store.match.nameR) setPlayer('R', 'Spieler 2');
+      Object.assign(p, { t1: SAMPLE1, t2: SAMPLE2, b1: 'Amoonguss\nTornadus\nDragonite\nGholdengo', b2: 'Talonflame\nAmoonguss\nGarchomp\nKingambit', bench: true });
+      persist(); render();
+    }));
+    metaBar.appendChild(btn(t('clearAll'), 'danger', function () {
+      if (!confirm(t('clearConfirm'))) return;
+      p.t1 = p.t2 = p.b1 = p.b2 = '';
+      persist(); render();
+    }));
+    card.appendChild(metaBar);
+
+    // 3. Two unified player columns: Player Name (once!) + Standing + Logo + Team Showdown export + Bench
     var g = el('div', { class: 'mo-two' });
-    ['L', 'R'].forEach(function (k) {
-      var col = el('div', { class: 'mo-col' });
-      var ni = el('input', { type: 'text' }); ni.value = m['name' + k];
-      ni.addEventListener('input', function () { m['name' + k] = ni.value.slice(0, 60); persist(); });
-      col.appendChild(field(t('name' + k), ni));
-      var ri = el('input', { type: 'text' }); ri.value = m['rec' + k];
-      ri.addEventListener('input', function () { m['rec' + k] = ri.value.slice(0, 60); persist(); });
-      col.appendChild(field(t('rec' + k), ri));
-      var sc = el('div', { class: 'mo-score' });
-      var val = el('b', { text: String(m['score' + k]) });
-      var step = function (d) { m['score' + k] = Math.max(0, Math.min(99, m['score' + k] + d)); val.textContent = m['score' + k]; persist(); };
-      sc.appendChild(btn('−', '', function () { step(-1); }));
-      sc.appendChild(val);
-      sc.appendChild(btn('+', '', function () { step(1); }));
-      col.appendChild(field(t('score' + k), sc));
-      var lg = el('div', { class: 'mo-lg' });
+    [1, 2].forEach(function (n) {
+      var k = n === 1 ? 'L' : 'R', sideCls = n === 1 ? 'me' : 'opp';
+      var col = el('div', { class: 'mo-col mo-mcol ' + sideCls });
+
+      // Player header: Name (single input!), Standing, and Logo in one compact row
+      var pHead = el('div', { class: 'mo-phead' });
+      pHead.appendChild(el('span', { class: 'mo-plbl ' + sideCls, text: 'P' + n }));
+      var nameIn = el('input', { type: 'text', class: 'mo-pin ' + sideCls, placeholder: t(n === 1 ? 'playerL' : 'playerR') });
+      nameIn.value = m['name' + k];
+      nameIn.addEventListener('input', function () { setPlayer(k, nameIn.value); persist(); });
+      pHead.appendChild(nameIn);
+
+      var recIn = el('input', { type: 'text', class: 'mo-rec-in', placeholder: 'Standing (10/2/0)', title: t('rec' + k) });
+      recIn.value = m['rec' + k];
+      recIn.addEventListener('input', function () { m['rec' + k] = recIn.value.slice(0, 60); persist(); });
+      pHead.appendChild(recIn);
+
+      var lg = el('div', { class: 'mo-lg-compact', title: t('logo' + k) });
       lg.appendChild(logoImg(k));
-      var fi = el('input', { type: 'file', accept: 'image/*' });
+      var fi = el('input', { type: 'file', accept: 'image/*', hidden: 'hidden' });
       fi.disabled = !D;
       fi.addEventListener('change', function () {
         var f = fi.files[0];
@@ -786,39 +918,55 @@
           logoV[k] = r.v; render();
         });
       });
+      var upBtn = btn('Logo …', '', function () { fi.click(); }, t('logo' + k));
+      upBtn.disabled = !D;
       lg.appendChild(fi);
-      var dl = btn(t('logoDel'), '', function () { D.clearLogo(k).then(function () { logoV[k] = ''; render(); }); });
-      dl.disabled = !D || !logoV[k];
-      lg.appendChild(dl);
-      col.appendChild(field(t('logo' + k), lg));
+      lg.appendChild(upBtn);
+      if (logoV[k]) {
+        var dl = btn('✕', 'danger', function () { D.clearLogo(k).then(function () { logoV[k] = ''; render(); }); }, t('logoDel'));
+        dl.disabled = !D;
+        lg.appendChild(dl);
+      }
+      pHead.appendChild(lg);
+      col.appendChild(pHead);
+
+      // Team import toolbar + Showdown textarea
+      var tb = el('div', { class: 'mo-bar mo-col-head ' + sideCls });
+      var ta = el('textarea', { class: 'mo-ta tall', spellcheck: 'false', placeholder: t('teamPh') });
+      ta.value = p['t' + n];
+      ta.addEventListener('input', function () { p['t' + n] = ta.value; persist(); });
+      tb.appendChild(builderSelect(function (tm) { ta.value = p['t' + n] = builderText(tm); persist(); }));
+      tb.appendChild(btn(n === 1 ? t('fromMe') : t('fromOpp'), '', function () { ta.value = p['t' + n] = sideText(n === 1 ? 'me' : 'opp'); persist(); }));
+      tb.appendChild(btn(t('fromCalc'), '', function () {
+        var mons = fromCalcMons(n - 1);
+        if (!mons.length) return;
+        ta.value = p['t' + n] = mons.map(function (x) { return monText(x.species, x.item, x.ability, x.nature, x.moves); }).filter(Boolean).join('\n\n');
+        persist();
+      }));
+      col.appendChild(tb);
+      col.appendChild(ta);
+
+      if (p.bench) {
+        var bk = el('textarea', { class: 'mo-ta bank', spellcheck: 'false', placeholder: n === 1 ? 'Amoonguss, Tornadus, Dragonite, Gholdengo' : 'Talonflame, Amoonguss, Garchomp, Kingambit' });
+        bk.value = p['b' + n];
+        bk.addEventListener('input', function () { p['b' + n] = bk.value; persist(); });
+        col.appendChild(field(t('bank' + n), bk));
+      }
       g.appendChild(col);
     });
     card.appendChild(g);
-    var li = el('input', { type: 'text', placeholder: t('leaguePh') }); li.value = m.league;
-    li.addEventListener('input', function () { m.league = li.value.slice(0, 60); persist(); });
-    card.appendChild(field(t('league'), li));
-    var wk = el('textarea', { class: 'mo-ta week', spellcheck: 'false' }); wk.value = m.week;
-    wk.addEventListener('input', function () { m.week = wk.value.slice(0, 60); persist(); });
-    card.appendChild(field(t('week'), wk));
-    var row = el('div', { class: 'mo-bar' });
-    row.appendChild(btn(t('swap'), '', function () {
-      ['name', 'rec', 'score'].forEach(function (x) { var a = m[x + 'L']; m[x + 'L'] = m[x + 'R']; m[x + 'R'] = a; });
-      var after = function () { persist(); render(); };
-      if (D) D.swapLogos().then(function (v) { if (v) logoV = { L: v.L || '', R: v.R || '' }; after(); }); else after();
-    }));
-    row.appendChild(btn(t('reset'), '', function () { m.scoreL = 0; m.scoreR = 0; persist(); render(); }));
-    var pb = btn(t('play'), 'primary-btn', function () { if (D) D.play(); }, t('playHint'));
-    pb.disabled = !D;
-    row.appendChild(pb);
-    row.appendChild(sopen);
-    card.appendChild(row);
+    card.appendChild(el('div', { class: 'mo-warn', id: 'moUnknown' }));
     w.appendChild(card);
+
     if (D) {
-      var pv = el('div', { class: 'panel mo-card' });
-      var fr = el('div', { class: 'mo-frame banner' });
-      fr.appendChild(el('iframe', { src: base + '/match/matchup', title: t('ovMatch') }));
-      pv.appendChild(fr);
-      pv.appendChild(el('div', { class: 'hint', text: t('matchPrev') }));
+      var pv = el('div', { class: 'panel mo-card mo-prev-box' });
+      var frBanner = el('div', { class: 'mo-frame banner' });
+      frBanner.appendChild(el('iframe', { src: base + '/match/matchup', title: t('ovMatch') }));
+      pv.appendChild(frBanner);
+      var frWide = el('div', { class: 'mo-frame wide' });
+      frWide.appendChild(el('iframe', { src: base + '/match/preview', title: t('tabPreview') }));
+      pv.appendChild(frWide);
+      pv.appendChild(el('div', { class: 'hint', text: t('preview') }));
       w.appendChild(pv);
     }
     return w;
@@ -860,5 +1008,5 @@
     eq(formName('Landorus-Therian', 'en'), 'Landorus (Therian)', 'form en');
     return { ok: ok, fails: fails };
   }
-  window.CCOverlay = { render: render, push: push, selfTest: selfTest };
+  window.CCOverlay = { open: open, selectMode: selectMode, render: render, push: push, selfTest: selfTest };
 })();

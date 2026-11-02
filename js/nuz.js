@@ -64,6 +64,7 @@
   function norm(s) { return String(s || '').toLowerCase().replace(/[\s.'’:-]/g, '').replace(/♀/g, 'f').replace(/♂/g, 'm'); }
   function spriteUrl(n) { var d = NAT[n]; return d ? 'https://play.pokemonshowdown.com/sprites/gen5/' + d[0] + '.png' : ''; }
   function sprite(n, cls) {
+    if (n && NAT[n] && A.spriteById) return A.spriteById(NAT[n][0], cls || 'sl-sprite', false, monName(n));
     var img = el('img', { class: cls || 'sl-sprite', alt: '', loading: 'lazy' });
     if (!n || !NAT[n]) { img.classList.add('none'); return img; }
     img.src = spriteUrl(n);

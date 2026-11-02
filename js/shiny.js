@@ -103,6 +103,7 @@
   function norm(s) { return String(s || '').toLowerCase().replace(/[\s.'’:-]/g, '').replace(/♀/g, 'f').replace(/♂/g, 'm'); }
   function sid(n) { return NAT[n] ? NAT[n][0] : ''; }
   function shinyImg(n, cls, big) {
+    if (!big && n && NAT[n] && A.spriteById) return A.spriteById(sid(n), cls || '', true, monName(n));
     var img = el('img', { class: cls || '', alt: '', loading: 'lazy' });
     if (!n || !NAT[n]) { img.classList.add('none'); return img; }
     var chain = big ? ['https://play.pokemonshowdown.com/sprites/ani-shiny/' + sid(n) + '.gif'] : [];
@@ -114,6 +115,7 @@
     return img;
   }
   function normalImg(n, cls) {
+    if (n && NAT[n] && A.spriteById) return A.spriteById(sid(n), cls || '', false, monName(n));
     var img = el('img', { class: cls || '', alt: '', loading: 'lazy' });
     if (NAT[n]) img.src = 'https://play.pokemonshowdown.com/sprites/gen5/' + sid(n) + '.png';
     return img;
@@ -745,6 +747,22 @@
       gens.appendChild(b);
     })(gi);
     bar.appendChild(gens);
+    var qIn = el('input', { type: 'search', placeholder: de ? 'Sammlung durchsuchen …' : 'Search collection …', value: store.dexQ || '' });
+    qIn.style.cssText = 'height:28px;padding:0 8px;width:165px;font-size:12.5px;';
+    qIn.addEventListener('input', function () { store.dexQ = qIn.value; render(); var f = root.querySelector('.sh-dexbar input[type=search]'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } });
+    bar.appendChild(qIn);
+    if (store.dexView !== 'dex') {
+      var srt = el('select', { title: de ? 'Sortierung' : 'Sort' });
+      srt.style.cssText = 'height:28px;font-size:12.5px;padding:0 6px;';
+      [['date', de ? 'Neueste zuerst' : 'Newest first'], ['enc_desc', de ? 'Meiste Begegnungen' : 'Most encounters'],
+       ['enc_asc', de ? 'Wenigste Begegnungen' : 'Fewest encounters'], ['dex', de ? 'Pokédex-Nr.' : 'Pokédex #'], ['name', 'A–Z']].forEach(function (o) {
+        var op = el('option', { value: o[0], text: o[1] });
+        if ((store.dexSort || 'date') === o[0]) op.selected = true;
+        srt.appendChild(op);
+      });
+      srt.addEventListener('change', function () { store.dexSort = srt.value; persist(); render(); });
+      bar.appendChild(srt);
+    }
     var add = el('button', { class: 'primary-btn', text: t('addCatch') });
     add.addEventListener('click', function () { openCatch(null, null); });
     bar.appendChild(add);
@@ -752,6 +770,7 @@
     var lo = store.dexGen ? GEN_END[store.dexGen - 1] + 1 : 1, hi = store.dexGen ? GEN_END[store.dexGen] : NAT.length - 1;
     var box = el('div', { class: 'sh-dexbody panel' });
     wrap.appendChild(box);
+    var q = norm(store.dexQ || '');
     if (store.dexView === 'dex') {
       // progress for the range
       var got = 0; for (var n = lo; n <= hi; n++) if (caught[n]) got++;
@@ -761,6 +780,7 @@
       box.appendChild(pr);
       var grid = el('div', { class: 'sh-dexgrid' });
       for (var k = lo; k <= hi; k++) (function (n) {
+        if (q && norm(monName(n)).indexOf(q) === -1 && String(n).indexOf(q) === -1) return;
         var c = el('div', { class: 'sh-dexcell' + (caught[n] ? ' caught' : seen[n] ? ' seen' : ''), title: '#' + n + ' ' + monName(n) + (caught[n] ? ' · ' + caught[n] + '× ' + t('caught') : seen[n] ? ' · ' + t('seen') : '') });
         c.appendChild(caught[n] ? shinyImg(n, 'sh-dex-img') : normalImg(n, 'sh-dex-img'));
         c.appendChild(el('span', { class: 'sh-dexno', text: '#' + n }));
@@ -771,7 +791,16 @@
       box.appendChild(grid);
       return;
     }
-    var list = store.collection.filter(function (c) { return !store.dexGen || (c.species >= lo && c.species <= hi); });
+    var list = store.collection.filter(function (c) {
+      if (store.dexGen && (c.species < lo || c.species > hi)) return false;
+      if (!q) return true;
+      return norm(monName(c.species)).indexOf(q) !== -1 || norm(c.nick).indexOf(q) !== -1 || norm(c.location).indexOf(q) !== -1 || String(c.species).indexOf(q) !== -1;
+    }).slice();
+    var srtKey = store.dexSort || 'date';
+    if (srtKey === 'enc_desc') list.sort(function (a, b) { return (b.encounters || 0) - (a.encounters || 0); });
+    else if (srtKey === 'enc_asc') list.sort(function (a, b) { return (a.encounters || 0) - (b.encounters || 0); });
+    else if (srtKey === 'dex') list.sort(function (a, b) { return (a.species || 0) - (b.species || 0); });
+    else if (srtKey === 'name') list.sort(function (a, b) { return monName(a.species).localeCompare(monName(b.species), de ? 'de' : 'en'); });
     if (!list.length) { box.appendChild(el('div', { class: 'hint nc-empty big', text: t('noCatches') })); return; }
     var cards = el('div', { class: 'sh-catches' });
     list.forEach(function (c) {
