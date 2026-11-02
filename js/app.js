@@ -173,6 +173,13 @@
       tbWeakCol: 'schw.', tbResCol: 'res.', tbEmptyEdit: 'Wähle oben einen Platz oder füge ein Pokémon hinzu.',
       tbSentYou: 'Team ins Damage Calc übernommen (deine Seite)', tbSentFoe: 'Team ins Damage Calc übernommen (Gegnerseite)',
       tbImportDone: '{0} Pokémon importiert', tbLeft: 'Nach links', tbRight: 'Nach rechts', tbNoTeam: 'Noch kein Team',
+      pkMove: 'Attacke wählen', pkItem: 'Item wählen', pkAbility: 'Fähigkeit wählen',
+      pkSearchMove: 'Suchen: Name, Typ oder Effekt …', pkSearchItem: 'Suchen: Name oder Effekt …', pkSearchAbility: 'Suchen: Name oder Effekt …',
+      pkAddMove: '+ Attacke wählen', pkNoMove: 'Attacke entfernen', pkNoItem: 'Kein Item tragen',
+      pkColType: 'Typ', pkColMove: 'Attacke', pkColCat: 'Art', pkColPower: 'Stärke', pkColAcc: 'Gen.', pkColPP: 'AP', pkColEffect: 'Effekt',
+      pkAccT: 'Genauigkeit', pkPPT: 'Attackenpunkte', pkUsed: 'Schon im Set', pkCount: '{0} von {1}', pkHint: '↑ ↓ wählen · Enter übernehmen · Esc schließen',
+      pkAllTypes: 'Alle Typen', pkClearFilter: 'Filter zurücksetzen', pkSortT: 'Sortieren nach {0}',
+      pkGroupFit: 'Passt zu diesem Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Beeren', pkGroupStones: 'Mega-Steine', tbPP: 'AP {0}',
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
       setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setSprite: 'Pixel-Sprite',
       setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
@@ -267,6 +274,13 @@
       tbWeakCol: 'weak', tbResCol: 'res.', tbEmptyEdit: 'Pick a slot above or add a Pokémon.',
       tbSentYou: 'Team sent to the damage calc (your side)', tbSentFoe: 'Team sent to the damage calc (opponent side)',
       tbImportDone: '{0} Pokémon imported', tbLeft: 'Move left', tbRight: 'Move right', tbNoTeam: 'No team yet',
+      pkMove: 'Choose a move', pkItem: 'Choose an item', pkAbility: 'Choose an ability',
+      pkSearchMove: 'Search: name, type or effect …', pkSearchItem: 'Search: name or effect …', pkSearchAbility: 'Search: name or effect …',
+      pkAddMove: '+ Choose a move', pkNoMove: 'Remove move', pkNoItem: 'Hold no item',
+      pkColType: 'Type', pkColMove: 'Move', pkColCat: 'Cat.', pkColPower: 'Power', pkColAcc: 'Acc.', pkColPP: 'PP', pkColEffect: 'Effect',
+      pkAccT: 'Accuracy', pkPPT: 'Power points', pkUsed: 'Already in the set', pkCount: '{0} of {1}', pkHint: '↑ ↓ select · Enter confirm · Esc close',
+      pkAllTypes: 'All types', pkClearFilter: 'Reset filters', pkSortT: 'Sort by {0}',
+      pkGroupFit: 'Fits this Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Berries', pkGroupStones: 'Mega Stones', tbPP: 'PP {0}',
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
       setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setSprite: 'Pixel sprite',
       setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
@@ -396,9 +410,10 @@
   }
   function megaFormeFor(base, item) {
     if (!item || typeof MEGA_STONE_USER_LOOKUP === 'undefined' || !MEGA_STONE_USER_LOOKUP[item]) return null;
-    var user = MEGA_STONE_USER_LOOKUP[item];
     var b = base.replace(/-.*$/, '');
-    if (user.replace(/-.*$/, '') !== b && user !== base) return null;
+    // an entry is one Pokémon, or a list of them (Meowsticite: Meowstic, Meowstic-F)
+    var fits = [].concat(MEGA_STONE_USER_LOOKUP[item]).some(function (u) { return u === base || u.replace(/-.*$/, '') === b; });
+    if (!fits) return null;
     var megas = formesOf(base).filter(function (f) { return f.indexOf('Mega ') === 0; });
     var m = item.match(/ ([XYZ])$/);
     var pick = megas.filter(function (f) { return m ? / [XYZ]$/.test(f) && f.slice(-1) === m[1] : !/ [XYZ]$/.test(f); });

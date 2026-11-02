@@ -31,7 +31,12 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
 - **Teambuilder** (`js/builder.js`):
   - Links die Liste aller Teams (neu, kopieren, löschen), Import aus Showdown-Text als neues Team oder in das aktuelle.
   - Oben sechs Plätze mit Sprite, Item, Typen und Attacken; ◀ ▶ verschieben, ✕ entfernt.
-  - Darunter der Editor: Pokémon-Suche (deutsch/englisch), „Set übernehmen …“ (beliebte, eigene und Online-Sets), Form, Item, Fähigkeit, Wesen, vier Attacken (nur legale, mit Typ, Kategorie, Stärke und Genauigkeit), Wesen und Stat Points als Balken; bei Mega-Steinen stehen die Mega-Werte daneben.
+  - Darunter der Editor: Pokémon-Suche (deutsch/englisch), „Set übernehmen …“ (beliebte, eigene und Online-Sets), Form, Item, Fähigkeit, Wesen, vier Attacken (nur legale, mit Typ, Kategorie, Stärke, Genauigkeit und AP), Wesen und Stat Points als Balken; bei Mega-Steinen stehen die Mega-Werte daneben. Unter Attacken, Item und Fähigkeit steht jeweils der Effekt.
+  - **Auswahlfenster für Attacken, Item und Fähigkeit** (wie bei Wesen): Ein Klick auf das Feld öffnet ein eigenes Fenster mit Suchfeld und einer Zeile je Eintrag, dazu der Effekt wie bei Showdown. Es springt zur aktuellen Auswahl; ↑ ↓ wählen, `Enter` übernimmt, `Esc` schließt.
+    - **Attacken**: Typ-Symbol (rund, wie im Spiel), Art, Stärke, Genauigkeit, AP und Effekt. Filter nach Typ (Symbole) und Art; ein Klick auf eine Spaltenüberschrift sortiert (Stärke und Genauigkeit zuerst absteigend). Die Suche findet Namen (deutsch/englisch), Typen und Wörter im Effekt (Namenstreffer stehen oben, z. B. „Regen“ oder „Unlicht“). Schon gewählte Attacken sind abgedunkelt; „Attacke entfernen“ leert den Platz.
+    - **Items**: Item-Symbol und Effekt, gruppiert in „Passt zu diesem Pokémon“ (der eigene Mega-Stein), Items, Beeren und Mega-Steine; „Kein Item tragen“.
+    - **Fähigkeiten**: Name und Effekt, ohne Symbol; das Fenster ist so hoch wie die Liste.
+    - Importierte Werte außerhalb des Lernsets bleiben erhalten und sind mit ⚠ markiert.
   - **Formwechsel** über dem großen Sprite: Normal / Mega (X, Y, Z) / Kampfformen wie Klingenform, Heldenform oder Kohldampf. Werte, Typen und Fähigkeit zeigen die gewählte Form; Mega setzt automatisch den passenden Mega-Stein.
   - **Aussehen & Form**: Form mit eigenen Werten (Regionalformen, Rotom-Formen, Wolwerock, Psiaugon-F …), kosmetische Variante (alle Vivillon-Muster, Florges-Farben, Alcremie, Coiffwaff …), Geschlecht (feste Geschlechter und geschlechtslose Pokémon werden beachtet) und Shiny. Wird im Showdown-Export mitgeschrieben (`(M)`/`(F)`, `Shiny: Yes`, Variantenname).
   - Rechts die Typ-Abdeckung: wie stark jeder Angriffstyp jedes Teammitglied trifft, inklusive Fähigkeiten wie Schwebe, Absorber oder Speckschicht.
@@ -145,9 +150,12 @@ Beide Knöpfe oben rechts laden Daten direkt im Browser (Internet nötig, kein S
 - `js/calc.js`: Schadensformel (Gen 9 mit Champions-Anpassungen)
 - `js/app.js`: Oberfläche, Set-Auswahl, Import/Export
 - `js/online.js`: Online-Aktualisierung von Sets und Regulation
+- `js/builder.js`: Teambuilder, inklusive der Auswahlfenster (`openPicker`)
 - `js/capture.js`, `js/shiny_detect.js`: Spielaufzeichnung und automatische Erkennung des Shiny-Zählers
 - `js/match_parse.js`, `js/match.js`: Team-Analyse (ein Teambuilder-Team, Showdown-Replays)
 - `data/`: Pokédex, Attacken, Items, Fähigkeiten und Sets aus dem NCP-Repo (Credits: Alex Collins / Jake White)
+- `data/desc_en.js`, `data/desc_de.js`, `data/pick_meta.js`: Effekttexte (englisch aus Pokémon Showdown, mit den Änderungen von Champions; deutsch aus den Spieltexten von PokeAPI, dazu eigene Übersetzungen für Gen-9-Inhalte und Champions-Änderungen), PP der Attacken und Symbol-Nummern der Items. Erzeugt mit `tools/build_pick.mjs`. Gibt es für einen neu geladenen Eintrag keinen deutschen Text, steht der englische da, sonst keiner.
+- `img/types/`: runde Typ-Symbole (18 SVG) von [partywhale/pokemon-type-icons](https://github.com/partywhale/pokemon-type-icons), MIT-Lizenz (`img/types/LICENSE.txt`). Die Item-Symbole kommen wie die Sprites online von Pokémon Showdown (`itemicons-sheet.png`) und brauchen Internet.
 
 Neue Regulationen: aktuelle Dateien aus `https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/script_res/`
 (`pokedex.js`, `move_data.js`, `item_data.js`, `ability_data.js`, `setdex_ncp-g10.js`) nach `data/` kopieren.
@@ -158,6 +166,9 @@ Lernsets aktualisieren (`data/learnsets_champ.js`): die beiden Showdown-Dateien 
 
 Sprite-Zuschnitt für die Team-Leiste (`data/sprite_boxes.js`, braucht Pillow), danach mit `index.html?teamdemo` prüfen:
 `python tools/build_sprite_boxes.py pokedex.json data/learnsets_champ.js data/sprite_boxes.js`.
+
+Effekttexte, PP und Item-Symbole der Auswahlfenster (`data/desc_en.js`, `data/desc_de.js`, `data/pick_meta.js`), braucht nur Node.js: in einen Ordner `text_moves.ts`, `text_items.ts`, `text_abilities.ts` (aus `data/text/{moves,items,abilities}.ts` im Repo smogon/pokemon-showdown), `champions_moves.ts` (`data/mods/champions/moves.ts`), `moves.json` und `items.js` (`https://play.pokemonshowdown.com/data/`) legen, in einen zweiten Ordner `move_names.csv`, `ability_names.csv`, `item_names.csv`, `move_flavor_text.csv`, `ability_flavor_text.csv` und `item_flavor_text.csv` aus `PokeAPI/pokeapi` (`data/v2/csv/`), dann
+`node tools/build_pick.mjs <showdown-ordner> <pokeapi-ordner> data`. Das Skript liest die Dateien nur als Text. Eigene deutsche Texte stehen in `tools/desc_de_extra.json` („override“ für Änderungen von Champions, „fill“ für Lücken bei PokeAPI; fehlende Mega-Steine erzeugt das Skript aus einer Vorlage) und das Skript meldet, was für Champions noch keinen deutschen Text hat.
 
 Genauigkeit der Attacken (`data/move_acc.js`, nur für die Anzeige im Teambuilder): `https://play.pokemonshowdown.com/data/moves.json` und `data/mods/champions/moves.ts` herunterladen, dann
 `python tools/build_move_acc.py moves.json moves.ts data/move_acc.js`.

@@ -151,11 +151,33 @@
   function spTotal(set) { return C.STAT_KEYS.reduce(function (n, k) { return n + ((set.sps && set.sps[k]) || 0); }, 0); }
   var CAT_DE = { Physical: 'Phys.', Special: 'Spez.', Status: 'Status' }, CAT_EN = { Physical: 'Phys.', Special: 'Spec.', Status: 'Status' };
   function nCat(c) { return (de ? CAT_DE : CAT_EN)[c] || c || ''; }
-  function optionsHtml(list, kind, cur) {
-    var h = list.map(function (v) { return '<option value="' + A.esc(v) + '">' + A.esc(A.kindLabel(kind, v)) + '</option>'; }).join('');
-    if (cur && list.indexOf(cur) === -1) h += '<option value="' + A.esc(cur) + '" title="' + A.esc(T('notLegal')) + '">' + A.esc(A.kindLabel(kind, cur)) + ' ⚠</option>';
-    return h;
+
+  // ---------- effects like on Showdown: short texts, PP, type symbols, item symbols ----------
+  // texts: data/desc_de.js (PokeAPI + own translations) and data/desc_en.js (Showdown), keyed by the normalized name.
+  // A German entry that has no translation falls back to the English text.
+  var DESC = { de: window.DESC_DE || {}, en: window.DESC_EN || {} };
+  var META = window.PICK_META || { pp: {}, icon: {} };
+  function descOf(kind, name) { // kind: 'moves' | 'items' | 'abilities'
+    var k = A.idOf(name);
+    return ((de && (DESC.de[kind] || {})[k]) || (DESC.en[kind] || {})[k]) || '';
   }
+  var TYPE_SYMBOL = {};
+  C.TYPES.forEach(function (t) { TYPE_SYMBOL[t] = 1; }); // img/types/<type>.svg exists for every real type
+  function typeIcon(t) {
+    if (!TYPE_SYMBOL[t]) { var dot = el('span', { class: 'type-ic dot', title: A.nType(t) }); dot.style.background = A.TYPE_COLORS[t] || '#666'; return dot; }
+    var i = el('img', { class: 'type-ic', src: 'img/types/' + t.toLowerCase() + '.svg', alt: A.nType(t), title: A.nType(t) });
+    i.draggable = false;
+    return i;
+  }
+  // item symbols come from the Showdown item sheet (24 px cells, 16 per row); PICK_META.icon holds the cell number
+  function itemIcon(name) {
+    var n = (META.icon || {})[A.idOf(name)], s = el('span', { class: 'item-ic' });
+    if (n != null) { s.classList.add('has'); s.style.setProperty('--c', n % 16); s.style.setProperty('--r', Math.floor(n / 16)); }
+    return s;
+  }
+  // accuracy for display: number, true = never misses, null = unknown
+  function accOf(move) { var a = (window.MOVE_ACC || {})[A.idOf(move)]; return a == null ? null : a; }
+  function ppOf(move) { var p = (META.pp || {})[A.idOf(move)]; return p == null ? null : p; }
   function presetsFor(species) {
     var g = null;
     A.speciesGroups().some(function (x) { if (x.species === species) { g = x; return true; } return false; });
@@ -518,60 +540,107 @@
     var mvBox = box('tb-area-moves');
     var legal = A.legalMoves(baseForme(m)) || Object.keys(MOVES).filter(function (x) { return x !== '(No Move)'; });
     var moveOpts = A.sortedBy(legal, A.nMove);
-    for (var k = 0; k < 4; k++) (function (k) {
+    // a move outside the Champions learnset (imported) stays selectable and is marked with ⚠
+    function moveList(cur) { return cur && moveOpts.indexOf(cur) === -1 ? [cur].concat(moveOpts) : moveOpts; }
+    function drawMoves() {
+      mvBox.innerHTML = '';
+      for (var k = 0; k < 4; k++) mvBox.appendChild(moveCard(k));
+    }
+    function moveCard(k) {
       var card = el('div', { class: 'tb-movecard' });
-      var s = el('select');
-      s.innerHTML = '<option value="">' + (de ? '(keine Attacke)' : '(No Move)') + '</option>' + optionsHtml(moveOpts, 'move', set.moves[k]);
-      s.value = set.moves[k] || '';
+      var cur = set.moves[k] || '', d = MOVES[cur];
+      card.style.borderLeftColor = d ? (A.TYPE_COLORS[d.type] || '') : '';
+      var btn = el('button', { class: 'tb-pickbtn' + (d ? '' : ' empty'), title: T('pkMove') });
+      if (d) btn.appendChild(typeIcon(d.type));
+      btn.appendChild(el('span', { class: 'nm', text: d ? A.nMove(cur) + (moveOpts.indexOf(cur) === -1 ? ' ⚠' : '') : T('pkAddMove') }));
+      btn.appendChild(el('span', { class: 'caret', text: '▾' }));
+      btn.addEventListener('click', function () {
+        openPicker({
+          kind: 'move', title: T('pkMove') + ' ' + (k + 1) + '/4 · ' + A.nSpecies(baseForme(m)), list: moveList(cur), cur: cur,
+          legal: moveOpts, used: set.moves.filter(function (x, i) { return i !== k; }), none: cur ? T('pkNoMove') : '',
+          onPick: function (v) {
+            var slots = [0, 1, 2, 3].map(function (i) { return set.moves[i] || ''; });
+            slots[k] = v;
+            set.moves = slots.filter(Boolean);
+            changed(); drawMoves();
+          }
+        });
+      });
+      card.appendChild(btn);
       var info = el('div', { class: 'tb-move-info' });
-      function fill() {
-        info.innerHTML = '';
-        var d = MOVES[s.value];
-        card.style.borderLeftColor = d ? (A.TYPE_COLORS[d.type] || '') : '';
-        if (!d) { info.appendChild(el('span', { class: 'tb-cat', text: T('tbMoveN', k + 1) })); return; }
+      if (!d) info.appendChild(el('span', { class: 'tb-cat', text: T('tbMoveN', k + 1) }));
+      else {
         info.appendChild(A.typeBadge(d.type));
         info.appendChild(el('span', { class: 'tb-cat', text: nCat(d.category) }));
-        var nums = el('span', { class: 'tb-bp' });
+        var nums = el('span', { class: 'tb-bp' }), acc = accOf(cur), pp = ppOf(cur);
         if (d.bp) nums.appendChild(el('span', { text: T('tbPower', d.bp) }));
-        var acc = (window.MOVE_ACC || {})[s.value.toLowerCase().replace(/[^a-z0-9]/g, '')];
         if (acc === true) { if (d.category !== 'Status') nums.appendChild(el('span', { text: T('tbAccAlways') })); }
         else if (acc != null) nums.appendChild(el('span', { class: acc < 100 ? 'low' : '', text: T('tbAcc', acc) }));
+        if (pp != null) nums.appendChild(el('span', { text: T('tbPP', pp) }));
         info.appendChild(nums);
       }
-      s.addEventListener('change', function () {
-        var mv = []; R.edit.querySelectorAll('.tb-movecard select').forEach(function (x) { if (x.value) mv.push(x.value); });
-        set.moves = mv; fill(); changed();
-      });
-      fill();
-      card.appendChild(s); card.appendChild(info); mvBox.appendChild(card);
-    })(k);
+      card.appendChild(info);
+      var md = d ? descOf('moves', cur) : '';
+      if (md) card.appendChild(el('div', { class: 'tb-pick-desc one', text: md, title: md }));
+      return card;
+    }
+    drawMoves();
 
     // --- item ---
     var itBox = box('tb-area-item', T('item'));
-    var items = ['(none)'].concat(A.sortedBy(A.ITEMS.filter(function (x) { return x !== '(none)'; }), A.nItem));
-    var is = el('select');
-    is.innerHTML = optionsHtml(items, 'item', set.item || '(none)');
-    is.value = set.item || '(none)';
-    is.addEventListener('change', function () { set.item = is.value; changed(); renderEditor(); });
-    itBox.appendChild(is);
+    var itBody = el('div'); itBox.appendChild(itBody);
+    var items = A.sortedBy(A.ITEMS.filter(function (x) { return x !== '(none)'; }), A.nItem);
+    function drawItem() {
+      itBody.innerHTML = '';
+      var cur = set.item || '(none)', has = cur !== '(none)';
+      var btn = el('button', { class: 'tb-pickbtn' + (has ? '' : ' empty'), title: T('pkItem') });
+      if (has) btn.appendChild(itemIcon(cur));
+      btn.appendChild(el('span', { class: 'nm', text: has ? A.nItem(cur) + (items.indexOf(cur) === -1 ? ' ⚠' : '') : A.kindLabel('item', cur) }));
+      btn.appendChild(el('span', { class: 'caret', text: '▾' }));
+      btn.addEventListener('click', function () {
+        openPicker({
+          kind: 'item', title: T('pkItem') + ' · ' + A.nSpecies(baseForme(m)), list: has && items.indexOf(cur) === -1 ? [cur].concat(items) : items, cur: has ? cur : '',
+          legal: items, fit: function (v) { return !!A.megaFormeFor(m.species, v); }, none: has ? T('pkNoItem') : '',
+          onPick: function (v) { set.item = v || '(none)'; changed(); renderEditor(); }
+        });
+      });
+      itBody.appendChild(btn);
+      var idesc = has ? descOf('items', cur) : '';
+      if (idesc) itBody.appendChild(el('div', { class: 'tb-pick-desc', text: idesc, title: idesc }));
+    }
+    drawItem();
 
     // --- ability: in a Mega / battle form with its own ability that one is shown ---
     var abBox = box('tb-area-ability', T('ability'));
+    var abBody = el('div'); abBox.appendChild(abBody);
     var abil = A.legalAbilities(baseForme(m)) || A.ABILITIES;
     if (!set.ability) set.ability = abil[0];
+    var abilSorted = A.sortedBy(abil, A.nAbility);
     var formAb = view !== baseForme(m) && DEX[view] && DEX[view].ab && view.indexOf('Mega ') === 0 ? DEX[view].ab : null;
-    if (formAb) {
-      var fixed = el('div', { class: 'tb-fixed-ab', text: A.nAbility(formAb) });
-      abBox.appendChild(fixed);
-      abBox.appendChild(el('div', { class: 'tb-note', text: T('tbAbInForm', A.nSpecies(view)) + ' · ' + T('tbAbNormal', A.nAbility(set.ability)) }));
-    } else {
-      var as = el('select');
-      as.innerHTML = optionsHtml(A.sortedBy(abil, A.nAbility), 'ability', set.ability);
-      as.value = set.ability;
-      as.addEventListener('change', function () { set.ability = as.value; changed(); });
-      abBox.appendChild(as);
-      if (mega && DEX[mega].ab && view !== mega) abBox.appendChild(el('div', { class: 'tb-note', text: T('tbMega') + ': ' + A.nAbility(DEX[mega].ab) }));
+    function drawAbility() {
+      abBody.innerHTML = '';
+      if (formAb) {
+        abBody.appendChild(el('div', { class: 'tb-fixed-ab', text: A.nAbility(formAb) }));
+        var fd = descOf('abilities', formAb);
+        if (fd) abBody.appendChild(el('div', { class: 'tb-pick-desc', text: fd, title: fd }));
+        abBody.appendChild(el('div', { class: 'tb-note', text: T('tbAbInForm', A.nSpecies(view)) + ' · ' + T('tbAbNormal', A.nAbility(set.ability)) }));
+        return;
+      }
+      var cur = set.ability, btn = el('button', { class: 'tb-pickbtn', title: T('pkAbility') });
+      btn.appendChild(el('span', { class: 'nm', text: A.nAbility(cur) + (abilSorted.indexOf(cur) === -1 ? ' ⚠' : '') }));
+      btn.appendChild(el('span', { class: 'caret', text: '▾' }));
+      btn.addEventListener('click', function () {
+        openPicker({
+          kind: 'ability', title: T('pkAbility') + ' · ' + A.nSpecies(baseForme(m)), list: abilSorted.indexOf(cur) === -1 ? [cur].concat(abilSorted) : abilSorted, cur: cur,
+          legal: abilSorted, none: '', onPick: function (v) { set.ability = v; changed(); drawAbility(); }
+        });
+      });
+      abBody.appendChild(btn);
+      var ad = descOf('abilities', cur);
+      if (ad) abBody.appendChild(el('div', { class: 'tb-pick-desc', text: ad, title: ad }));
+      if (mega && DEX[mega].ab && view !== mega) abBody.appendChild(el('div', { class: 'tb-note', text: T('tbMega') + ': ' + A.nAbility(DEX[mega].ab) }));
     }
+    drawAbility();
 
     // --- stats of the shown form across the bottom ---
     var stBox = box('tb-area-stats', T('tbStats') + ' · ' + A.nSpecies(view));
@@ -812,6 +881,231 @@
     revert.addEventListener('click', function () { onPick(start); close(); });
     natModal.addEventListener('mousedown', function (ev) { if (ev.target === natModal) close(); });
     var cur = bx.querySelector('.nat-cell.cur'); if (cur) cur.focus();
+  }
+
+  // ---------------- picker windows: moves, items, abilities ----------------
+  // Own window like the nature picker. Search field, filters (moves), one row per entry with a symbol (type symbol for moves,
+  // item symbol for items, none for abilities) and its effect text, like the lists on Showdown.
+  // cfg: { kind: 'move'|'item'|'ability', title, list: [names], cur, legal: [names that are legal], used: [names already taken],
+  //        fit(name) (items: belongs to this Pokémon), none: label of the "remove" button or '', onPick(name | '') }
+  var pickModal = null, pickKey = null;
+  function closePicker() {
+    if (!pickModal) return;
+    pickModal.remove(); pickModal = null;
+    document.removeEventListener('keydown', pickKey, true); pickKey = null;
+  }
+  var CAT_KEYS = ['Physical', 'Special', 'Status'];
+  function openPicker(cfg) {
+    closePicker();
+    var kind = cfg.kind, isMove = kind === 'move', isItem = kind === 'item';
+    var kk = isMove ? 'moves' : isItem ? 'items' : 'abilities';
+    var stones = window.MEGA_STONE_USER_LOOKUP || {};
+    var used = {}, legalSet = {};
+    (cfg.used || []).forEach(function (v) { used[v] = 1; });
+    (cfg.legal || []).forEach(function (v) { legalSet[v] = 1; });
+
+    // one record per entry, built once
+    var rows = cfg.list.map(function (v) {
+      var r = { v: v, desc: descOf(kk, v), warn: !legalSet[v] };
+      r.name = isMove ? A.nMove(v) : isItem ? A.nItem(v) : A.nAbility(v);
+      r.hay = (r.name + ' ' + v).toLowerCase();
+      if (isMove) {
+        var d = MOVES[v] || {}, a = accOf(v);
+        r.type = d.type; r.cat = d.category; r.bp = d.bp || 0; r.pp = ppOf(v);
+        r.acc = a === true ? 1000 : a == null ? -1 : a; r.never = a === true;
+        r.hay2 = (A.nType(d.type) + ' ' + d.type + ' ' + nCat(d.category) + ' ' + r.desc).toLowerCase();
+      } else r.hay2 = r.desc.toLowerCase();
+      if (isItem) r.group = cfg.fit && cfg.fit(v) ? 0 : stones[v] ? 3 : / Berry$/.test(v) ? 2 : 1;
+      return r;
+    });
+
+    var q = '', typeSel = '', catSel = '', sortKey = 'name', sortDir = 1, shown = [], nodes = [], active = -1;
+
+    // ---- window ----
+    pickModal = el('div', { class: 'modal pick-modal' });
+    var bx = el('div', { class: 'modal-box pick-box pick-w-' + kind });
+    var head = el('div', { class: 'pick-head' });
+    head.appendChild(el('h3', { text: cfg.title }));
+    var input = el('input', { class: 'pick-search', type: 'text', spellcheck: 'false', autocomplete: 'off', placeholder: T(isMove ? 'pkSearchMove' : isItem ? 'pkSearchItem' : 'pkSearchAbility') });
+    head.appendChild(input);
+    var x = el('button', { class: 'icon-btn', text: '✕', title: T('close') });
+    x.addEventListener('click', closePicker);
+    head.appendChild(x);
+    bx.appendChild(head);
+
+    // ---- filters (moves): type symbols and category ----
+    var typeBtns = {}, catBtns = {}, reset = null;
+    function syncFilters() {
+      Object.keys(typeBtns).forEach(function (t) { typeBtns[t].classList.toggle('on', typeSel === t); });
+      Object.keys(catBtns).forEach(function (c) { catBtns[c].classList.toggle('on', catSel === c); });
+      if (reset) reset.hidden = !typeSel && !catSel;
+    }
+    if (isMove) {
+      var filt = el('div', { class: 'pick-filters' });
+      var tw = el('div', { class: 'pick-types' });
+      C.TYPES.forEach(function (t) {
+        var b = el('button', { class: 'pick-type', title: A.nType(t) });
+        b.appendChild(typeIcon(t));
+        b.addEventListener('click', function () { typeSel = typeSel === t ? '' : t; syncFilters(); renderList(); input.focus(); });
+        typeBtns[t] = b; tw.appendChild(b);
+      });
+      filt.appendChild(tw);
+      var cw = el('div', { class: 'pick-cats' });
+      CAT_KEYS.forEach(function (c) {
+        var b = el('button', { class: 'pick-catbtn ' + c.toLowerCase(), text: nCat(c) });
+        b.addEventListener('click', function () { catSel = catSel === c ? '' : c; syncFilters(); renderList(); input.focus(); });
+        catBtns[c] = b; cw.appendChild(b);
+      });
+      reset = el('button', { class: 'pick-reset', text: '✕ ' + T('pkClearFilter') });
+      reset.hidden = true;
+      reset.addEventListener('click', function () { typeSel = ''; catSel = ''; syncFilters(); renderList(); input.focus(); });
+      cw.appendChild(reset);
+      filt.appendChild(cw);
+      bx.appendChild(filt);
+    }
+
+    // ---- column heads (moves): click sorts ----
+    var colEls = {};
+    function drawCols() {
+      Object.keys(colEls).forEach(function (k) {
+        colEls[k].classList.toggle('on', sortKey === k);
+        colEls[k].dataset.dir = sortKey === k ? (sortDir > 0 ? '▲' : '▼') : '';
+      });
+    }
+    if (isMove) {
+      var cols = el('div', { class: 'pick-row pick-move pick-cols' });
+      [['type', 'pkColType', 'c'], ['name', 'pkColMove', ''], ['cat', 'pkColCat', ''], ['bp', 'pkColPower', 'n'], ['acc', 'pkColAcc', 'n'], ['pp', 'pkColPP', 'n'], [null, 'pkColEffect', '']].forEach(function (c) {
+        var h = el('span', { class: 'pick-col ' + c[2] + (c[0] ? ' sortable' : ''), text: T(c[1]) });
+        if (c[0]) {
+          h.title = T('pkSortT', T(c[1]));
+          h.addEventListener('click', function () {
+            if (sortKey === c[0]) sortDir = -sortDir; else { sortKey = c[0]; sortDir = (c[0] === 'bp' || c[0] === 'acc' || c[0] === 'pp') ? -1 : 1; }
+            drawCols(); renderList(); list.scrollTop = 0;
+          });
+          colEls[c[0]] = h;
+        }
+        cols.appendChild(h);
+      });
+      bx.appendChild(cols);
+    }
+
+    var list = el('div', { class: 'pick-list' });
+    bx.appendChild(list);
+
+    // ---- footer ----
+    var foot = el('div', { class: 'pick-foot' });
+    if (cfg.none) {
+      var nb = el('button', { class: 'tbtn danger', text: cfg.none });
+      nb.addEventListener('click', function () { closePicker(); cfg.onPick(''); });
+      foot.appendChild(nb);
+    }
+    var count = el('span', { class: 'pick-count' });
+    foot.appendChild(count);
+    foot.appendChild(el('span', { class: 'pick-hint', text: T('pkHint') }));
+    bx.appendChild(foot);
+    pickModal.appendChild(bx);
+    document.body.appendChild(pickModal);
+
+    function choose(v) { closePicker(); cfg.onPick(v); }
+
+    function buildRow(r) {
+      var row = el('div', { class: 'pick-row pick-' + kind + (r.v === cfg.cur ? ' cur' : '') + (used[r.v] ? ' used' : '') });
+      if (isMove) { var ic = el('span', { class: 'pick-ic' }); ic.appendChild(typeIcon(r.type)); row.appendChild(ic); }
+      else if (isItem) { var ic2 = el('span', { class: 'pick-ic' }); ic2.appendChild(itemIcon(r.v)); row.appendChild(ic2); }
+      var nm = el('span', { class: 'pick-name' });
+      nm.appendChild(el('span', { class: 'pick-nm', text: r.name }));
+      if (r.warn) nm.appendChild(el('span', { class: 'pick-warn', text: '⚠', title: T('notLegal') }));
+      if (used[r.v]) nm.appendChild(el('span', { class: 'pick-tag', text: T('pkUsed') }));
+      row.appendChild(nm);
+      if (isMove) {
+        row.appendChild(el('span', { class: 'pick-catc ' + (r.cat || '').toLowerCase(), text: nCat(r.cat) }));
+        row.appendChild(el('span', { class: 'pick-num', text: r.bp ? String(r.bp) : '–' }));
+        row.appendChild(el('span', { class: 'pick-num' + (r.acc >= 0 && r.acc < 100 ? ' low' : ''), title: r.never ? T('tbAccAlways') : T('pkAccT'), text: r.acc < 0 || r.never ? '–' : String(r.acc) }));
+        row.appendChild(el('span', { class: 'pick-num', title: T('pkPPT'), text: r.pp != null ? String(r.pp) : '–' }));
+      }
+      row.appendChild(el('span', { class: 'pick-desc', text: r.desc }));
+      if (!used[r.v]) row.addEventListener('click', function () { choose(r.v); });
+      return row;
+    }
+    function hl(scroll) {
+      nodes.forEach(function (n, i) { n.classList.toggle('active', i === active); });
+      if (scroll && nodes[active]) nodes[active].scrollIntoView({ block: 'nearest' });
+    }
+    function step(d) {
+      if (!shown.length) return;
+      var i = active, n = Math.abs(d), dir = d < 0 ? -1 : 1;
+      while (n > 0) {
+        var j = i + dir;
+        while (j >= 0 && j < shown.length && used[shown[j].v]) j += dir; // keyboard skips what is already taken
+        if (j < 0 || j >= shown.length) break;
+        i = j; n--;
+      }
+      if (i === -1) { i = 0; while (i < shown.length && used[shown[i].v]) i++; }
+      active = Math.min(i, shown.length - 1); hl(true);
+    }
+
+    function renderList() {
+      var toks = q.split(/\s+/).filter(Boolean);
+      var out = rows.filter(function (r) {
+        if (typeSel && r.type !== typeSel) return false;
+        if (catSel && r.cat !== catSel) return false;
+        r.rank = 0;
+        if (!toks.length) return true;
+        if (toks.every(function (t) { return r.hay.indexOf(t) !== -1; })) { r.rank = (' ' + r.hay).indexOf(' ' + toks[0]) !== -1 ? 0 : 1; return true; }
+        r.rank = 2; // found only in the type or the effect text
+        return toks.every(function (t) { return r.hay.indexOf(t) !== -1 || r.hay2.indexOf(t) !== -1; });
+      });
+      out.sort(function (a, b) {
+        if (a.rank !== b.rank) return a.rank - b.rank;
+        if (isItem && !toks.length && a.group !== b.group) return a.group - b.group;
+        var byName = a.name.localeCompare(b.name, A.LANG), c = 0;
+        if (!isMove || sortKey === 'name') return byName * (isMove ? sortDir : 1);
+        if (sortKey === 'type') c = A.nType(a.type).localeCompare(A.nType(b.type), A.LANG);
+        else if (sortKey === 'cat') c = CAT_KEYS.indexOf(a.cat) - CAT_KEYS.indexOf(b.cat);
+        else if (sortKey === 'bp') c = a.bp - b.bp;
+        else if (sortKey === 'acc') c = a.acc - b.acc;
+        else if (sortKey === 'pp') c = (a.pp == null ? -1 : a.pp) - (b.pp == null ? -1 : b.pp);
+        return c * sortDir || byName;
+      });
+      shown = out; nodes = []; list.innerHTML = '';
+      if (!out.length) list.appendChild(el('div', { class: 'pick-empty', text: T('noHits') }));
+      var frag = document.createDocumentFragment(), lastG = -1;
+      var groupKeys = ['pkGroupFit', 'pkGroupItems', 'pkGroupBerries', 'pkGroupStones'];
+      out.forEach(function (r) {
+        if (isItem && !toks.length && r.group !== lastG) { lastG = r.group; frag.appendChild(el('div', { class: 'pick-group', text: T(groupKeys[r.group]) })); }
+        var row = buildRow(r);
+        nodes.push(row); frag.appendChild(row);
+      });
+      list.appendChild(frag);
+      count.textContent = T('pkCount', out.length, rows.length);
+      active = toks.length && out.length ? step0() : -1;
+      hl(false);
+    }
+    function step0() { var i = 0; while (i < shown.length && used[shown[i].v]) i++; return i < shown.length ? i : -1; }
+
+    input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); renderList(); list.scrollTop = 0; });
+    pickKey = function (ev) {
+      if (ev.key === 'Escape') { ev.stopPropagation(); closePicker(); return; }
+      if (ev.target && ev.target.tagName === 'BUTTON') return; // a focused button keeps its own Enter
+      if (ev.key === 'ArrowDown') { step(1); ev.preventDefault(); }
+      else if (ev.key === 'ArrowUp') { step(-1); ev.preventDefault(); }
+      else if (ev.key === 'PageDown') { step(8); ev.preventDefault(); }
+      else if (ev.key === 'PageUp') { step(-8); ev.preventDefault(); }
+      else if (ev.key === 'Enter') {
+        var r = shown[active >= 0 ? active : step0()];
+        if (r && !used[r.v]) choose(r.v);
+        ev.preventDefault();
+      }
+    };
+    document.addEventListener('keydown', pickKey, true);
+    pickModal.addEventListener('mousedown', function (ev) { if (ev.target === pickModal) closePicker(); });
+
+    drawCols(); syncFilters(); renderList();
+    // start on the current choice: scroll to it, arrow keys continue from there
+    var curIdx = -1;
+    shown.forEach(function (r, i) { if (r.v === cfg.cur) curIdx = i; });
+    if (curIdx >= 0) { active = curIdx; hl(false); nodes[curIdx].scrollIntoView({ block: 'center' }); }
+    input.focus();
   }
 
   // ---------------- type coverage (defensive) ----------------

@@ -385,3 +385,81 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .sw-rattata { background: linear-gradient(135deg, #241636 52%, #d4bbff 52%); }
 .sw-ocean { background: linear-gradient(135deg, #0b333b 52%, #7af0e0 52%); }
 .sw-system { background: linear-gradient(135deg, #1b1d21 50%, #e8eaed 50%); }
+
+/* ---- moves, item and ability in the editor: buttons that open the picker window, effect text below ---- */
+.tb-pickbtn { width: 100%; height: 28px; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 8px; text-align: left; font-weight: 600; background: var(--panel); border-color: var(--input-line); }
+.tb-pickbtn:hover { background: var(--btn-hover); border-color: var(--accent-2); }
+.tb-pickbtn .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tb-pickbtn .caret { flex: none; color: var(--muted); font-size: 11px; }
+.tb-pickbtn.empty .nm { color: var(--muted); font-weight: 400; }
+.tb-pickbtn .type-ic { width: 20px; height: 20px; }
+.tb-pick-desc { margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.tb-pick-desc.one { margin-top: 0; -webkit-line-clamp: 1; line-clamp: 1; }
+
+/* symbols: type (img/types, round), item (Showdown item sheet, 24 px cells, 16 per row) */
+.type-ic { width: 22px; height: 22px; flex: none; display: block; }
+.type-ic.dot { border-radius: 50%; }
+.item-ic { --s: 24px; display: inline-block; width: var(--s); height: var(--s); flex: none; }
+.item-ic.has {
+  background: url(https://play.pokemonshowdown.com/sprites/itemicons-sheet.png) no-repeat;
+  background-size: calc(var(--s) * 16) auto;
+  background-position: calc(var(--c) * var(--s) * -1) calc(var(--r) * var(--s) * -1);
+  image-rendering: pixelated;
+}
+
+/* ---- picker window (moves, items, abilities) ---- */
+.pick-box { display: flex; flex-direction: column; gap: 8px; width: min(1060px, 96%); height: min(720px, 92%); padding: 12px 14px; }
+.pick-box.pick-w-item { width: min(880px, 96%); }
+.pick-box.pick-w-ability { width: min(820px, 96%); height: auto; max-height: min(640px, 92%); } /* few entries: the window fits them */
+.pick-w-ability .pick-list { flex: 0 1 auto; }
+.pick-head { flex: none; display: flex; align-items: center; gap: 12px; }
+.pick-head h3 { margin: 0; white-space: nowrap; }
+.pick-search { flex: 1; min-width: 0; height: 30px; padding: 0 10px; font-size: 14px; }
+.pick-filters { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.pick-types { display: flex; gap: 2px; flex-wrap: wrap; }
+.pick-type { width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: transparent; border: 2px solid transparent; opacity: .65; }
+.pick-type:hover { background: transparent; opacity: 1; }
+.pick-type.on { opacity: 1; border-color: var(--accent-2); }
+.pick-cats { display: flex; align-items: center; gap: 4px; }
+.pick-catbtn { height: 26px; padding: 0 10px; font-size: 12px; font-weight: 600; }
+.pick-catbtn.on { background: var(--btn-on); border-color: var(--btn-on); color: var(--on-btn); }
+.pick-reset { height: 26px; padding: 0 8px; font-size: 12px; margin-left: 6px; }
+
+.pick-row { display: grid; align-items: center; column-gap: 10px; padding: 5px 10px; border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+.pick-row.pick-move { grid-template-columns: 44px 190px 54px 44px 40px 34px minmax(0, 1fr); }
+.pick-row.pick-item { grid-template-columns: 28px 220px minmax(0, 1fr); }
+.pick-row.pick-ability { grid-template-columns: 220px minmax(0, 1fr); }
+.pick-cols { flex: none; padding-top: 4px; padding-bottom: 4px; cursor: default; background: var(--panel-head); border: 1px solid var(--line-soft); border-radius: var(--radius); overflow-y: hidden; scrollbar-gutter: stable; }
+.pick-col { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; user-select: none; }
+.pick-col.c { text-align: center; }
+.pick-col.n { text-align: right; }
+.pick-col.sortable { cursor: pointer; }
+.pick-col.sortable:hover { color: var(--text); }
+.pick-col.on { color: var(--accent-2); }
+.pick-col.on::after { content: ' ' attr(data-dir); font-size: 9px; }
+.pick-list { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); }
+.pick-list .pick-row:hover:not(.used), .pick-list .pick-row.active { background: var(--btn-hover); }
+.pick-list .pick-row.cur { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent-2); }
+.pick-list .pick-row.cur.active { background: var(--btn-hover); }
+.pick-row.used { opacity: .4; cursor: default; }
+.pick-ic { display: flex; align-items: center; justify-content: center; }
+.pick-ic .type-ic { width: 24px; height: 24px; }
+.pick-name { min-width: 0; display: flex; align-items: baseline; gap: 6px; font-weight: 700; }
+.pick-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick-warn { color: var(--warn); }
+.pick-tag { flex: none; font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+.pick-catc { justify-self: start; font-size: 11px; font-weight: 700; line-height: 16px; padding: 0 6px; border-radius: 3px; color: #fff; background: var(--line); white-space: nowrap; }
+.pick-catc.physical { background: #c9622a; }
+.pick-catc.special { background: #3b78c4; }
+.pick-catc.status { background: #7b8490; }
+.pick-catbtn.physical:not(.on) { border-bottom: 2px solid #c9622a; }
+.pick-catbtn.special:not(.on) { border-bottom: 2px solid #3b78c4; }
+.pick-catbtn.status:not(.on) { border-bottom: 2px solid #7b8490; }
+.pick-num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pick-num.low { color: var(--warn); }
+.pick-desc { min-width: 0; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.pick-group { position: sticky; top: 0; z-index: 1; padding: 3px 10px; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--panel-head); border-bottom: 1px solid var(--line-soft); }
+.pick-empty { padding: 20px; text-align: center; color: var(--muted); }
+.pick-foot { flex: none; display: flex; align-items: center; gap: 14px; min-height: 30px; }
+.pick-count { color: var(--muted); font-size: 12px; }
+.pick-hint { margin-left: auto; color: var(--muted); font-size: 12px; }
