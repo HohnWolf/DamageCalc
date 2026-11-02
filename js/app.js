@@ -152,9 +152,10 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', homeTitle: 'Zum Startbildschirm',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
+      startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
       startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
@@ -162,7 +163,7 @@
       startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
       startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler und Team-Analyse für Pokémon Champions',
-      startFoot: 'Tasten 1–6 zum Öffnen · Zurück zum Start über das Logo oben links',
+      startFoot: 'Tasten 1–7 zum Öffnen · Zurück zum Start über das Logo oben links',
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
@@ -253,9 +254,10 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', homeTitle: 'Back to the start screen',
+      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: Showdown replays, usage, leads and matchups.',
+      startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
       startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
       startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Early test version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
       winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
@@ -263,7 +265,7 @@
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
       startSub: 'Damage Calculator, Teambuilder, Shiny counter and Team-Analyse for Pokémon Champions',
-      startFoot: 'Press 1–6 to open · Back to the start via the logo in the top left',
+      startFoot: 'Press 1–7 to open · Back to the start via the logo in the top left',
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
@@ -2085,7 +2087,7 @@
         bx.appendChild(r);
       })();
       row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
-      row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['match', T('navMatch')]], setting('start'), function (v) { setSetting('start', v); });
+      row(T('setStart'), T('setStartHint'), [['start', T('setStartScreen')], ['calc', T('navCalc')], ['builder', T('navBuilder')], ['soullink', T('navSL')], ['nuz', T('navNuz')], ['shiny', T('navShiny')], ['match', T('navMatch')], ['overlay', T('navOverlay')]], setting('start'), function (v) { setSetting('start', v); });
       row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
       if (window.desktop && window.desktop.update) updRow(bx);
     }
@@ -2094,7 +2096,7 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match'];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay'];
   function showView(v) {
     if (VIEWS.indexOf(v) === -1) v = 'start';
     document.body.dataset.view = v;
@@ -2106,12 +2108,13 @@
     if (v === 'nuz' && window.CCNuz) window.CCNuz.render();
     if (v === 'shiny' && window.CCShiny) window.CCShiny.render();
     if (v === 'match' && window.CCMatch) window.CCMatch.render();
+    if (v === 'overlay' && window.CCOverlay) window.CCOverlay.render();
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') renderStartTeam();
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
   }
   // ---- top navigation: tabs (only the opened modes, closable), all modes, or none (setting "nav") ----
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['match', 'navMatch']];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['match', 'navMatch'], ['overlay', 'navOverlay']];
   var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
   function closeTab(v) {
     var i = openTabs.indexOf(v);
@@ -2178,6 +2181,7 @@
       if (ev.key === '4') showView('nuz');
       if (ev.key === '5') showView('shiny');
       if (ev.key === '6') showView('match');
+      if (ev.key === '7') showView('overlay');
     });
     var sub = document.getElementById('startSub');
     if (sub) sub.textContent = T('startSub') + ' · VGC 2026 · ' + REG_NAME;
@@ -2221,6 +2225,7 @@
     else if (location.hash === '#soullink') v = 'soullink';
     else if (location.hash === '#shiny') v = 'shiny';
     else if (location.hash === '#match' || location.hash === '#matchtest') v = 'match';
+    else if (location.hash === '#overlay') v = 'overlay';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

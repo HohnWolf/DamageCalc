@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="css/nuz.css?v=68">
   <link rel="stylesheet" href="css/shiny.css?v=68">
   <link rel="stylesheet" href="css/match.css?v=68">
+  <link rel="stylesheet" href="css/overlay.css?v=68">
 </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
@@ -104,6 +105,15 @@
           <span class="sc-head"><span class="sc-title">Team-Analyse</span><span class="sc-key">6</span></span>
           <span class="sc-text" data-t="startMatchText"></span>
         </button>
+        <button class="start-card card-overlay" data-go="overlay">
+          <span class="sc-art sc-art-overlay">
+            <span class="sc-ov-col"><span></span><span></span><span></span><span></span></span>
+            <span class="sc-ov-vs">VS</span>
+            <span class="sc-ov-col opp"><span></span><span></span><span></span><span></span></span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navOverlay">Match-Overlay</span><span class="sc-key">7</span></span>
+          <span class="sc-text" data-t="startOverlayText"></span>
+        </button>
       </div>
       <p class="start-foot" data-t="startFoot"></p>
     </div>
@@ -114,6 +124,7 @@
   <main id="nuzView" class="wrap nuz-view"></main>
   <main id="shinyView" class="wrap shiny-view"></main>
   <main id="matchView" class="wrap match-view"></main>
+  <main id="overlayView" class="wrap overlay-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -191,8 +202,11 @@
   <script src="js/shiny_odds.js?v=68"></script>
   <script src="js/capture.js?v=68"></script>
   <script src="js/shiny_detect.js?v=68"></script>
+  <script src="js/shiny_clip.js?v=68"></script>
   <script src="js/shiny.js?v=68"></script>
   <script src="js/match_parse.js?v=68"></script>
   <script src="js/match.js?v=68"></script>
+  <script src="data/pokeapi_ids.js?v=68"></script>
+  <script src="js/overlay.js?v=68"></script>
 </body>
 </html>

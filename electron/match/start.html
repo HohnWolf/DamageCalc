@@ -1,0 +1,67 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Start: Wer gegen wen</title>
+<!-- Startseite „Wer gegen wen“ für OBS (übernommen aus pokemon_team_overlay.py): Liga, Woche, Teamlogos, Namen.
+     Browserquelle 1920 × 1080: /match/start. „Start-Screen abspielen“ in der App spielt die Animation neu ab. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#1a0b33;overflow:hidden}
+#view{position:fixed;inset:0}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:#fff;font-family:"Bahnschrift","Arial Narrow","Segoe UI",system-ui,sans-serif;background:radial-gradient(ellipse at 50% 40%,#5a2aa0 0%,#341466 55%,#1a0b33 100%)}
+#stage::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.035) 0 60px,transparent 60px 120px)}
+#lgn{position:absolute;left:0;right:0;top:36px;text-align:center;white-space:nowrap;overflow:hidden;padding:0 80px;font-size:88px;font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:6px;color:#fff;text-shadow:0 0 30px rgba(215,184,255,.7),0 5px 16px rgba(0,0,0,.6)}
+#wk{position:absolute;left:0;right:0;top:140px;text-align:center;white-space:pre-line;font-size:48px;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:4px;color:#d7b8ff;text-shadow:0 4px 14px rgba(0,0,0,.6)}
+.tm{position:absolute;top:210px;width:700px;display:flex;flex-direction:column;align-items:center;gap:34px}
+.tm.l{left:100px}.tm.r{right:100px}
+.lg{width:480px;height:480px;border-radius:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:4px solid #a672e6;box-shadow:0 12px 40px rgba(0,0,0,.55),inset 0 0 40px rgba(166,114,230,.25);overflow:hidden}
+.lg img{width:100%;height:100%;object-fit:contain;padding:28px}
+.lg .ph{font-size:190px;font-weight:800;font-style:italic;color:#a672e6;text-transform:uppercase}
+.nm{max-width:700px;width:100%;text-align:center;white-space:nowrap;overflow:hidden;font-size:78px;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:2px;line-height:1.15;padding:4px 0;text-shadow:0 5px 16px rgba(0,0,0,.65)}
+.rc{background:#3a1566;border:3px solid #a672e6;border-radius:12px;padding:6px 26px;font-size:42px;font-weight:700}
+.hide{display:none}
+#vs{position:absolute;left:810px;top:350px;width:300px;text-align:center;font-size:190px;font-weight:900;font-style:italic;color:#fff;text-shadow:0 6px 0 rgba(20,5,45,.45);line-height:1}
+#vs::before{content:'';position:absolute;left:50%;top:50%;width:520px;height:340px;margin:-170px 0 0 -260px;background:radial-gradient(closest-side,rgba(215,184,255,.55),rgba(215,184,255,0));z-index:-1}
+.anim .tm.l{animation:inl .9s cubic-bezier(.2,.8,.2,1) backwards}
+.anim .tm.r{animation:inr .9s cubic-bezier(.2,.8,.2,1) backwards}
+.anim #vs{animation:inv .9s .35s cubic-bezier(.2,1.6,.4,1) backwards}
+.anim #lgn,.anim #wk{animation:inf .8s .6s ease-out backwards}
+#vs{isolation:isolate}
+@keyframes inf{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+@keyframes inl{from{transform:translateX(-300px);opacity:0}to{transform:none;opacity:1}}
+@keyframes inr{from{transform:translateX(300px);opacity:0}to{transform:none;opacity:1}}
+@keyframes inv{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+</style></head><body>
+<div id="view"><div id="stage">
+  <div id="lgn"></div><div id="wk"></div>
+  <div class="tm l"><div class="lg" id="lgL"></div><div class="nm" id="nameL"></div><div class="rc" id="recL"></div></div>
+  <div id="vs">VS</div>
+  <div class="tm r"><div class="lg" id="lgR"></div><div class="nm" id="nameR"></div><div class="rc" id="recR"></div></div>
+</div></div>
+<script>
+const $=id=>document.getElementById(id);
+let last='',boot=null,play=null;
+function replay(){const s=$('stage');s.classList.remove('anim');void s.offsetWidth;s.classList.add('anim');}
+function fitAll(){document.querySelectorAll('.nm').forEach(e=>{e.style.fontSize='';let s=parseFloat(getComputedStyle(e).fontSize);
+  while(e.scrollWidth>e.clientWidth+1&&s>14){s-=.5;e.style.fontSize=s+'px';}});}
+function fitStage(){const v=$('view'),w=v.clientWidth,h=v.clientHeight,s=Math.min(w/1920,h/1080);
+  $('stage').style.transform='translate3d('+Math.round((w-1920*s)/2)+'px,'+Math.round((h-1080*s)/2)+'px,0) scale('+s+')';}
+function setLogo(k,m){const box=$('lg'+k),v=m['logo'+k]||'';
+  if(box.dataset.v===v+'|'+m['name'+k])return;box.dataset.v=v+'|'+m['name'+k];box.textContent='';
+  if(v){const i=document.createElement('img');i.src='/match/logo/'+k+'?v='+v;i.alt='';box.appendChild(i);}
+  else{const p=document.createElement('div');p.className='ph';p.textContent=(m['name'+k]||'?').trim().charAt(0);box.appendChild(p);}}
+function render(m){
+  for(const k of ['L','R']){$('name'+k).textContent=m['name'+k]||'';
+    $('rec'+k).textContent=m['rec'+k]||'';$('rec'+k).classList.toggle('hide',!m['rec'+k]);setLogo(k,m);}
+  $('wk').textContent=m.week||'';$('lgn').textContent=m.league||'';
+  const g=$('lgn');g.style.fontSize='';let s=parseFloat(getComputedStyle(g).fontSize);
+  while(g.scrollWidth>g.clientWidth+1&&s>20){s-=1;g.style.fontSize=s+'px';}
+  $('wk').style.top=m.league?'140px':'70px';fitAll();fitStage();
+}
+async function poll(){try{const d=await (await fetch('/match/state',{cache:'no-store'})).json();
+  if(boot&&d.v!==boot){location.reload();return;}boot=d.v;
+  if(play!==null&&d.play!==play)replay();play=d.play;
+  const m=Object.assign({},d.match||{},{logoL:d.logoL,logoR:d.logoR});
+  const j=JSON.stringify(m);if(j===last)return;last=j;render(m);}catch(e){}}
+window.addEventListener('resize',fitStage);
+fitStage();poll();setInterval(poll,1000);
+if(new URLSearchParams(location.search).get('auto'))replay();
+</script></body></html>

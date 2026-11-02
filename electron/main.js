@@ -1,4 +1,4 @@
-// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse): öffnet index.html in einem eigenen Fenster.
+// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse, Match-Overlay): öffnet index.html in einem eigenen Fenster.
 // Die Web-App selbst bleibt unverändert und läuft auch weiterhin direkt im Browser.
 // Das Fenster hat keinen Windows-Rahmen; die Kopfzeile der App ist die Titelleiste (Ziehen, Doppelklick
 // maximiert) und zeigt eigene Knöpfe für Minimieren, Maximieren und Schließen (electron/preload.js).
@@ -6,6 +6,7 @@ const { app, BrowserWindow, shell, Menu, ipcMain, session, dialog } = require('e
 const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
+const match = require('./match');
 const updater = require('./updater');
 const ocr = require('./ocr');
 const { isStreamPipeError } = require('./streamguard');
@@ -116,6 +117,7 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     createWindow();
     shiny.init(win);
+    match.init(shiny);
     ocr.init();
     updater.init(win);
     // Chromium schreibt localStorage nur verzögert auf die Platte: alle 5 s sichern, damit bei einem Absturz

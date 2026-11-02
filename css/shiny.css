@@ -162,3 +162,21 @@
 .det-src { height: auto; display: flex; flex-direction: column; gap: 4px; padding: 6px; text-align: left; }
 .det-src img { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; border-radius: 3px; }
 .det-src span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* clips (js/shiny_clip.js) and setting counter/time by hand */
+.sh-clip { border-top: 3px solid var(--bad); }
+.clip-state.on { color: var(--bad); font-weight: 700; }
+.clip-state.on::before { content: '● '; }
+.clip-src { font-weight: 700; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clip-save { height: 30px; background: var(--bad); border-color: var(--bad); color: var(--on-bad); font-weight: 800; }
+.clip-save:hover { filter: brightness(1.1); background: var(--bad); }
+.clip-opts { flex-wrap: wrap; gap: 6px 12px; }
+.clip-opts input[type=number] { width: 64px; height: 28px; }
+.clip-opts select { height: 28px; max-width: 260px; }
+.clip-list { display: flex; flex-direction: column; gap: 3px; }
+.clip-row { display: flex; align-items: center; gap: 8px; padding: 3px 6px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); }
+.clip-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.clip-row .tbtn { height: 24px; font-size: 12px; }
+.sh-count, .sh-time { cursor: default; }
+.sh-settime { display: flex; align-items: center; gap: 4px; }
+.sh-settime input { width: 80px; height: 30px; text-align: right; }

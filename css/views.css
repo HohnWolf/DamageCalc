@@ -2,9 +2,9 @@
 
 /* ================= View switching ================= */
 body:not([data-view="start"]) .start-view, body:not([data-view="calc"]) .calc-view,
-body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view { display: none !important; }
+body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view, body:not([data-view="overlay"]) .overlay-view { display: none !important; }
 body:not([data-view="calc"]) .only-calc { display: none !important; }
-body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start { display: none !important; }
+body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start, body[data-view="overlay"] .no-start { display: none !important; }
 
 .sprite-fit { image-rendering: pixelated; }
 /* uncropped sprites (cosmetic variants) fill small boxes the same way */
@@ -87,16 +87,16 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .start-sub { margin: 2px 0 0; color: var(--muted); font-size: clamp(11px, 1.6vh, 13px); line-height: 1.3; flex: none; }
 .start-cards {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: auto auto;
   align-content: center;
   gap: clamp(6px, 1vh, 10px); margin-top: clamp(6px, 1.2vh, 14px); text-align: left;
 }
 @container (min-width: 1080px) {
-  .start-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: auto; }
+  .start-cards { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; }
 }
 /* Short and still wide enough for one row: prefer one row over a clipped 3×2. */
 @container (max-height: 520px) and (min-width: 900px) {
-  .start-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: auto; }
+  .start-cards { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; }
 }
 .start-card {
   position: relative; height: auto; min-width: 0; min-height: 0;

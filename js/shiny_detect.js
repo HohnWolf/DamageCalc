@@ -392,6 +392,8 @@
   window.CCShinyDetect = {
     panel: panel, stop: stop, cleanRefs: cleanRefs,
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
+    // connected source of a hunt (the clips can record the same picture)
+    stream: function (id) { return sessions[id] ? sessions[id].stream : null; },
     _similarity: similarity, _sessions: sessions, _textScore: textScore,
     // for tests: use any MediaStream (e.g. canvas.captureStream()) as the source
     _attach: function (h, stream, api) {
