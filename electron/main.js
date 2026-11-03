@@ -112,6 +112,25 @@ ipcMain.on('win', (e, what) => {
   else if (what === 'close') w.close();
 });
 
+ipcMain.on('open-battle', () => {
+  const battleWin = new BrowserWindow({
+    width: 1300,
+    height: 850,
+    minWidth: 1000,
+    minHeight: 650,
+    title: 'Pokémon Champions - Duell gegen die KI',
+    icon: path.join(ROOT, 'icon.ico'),
+    backgroundColor: '#0f111a',
+    autoHideMenuBar: true,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  });
+  battleWin.loadFile(path.join(ROOT, 'battle_play.html'));
+});
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {

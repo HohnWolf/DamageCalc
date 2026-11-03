@@ -5,6 +5,7 @@
 import { BattleStreams, Teams, Dex } from '@pkmn/sim';
 import ChampionsBot from './sim_bot.js';
 import ARCHETYPES from '../data/meta_archetypes.js';
+import aiWeights from '../data/ai_weights.json';
 
 // Authentische Pokémon Champions Engine registrieren
 Dex.mod('champions', {
@@ -144,8 +145,8 @@ async function runSingleMatch(p1Packed, p2Packed, p1LeadOrder, p2LeadOrder) {
   const battleStream = new BattleStreams.BattleStream();
   const streams = BattleStreams.getPlayerStreams(battleStream);
 
-  const p1 = new ChampionsBot(streams.p1, { leadOrder: p1LeadOrder, dex: CHAMP_DEX });
-  const p2 = new ChampionsBot(streams.p2, { leadOrder: p2LeadOrder, dex: CHAMP_DEX });
+  const p1 = new ChampionsBot(streams.p1, { player: 'p1', leadOrder: p1LeadOrder, dex: CHAMP_DEX, weights: aiWeights });
+  const p2 = new ChampionsBot(streams.p2, { player: 'p2', leadOrder: p2LeadOrder, dex: CHAMP_DEX, weights: aiWeights });
 
   p1.start();
   p2.start();
@@ -221,6 +222,18 @@ async function runSingleMatch(p1Packed, p2Packed, p1LeadOrder, p2LeadOrder) {
   return result;
 }
 
+function emitMessage(data) {
+  if (self.ChampionsEngine && typeof self.ChampionsEngine.onmessage === 'function') {
+    self.ChampionsEngine.onmessage({ data });
+  } else if (typeof self.postMessage === 'function') {
+    try {
+      self.postMessage(data);
+    } catch (e) {
+      try { self.postMessage(data, '*'); } catch (e2) {}
+    }
+  }
+}
+
 // Gesamtsimulation steuern
 async function runSimulation(data) {
   isCancelled = false;
@@ -229,7 +242,7 @@ async function runSimulation(data) {
   const userPaste = normalizeChampionsPaste(data.userTeamPaste || '');
   const userParsed = Teams.import(userPaste);
   if (!userParsed || !userParsed.length) {
-    self.postMessage({ type: 'ERROR', error: 'Ungültiges eigenes Team (Showdown-Paste leer oder fehlerhaft).' });
+    emitMessage({ type: 'ERROR', error: 'Ungültiges eigenes Team (Showdown-Paste leer oder fehlerhaft).' });
     return;
   }
   const userPacked = Teams.pack(userParsed);
@@ -297,7 +310,7 @@ async function runSimulation(data) {
         }
       }
 
-      self.postMessage({
+      emitMessage({
         type: 'PROGRESS',
         archetypeId: arch.id,
         archetypeName: arch.name,
@@ -332,7 +345,7 @@ async function runSimulation(data) {
   }
 
   if (isCancelled) {
-    self.postMessage({ type: 'CANCELLED' });
+    emitMessage({ type: 'CANCELLED' });
     return;
   }
 
@@ -352,7 +365,7 @@ async function runSimulation(data) {
 
   const durationMs = Date.now() - startTime;
 
-  self.postMessage({
+  emitMessage({
     type: 'COMPLETE',
     results: archetypeResults,
     threatList,
@@ -364,12 +377,90 @@ async function runSimulation(data) {
   });
 }
 
-// Worker Message-Handler
-self.onmessage = function (e) {
-  const msg = e.data || {};
+// Interaktives Duell gegen den Bot
+let interactiveHumanStream = null;
+
+async function initInteractiveBattle(msg) {
+  try {
+    const p1Paste = normalizeChampionsPaste(msg.p1Paste || '');
+    const p2Paste = normalizeChampionsPaste(msg.p2Paste || '');
+
+    const p1Parsed = Teams.import(p1Paste);
+    const p2Parsed = Teams.import(p2Paste);
+
+    const p1Packed = msg.p1Packed || Teams.pack(p1Parsed);
+    const p2Packed = msg.p2Packed || Teams.pack(p2Parsed);
+
+    const battleStream = new BattleStreams.BattleStream();
+    const streams = BattleStreams.getPlayerStreams(battleStream);
+
+    interactiveHumanStream = streams.p1;
+    const p2Bot = new ChampionsBot(streams.p2, { player: 'p2', dex: CHAMP_DEX, weights: aiWeights });
+    p2Bot.start();
+
+    // Human Player P1 Stream überwachen
+    (async () => {
+      try {
+        for await (const chunk of streams.p1) {
+          for (const line of chunk.split('\n')) {
+            if (line.startsWith('|request|')) {
+              const raw = line.slice(9).trim();
+              if (raw) {
+                const req = JSON.parse(raw);
+                emitMessage({ type: 'INTERACTIVE_REQUEST', request: req });
+              }
+            } else if (line.startsWith('|error|')) {
+              emitMessage({ type: 'INTERACTIVE_ERROR', error: line.slice(7) });
+            }
+          }
+        }
+      } catch (e) {}
+    })();
+
+    // Omniscient Stream überwachen (Battle Events an UI weiterleiten)
+    (async () => {
+      try {
+        for await (const chunk of streams.omniscient) {
+          const lines = chunk.split('\n').filter(Boolean);
+          emitMessage({ type: 'INTERACTIVE_EVENTS', lines });
+        }
+      } catch (e) {}
+    })();
+
+    // Kampf starten
+    await streams.omniscient.write(
+      `>start {"formatid":"[Gen 9 Champions] VGC 2026 Reg M-C"}\n` +
+      `>player p1 {"name":"${msg.p1Name || 'Spieler'}","team":"${p1Packed}"}\n` +
+      `>player p2 {"name":"${msg.p2Name || 'Champions Bot (AI)'}","team":"${p2Packed}"}\n`
+    );
+  } catch (err) {
+    emitMessage({ type: 'INTERACTIVE_ERROR', error: err.message || String(err) });
+  }
+}
+
+function handleEngineIncoming(msg) {
   if (msg.type === 'START') {
     runSimulation(msg);
   } else if (msg.type === 'CANCEL') {
     isCancelled = true;
+  } else if (msg.type === 'INTERACTIVE_START') {
+    initInteractiveBattle(msg);
+  } else if (msg.type === 'INTERACTIVE_CHOICE') {
+    if (interactiveHumanStream) {
+      interactiveHumanStream.write(msg.choice);
+    }
   }
+}
+
+// Worker Message-Handler
+self.onmessage = function (e) {
+  handleEngineIncoming(e.data || {});
+};
+
+// Globaler Bridge-Export für Umgebungen ohne Worker-Rechte (z. B. file:// im Browser)
+self.ChampionsEngine = {
+  postMessage: function (msg) {
+    handleEngineIncoming(msg);
+  },
+  onmessage: null
 };

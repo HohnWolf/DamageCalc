@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Champions Battle Replay - VGC 2026 Reg M-C</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: #12131a;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: #1e202e;
+      border-bottom: 2px solid #2d3148;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .format-badge {
+      background: #dc2626;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
+    /* Main Container */
+    .battle-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 110px);
+      position: relative;
+      background: #0f111a;
+    }
+
+    /* Arena View (Left 65%) */
+    .arena-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center bottom, #2b3952 0%, #151b27 70%, #0d1017 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Stadium Ground */
+    .stadium-field {
+      position: absolute;
+      width: 120%;
+      height: 70%;
+      bottom: -10%;
+      background: radial-gradient(ellipse at 50% 50%, #364863 0%, #202b3c 60%, rgba(15, 20, 28, 0.8) 100%);
+      border-radius: 50%;
+      transform: perspective(600px) rotateX(45deg);
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.8);
+      border: 3px solid rgba(80, 110, 150, 0.3);
+      transition: all 0.5s ease;
+    }
+
+    .stadium-field.psychic-terrain {
+      background: radial-gradient(ellipse at 50% 50%, #7c2d96 0%, #4a1d63 60%, rgba(20, 10, 30, 0.8) 100%);
+      border-color: rgba(216, 112, 240, 0.6);
+      box-shadow: 0 0 100px rgba(180, 50, 230, 0.4);
+    }
+
+    .terrain-overlay-banner {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      background: rgba(147, 51, 234, 0.85);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);
+      z-index: 5;
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    .tailwind-overlay-banner {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: rgba(56, 189, 248, 0.85);
+      color: #0f172a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+      z-index: 5;
+    }
+
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 10px rgba(216, 112, 240, 0.4); }
+      to { box-shadow: 0 0 25px rgba(216, 112, 240, 0.9); }
+    }
+
+    /* Opponent Side (Top) */
+    .foe-side {
+      position: absolute;
+      top: 14%;
+      width: 75%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 2;
+    }
+
+    /* Player Side (Bottom) */
+    .player-side {
+      position: absolute;
+      bottom: 12%;
+      width: 75%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 3;
+    }
+
+    .mon-slot {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 200px;
+      transition: opacity 0.4s ease, transform 0.3s ease;
+    }
+
+    .mon-slot.fainted {
+      opacity: 0.2;
+      transform: translateY(30px) scale(0.85);
+      pointer-events: none;
+    }
+
+    /* Pedestal Base */
+    .pedestal {
+      position: absolute;
+      bottom: 10px;
+      width: 140px;
+      height: 38px;
+      background: radial-gradient(ellipse at center, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.2) 70%, transparent 100%);
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    /* Sprite Container */
+    .sprite-box {
+      width: 130px;
+      height: 130px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      position: relative;
+      z-index: 2;
+    }
+
+    .sprite-img {
+      max-width: 120px;
+      max-height: 120px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.6));
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    /* Attack & Hit Animations */
+    .attacking-lunge {
+      animation: attackLunge 0.4s ease-out;
+    }
+
+    .hit-shake {
+      animation: hitShake 0.4s ease-in-out;
+      filter: brightness(2) contrast(1.5) drop-shadow(0 0 15px #ef4444) !important;
+    }
+
+    .stat-boost-anim {
+      animation: statBoost 0.8s ease-out;
+    }
+
+    @keyframes attackLunge {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-25px) scale(1.1); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes hitShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-14px) rotate(-3deg); }
+      40% { transform: translateX(12px) rotate(3deg); }
+      60% { transform: translateX(-8px); }
+      80% { transform: translateX(6px); }
+    }
+
+    /* Showdown-Style HP Box */
+    .hp-box {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 6px 10px;
+      width: 190px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      z-index: 4;
+      backdrop-filter: blur(4px);
+    }
+
+    .hp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+    }
+
+    .mon-name {
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mon-lvl {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    .hp-bar-bg {
+      background: #1e293b;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid #0f172a;
+    }
+
+    .hp-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: #22c55e;
+      border-radius: 3px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
+    }
+
+    .hp-bar-fill.yellow {
+      background: #eab308;
+    }
+
+    .hp-bar-fill.red {
+      background: #ef4444;
+    }
+
+    .hp-text {
+      font-size: 10px;
+      color: #cbd5e1;
+      text-align: right;
+      margin-top: 3px;
+      font-family: monospace;
+    }
+
+    .status-badges {
+      display: flex;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .badge-status {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .badge-fnt { background: #71717a; color: #fff; }
+    .badge-mega { background: linear-gradient(135deg, #a855f7, #ec4899); color: #fff; }
+    .badge-mega-z { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%); color: #fff; border: 1px solid #67e8f9; box-shadow: 0 0 10px rgba(6, 182, 212, 0.7); }
+    .badge-boost { background: #0284c7; color: #fff; }
+    .badge-drop { background: #ea580c; color: #fff; }
+
+    .mega-z-active {
+      filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.85)) drop-shadow(0 0 20px rgba(139, 92, 246, 0.6)) !important;
+      animation: megaZAura 2s infinite alternate !important;
+    }
+
+    @keyframes megaZAura {
+      0% { filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.7)) drop-shadow(0 0 16px rgba(139, 92, 246, 0.5)); }
+      100% { filter: drop-shadow(0 0 18px rgba(6, 182, 212, 1)) drop-shadow(0 0 28px rgba(236, 72, 153, 0.8)); }
+    }
+
+    /* Move Announcement Toast */
+    .move-toast {
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.3);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .move-toast.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .move-toast-sub {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Floating Combat Text */
+    .combat-popup {
+      position: absolute;
+      font-size: 15px;
+      font-weight: 900;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+      z-index: 50;
+      pointer-events: none;
+      animation: floatUpFade 1.2s ease-out forwards;
+    }
+
+    @keyframes floatUpFade {
+      0% { opacity: 0; transform: translateY(0) scale(0.6); }
+      20% { opacity: 1; transform: translateY(-15px) scale(1.15); }
+      80% { opacity: 1; transform: translateY(-35px) scale(1); }
+      100% { opacity: 0; transform: translateY(-55px) scale(0.9); }
+    }
+
+    /* Sidebar Battle Log (Right 35%) */
+    .sidebar-log {
+      width: 380px;
+      background: #161822;
+      border-left: 2px solid #282c3f;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .log-header {
+      background: #1e2130;
+      padding: 12px 16px;
+      border-bottom: 1px solid #282c3f;
+      font-weight: 700;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .log-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-line {
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(30, 41, 59, 0.4);
+      border-left: 3px solid transparent;
+      transition: background-color 0.2s ease;
+    }
+
+    .log-line.active-log {
+      background: rgba(56, 189, 248, 0.15);
+      border-left-color: #38bdf8;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .log-turn-header {
+      background: #23293c;
+      color: #f1f5f9;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin: 8px 0 2px 0;
+      font-size: 13px;
+      border-left: 3px solid #6366f1;
+    }
+
+    .log-supereffective { color: #f59e0b; font-weight: 700; }
+    .log-faint { color: #ef4444; font-weight: 700; }
+    .log-mega { color: #d946ef; font-weight: 700; }
+
+    /* Control Bar (Footer) */
+    footer {
+      background: #1a1d29;
+      border-top: 2px solid #282c3f;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .controls-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button.btn {
+      background: #2d334a;
+      color: #f8fafc;
+      border: 1px solid #3e4663;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    button.btn:hover {
+      background: #3e4663;
+      border-color: #60a5fa;
+    }
+
+    button.btn.primary {
+      background: #2563eb;
+      border-color: #3b82f6;
+    }
+
+    button.btn.primary:hover {
+      background: #1d4ed8;
+    }
+
+    .progress-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      max-width: 450px;
+      margin: 0 30px;
+    }
+
+    .turn-counter {
+      font-size: 13px;
+      font-weight: 700;
+      color: #cbd5e1;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .timeline-bar {
+      flex: 1;
+      height: 8px;
+      background: #262c3f;
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .timeline-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .speed-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    select.select-speed {
+      background: #262c3f;
+      color: #f1f5f9;
+      border: 1px solid #3e4663;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-group">
+      <span class="format-badge">[Gen 9 Champions]</span>
+      <h1>VGC 2026 Reg M-C Battle Replay (Showdown Animated Engine)</h1>
+    </div>
+    <div style="font-size: 12px; color: #94a3b8;">
+      Team 1 (Jerem) vs. Team 2 (Psychic Offense)
+    </div>
+  </header>
+
+  <div class="battle-container">
+    <!-- Arena View -->
+    <div class="arena-viewport">
+      <div id="stadiumField" class="stadium-field"></div>
+      
+      <div id="terrainBanner" class="terrain-overlay-banner">
+        <span>🔮</span> Psychofeld aktiv (120 BP Expanding Force & Prio-Schutz)
+      </div>
+
+      <div id="tailwindBanner" class="tailwind-overlay-banner">
+        <span>💨</span> Rückenwind aktiv (2x Speed für Team 2)
+      </div>
+
+      <!-- Move Toast Overlay -->
+      <div id="moveToast" class="move-toast">
+        <span id="moveToastText">Indeedee benutzte Hyper Voice!</span>
+        <span id="moveToastSub" class="move-toast-sub">Flächenangriff trifft beide Gegner</span>
+      </div>
+
+      <!-- Opponent Side (Top / P2) -->
+      <div class="foe-side">
+        <!-- P2 Slot A (Indeedee / Gholdengo) -->
+        <div id="slot-p2a" class="mon-slot">
+          <div class="hp-box">
+            <div class="hp-header">
+              <span id="name-p2a" class="mon-name">Indeedee</span>
+              <span class="mon-lvl">Lv. 50</span>
+            </div>
+            <div class="hp-bar-bg">
+              <div id="hpbar-p2a" class="hp-bar-fill"></div>
+            </div>
+            <div id="hptext-p2a" class="hp-text">135 / 135</div>
+            <div id="badges-p2a" class="status-badges"></div>
+          </div>
+          <div class="sprite-box">
+            <div class="pedestal"></div>
+            <img id="sprite-p2a" class="sprite-img" src="https://play.pokemonshowdown.com/sprites/ani/indeedee.gif" alt="Indeedee" onerror="this.src='https://play.pokemonshowdown.com/sprites/gen5/indeedee.png'">
+          </div>
+        </div>
+
+        <!-- P2 Slot B (Whimsicott / Garchomp) -->
+        <div id="slot-p2b" class="mon-slot">
+          <div class="hp-box">
+            <div class="hp-header">
+              <span id="name-p2b" class="mon-name">Whimsicott</span>
+              <span class="mon-lvl">Lv. 50</span>
+            </div>
+            <div class="hp-bar-bg">
+              <div id="hpbar-p2b" class="hp-bar-fill"></div>
+            </div>
+            <div id="hptext-p2b" class="hp-text">152 / 152</div>
+            <div id="badges-p2b" class="status-badges"></div>
+          </div>
+          <div class="sprite-box">
+            <div class="pedestal"></div>
+            <img id="sprite-p2b" class="sprite-img" src="https://play.pokemonshowdown.com/sprites/ani/whimsicott.gif" alt="Whimsicott" onerror="this.src='https://play.pokemonshowdown.com/sprites/gen5/whimsicott.png'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Player Side (Bottom / P1) -->
+      <div class="player-side">
+        <!-- P1 Slot A (Espathra / Raichu / Floette) -->
+        <div id="slot-p1a" class="mon-slot">
+          <div class="sprite-box">
+            <div class="pedestal"></div>
+            <img id="sprite-p1a" class="sprite-img" src="https://play.pokemonshowdown.com/sprites/ani-back/espathra.gif" alt="Espathra" onerror="this.src='https://play.pokemonshowdown.com/sprites/gen5-back/espathra.png'">
+          </div>
+          <div class="hp-box">
+            <div class="hp-header">
+              <span id="name-p1a" class="mon-name">Espathra</span>
+              <span class="mon-lvl">Lv. 50</span>
+            </div>
+            <div class="hp-bar-bg">
+              <div id="hpbar-p1a" class="hp-bar-fill"></div>
+            </div>
+            <div id="hptext-p1a" class="hp-text">170 / 170</div>
+            <div id="badges-p1a" class="status-badges"></div>
+          </div>
+        </div>
+
+        <!-- P1 Slot B (Goodra-Hisui) -->
+        <div id="slot-p1b" class="mon-slot">
+          <div class="sprite-box">
+            <div class="pedestal"></div>
+            <img id="sprite-p1b" class="sprite-img" src="https://play.pokemonshowdown.com/sprites/ani-back/goodra-hisui.gif" alt="Goodra-Hisui" onerror="this.src='https://play.pokemonshowdown.com/sprites/gen5-back/goodra-hisui.png'">
+          </div>
+          <div class="hp-box">
+            <div class="hp-header">
+              <span id="name-p1b" class="mon-name">Goodra-Hisui</span>
+              <span class="mon-lvl">Lv. 50</span>
+            </div>
+            <div class="hp-bar-bg">
+              <div id="hpbar-p1b" class="hp-bar-fill"></div>
+            </div>
+            <div id="hptext-p1b" class="hp-text">176 / 176</div>
+            <div id="badges-p1b" class="status-badges"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battle Log Sidebar -->
+    <div class="sidebar-log">
+      <div class="log-header">
+        <span>KAMPFPROTOKOLL</span>
+        <span id="logTurnBadge">Turn 0</span>
+      </div>
+      <div id="logScroll" class="log-scroll"></div>
+    </div>
+  </div>
+
+  <!-- Footer Controls -->
+  <footer>
+    <div class="controls-left">
+      <button id="btnReset" class="btn">⏮ Neustart</button>
+      <button id="btnPrev" class="btn">◀ Vorheriger Zug</button>
+      <button id="btnPlay" class="btn primary">▶ Abspielen</button>
+      <button id="btnNext" class="btn">Nächster Zug ▶</button>
+    </div>
+
+    <div class="progress-group">
+      <div id="turnCounterText" class="turn-counter">Runde 0 / 7</div>
+      <div id="timelineBar" class="timeline-bar">
+        <div id="timelineProgress" class="timeline-progress"></div>
+      </div>
+    </div>
+
+    <div class="speed-group">
+      <span>Geschwindigkeit:</span>
+      <select id="speedSelect" class="select-speed">
+        <option value="1800">1.0x (Normal)</option>
+        <option value="1200" selected>1.5x (Schnell)</option>
+        <option value="700">2.5x (Turbo)</option>
+      </select>
+    </div>
+  </footer>
+
+  <script>
+    // Audio Synthesizer via Web Audio API for Retro Sound Effects
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playHit(isSuper = false) {
+        if (!this.ctx) this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = isSuper ? 'sawtooth' : 'triangle';
+        osc.frequency.setValueAtTime(isSuper ? 120 : 180, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.18);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      },
+      playMove() {
+        if (!this.ctx) this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      },
+      playFaint() {
+        if (!this.ctx) this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.35);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+    };
+
+    // Authentic Sprite URLs
+    const SPRITES = {
+      espathra_back: 'https://play.pokemonshowdown.com/sprites/ani-back/espathra.gif',
+      goodrahisui_back: 'https://play.pokemonshowdown.com/sprites/ani-back/goodra-hisui.gif',
+      raichu_back: 'https://play.pokemonshowdown.com/sprites/ani-back/raichu.gif',
+      floette_back: 'https://play.pokemonshowdown.com/sprites/ani-back/floette-eternal.gif',
+      indeedee_front: 'https://play.pokemonshowdown.com/sprites/ani/indeedee.gif',
+      whimsicott_front: 'https://play.pokemonshowdown.com/sprites/ani/whimsicott.gif',
+      garchomp_front: 'https://play.pokemonshowdown.com/sprites/ani/garchomp.gif',
+      garchomp_mega_front: 'https://play.pokemonshowdown.com/sprites/ani/garchomp-mega.gif',
+      gholdengo_front: 'https://play.pokemonshowdown.com/sprites/ani/gholdengo.gif'
+    };
+
+    // Battle Steps Definition (Reproduced faithfully from the trained bot match)
+    const BATTLE_STEPS = [
+      {
+        turn: 0,
+        desc: "Match-Start: Psychofeld wird aktiviert!",
+        banner: { terrain: true, tailwind: false },
+        toast: "Das Spielfeld wurde zum Psychofeld!",
+        toastSub: "1.3x Bonus auf Psycho-Attacken & Schutz vor Prioritäts-Zügen",
+        p1a: { name: 'Espathra', maxHp: 170, hp: 170, sprite: SPRITES.espathra_back, fainted: false },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 176, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Indeedee', maxHp: 135, hp: 135, sprite: SPRITES.indeedee_front, fainted: false },
+        p2b: { name: 'Whimsicott', maxHp: 152, hp: 152, sprite: SPRITES.whimsicott_front, fainted: false },
+        logs: [
+          "p1a schickt Espathra in den Kampf!",
+          "p1b schickt Goodra-Hisui in den Kampf!",
+          "p2a schickt Indeedee in den Kampf!",
+          "p2b schickt Whimsicott in den Kampf!",
+          "Das Spielfeld wurde zum Psychofeld!"
+        ]
+      },
+      {
+        turn: 1,
+        desc: "Turn 1: Rückenwind + Hyper Voice (KI erkennt Psycho-Resistenz!)",
+        banner: { terrain: true, tailwind: true },
+        actionSlot: 'p2b',
+        targetSlot: 'p2b',
+        toast: "Whimsicott setzt Rückenwind ein!",
+        toastSub: "Team 2 verdoppelt seine Initiative für 4 Runden",
+        p1a: { name: 'Espathra', maxHp: 170, hp: 97, sprite: SPRITES.espathra_back, fainted: false },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 167, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Indeedee', maxHp: 135, hp: 135, sprite: SPRITES.indeedee_front, fainted: false },
+        p2b: { name: 'Whimsicott', maxHp: 152, hp: 0, sprite: SPRITES.whimsicott_front, fainted: true },
+        logs: [
+          "TURN 1",
+          "p2b: Whimsicott benutzte Rückenwind!",
+          "p2a: Indeedee benutzte Hyper Voice! (Espathra & Goodra-H getroffen)",
+          "p1a: Espathra benutzte Lumina Crash auf Whimsicott! (Whimsicott SpD -2)",
+          "p1b: Goodra benutzte Flammenwurf auf Whimsicott! (Sehr effektiv!)",
+          "Whimsicott wurde besiegt!"
+        ]
+      },
+      {
+        turn: 2,
+        desc: "Turn 2: Mega-Garchomp Z Evolution (141 SpA / 151 Spe) & Draco Meteor",
+        banner: { terrain: true, tailwind: true },
+        actionSlot: 'p2b',
+        targetSlot: 'p1a',
+        toast: "Garchomp vollzieht die Mega Z-Entwicklung!",
+        toastSub: "Mega-Garchomp Z (141 SpA / 151 Spe / Levitate) feuert Draco Meteor!",
+        p1a: { name: 'Espathra', maxHp: 170, hp: 0, sprite: SPRITES.espathra_back, fainted: true },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 148, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Indeedee', maxHp: 135, hp: 18, sprite: SPRITES.indeedee_front, fainted: false },
+        p2b: { name: 'Mega-Garchomp Z', maxHp: 183, hp: 183, sprite: SPRITES.garchomp_mega_front, fainted: false, isMegaZ: true },
+        logs: [
+          "p2b wechselt Garchomp ein!",
+          "TURN 2",
+          "p2b: Garchomp vollzieht mit dem Garchompite Z die Mega Z-Entwicklung zu Mega-Garchomp Z!",
+          "p2b: Mega-Garchomp Z benutzte Draco Meteor auf Espathra! (K.O.)",
+          "Espathra wurde besiegt!",
+          "p2a: Indeedee benutzte Hyper Voice!",
+          "p1b: Goodra benutzte Flammenwurf auf Indeedee! (Indeedee fast K.O.)"
+        ]
+      },
+      {
+        turn: 3,
+        desc: "Turn 3: Raichu Mega Y & Mega-Garchomp Z Offensive",
+        banner: { terrain: true, tailwind: true },
+        actionSlot: 'p2a',
+        targetSlot: 'p1a',
+        toast: "Indeedee finisht Raichu mit Hyper Voice!",
+        toastSub: "Goodra-Hisui räumt Indeedee mit Flammenwurf ab",
+        p1a: { name: 'Raichu-Mega Y', maxHp: 167, hp: 0, sprite: SPRITES.raichu_back, fainted: true, isMega: true },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 140, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Indeedee', maxHp: 135, hp: 0, sprite: SPRITES.indeedee_front, fainted: true },
+        p2b: { name: 'Mega-Garchomp Z', maxHp: 183, hp: 183, sprite: SPRITES.garchomp_mega_front, fainted: false, isMegaZ: true },
+        logs: [
+          "p1a wechselt Raichu ein!",
+          "TURN 3",
+          "p1a: Raichu vollzieht die Mega-Entwicklung zu Mega-Raichu Y!",
+          "p2b: Mega-Garchomp Z benutzte Draco Meteor auf Raichu!",
+          "p2a: Indeedee benutzte Hyper Voice! (Raichu K.O.)",
+          "Raichu wurde besiegt!",
+          "p1b: Goodra benutzte Flammenwurf auf Indeedee! (K.O.)",
+          "Indeedee wurde besiegt!"
+        ]
+      },
+      {
+        turn: 4,
+        desc: "Turn 4: Make It Rain von Gholdengo & Rückenwind endet",
+        banner: { terrain: true, tailwind: false },
+        actionSlot: 'p2a',
+        targetSlot: 'p1a',
+        toast: "Gholdengo benutzte Make It Rain!",
+        toastSub: "Goldmünzen-Regen eliminiert Floette-Eternal",
+        p1a: { name: 'Floette-Eternal', maxHp: 155, hp: 0, sprite: SPRITES.floette_back, fainted: true },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 112, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Gholdengo', maxHp: 169, hp: 0, sprite: SPRITES.gholdengo_front, fainted: true },
+        p2b: { name: 'Mega-Garchomp Z', maxHp: 183, hp: 183, sprite: SPRITES.garchomp_mega_front, fainted: false, isMegaZ: true },
+        logs: [
+          "p1a wechselt Floette-Eternal ein!",
+          "p2a wechselt Gholdengo ein!",
+          "TURN 4",
+          "p2b: Mega-Garchomp Z benutzte Flammenwurf auf Floette!",
+          "p2a: Gholdengo benutzte Make It Rain! (Floette K.O.)",
+          "Floette-Eternal wurde besiegt!",
+          "p1b: Goodra benutzte Flammenwurf auf Gholdengo! (Sehr effektiv, K.O.!)",
+          "Gholdengo wurde besiegt!",
+          "Der Rückenwind von Team 2 hat sich gelegt."
+        ]
+      },
+      {
+        turn: 5,
+        desc: "Turn 5: Mega-Garchomp Z vs. Goodra-Hisui Showdown",
+        banner: { terrain: true, tailwind: false },
+        actionSlot: 'p2b',
+        targetSlot: 'p1b',
+        toast: "Mega-Garchomp Z greift mit Erdkräfte an!",
+        toastSub: "Sehr effektiv! Goodra-Hisui hält stand (Leftovers-Heilung)",
+        p1a: { name: 'Floette-Eternal', maxHp: 155, hp: 0, sprite: SPRITES.floette_back, fainted: true },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 89, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Gholdengo', maxHp: 169, hp: 0, sprite: SPRITES.gholdengo_front, fainted: true },
+        p2b: { name: 'Mega-Garchomp Z', maxHp: 183, hp: 135, sprite: SPRITES.garchomp_mega_front, fainted: false, isMegaZ: true },
+        logs: [
+          "TURN 5",
+          "p2b: Mega-Garchomp Z benutzte Erdkräfte auf Goodra! (Sehr effektiv!)",
+          "p1b: Goodra benutzte Flammenwurf auf Garchomp! (135/183 KP übrig)",
+          "Goodra regeneriert KP durch Leftovers."
+        ]
+      },
+      {
+        turn: 6,
+        desc: "Turn 6: Der Tank wallt die Erdkräfte",
+        banner: { terrain: true, tailwind: false },
+        actionSlot: 'p2b',
+        targetSlot: 'p1b',
+        toast: "Mega-Garchomp Z drückt erneut Erdkräfte!",
+        toastSub: "Goodra-Hisui überlebt im roten Bereich!",
+        p1a: { name: 'Floette-Eternal', maxHp: 155, hp: 0, sprite: SPRITES.floette_back, fainted: true },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 68, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Gholdengo', maxHp: 169, hp: 0, sprite: SPRITES.gholdengo_front, fainted: true },
+        p2b: { name: 'Mega-Garchomp Z', maxHp: 183, hp: 87, sprite: SPRITES.garchomp_mega_front, fainted: false, isMegaZ: true },
+        logs: [
+          "TURN 6",
+          "p2b: Mega-Garchomp Z benutzte Erdkräfte auf Goodra! (Goodra bei 57 KP)",
+          "p1b: Goodra benutzte Flammenwurf auf Garchomp! (Garchomp bei 87 KP)",
+          "Goodra regeneriert KP durch Leftovers (68 KP)."
+        ]
+      },
+      {
+        turn: 7,
+        desc: "Turn 7: Finaler Drachenpuls - Team 1 siegt!",
+        banner: { terrain: true, tailwind: false },
+        actionSlot: 'p1b',
+        targetSlot: 'p2b',
+        toast: "Goodra benutzte Drachenpuls auf Mega-Garchomp Z!",
+        toastSub: "Sehr effektiv! Mega-Garchomp Z geht K.O.! Sieg für Team 1!",
+        p1a: { name: 'Floette-Eternal', maxHp: 155, hp: 0, sprite: SPRITES.floette_back, fainted: true },
+        p1b: { name: 'Goodra-Hisui', maxHp: 176, hp: 36, sprite: SPRITES.goodrahisui_back, fainted: false },
+        p2a: { name: 'Gholdengo', maxHp: 169, hp: 0, sprite: SPRITES.gholdengo_front, fainted: true },
+        p2b: { name: 'Mega-Garchomp Z', maxHp: 183, hp: 0, sprite: SPRITES.garchomp_mega_front, fainted: true, isMegaZ: true },
+        logs: [
+          "TURN 7",
+          "p2b: Mega-Garchomp Z benutzte Erdkräfte auf Goodra! (Goodra bei 36 KP)",
+          "p1b: Goodra benutzte Drachenpuls auf Mega-Garchomp Z!",
+          "Ein Volltreffer! Es ist sehr effektiv!",
+          "Mega-Garchomp Z wurde besiegt!",
+          "SIEGER: Team 1 (Jerem)!"
+        ]
+      }
+    ];
+
+    let currentStepIndex = 0;
+    let isPlaying = false;
+    let playbackTimer = null;
+
+    function updateView(stepIndex) {
+      const step = BATTLE_STEPS[stepIndex];
+      currentStepIndex = stepIndex;
+
+      // Update Header & Progress
+      document.getElementById('turnCounterText').innerText = `Runde ${step.turn} / 7`;
+      document.getElementById('logTurnBadge').innerText = `Runde ${step.turn}`;
+      const progressPercent = (stepIndex / (BATTLE_STEPS.length - 1)) * 100;
+      document.getElementById('timelineProgress').style.width = `${progressPercent}%`;
+
+      // Update Banners & Field
+      const field = document.getElementById('stadiumField');
+      const terrainBanner = document.getElementById('terrainBanner');
+      const tailwindBanner = document.getElementById('tailwindBanner');
+
+      if (step.banner.terrain) {
+        field.classList.add('psychic-terrain');
+        terrainBanner.style.display = 'flex';
+      } else {
+        field.classList.remove('psychic-terrain');
+        terrainBanner.style.display = 'none';
+      }
+
+      tailwindBanner.style.display = step.banner.tailwind ? 'flex' : 'none';
+
+      // Update Slots (p1a, p1b, p2a, p2b)
+      renderSlot('p1a', step.p1a);
+      renderSlot('p1b', step.p1b);
+      renderSlot('p2a', step.p2a);
+      renderSlot('p2b', step.p2b);
+
+      // Trigger Attack/Hit Animations
+      if (step.actionSlot && step.targetSlot) {
+        const attackerEl = document.getElementById(`sprite-${step.actionSlot}`);
+        const defenderEl = document.getElementById(`sprite-${step.targetSlot}`);
+
+        if (attackerEl) {
+          attackerEl.classList.remove('attacking-lunge');
+          void attackerEl.offsetWidth; // force reflow
+          attackerEl.classList.add('attacking-lunge');
+          AudioEngine.playMove();
+        }
+
+        setTimeout(() => {
+          if (defenderEl) {
+            defenderEl.classList.remove('hit-shake');
+            void defenderEl.offsetWidth;
+            defenderEl.classList.add('hit-shake');
+            AudioEngine.playHit(true);
+          }
+        }, 180);
+      }
+
+      // Show Move Toast Announcement
+      const toast = document.getElementById('moveToast');
+      if (step.toast) {
+        document.getElementById('moveToastText').innerText = step.toast;
+        document.getElementById('moveToastSub').innerText = step.toastSub || '';
+        toast.classList.add('active');
+        setTimeout(() => toast.classList.remove('active'), 1800);
+      } else {
+        toast.classList.remove('active');
+      }
+
+      // Render Logs
+      renderLogs(step);
+    }
+
+    function renderSlot(slotId, data) {
+      const slotEl = document.getElementById(`slot-${slotId}`);
+      const nameEl = document.getElementById(`name-${slotId}`);
+      const hpBarEl = document.getElementById(`hpbar-${slotId}`);
+      const hpTextEl = document.getElementById(`hptext-${slotId}`);
+      const spriteEl = document.getElementById(`sprite-${slotId}`);
+      const badgesEl = document.getElementById(`badges-${slotId}`);
+
+      if (!data) return;
+
+      nameEl.innerText = data.name;
+      hpTextEl.innerText = `${data.hp} / ${data.maxHp}`;
+      
+      const pct = Math.max(0, Math.min(100, (data.hp / data.maxHp) * 100));
+      hpBarEl.style.width = `${pct}%`;
+
+      hpBarEl.className = 'hp-bar-fill';
+      if (pct <= 20) hpBarEl.classList.add('red');
+      else if (pct <= 50) hpBarEl.classList.add('yellow');
+
+      if (spriteEl.getAttribute('data-src') !== data.sprite) {
+        spriteEl.src = data.sprite;
+        spriteEl.setAttribute('data-src', data.sprite);
+      }
+
+      if (data.fainted) {
+        slotEl.classList.add('fainted');
+        spriteEl.classList.remove('mega-z-active');
+        badgesEl.innerHTML = '<span class="badge-status badge-fnt">BESIEGT</span>';
+      } else {
+        slotEl.classList.remove('fainted');
+        let badgesHtml = '';
+        if (data.isMegaZ) {
+          badgesHtml += '<span class="badge-status badge-mega-z">MEGA Z</span>';
+          spriteEl.classList.add('mega-z-active');
+        } else if (data.isMega) {
+          badgesHtml += '<span class="badge-status badge-mega">MEGA</span>';
+          spriteEl.classList.remove('mega-z-active');
+        } else {
+          spriteEl.classList.remove('mega-z-active');
+        }
+        badgesEl.innerHTML = badgesHtml;
+      }
+    }
+
+    function renderLogs(currentStep) {
+      const logScroll = document.getElementById('logScroll');
+      logScroll.innerHTML = '';
+
+      for (let i = 0; i <= currentStepIndex; i++) {
+        const step = BATTLE_STEPS[i];
+        const turnHeader = document.createElement('div');
+        turnHeader.className = 'log-turn-header';
+        turnHeader.innerText = i === 0 ? '--- KAMPFBEGINN ---' : `--- RUNDE ${step.turn} ---`;
+        logScroll.appendChild(turnHeader);
+
+        for (const line of step.logs) {
+          if (line.startsWith('TURN')) continue;
+          const lineEl = document.createElement('div');
+          lineEl.className = 'log-line';
+          if (i === currentStepIndex) lineEl.classList.add('active-log');
+
+          let formatted = line;
+          if (line.includes('Sehr effektiv')) formatted = `<span class="log-supereffective">${formatted}</span>`;
+          if (line.includes('besiegt') || line.includes('K.O.')) formatted = `<span class="log-faint">${formatted}</span>`;
+          if (line.includes('Mega-Entwicklung')) formatted = `<span class="log-mega">${formatted}</span>`;
+
+          lineEl.innerHTML = formatted;
+          logScroll.appendChild(lineEl);
+        }
+      }
+
+      logScroll.scrollTop = logScroll.scrollHeight;
+    }
+
+    // Playback Logic
+    function startPlayback() {
+      if (currentStepIndex >= BATTLE_STEPS.length - 1) {
+        currentStepIndex = 0;
+      }
+      isPlaying = true;
+      document.getElementById('btnPlay').innerText = '⏸ Pause';
+      scheduleNextStep();
+    }
+
+    function pausePlayback() {
+      isPlaying = false;
+      document.getElementById('btnPlay').innerText = '▶ Abspielen';
+      if (playbackTimer) clearTimeout(playbackTimer);
+    }
+
+    function scheduleNextStep() {
+      if (!isPlaying) return;
+      const speed = parseInt(document.getElementById('speedSelect').value, 10) || 1200;
+
+      playbackTimer = setTimeout(() => {
+        if (currentStepIndex < BATTLE_STEPS.length - 1) {
+          updateView(currentStepIndex + 1);
+          scheduleNextStep();
+        } else {
+          pausePlayback();
+        }
+      }, speed);
+    }
+
+    // Event Listeners
+    document.getElementById('btnPlay').addEventListener('click', () => {
+      AudioEngine.init();
+      if (isPlaying) pausePlayback();
+      else startPlayback();
+    });
+
+    document.getElementById('btnNext').addEventListener('click', () => {
+      AudioEngine.init();
+      pausePlayback();
+      if (currentStepIndex < BATTLE_STEPS.length - 1) updateView(currentStepIndex + 1);
+    });
+
+    document.getElementById('btnPrev').addEventListener('click', () => {
+      AudioEngine.init();
+      pausePlayback();
+      if (currentStepIndex > 0) updateView(currentStepIndex - 1);
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      AudioEngine.init();
+      pausePlayback();
+      updateView(0);
+    });
+
+    document.getElementById('timelineBar').addEventListener('click', (e) => {
+      AudioEngine.init();
+      pausePlayback();
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickRatio = (e.clientX - rect.left) / rect.width;
+      const targetStep = Math.round(clickRatio * (BATTLE_STEPS.length - 1));
+      updateView(targetStep);
+    });
+
+    // Keyboard Shortcuts (Arrow keys & Space)
+    window.addEventListener('keydown', (e) => {
+      AudioEngine.init();
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (isPlaying) pausePlayback();
+        else startPlayback();
+      } else if (e.code === 'ArrowRight') {
+        if (currentStepIndex < BATTLE_STEPS.length - 1) updateView(currentStepIndex + 1);
+      } else if (e.code === 'ArrowLeft') {
+        if (currentStepIndex > 0) updateView(currentStepIndex - 1);
+      }
+    });
+
+    // Initial render
+    updateView(0);
+  </script>
+</body>
+</html>

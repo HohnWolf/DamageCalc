@@ -51,6 +51,7 @@
     constructor(playerStream, options = {}) {
       super(playerStream, options.debug || false);
       this.options = options;
+      this.player = options.player || null;
       this.leadOrder = options.leadOrder || [1, 2, 3, 4];
       this.dex = options.dex || Dex || null;
       this.megaUsed = false;
@@ -72,6 +73,19 @@
       };
 
       this.lastAction = [null, null];
+      this.imprisonActive = false;
+      this.imprisonIdent = null;
+
+      this.weights = options.weights || null;
+      if (!this.weights && typeof require !== 'undefined') {
+        try {
+          this.weights = require('../data/ai_weights.json');
+        } catch (e) {
+          try {
+            this.weights = require('./data/ai_weights.json');
+          } catch (e2) {}
+        }
+      }
     }
 
     receiveError(error) {
@@ -90,7 +104,7 @@
       if (!line.startsWith('|')) return;
       const parts = line.split('|');
       const cmd = parts[1];
-      const myPrefix = this.stream && this.stream.name === 'p1' ? 'p1' : 'p2';
+      const myPrefix = this.player || (this.options && this.options.player) || 'p1';
       const foePrefix = myPrefix === 'p1' ? 'p2' : 'p1';
 
       if (cmd === 'turn') {
@@ -202,6 +216,26 @@
           if (isMine) this.field.myTailwind = false;
           else this.field.foeTailwind = false;
         }
+      } else if (cmd === '-start') {
+        const ident = parts[2] || '';
+        const effect = parts[3] || '';
+        if (effect.includes('Imprison') && ident.startsWith(myPrefix)) {
+          this.imprisonActive = true;
+          this.imprisonIdent = ident;
+        }
+      } else if (cmd === '-end') {
+        const ident = parts[2] || '';
+        const effect = parts[3] || '';
+        if (effect.includes('Imprison') && ident.startsWith(myPrefix)) {
+          this.imprisonActive = false;
+          this.imprisonIdent = null;
+        }
+      } else if (cmd === 'faint') {
+        const ident = parts[2] || '';
+        if (ident === this.imprisonIdent) {
+          this.imprisonActive = false;
+          this.imprisonIdent = null;
+        }
       } else if (cmd === '-mega') {
         const ident = parts[2] || '';
         if (ident.startsWith(myPrefix)) {
@@ -211,6 +245,9 @@
     }
 
     receiveRequest(request) {
+      if (request.side && request.side.id) {
+        this.player = request.side.id;
+      }
       if (request.wait) return;
 
       if (request.teamPreview) {
@@ -289,8 +326,12 @@
       this.lastAction[0] = bestPair[0].type;
       this.lastAction[1] = bestPair[1].type;
 
-      const choiceStr = `${bestPair[0].str}, ${bestPair[1].str}`;
-      this.choose(choiceStr);
+      if (activeList.length === 1 || !myPokemon[1] || myPokemon[1].condition?.endsWith('fnt')) {
+        this.choose(bestPair[0].str);
+      } else {
+        const choiceStr = `${bestPair[0].str}, ${bestPair[1].str}`;
+        this.choose(choiceStr);
+      }
     }
 
     generateSlotCandidates(slotIndex, active, mon, myPokemon) {
@@ -325,6 +366,8 @@
             candidates.push({ str: `move ${slot}`, type: 'tailwind', move: m, moveData, slotIndex });
           } else if (m.id === 'trickroom') {
             candidates.push({ str: `move ${slot}`, type: 'trickroom', move: m, moveData, slotIndex });
+          } else if (m.id === 'imprison') {
+            candidates.push({ str: `move ${slot}`, type: 'imprison', move: m, moveData, slotIndex });
           } else if (m.id === 'wideguard') {
             candidates.push({ str: `move ${slot}`, type: 'wideguard', move: m, moveData, slotIndex });
           } else if (m.id === 'reflect' || m.id === 'lightscreen' || m.id === 'auroraveil') {
@@ -343,7 +386,13 @@
         }
 
         // Angriffs-Optionen
-        if (isSpread) {
+        let moveIsSpread = isSpread;
+        // Expanding Force im Psychofeld trifft beide Gegner als Flächenschaden
+        if (m.id === 'expandingforce' && this.field.terrain === 'psychic') {
+          moveIsSpread = true;
+        }
+
+        if (moveIsSpread) {
           candidates.push({ str: `move ${slot}`, type: 'attack', isSpread: true, move: m, moveData, slotIndex });
           if (canMega) {
             candidates.push({ str: `move ${slot} mega`, type: 'attack', isSpread: true, isMega: true, move: m, moveData, slotIndex });
@@ -363,6 +412,24 @@
           }
           if (!foe1Active && !foe2Active) {
             candidates.push({ str: `move ${slot} 1`, type: 'attack', targetFoe: '1', move: m, moveData, slotIndex });
+          }
+        }
+      }
+
+      // Taktische Auswechslungen (Switches)
+      if (!active.trapped && myPokemon) {
+        for (let k = 0; k < myPokemon.length; k++) {
+          const benchMon = myPokemon[k];
+          if (benchMon && !benchMon.active && !benchMon.condition.endsWith('fnt')) {
+            const benchIdx = k + 1;
+            candidates.push({
+              str: `switch ${benchIdx}`,
+              type: 'switch',
+              isSwitch: true,
+              switchSlot: benchIdx,
+              benchMon,
+              slotIndex
+            });
           }
         }
       }
@@ -408,11 +475,155 @@
         if (c1.targetFoe === '2' && this.foes['2'].protectedLastTurn) score -= 100;
       }
 
-      // 4. Board-Control: Rückenwind / Bizarroraum
-      if (c0.type === 'tailwind' || c1.type === 'tailwind') score += (this.turnCount <= 2 ? 140 : 80);
-      if (c0.type === 'trickroom' || c1.type === 'trickroom') score += 120;
+      // 4. Board-Control: Intelligente Geschwindigkeits-Steuerung (Tailwind vs. Trick Room)
+      const hasTailwindChoice = (c0.type === 'tailwind' || c1.type === 'tailwind');
+      const hasTrickRoomChoice = (c0.type === 'trickroom' || c1.type === 'trickroom');
 
-      // 5. Kombinierter Schaden beider Pokémon berechnen (Fokusfeuer)
+      // Taktischer Kardinalfehler: Niemals Rückenwind und Bizarroraum gleichzeitig wählen!
+      if (hasTailwindChoice && hasTrickRoomChoice) {
+        score -= 900;
+      }
+
+      // Rückenwind-Bewertung
+      if (hasTailwindChoice) {
+        if (this.field.trickRoom) {
+          score -= 500; // Im Bizarroraum macht Rückenwind das eigene Team langsamer
+        } else if (this.field.myTailwind) {
+          score -= 300; // Rückenwind ist bereits aktiv
+        } else {
+          const alreadyFaster = this.isMyTeamFaster(myPokemon);
+          if (this.field.foeTailwind) {
+            score += 150; // Gegner hat Rückenwind -> dringend nachziehen!
+          } else if (alreadyFaster) {
+            score += 25; // Bereits schneller -> Angriff oder Support ist meist besser als blinder Tailwind!
+          } else {
+            score += (this.turnCount <= 2 ? 110 : 60);
+          }
+        }
+      }
+
+      // Bizarroraum-Bewertung
+      if (hasTrickRoomChoice) {
+        if (this.field.myTailwind || hasTailwindChoice) {
+          score -= 700; // Steht im Widerspruch zu Rückenwind
+        } else if (this.field.trickRoom) {
+          // Bizarroraum ist bereits aktiv -> erneutes Einsetzen BEENDET den Bizarroraum!
+          // Wenn unser Team schnell ist, ist das Aufheben des gegnerischen Bizarroraums genial!
+          if (this.isMyTeamFaster(myPokemon)) {
+            score += 260;
+          } else {
+            score -= 400; // Unser Team ist langsam, Bizarroraum soll aktiv bleiben
+          }
+        } else {
+          // Bizarroraum ist NICHT aktiv:
+          // Nur setzen, wenn unser Team im Schnitt langsamer ist als die aktiven Gegner!
+          if (this.isMyTeamFaster(myPokemon)) {
+            score -= 600; // Unser schnelles Team würde sich selbst massiv schaden!
+          } else {
+            score += 180; // Slow-Sweeper Team (z. B. Qurtel/Farigiraf) profitiert
+          }
+        }
+      }
+
+      // Begrenzer (Imprison)
+      if (c0.type === 'imprison' || c1.type === 'imprison') {
+        if (this.imprisonActive) {
+          score -= 600; // Bereits aktiv
+        } else if (c0.type === 'imprison' && c1.type === 'imprison') {
+          score -= 900; // Niemals doppelt Imprison
+        }
+      }
+
+      // 5. Taktische Auswechslungs-Bewertung (Switches & Pivots)
+      const evaluateSwitch = (c, mon, otherChoice) => {
+        if (!c || c.type !== 'switch' || !c.benchMon) return 0;
+        let sScore = 0;
+        const benchMon = c.benchMon;
+        const benchSpecies = this.dex ? this.dex.species.get(benchMon.details.split(',')[0]) : null;
+        const benchTypes = benchSpecies?.types || ['Normal'];
+        const curSpecies = (this.dex && mon) ? this.dex.species.get(mon.details.split(',')[0]) : null;
+        const curTypes = curSpecies?.types || ['Normal'];
+
+        const [bHp, bMaxHp] = (benchMon.condition || '100/100').split(' ')[0].split('/').map(Number);
+        const benchHpRatio = bMaxHp ? bHp / bMaxHp : 1.0;
+        const [cHp, cMaxHp] = (mon && mon.condition ? mon.condition.split(' ')[0].split('/').map(Number) : [100, 100]);
+        const curHpRatio = cMaxHp ? cHp / cMaxHp : 1.0;
+
+        // Tempo-Kosten: Ein Wechsel kostet eine aktive Runde
+        sScore -= 80;
+
+        // 1. Bedrohung des aktuellen Pokémon (Flucht vor 2x/4x Schwäche oder fatalem Schaden)
+        let curTakesSuperEffective = false;
+        const checkThreat = (foe) => {
+          if (!foe || !foe.active) return;
+          for (const fType of (foe.types || ['Normal'])) {
+            if (getTypeEff(fType, curTypes) >= 2.0) curTakesSuperEffective = true;
+          }
+        };
+        checkThreat(this.foes['1']);
+        checkThreat(this.foes['2']);
+
+        if (curTakesSuperEffective) {
+          sScore += (curHpRatio < 0.6 ? 160 : 100);
+          c.isThreatEscape = true;
+        }
+
+        // 2. Defensiver Vorteil des Bank-Pokémon (Resistenz / Immunität)
+        let benchHasImmunity = false;
+        let benchResistsFoes = true;
+        const checkBenchDefense = (foe) => {
+          if (!foe || !foe.active) return;
+          for (const fType of (foe.types || ['Normal'])) {
+            const eff = getTypeEff(fType, benchTypes);
+            if (eff === 0) benchHasImmunity = true;
+            if (eff > 1.0) benchResistsFoes = false;
+          }
+        };
+        checkBenchDefense(this.foes['1']);
+        checkBenchDefense(this.foes['2']);
+
+        if (benchHasImmunity) {
+          sScore += 180; // Genialer Immunity-Pivot (z.B. Levitate / Typen-Immunität)
+        } else if (benchResistsFoes) {
+          sScore += 110; // Fängt Angriffe resistent ab
+        } else {
+          sScore -= 50; // Nimmt selbst viel Schaden
+        }
+
+        // 3. Offensiver Gegendruck des Bank-Pokémon
+        let benchHitsFoesSuper = false;
+        const checkBenchOffense = (foe) => {
+          if (!foe || !foe.active) return;
+          for (const bType of benchTypes) {
+            if (getTypeEff(bType, foe.types || ['Normal']) >= 2.0) benchHitsFoesSuper = true;
+          }
+        };
+        checkBenchOffense(this.foes['1']);
+        checkBenchOffense(this.foes['2']);
+
+        if (benchHitsFoesSuper) {
+          sScore += 90;
+        }
+
+        // 4. KP-Zustand des Bank-Pokémon
+        if (benchHpRatio < 0.35) {
+          sScore -= 120;
+        } else if (benchHpRatio > 0.85) {
+          sScore += 30;
+        }
+
+        // 5. Niemals beide Slots gleichzeitig blind auswechseln
+        if (otherChoice && (otherChoice.type === 'switch' || otherChoice.isSwitch)) {
+          sScore -= 220;
+        }
+
+        return sScore;
+      };
+
+      if (c0.type === 'switch') score += evaluateSwitch(c0, myMon0, c1);
+      if (c1.type === 'switch') score += evaluateSwitch(c1, myMon1, c0);
+
+      // 6. Kombinierter Schaden beider Pokémon berechnen (Fokusfeuer)
       let dmgToFoe1 = 0;
       let dmgToFoe2 = 0;
 
@@ -484,7 +695,157 @@
         score += 60;
       }
 
-      return score;
+      let neuralScore = 0;
+      if (this.weights) {
+        neuralScore = this.evaluateNeural(c0, c1, activeList, myPokemon) * 350.0;
+      }
+
+      return score + neuralScore;
+    }
+
+    evaluateNeural(c0, c1, activeList, myPokemon) {
+      if (!this.weights || !this.weights.W1) return 0;
+      const vec = this.extractJointFeatureVector(c0, c1, activeList, myPokemon);
+      const w = this.weights;
+      // Layer 1: 64 -> 128
+      const h1 = new Float32Array(128);
+      for (let i = 0; i < 128; i++) {
+        let sum = w.b1[i];
+        const off = i * 64;
+        for (let j = 0; j < 64; j++) sum += vec[j] * w.W1[off + j];
+        h1[i] = sum > 0 ? sum : 0;
+      }
+      // Layer 2: 128 -> 64
+      const h2 = new Float32Array(64);
+      for (let i = 0; i < 64; i++) {
+        let sum = w.b2[i];
+        const off = i * 128;
+        for (let j = 0; j < 128; j++) sum += h1[j] * w.W2[off + j];
+        h2[i] = sum > 0 ? sum : 0;
+      }
+      // Layer 3: 64 -> 1
+      let out = w.b3[0];
+      for (let j = 0; j < 64; j++) out += h2[j] * w.W3[j];
+      return out;
+    }
+
+    extractJointFeatureVector(c0, c1, activeList, myPokemon) {
+      const out = new Float32Array(64);
+      const myMon0 = myPokemon[0];
+      const myMon1 = myPokemon[1];
+
+      // 0..19: State Features
+      const [hp0, maxHp0] = (myMon0 && myMon0.condition ? myMon0.condition.split(' ')[0].split('/').map(Number) : [100, 100]);
+      const [hp1, maxHp1] = (myMon1 && myMon1.condition ? myMon1.condition.split(' ')[0].split('/').map(Number) : [100, 100]);
+      out[0] = maxHp0 ? hp0 / maxHp0 : 0;
+      out[1] = maxHp1 ? hp1 / maxHp1 : 0;
+      out[2] = this.foes['1'].active ? this.foes['1'].hpRatio : 0;
+      out[3] = this.foes['2'].active ? this.foes['2'].hpRatio : 0;
+
+      let myAlive = 0;
+      for (const p of myPokemon) if (p && !p.condition?.endsWith('fnt')) myAlive++;
+      out[4] = myAlive / 4.0;
+      out[5] = 0.75; // foe alive approx
+
+      const w = this.field.weather || 'none';
+      out[6] = (w === 'sun') ? 1.0 : 0.0;
+      out[7] = (w === 'rain') ? 1.0 : 0.0;
+      out[8] = (w === 'sand') ? 1.0 : 0.0;
+      out[9] = (w === 'snow') ? 1.0 : 0.0;
+
+      const t = this.field.terrain || 'none';
+      out[10] = (t === 'psychic') ? 1.0 : 0.0;
+      out[11] = (t === 'electric') ? 1.0 : 0.0;
+      out[12] = (t === 'grassy') ? 1.0 : 0.0;
+      out[13] = (t === 'misty') ? 1.0 : 0.0;
+
+      out[14] = this.field.trickRoom ? 1.0 : 0.0;
+      out[15] = this.field.myTailwind ? 1.0 : 0.0;
+      out[16] = this.field.foeTailwind ? 1.0 : 0.0;
+      out[17] = Math.min((this.turnCount || 1) / 10.0, 1.0);
+      out[18] = this.isMyTeamFaster(myPokemon) ? 1.0 : 0.0;
+      out[19] = (this.field.myReflect || this.field.myLightScreen) ? 1.0 : 0.0;
+
+      // 20..37: Slot 0 action features
+      this.fillActionFeatures(out, 20, c0, myMon0);
+      // 38..55: Slot 1 action features
+      this.fillActionFeatures(out, 38, c1, myMon1);
+
+      // 56..63: Synergy features
+      const sameFoe = (c0.type === 'attack' && c1.type === 'attack' && c0.targetFoe && c0.targetFoe === c1.targetFoe);
+      out[56] = sameFoe ? 1.0 : 0.0;
+      out[57] = (c0.type === 'protect' && c1.type === 'protect') ? 1.0 : 0.0;
+      const speedConflict = (c0.type === 'tailwind' && c1.type === 'trickroom') || (c0.type === 'trickroom' && c1.type === 'tailwind');
+      out[58] = speedConflict ? 1.0 : 0.0;
+      out[59] = (c0.moveData?.target === 'allAdjacent' && c1.type !== 'protect') || (c1.moveData?.target === 'allAdjacent' && c0.type !== 'protect') ? 1.0 : 0.0;
+      out[60] = (this.field.myTailwind && (c0.type === 'tailwind' || c1.type === 'tailwind')) ? 1.0 : 0.0;
+      out[61] = (this.field.terrain === 'psychic' && ((c0.move?.id === 'expandingforce') || (c1.move?.id === 'expandingforce'))) ? 1.0 : 0.0;
+      out[62] = (this.imprisonActive && (c0.type === 'imprison' || c1.type === 'imprison')) ? 1.0 : 0.0;
+      out[63] = 0.0;
+
+      return out;
+    }
+
+    fillActionFeatures(out, offset, c, mon) {
+      if (!c) {
+        out[offset] = 1.0; // pass
+        return;
+      }
+      out[offset + 0] = (c.type === 'pass') ? 1.0 : 0.0;
+      out[offset + 1] = (c.type === 'protect') ? 1.0 : 0.0;
+      out[offset + 2] = (c.type === 'switch' || c.isSwitch) ? 1.0 : 0.0;
+      out[offset + 3] = (c.type === 'attack') ? 1.0 : 0.0;
+
+      if (c.type === 'attack' && c.moveData) {
+        out[offset + 4] = Math.min((c.moveData.basePower || 60) / 150.0, 1.0);
+        const targetFoe = c.targetFoe === '2' ? this.foes['2'] : this.foes['1'];
+        const eff = getTypeEff(c.moveData.type || 'Normal', targetFoe.types || ['Normal']);
+        out[offset + 5] = Math.min(eff / 4.0, 1.0);
+        const monTypes = (mon && mon.details ? (this.dex && this.dex.species.get(mon.details.split(',')[0]))?.types : null) || ['Normal'];
+        out[offset + 6] = monTypes.includes(c.moveData.type) ? 1.0 : 0.0;
+        out[offset + 7] = c.isSpread ? 1.0 : 0.0;
+        out[offset + 8] = (c.targetFoe === '1') ? 1.0 : 0.0;
+        out[offset + 9] = (c.targetFoe === '2') ? 1.0 : 0.0;
+        out[offset + 10] = 0.5;
+      } else if (c.type === 'switch' && c.benchMon) {
+        const bMon = c.benchMon;
+        const bTypes = (bMon && this.dex) ? this.dex.species.get(bMon.details.split(',')[0])?.types || ['Normal'] : ['Normal'];
+        const f1Types = this.foes['1'].types || ['Normal'];
+        const eff1 = getTypeEff(f1Types[0] || 'Normal', bTypes);
+        out[offset + 5] = (eff1 === 0) ? 1.0 : (eff1 <= 0.5 ? 0.75 : (eff1 > 1.0 ? 0.2 : 0.5));
+        out[offset + 6] = c.isThreatEscape ? 1.0 : 0.0;
+        const [bHp, bMaxHp] = (bMon.condition || '100/100').split(' ')[0].split('/').map(Number);
+        out[offset + 10] = bMaxHp ? bHp / bMaxHp : 1.0;
+      }
+
+      out[offset + 11] = (c.type === 'tailwind') ? 1.0 : 0.0;
+      out[offset + 12] = (c.type === 'trickroom') ? 1.0 : 0.0;
+      out[offset + 13] = (c.type === 'imprison') ? 1.0 : 0.0;
+      out[offset + 14] = (c.move && c.move.id === 'fakeout') ? 1.0 : 0.0;
+      out[offset + 15] = (c.type === 'screens') ? 1.0 : 0.0;
+      out[offset + 16] = (c.isMega) ? 1.0 : 0.0;
+      out[offset + 17] = (c.moveData && c.moveData.priority > 0) ? 1.0 : 0.0;
+    }
+
+    isMyTeamFaster(myPokemon) {
+      let mySpeedSum = 0;
+      let myCount = 0;
+      for (let i = 0; i < myPokemon.length; i++) {
+        const p = myPokemon[i];
+        if (!p || (p.condition && p.condition.endsWith('fnt'))) continue;
+        const spe = p.stats ? p.stats.spe : (this.dex && this.dex.species.get(p.details.split(',')[0]))?.baseStats.spe || 85;
+        mySpeedSum += spe;
+        myCount++;
+      }
+      const myAvgSpe = myCount ? (mySpeedSum / myCount) : 90;
+
+      let foeSpeedSum = 0;
+      let foeCount = 0;
+      if (this.foes['1'].active) { foeSpeedSum += this.foes['1'].speed; foeCount++; }
+      if (this.foes['2'].active) { foeSpeedSum += this.foes['2'].speed; foeCount++; }
+      const foeAvgSpe = foeCount ? (foeSpeedSum / foeCount) : 85;
+
+      return myAvgSpe >= foeAvgSpe;
     }
 
     calcDmgRatio(attacker, defender, move, isSpread) {
@@ -493,7 +854,13 @@
       const aStat = isSpecial ? attacker.spa : attacker.atk;
       const dStat = isSpecial ? defender.spd : defender.def;
 
-      let raw = (((22 * move.basePower * (aStat / Math.max(1, dStat))) / 50) + 2);
+      let bp = move.basePower;
+      // Weite Kraft (Expanding Force) erhält im Psychofeld 120 Basisschaden
+      if (move.id === 'expandingforce' && this.field.terrain === 'psychic') {
+        bp = 120;
+      }
+
+      let raw = (((22 * bp * (aStat / Math.max(1, dStat))) / 50) + 2);
 
       // STAB
       if (attacker.types && attacker.types.includes(move.type)) {

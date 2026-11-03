@@ -28,6 +28,7 @@
     "files": [
       "index.html",
       "icon.ico",
+      "icon_shiny.ico",
       "css/**",
       "js/**",
       "data/**",
