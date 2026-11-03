@@ -19,11 +19,16 @@
 
     isRunning = true;
     try {
-      worker = new Worker('js/sim_worker.bundle.js');
+      worker = new Worker('js/sim_worker.bundle.js?v=' + Date.now());
     } catch (e) {
-      isRunning = false;
-      if (onErrorCb) onErrorCb(e.message || 'Web Worker konnte nicht initialisiert werden.');
-      return;
+      try {
+        // Fallback falls Query-String auf Dateisystemen abgelehnt wird
+        worker = new Worker('js/sim_worker.bundle.js');
+      } catch (e2) {
+        isRunning = false;
+        if (onErrorCb) onErrorCb(e2.message || 'Web Worker konnte nicht initialisiert werden.');
+        return;
+      }
     }
 
     worker.onmessage = function (e) {

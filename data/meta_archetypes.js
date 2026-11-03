@@ -1,124 +1,191 @@
-// Archetypische Champions-Teams für den Headless Matchup-Tester.
-// Format: [Gen 9 Champions] VGC 2026 Reg M-C (Level 50, Doppelkampf)
+// Authentische Champions-Teams für den Headless Matchup-Tester.
+// Format: [Gen 9 Champions] VGC 2026 Reg M-C (Level 50, Doppelkampf, Show 6 Bring 4)
 // SPs (Stat Points): Maximal 32 je Wert, genau 66 Stat Points gesamt.
+// Basiert direkt auf der realen Smogon/NCP Champions VGC 2026 Metagame-Nutzungsstatistik (data.pkmn.cc & setdex_ncp-g10).
 
 (function () {
   'use strict';
 
   var ARCHETYPES = [
     {
-      id: 'mega_charizard_sun',
-      name: 'Sun Offense (Mega Charizard Y)',
-      category: 'Sun',
-      badgeColor: '#e65100',
-      description: 'Schneller Sonnen-Druck mit Mega-Glurak Y, Torkoal und Chlorophyll-Speed-Control.',
-      paste: `Charizard-Mega-Y @ Charizardite Y
-Ability: Drought
+      id: 'sand_rush',
+      name: 'Sand Rush Offense (Mega Tyranitar + Excadrill)',
+      category: 'Sand',
+      badgeColor: '#795548',
+      description: 'Sturmgewaltige Sand-Offensive mit Mega-Despotar, Stalobor Sand Rush und Rough-Skin-Garchomp.',
+      paste: `Tyranitar-Mega @ Tyranitarite
+Ability: Sand Stream
 Level: 50
-SPs: 30 SpA / 4 SpD / 32 Spe
-Timid Nature
-- Heat Wave
-- Solar Beam
-- Weather Ball
+SPs: 2 HP / 32 Atk / 32 Spe
+Adamant Nature
+- Rock Slide
+- Crunch
+- Low Kick
 - Protect
 
-Torkoal @ Charcoal
-Ability: Drought
+Excadrill @ Life Orb
+Ability: Sand Rush
 Level: 50
-SPs: 32 HP / 32 SpA / 2 SpD
-Quiet Nature
-IVs: 0 Spe
-- Eruption
-- Heat Wave
-- Earth Power
-- Protect
-
-Lilligant-Hisui @ Focus Sash
-Ability: Chlorophyll
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Close Combat
-- Solar Blade
-- After You
-- Protect
-
-Flutter Mane @ Booster Energy
-Ability: Protosynthesis
-Level: 50
-SPs: 15 HP / 19 SpA / 32 Spe
-Timid Nature
-- Moonblast
-- Shadow Ball
-- Dazzling Gleam
-- Protect
-
-Roaring Moon @ Life Orb
-Ability: Protosynthesis
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Knock Off
-- Acrobatics
-- Tailwind
-- Protect
-
-Landorus-Therian @ Choice Scarf
-Ability: Intimidate
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
+SPs: 2 HP / 32 Atk / 32 Spe
 Adamant Nature
 - Earthquake
+- Iron Head
 - Rock Slide
-- U-turn
-- Stomping Tantrum`
+- Protect
+
+Garchomp @ Clear Amulet
+Ability: Rough Skin
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Earthquake
+- Dragon Claw
+- Swords Dance
+- Protect
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+Level: 50
+SPs: 32 HP / 14 Def / 20 SpD
+Careful Nature
+- Flare Blitz
+- Darkest Lariat
+- Fake Out
+- Parting Shot
+
+Corviknight @ Leftovers
+Ability: Mirror Armor
+Level: 50
+SPs: 32 HP / 2 Atk / 32 SpD
+Careful Nature
+- Brave Bird
+- Iron Head
+- Bulk Up
+- Roost
+
+Sinistcha @ Rocky Helmet
+Ability: Hospitality
+Level: 50
+SPs: 32 HP / 32 Def / 2 SpD
+Bold Nature
+- Matchagotcha
+- Strength Sap
+- Rage Powder
+- Protect`
     },
 
     {
-      id: 'mega_feraligatr_rain',
-      name: 'Rain Offense (Mega Feraligatr)',
+      id: 'sun_offense',
+      name: 'Sun Offense (Mega Charizard Y + Venusaur)',
+      category: 'Sun',
+      badgeColor: '#e65100',
+      description: 'Klassische Sonnen-Offensive mit Mega-Glurak Y, Chlorophyll-Bisaflor, conas Worlds-Garchomp und Farigiraf.',
+      paste: `Charizard-Mega-Y @ Charizardite Y
+Ability: Drought
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Modest Nature
+- Heat Wave
+- Weather Ball
+- Solar Beam
+- Protect
+
+Venusaur @ Life Orb
+Ability: Chlorophyll
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Modest Nature
+- Leaf Storm
+- Sludge Bomb
+- Earth Power
+- Sleep Powder
+
+Garchomp @ Choice Scarf
+Ability: Rough Skin
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Earthquake
+- Dragon Claw
+- Rock Slide
+- Iron Head
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+Level: 50
+SPs: 32 HP / 14 Def / 20 SpD
+Careful Nature
+- Flare Blitz
+- Darkest Lariat
+- Fake Out
+- Parting Shot
+
+Farigiraf @ Safety Goggles
+Ability: Armor Tail
+Level: 50
+SPs: 32 HP / 16 Def / 16 SpA / 2 SpD
+Modest Nature
+- Psychic
+- Dazzling Gleam
+- Helping Hand
+- Trick Room
+
+Kingambit @ Chople Berry
+Ability: Defiant
+Level: 50
+SPs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Kowtow Cleave
+- Iron Head
+- Sucker Punch
+- Low Kick`
+    },
+
+    {
+      id: 'rain_offense',
+      name: 'Swift Swim Rain (Mega Swampert + Pelipper)',
       category: 'Rain',
       badgeColor: '#0288d1',
-      description: 'Wuchtiger Regen mit Mega-Impergator (Dragonize), Pelipper und Archaludon.',
-      paste: `Feraligatr-Mega @ Feraligite
-Ability: Dragonize
+      description: 'Wuchtiger VGC-Regen mit Mega-Sumpex (Swift Swim), Pelipper, Stamina-Archaludon und Basculegion.',
+      paste: `Swampert-Mega @ Swampertite
+Ability: Swift Swim
 Level: 50
-SPs: 32 Atk / 2 Def / 32 Spe
+SPs: 2 HP / 32 Atk / 32 Spe
 Adamant Nature
-- Liquidation
-- Return
-- Crunch
+- Wave Crash
+- High Horsepower
+- Ice Punch
 - Protect
 
 Pelipper @ Focus Sash
 Ability: Drizzle
 Level: 50
-SPs: 32 HP / 30 SpA / 4 SpD
+SPs: 32 HP / 10 SpA / 13 SpD / 11 Spe
 Modest Nature
-- Muddy Water
+- Weather Ball
 - Hurricane
 - Tailwind
-- Protect
+- Wide Guard
 
-Archaludon @ Assault Vest
+Archaludon @ Leftovers
 Ability: Stamina
 Level: 50
-SPs: 32 HP / 20 SpA / 14 SpD
-Modest Nature
+SPs: 32 HP / 28 Def / 6 SpA
+Bold Nature
 - Electro Shot
-- Draco Meteor
 - Flash Cannon
-- Body Press
+- Draco Meteor
+- Protect
 
-Urshifu-Rapid-Strike @ Mystic Water
-Ability: Unseen Fist
+Basculegion @ Choice Band
+Ability: Adaptability
 Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Surging Strikes
-- Close Combat
+SPs: 2 HP / 32 Atk / 32 Spe
+Adamant Nature
+- Wave Crash
+- Last Respects
+- Flip Turn
 - Aqua Jet
-- Detect
 
 Rillaboom @ Miracle Seed
 Ability: Grassy Surge
@@ -130,145 +197,52 @@ Adamant Nature
 - Fake Out
 - U-turn
 
-Raichu-Alola @ Life Orb
-Ability: Surge Surfer
+Incineroar @ Sitrus Berry
+Ability: Intimidate
 Level: 50
-SPs: 32 SpA / 2 SpD / 32 Spe
-Timid Nature
-- Thunderbolt
-- Psychic
-- Volt Switch
-- Protect`
+SPs: 32 HP / 14 Def / 20 SpD
+Careful Nature
+- Flare Blitz
+- Darkest Lariat
+- Fake Out
+- Parting Shot`
     },
 
     {
-      id: 'hard_trick_room',
-      name: 'Hard Trick Room (Ursaluna + Farigiraf)',
-      category: 'Trick Room',
-      badgeColor: '#6a1b9a',
-      description: 'Konsequenter Bizarroraum mit Farigiraf (Armor Tail) und extrem hohem Durchschlag.',
-      paste: `Farigiraf @ Mental Herb
-Ability: Armor Tail
+      id: 'tailwind_salamence',
+      name: 'Aerilate Tailwind (Mega Salamence + Sneasler)',
+      category: 'Tailwind',
+      badgeColor: '#00897b',
+      description: 'Turnier-dominanter Tailwind-Druck mit Mega-Brutalanda (Aerilate Hyper Voice), Sneasler und Kingambit.',
+      paste: `Salamence-Mega @ Salamencite
+Ability: Aerilate
 Level: 50
-SPs: 32 HP / 18 Def / 16 SpD
-Quiet Nature
-IVs: 0 Spe
-- Trick Room
+SPs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
 - Hyper Voice
-- Psychic
-- Helping Hand
-
-Ursaluna-Bloodmoon @ Life Orb
-Ability: Mind's Eye
-Level: 50
-SPs: 32 HP / 32 SpA / 2 SpD
-Quiet Nature
-IVs: 0 Spe
-- Blood Moon
-- Earth Power
-- Hyper Voice
+- Draco Meteor
+- Tailwind
 - Protect
 
-Torkoal @ Charcoal
-Ability: Drought
+Sneasler @ Focus Sash
+Ability: Unburden
 Level: 50
-SPs: 32 HP / 32 SpA / 2 SpD
-Quiet Nature
-IVs: 0 Spe
-- Eruption
-- Heat Wave
-- Solar Beam
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Close Combat
+- Dire Claw
+- Fake Out
 - Protect
 
 Kingambit @ Black Glasses
 Ability: Defiant
 Level: 50
 SPs: 32 HP / 32 Atk / 2 SpD
-Brave Nature
-IVs: 0 Spe
+Adamant Nature
 - Kowtow Cleave
-- Sucker Punch
 - Iron Head
-- Protect
-
-Camerupt-Mega @ Cameruptite
-Ability: Sheer Force
-Level: 50
-SPs: 32 HP / 32 SpA / 2 SpD
-Quiet Nature
-IVs: 0 Spe
-- Heat Wave
-- Earth Power
-- Ancient Power
-- Protect
-
-Dusclops @ Eviolite
-Ability: Frisk
-Level: 50
-SPs: 32 HP / 17 Def / 17 SpD
-Relaxed Nature
-IVs: 0 Spe
-- Trick Room
-- Night Shade
-- Will-O-Wisp
-- Pain Split`
-    },
-
-    {
-      id: 'mega_dragonite_tailwind',
-      name: 'Tailwind Balance (Mega Dragonite)',
-      category: 'Tailwind',
-      badgeColor: '#2e7d32',
-      description: 'Aggressive Tailwind-Präsenz mit Mega-Dragoran, Elfun und Gholdengo.',
-      paste: `Dragonite-Mega @ Dragoninite
-Ability: Multiscale
-Level: 50
-SPs: 2 HP / 32 Atk / 32 Spe
-Jolly Nature
-- Extreme Speed
-- Dragon Claw
-- Aerial Ace
-- Protect
-
-Whimsicott @ Focus Sash
-Ability: Prankster
-Level: 50
-SPs: 32 HP / 2 SpA / 32 Spe
-Timid Nature
-- Tailwind
-- Moonblast
-- Encore
-- Protect
-
-Incineroar @ Sitrus Berry
-Ability: Intimidate
-Level: 50
-SPs: 32 HP / 20 Def / 14 SpD
-Careful Nature
-- Fake Out
-- Knock Off
-- Flare Blitz
-- Parting Shot
-
-Gholdengo @ Choice Specs
-Ability: Good as Gold
-Level: 50
-SPs: 32 SpA / 2 SpD / 32 Spe
-Timid Nature
-- Make It Rain
-- Shadow Ball
-- Thunderbolt
-- Trick
-
-Urshifu-Rapid-Strike @ Mystic Water
-Ability: Unseen Fist
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Surging Strikes
-- Close Combat
-- Aqua Jet
-- Detect
+- Sucker Punch
+- Low Kick
 
 Rillaboom @ Assault Vest
 Ability: Grassy Surge
@@ -277,91 +251,44 @@ SPs: 32 HP / 32 Atk / 2 SpD
 Adamant Nature
 - Grassy Glide
 - Wood Hammer
-- High Horsepower
-- Fake Out`
-    },
-
-    {
-      id: 'mega_clefable_balance',
-      name: 'Fairy Balance (Mega Clefable)',
-      category: 'Balance',
-      badgeColor: '#ad1457',
-      description: 'Flexibles Wechselspiel mit Mega-Pixi (Magic Bounce) und defensiven Säulen.',
-      paste: `Clefable-Mega @ Clefablite
-Ability: Magic Bounce
-Level: 50
-SPs: 32 HP / 14 Def / 20 SpA
-Modest Nature
-- Moonblast
-- Air Slash
-- Follow Me
-- Protect
-
-Incineroar @ Sitrus Berry
-Ability: Intimidate
-Level: 50
-SPs: 32 HP / 20 Def / 14 SpD
-Careful Nature
 - Fake Out
-- Knock Off
-- Flare Blitz
-- Parting Shot
+- U-turn
 
-Amoonguss @ Rocky Helmet
-Ability: Regenerator
+Basculegion @ Mystic Water
+Ability: Adaptability
 Level: 50
-SPs: 32 HP / 20 Def / 14 SpD
-Bold Nature
-- Spore
-- Pollen Puff
-- Rage Powder
+SPs: 2 HP / 32 Atk / 32 Spe
+Adamant Nature
+- Wave Crash
+- Last Respects
+- Aqua Jet
 - Protect
 
-Archaludon @ Assault Vest
-Ability: Stamina
+Gholdengo @ Life Orb
+Ability: Good as Gold
 Level: 50
-SPs: 32 HP / 20 SpA / 14 SpD
-Modest Nature
-- Flash Cannon
-- Draco Meteor
-- Body Press
-- Thunderbolt
-
-Urshifu @ Choice Band
-Ability: Unseen Fist
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Wicked Blow
-- Close Combat
-- Sucker Punch
-- U-turn
-
-Landorus-Therian @ Choice Scarf
-Ability: Intimidate
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Adamant Nature
-- Earthquake
-- Rock Slide
-- U-turn
-- Stomping Tantrum`
+SPs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Make It Rain
+- Shadow Ball
+- Nasty Plot
+- Protect`
     },
 
     {
-      id: 'psyspam_ho',
-      name: 'Psyspam Hyper Offense',
+      id: 'psyspam_gardevoir',
+      name: 'Psyspam Offense (Mega Gardevoir + Indeedee-F)',
       category: 'Psyspam',
       badgeColor: '#c2185b',
-      description: 'Psychic Surge Schutz vor Priorität gepaart mit Expanding Force und Mega-Alakazam.',
-      paste: `Alakazam-Mega @ Alakazite
-Ability: Trace
+      description: 'Metagame-Spitze für Psyspam: Mega-Gardevoir (Expanding Force & Feen-Schall) mit Indeedee-F und Sneasler.',
+      paste: `Gardevoir-Mega @ Gardevoirite
+Ability: Pixilate
 Level: 50
-SPs: 32 SpA / 2 SpD / 32 Spe
-Timid Nature
+SPs: 2 HP / 32 SpA / 32 Spe
+Modest Nature
+- Hyper Voice
 - Expanding Force
-- Focus Blast
-- Shadow Ball
+- Psychic
 - Protect
 
 Indeedee-F @ Psychic Seed
@@ -374,180 +301,385 @@ Bold Nature
 - Dazzling Gleam
 - Protect
 
+Sneasler @ White Herb
+Ability: Unburden
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Close Combat
+- Dire Claw
+- Fake Out
+- Protect
+
 Armarouge @ Life Orb
 Ability: Flash Fire
 Level: 50
 SPs: 32 HP / 32 SpA / 2 SpD
-Quiet Nature
-IVs: 0 Spe
+Modest Nature
 - Expanding Force
 - Armor Cannon
-- Trick Room
-- Wide Guard
-
-Gallade-Mega @ Galladite
-Ability: Inner Focus
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Sacred Sword
-- Psycho Cut
 - Wide Guard
 - Protect
 
-Sneasler @ Focus Sash
-Ability: Unburden
+Kingambit @ Chople Berry
+Ability: Defiant
 Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Dire Claw
-- Close Combat
-- Fake Out
-- Protect
-
-Urshifu-Rapid-Strike @ Mystic Water
-Ability: Unseen Fist
-Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Surging Strikes
-- Close Combat
-- Aqua Jet
-- Detect`
-    },
-
-    {
-      id: 'mega_skarmory_defense',
-      name: 'Hazard & Fortress (Mega Skarmory)',
-      category: 'Defense',
-      badgeColor: '#455a64',
-      description: 'Extrem zähes Team mit Mega-Panzaeron, Ding-Lu und Dondozo-Wall.',
-      paste: `Skarmory-Mega @ Skarmorite
-Ability: Sturdy
-Level: 50
-SPs: 32 HP / 2 Def / 32 SpD
-Careful Nature
+SPs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Kowtow Cleave
 - Iron Head
-- Body Press
-- Roost
-- Protect
+- Sucker Punch
+- Low Kick
 
-Ting-Lu @ Leftovers
-Ability: Vessel of Ruin
+Basculegion @ Choice Scarf
+Ability: Adaptability
 Level: 50
-SPs: 32 HP / 2 Atk / 32 SpD
-Careful Nature
-- Stomping Tantrum
-- Ruination
-- Heavy Slam
-- Protect
-
-Dondozo @ Sitrus Berry
-Ability: Unaware
-Level: 50
-SPs: 32 HP / 20 Atk / 14 SpD
+SPs: 2 HP / 32 Atk / 32 Spe
 Adamant Nature
 - Wave Crash
-- Order Up
-- Heavy Slam
-- Protect
-
-Tatsugiri @ Choice Scarf
-Ability: Commander
-Level: 50
-SPs: 32 SpA / 2 SpD / 32 Spe
-Timid Nature
-- Draco Meteor
-- Muddy Water
-- Icy Wind
-- Sleep Talk
-
-Heatran @ Life Orb
-Ability: Flash Fire
-Level: 50
-SPs: 32 HP / 32 SpA / 2 SpD
-Modest Nature
-- Heat Wave
-- Earth Power
-- Flash Cannon
-- Protect
-
-Amoonguss @ Rocky Helmet
-Ability: Regenerator
-Level: 50
-SPs: 32 HP / 20 Def / 14 SpD
-Bold Nature
-- Spore
-- Pollen Puff
-- Rage Powder
-- Protect`
+- Last Respects
+- Flip Turn
+- Aqua Jet`
     },
 
     {
-      id: 'mega_baxcalibur_snow',
-      name: 'Snow & Priority (Mega Baxcalibur)',
-      category: 'Snow',
-      badgeColor: '#0097a7',
-      description: 'Schneesturm mit Mega-Espinodon, Alola-Vulnona und Chien-Pao.',
-      paste: `Baxcalibur-Mega @ Baxcalibrite
-Ability: Thermal Exchange
+      id: 'hard_trick_room',
+      name: 'Hard Trick Room (Farigiraf + Conkeldurr + Torkoal)',
+      category: 'Trick Room',
+      badgeColor: '#6a1b9a',
+      description: 'Kompromissloser Bizarroraum mit Farigiraf Armor Tail, Guts-Meistagrif, Eruption-Qurtel und natsumewatos Kingambit.',
+      paste: `Farigiraf @ Sitrus Berry
+Ability: Armor Tail
 Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Glaive Rush
-- Icicle Crash
-- Ice Shard
+SPs: 32 HP / 16 Def / 16 SpA / 2 SpD
+Quiet Nature
+IVs: 0 Spe
+- Trick Room
+- Psychic
+- Dazzling Gleam
+- Helping Hand
+
+Conkeldurr @ Flame Orb
+Ability: Guts
+Level: 50
+SPs: 32 HP / 32 Atk / 2 Def
+Brave Nature
+IVs: 0 Spe
+- Drain Punch
+- Mach Punch
+- Facade
 - Protect
 
-Ninetales-Alola @ Light Clay
-Ability: Snow Warning
+Torkoal @ Charcoal
+Ability: Drought
 Level: 50
-SPs: 32 HP / 2 SpD / 32 Spe
-Timid Nature
-- Aurora Veil
-- Blizzard
-- Moonblast
+SPs: 32 HP / 32 SpA / 2 SpD
+Quiet Nature
+IVs: 0 Spe
+- Eruption
+- Heat Wave
+- Earth Power
 - Protect
 
-Chien-Pao @ Focus Sash
-Ability: Sword of Ruin
+Kingambit @ Chople Berry
+Ability: Defiant
 Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Icicle Crash
+SPs: 32 HP / 32 Atk / 2 SpD
+Brave Nature
+IVs: 0 Spe
+- Kowtow Cleave
+- Iron Head
 - Sucker Punch
-- Sacred Sword
+- Low Kick
+
+Sylveon @ Fairy Feather
+Ability: Pixilate
+Level: 50
+SPs: 32 HP / 32 SpA / 2 SpD
+Quiet Nature
+IVs: 0 Spe
+- Hyper Voice
+- Quick Attack
+- Shadow Ball
+- Detect
+
+Incineroar @ Safety Goggles
+Ability: Intimidate
+Level: 50
+SPs: 32 HP / 14 Def / 20 SpD
+Careful Nature
+- Flare Blitz
+- Darkest Lariat
+- Fake Out
+- Parting Shot`
+    },
+
+    {
+      id: 'mega_garchomp_z',
+      name: 'Special Dragon/Ground (Mega Garchomp Z + Volcarona)',
+      category: 'Setup',
+      badgeColor: '#303f9f',
+      description: 'Neuzeitlicher Champions-Archetyp: Spezielles Mega-Knakrack Z (Power Gem / Erdkräfte) mit Falterreigen-Ramoth.',
+      paste: `Garchomp-Mega-Z @ Garchompite Z
+Ability: Rough Skin
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Modest Nature
+- Power Gem
+- Earth Power
+- Dragon Pulse
 - Protect
 
-Ogerpon-Hearthflame @ Hearthflame Mask
-Ability: Mold Breaker
+Volcarona @ Grassy Seed
+Ability: Flame Body
 Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Ivy Cudgel
-- Horn Leech
-- Spiky Shield
-- Follow Me
+SPs: 32 HP / 2 Def / 32 Spe
+Modest Nature
+- Quiver Dance
+- Heat Wave
+- Bug Buzz
+- Protect
 
-Urshifu-Rapid-Strike @ Mystic Water
-Ability: Unseen Fist
+Rillaboom @ Miracle Seed
+Ability: Grassy Surge
 Level: 50
-SPs: 32 Atk / 2 SpD / 32 Spe
-Jolly Nature
-- Surging Strikes
-- Close Combat
-- Aqua Jet
-- Detect
+SPs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Grassy Glide
+- Wood Hammer
+- Fake Out
+- U-turn
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+Level: 50
+SPs: 32 HP / 14 Def / 20 SpD
+Careful Nature
+- Flare Blitz
+- Darkest Lariat
+- Fake Out
+- Parting Shot
 
 Gholdengo @ Choice Specs
 Ability: Good as Gold
 Level: 50
-SPs: 32 SpA / 2 SpD / 32 Spe
+SPs: 2 HP / 32 SpA / 32 Spe
 Timid Nature
 - Make It Rain
 - Shadow Ball
 - Thunderbolt
-- Focus Blast`
+- Focus Blast
+
+Farigiraf @ Colbur Berry
+Ability: Armor Tail
+Level: 50
+SPs: 32 HP / 16 Def / 16 SpA / 2 SpD
+Quiet Nature
+- Trick Room
+- Psychic
+- Helping Hand
+- Protect`
+    },
+
+    {
+      id: 'mega_golisopod_rain',
+      name: 'Rain & Pod Offense (Mega Golisopod + Pelipper)',
+      category: 'Rain',
+      badgeColor: '#0097a7',
+      description: 'Beliebter Champions-Regen mit Mega-Tectass (Iron Head & Blutsauger), Archaludon und Grimmsnarl Screens.',
+      paste: `Golisopod-Mega @ Golisopite
+Ability: Emergency Exit
+Level: 50
+SPs: 32 HP / 32 Atk / 2 Spe
+Adamant Nature
+- Leech Life
+- Iron Head
+- Sucker Punch
+- Protect
+
+Pelipper @ Focus Sash
+Ability: Drizzle
+Level: 50
+SPs: 32 HP / 10 SpA / 13 SpD / 11 Spe
+Modest Nature
+- Weather Ball
+- Hurricane
+- Tailwind
+- Wide Guard
+
+Archaludon @ Assault Vest
+Ability: Stamina
+Level: 50
+SPs: 32 HP / 20 SpA / 14 SpD
+Modest Nature
+- Electro Shot
+- Flash Cannon
+- Draco Meteor
+- Snarl
+
+Sneasler @ White Herb
+Ability: Unburden
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Close Combat
+- Dire Claw
+- Fake Out
+- Protect
+
+Basculegion @ Mystic Water
+Ability: Adaptability
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Adamant Nature
+- Wave Crash
+- Last Respects
+- Aqua Jet
+- Protect
+
+Grimmsnarl @ Light Clay
+Ability: Prankster
+Level: 50
+SPs: 32 HP / 18 Def / 16 SpD
+Impish Nature
+- Reflect
+- Light Screen
+- Spirit Break
+- Parting Shot`
+    },
+
+    {
+      id: 'contrary_staraptor',
+      name: 'Contrary Tailwind (Mega Staraptor + Gholdengo)',
+      category: 'Tailwind',
+      badgeColor: '#5c6bc0',
+      description: 'Ultraschnelle Hyper-Offense mit Mega-Staraptor (Umkehrung Nahkampf), Whimsicott, Arkani-Hisui und Milotic.',
+      paste: `Staraptor-Mega @ Staraptite
+Ability: Intimidate
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Close Combat
+- Brave Bird
+- Roost
+- Protect
+
+Gholdengo @ Choice Scarf
+Ability: Good as Gold
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Make It Rain
+- Shadow Ball
+- Trick
+- Focus Blast
+
+Whimsicott @ Focus Sash
+Ability: Prankster
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Tailwind
+- Moonblast
+- Encore
+- Helping Hand
+
+Arcanine-Hisui @ Choice Band
+Ability: Rock Head
+Level: 50
+SPs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Head Smash
+- Flare Blitz
+- Extreme Speed
+- Close Combat
+
+Milotic @ Leftovers
+Ability: Competitive
+Level: 50
+SPs: 32 HP / 32 Def / 2 SpD
+Bold Nature
+- Scald
+- Ice Beam
+- Recover
+- Protect
+
+Rillaboom @ Miracle Seed
+Ability: Grassy Surge
+Level: 50
+SPs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Grassy Glide
+- Wood Hammer
+- Fake Out
+- Protect`
+    },
+
+    {
+      id: 'shadow_tag_gengar',
+      name: 'Shadow Tag Trap (Mega Gengar + Kommo-o)',
+      category: 'Setup',
+      badgeColor: '#4a148c',
+      description: 'Taktisches Auswechsel-Verbot mit Mega-Gengar Wegsperre, Clangorous-Soul-Grandiras und Regen-Support.',
+      paste: `Gengar-Mega @ Gengarite
+Ability: Cursed Body
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Shadow Ball
+- Sludge Bomb
+- Will-O-Wisp
+- Protect
+
+Kommo-o @ Leftovers
+Ability: Overcoat
+Level: 50
+SPs: 32 HP / 2 Def / 32 Spe
+Modest Nature
+- Clangorous Soul
+- Clanging Scales
+- Body Press
+- Protect
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+Level: 50
+SPs: 32 HP / 14 Def / 20 SpD
+Careful Nature
+- Flare Blitz
+- Darkest Lariat
+- Fake Out
+- Parting Shot
+
+Rillaboom @ Assault Vest
+Ability: Grassy Surge
+Level: 50
+SPs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Grassy Glide
+- Wood Hammer
+- Fake Out
+- U-turn
+
+Politoed @ Choice Scarf
+Ability: Drizzle
+Level: 50
+SPs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Weather Ball
+- Muddy Water
+- Ice Beam
+- Helping Hand
+
+Clefable @ Rocky Helmet
+Ability: Unaware
+Level: 50
+SPs: 32 HP / 32 Def / 2 SpD
+Bold Nature
+- Moonblast
+- Follow Me
+- Moonlight
+- Protect`
     }
   ];
 

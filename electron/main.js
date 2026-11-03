@@ -54,13 +54,18 @@ function saveBounds(win) {
 let win = null;
 
 function createWindow() {
+  const isShiny = (Math.floor(Math.random() * 8192) === 0) || process.argv.includes('--shiny');
+  const iconPath = (isShiny && fs.existsSync(path.join(ROOT, 'icon_shiny.ico')))
+    ? path.join(ROOT, 'icon_shiny.ico')
+    : path.join(ROOT, 'icon.ico');
+
   const b = loadBounds() || { width: 1400, height: 900 };
   win = new BrowserWindow({
     x: b.x, y: b.y, width: b.width, height: b.height,
     minWidth: 1000, minHeight: 640,
     frame: false,
     title: 'Rattata Lab',
-    icon: path.join(ROOT, 'icon.ico'),
+    icon: iconPath,
     backgroundColor: '#1b1d21',
     show: false,
     webPreferences: {
@@ -90,13 +95,13 @@ function createWindow() {
   // F5 / Strg+R neu laden, F12 Entwicklertools, F11 Vollbild
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
-    if (input.key === 'F5' || (input.control && input.key.toLowerCase() === 'r')) { win.webContents.reload(); e.preventDefault(); }
+    if (input.key === 'F5' || (input.control && input.key.toLowerCase() === 'r')) { win.webContents.reloadIgnoringCache(); e.preventDefault(); }
     if (input.key === 'F12') { win.webContents.toggleDevTools(); e.preventDefault(); }
     if (input.key === 'F11') { win.setFullScreen(!win.isFullScreen()); e.preventDefault(); }
   });
 
   win.on('close', () => saveBounds(win));
-  win.loadFile(path.join(ROOT, 'index.html'));
+  win.loadFile(path.join(ROOT, 'index.html'), isShiny ? { query: { shiny: '1' } } : undefined);
 }
 
 ipcMain.on('win', (e, what) => {

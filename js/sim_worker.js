@@ -139,7 +139,7 @@ function generateLeadCombinations(teamLength) {
 
 let isCancelled = false;
 
-// Ein einzelnes Champions-Match ausführen
+// Ein einzelnes Champions-Match ausführen mit Sicherheits-Timeout gegen Hänger
 async function runSingleMatch(p1Packed, p2Packed, p1LeadOrder, p2LeadOrder) {
   const battleStream = new BattleStreams.BattleStream();
   const streams = BattleStreams.getPlayerStreams(battleStream);
@@ -156,46 +156,69 @@ async function runSingleMatch(p1Packed, p2Packed, p1LeadOrder, p2LeadOrder) {
   const p2Faints = [];
   let lastAttackerP2 = '';
 
+  let timeoutId = null;
+  const timeoutPromise = new Promise((resolve) => {
+    timeoutId = setTimeout(() => {
+      try {
+        battleStream.destroy();
+      } catch (e) {}
+      resolve({
+        winner: null,
+        turns: turns || 1,
+        p1Won: false,
+        p1Faints,
+        p2Faints,
+        timedOut: true
+      });
+    }, 1500);
+  });
+
   const readPromise = (async () => {
-    for await (const chunk of streams.omniscient) {
-      for (const line of chunk.split('\n')) {
-        if (line.startsWith('|turn|')) {
-          turns++;
-        } else if (line.startsWith('|move|')) {
-          const parts = line.split('|');
-          const ident = parts[2] || '';
-          if (ident.startsWith('p2')) {
-            const monName = ident.split(':')[1]?.trim() || 'Opponent';
-            lastAttackerP2 = monName;
+    try {
+      for await (const chunk of streams.omniscient) {
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('|turn|')) {
+            turns++;
+          } else if (line.startsWith('|move|')) {
+            const parts = line.split('|');
+            const ident = parts[2] || '';
+            if (ident.startsWith('p2')) {
+              const monName = ident.split(':')[1]?.trim() || 'Opponent';
+              lastAttackerP2 = monName;
+            }
+          } else if (line.startsWith('|faint|')) {
+            const parts = line.split('|');
+            const ident = parts[2] || '';
+            const monName = ident.split(':')[1]?.trim() || '';
+            if (ident.startsWith('p1')) {
+              p1Faints.push({ mon: monName, killer: lastAttackerP2 });
+            } else {
+              p2Faints.push({ mon: monName });
+            }
+          } else if (line.startsWith('|win|')) {
+            winner = line.split('|')[2];
           }
-        } else if (line.startsWith('|faint|')) {
-          const parts = line.split('|');
-          const ident = parts[2] || '';
-          const monName = ident.split(':')[1]?.trim() || '';
-          if (ident.startsWith('p1')) {
-            p1Faints.push({ mon: monName, killer: lastAttackerP2 });
-          } else {
-            p2Faints.push({ mon: monName });
-          }
-        } else if (line.startsWith('|win|')) {
-          winner = line.split('|')[2];
         }
       }
+    } catch (err) {
+      // Stream abgebrochen
     }
+    return {
+      winner,
+      turns,
+      p1Won: winner === 'Player',
+      p1Faints,
+      p2Faints
+    };
   })();
 
   await streams.omniscient.write('>start {"formatid":"gen9championsvgc2026regmc"}\n');
   await streams.omniscient.write(`>player p1 {"name":"Player","team":"${p1Packed}"}\n`);
   await streams.omniscient.write(`>player p2 {"name":"Opponent","team":"${p2Packed}"}\n`);
 
-  await readPromise;
-  return {
-    winner,
-    turns,
-    p1Won: winner === 'Player',
-    p1Faints,
-    p2Faints
-  };
+  const result = await Promise.race([readPromise, timeoutPromise]);
+  if (timeoutId) clearTimeout(timeoutId);
+  return result;
 }
 
 // Gesamtsimulation steuern
@@ -274,19 +297,17 @@ async function runSimulation(data) {
         }
       }
 
-      if (m % 5 === 0 || m === matchesPerArchetype - 1) {
-        self.postMessage({
-          type: 'PROGRESS',
-          archetypeId: arch.id,
-          archetypeName: arch.name,
-          currentMatch: m + 1,
-          matchesPerArchetype,
-          totalCompleted,
-          totalMatches,
-          overallWinrate: totalCompleted ? Math.round((totalWins / totalCompleted) * 100) : 0,
-          currentArchWinrate: Math.round((archWins / (m + 1)) * 100)
-        });
-      }
+      self.postMessage({
+        type: 'PROGRESS',
+        archetypeId: arch.id,
+        archetypeName: arch.name,
+        currentMatch: m + 1,
+        matchesPerArchetype,
+        totalCompleted,
+        totalMatches,
+        overallWinrate: totalCompleted ? Math.round((totalWins / totalCompleted) * 100) : 0,
+        currentArchWinrate: Math.round((archWins / (m + 1)) * 100)
+      });
     }
 
     const archWinrate = Math.round((archWins / matchesPerArchetype) * 100);

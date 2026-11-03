@@ -35,41 +35,48 @@
   }
 
   function parseMonPreview(paste) {
-    var lines = (paste || '').split('\n');
+    if (!paste) return [];
+    var blocks = paste.split(/\n\s*\n+/);
     var mons = [];
-    var cur = null;
 
-    lines.forEach(function (line) {
-      line = line.trim();
-      if (!line) return;
-      if (!cur || line.startsWith('- ') || /^(Ability|Level|Shiny|SPs?|EVs?|Tera Type|Nature|IVs):/i.test(line)) {
-        if (!cur) {
-          // Neuer Pokémon-Header: z. B. "Charizard-Mega-Y @ Charizardite Y"
-          var atIdx = line.indexOf('@');
-          var namePart = atIdx !== -1 ? line.slice(0, atIdx).trim() : line;
-          var itemPart = atIdx !== -1 ? line.slice(atIdx + 1).trim() : '';
-          var mName = namePart.replace(/\s*\([MF]\)\s*$/, '').trim();
-          // Alias / Nickname auflösen falls vorhanden: "Nickname (Species)"
-          var nickM = /\(([^)]+)\)$/.exec(mName);
-          if (nickM) mName = nickM[1].trim();
-          cur = { species: mName, item: itemPart, ability: '', sps: '' };
-          mons.push(cur);
-        } else if (/^Ability:/i.test(line)) {
-          cur.ability = line.replace(/^Ability:\s*/i, '').trim();
-        } else if (/^(SPs?|EVs?):/i.test(line)) {
-          cur.sps = line.replace(/^(SPs?|EVs?):\s*/i, '').trim();
-        }
-      } else {
-        // Möglicher neuer Mon-Header
-        var atIdx2 = line.indexOf('@');
-        var namePart2 = atIdx2 !== -1 ? line.slice(0, atIdx2).trim() : line;
-        var itemPart2 = atIdx2 !== -1 ? line.slice(atIdx2 + 1).trim() : '';
-        var mName2 = namePart2.replace(/\s*\([MF]\)\s*$/, '').trim();
-        var nickM2 = /\(([^)]+)\)$/.exec(mName2);
-        if (nickM2) mName2 = nickM2[1].trim();
-        cur = { species: mName2, item: itemPart2, ability: '', sps: '' };
-        mons.push(cur);
+    blocks.forEach(function (block) {
+      var lines = block.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+      if (!lines.length) return;
+
+      var header = lines[0];
+      var atIdx = header.indexOf('@');
+      var namePart = atIdx !== -1 ? header.slice(0, atIdx).trim() : header;
+      var itemPart = atIdx !== -1 ? header.slice(atIdx + 1).trim() : '';
+
+      var mName = namePart.replace(/\s*\([MF]\)\s*$/i, '').trim();
+      var nickM = /\(([^)]+)\)$/.exec(mName);
+      if (nickM) mName = nickM[1].trim();
+
+      if (!mName || /^(Ability|Level|Shiny|SPs?|EVs?|Tera Type|IVs|Happiness):/i.test(mName) || / Nature$/i.test(mName) || mName.startsWith('-')) {
+        return;
       }
+
+      var ability = '';
+      var sps = '';
+      var nature = '';
+
+      lines.slice(1).forEach(function (line) {
+        if (/^Ability:/i.test(line)) {
+          ability = line.replace(/^Ability:\s*/i, '').trim();
+        } else if (/^(SPs?|EVs?):/i.test(line)) {
+          sps = line.replace(/^(SPs?|EVs?):\s*/i, '').trim();
+        } else if (/ Nature$/i.test(line)) {
+          nature = line.replace(/\s*Nature$/i, '').trim();
+        }
+      });
+
+      mons.push({
+        species: mName,
+        item: itemPart,
+        ability: ability,
+        sps: sps,
+        nature: nature
+      });
     });
 
     return mons.slice(0, 6);
@@ -155,9 +162,9 @@
           <div class="sim-matches-select">
             <label for="simMatchesPerArch">Matches je Archetyp:</label>
             <select id="simMatchesPerArch">
-              <option value="10">10 (Schnelltest: ~80 Matches)</option>
-              <option value="25" selected>25 (Empfohlen: ~200 Matches)</option>
-              <option value="50">50 (Präzise: ~400 Matches)</option>
+              <option value="50" selected>50 (Empfohlen: ~500 Matches)</option>
+              <option value="100">100 (~1.000 Matches)</option>
+              <option value="200">200 (~2.000 Matches)</option>
             </select>
           </div>
 
@@ -181,7 +188,7 @@
         <!-- Inhaltsbereich / Ergebnisse -->
         <div class="sim-content" id="simContent">
           <div class="sim-placeholder">
-            <p>Wähle dein Team und starte die Simulation, um hundertfache Headless-Doppelkämpfe gegen alle 8 dominierenden Champions-Meta-Teams (Sonne, Regen, Bizarroraum, Tailwind, Balance, Psyspam, Defense & Schnee) durchzurechnen.</p>
+            <p>Wähle dein Team und starte die Simulation, um hunderte oder tausende Headless-Doppelkämpfe gegen alle 10 dominierenden Champions-Meta-Teams (Sonne, Regen, Bizarroraum, Tailwind, Feen-Balance, Psyspam, Sandsturm, Schnee, Setup & Defense) durchzurechnen.</p>
           </div>
         </div>
       </div>
@@ -196,7 +203,7 @@
     });
 
     modalEl.querySelector('#simBtnStart').addEventListener('click', function () {
-      var matches = parseInt(modalEl.querySelector('#simMatchesPerArch').value, 10) || 25;
+      var matches = parseInt(modalEl.querySelector('#simMatchesPerArch').value, 10) || 50;
       run(matches);
     });
 
@@ -255,6 +262,7 @@
           currentTeamName = arch.name;
         }
       }
+      modalEl.querySelector('#simPasteInput').value = currentTeamPaste;
       modalEl.querySelector('#simPasteDrawer').classList.add('hidden');
       renderTeamPreview(currentTeamPaste);
       updateSubtitle();

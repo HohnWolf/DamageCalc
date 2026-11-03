@@ -42,7 +42,7 @@
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css?v=86">
-  <link rel="stylesheet" href="css/views.css?v=86">
+  <link rel="stylesheet" href="css/views.css?v=87">
   <link rel="stylesheet" href="css/nuz.css?v=86">
   <link rel="stylesheet" href="css/shiny.css?v=86">
   <link rel="stylesheet" href="css/match.css?v=86">
@@ -70,6 +70,23 @@
   <section id="startView" class="start-view">
     <div class="start-inner">
       <img class="start-logo" src="img/logo.png" alt="">
+      <script>
+        (function() {
+          try {
+            var params = new URLSearchParams(window.location.search);
+            var isShiny = (Math.floor(Math.random() * 8192) === 0) ||
+                          params.has('shiny') ||
+                          (window.location.hash && window.location.hash.indexOf('shiny') !== -1);
+            if (isShiny) {
+              window.__IS_SHINY_LOGO = true;
+              var logoEl = document.querySelector('.start-logo');
+              if (logoEl) logoEl.src = 'img/logo_shiny.png';
+              var iconEl = document.querySelector('link[rel="icon"]');
+              if (iconEl) iconEl.href = 'img/logo_shiny.png';
+            }
+          } catch (e) {}
+        })();
+      </script>
       <h1>Rattata Lab</h1>
       <p class="start-sub" id="startSub">Damage Calculator, Teambuilder, Shiny-Zähler und Team-Analyse für Pokémon Champions</p>
       <div class="start-cards">
@@ -242,8 +259,8 @@
   <script src="js/catch_calc.js?v=86"></script>
   <script src="data/dex_gen1.js?v=86"></script>
   <script src="js/pokedex.js?v=86"></script>
-  <script src="data/meta_archetypes.js?v=86"></script>
-  <script src="js/sim_runner.js?v=86"></script>
-  <script src="js/sim_ui.js?v=86"></script>
+  <script src="data/meta_archetypes.js?v=87"></script>
+  <script src="js/sim_runner.js?v=87"></script>
+  <script src="js/sim_ui.js?v=87"></script>
 </body>
 </html>

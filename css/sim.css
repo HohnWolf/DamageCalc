@@ -485,13 +485,27 @@
 }
 
 /* Topbar button */
+.topbar .top-actions {
+  overflow: visible !important;
+}
+
 #btnMetaSimTop {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  font-size: 12px;
   font-weight: 700;
-  background: rgba(2, 136, 209, 0.15);
-  border-color: rgba(2, 136, 209, 0.5);
+  border-radius: var(--radius, 6px);
+  background: rgba(2, 136, 209, 0.22);
+  border: 1px solid rgba(2, 136, 209, 0.6);
   color: #4fc3f7;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 #btnMetaSimTop:hover {
   background: #0288d1;
   color: #fff;
+  border-color: #0288d1;
 }
