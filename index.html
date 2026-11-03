@@ -41,22 +41,23 @@
   </style>
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=85">
-  <link rel="stylesheet" href="css/views.css?v=85">
-  <link rel="stylesheet" href="css/nuz.css?v=85">
-  <link rel="stylesheet" href="css/shiny.css?v=85">
-  <link rel="stylesheet" href="css/match.css?v=85">
-  <link rel="stylesheet" href="css/overlay.css?v=85">
-  <link rel="stylesheet" href="css/catch.css?v=85">
-  <link rel="stylesheet" href="css/pokedex.css?v=85">
-  <link rel="stylesheet" href="css/sim.css?v=85">
+  <link rel="stylesheet" href="css/style.css?v=86">
+  <link rel="stylesheet" href="css/views.css?v=86">
+  <link rel="stylesheet" href="css/nuz.css?v=86">
+  <link rel="stylesheet" href="css/shiny.css?v=86">
+  <link rel="stylesheet" href="css/match.css?v=86">
+  <link rel="stylesheet" href="css/overlay.css?v=86">
+  <link rel="stylesheet" href="css/catch.css?v=86">
+  <link rel="stylesheet" href="css/pokedex.css?v=86">
+  <link rel="stylesheet" href="css/sim.css?v=86">
 </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
-    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=85" alt=""><span class="brand">Rattata Lab</span></button>
+    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=86" alt=""><span class="brand">Rattata Lab</span></button>
     <nav class="view-nav" id="viewNav"></nav>
     <button id="btnUpdate" class="pill update-pill" hidden></button>
     <div class="top-actions">
+      <button id="btnMetaSimTop" class="pill" title="⚔️ Meta-Tester: Headless Showdown-Simulationen gegen 8 Champions-Archetypen">⚔️ Meta-Tester</button>
       <button id="btnSettings" class="pill icon-pill" data-tt="setBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
     <div class="win-controls" id="winControls" hidden>
@@ -202,47 +203,47 @@
     </div>
   </div>
 
-  <script src="js/shim.js?v=85"></script>
-  <script src="data/pokedex.js?v=85"></script>
-  <script src="data/move_data.js?v=85"></script>
-  <script src="data/move_acc.js?v=85"></script>
-  <script src="data/forms_champ.js?v=85"></script>
-  <script src="data/item_data.js?v=85"></script>
-  <script src="data/ability_data.js?v=85"></script>
-  <script src="data/setdex_ncp-g10.js?v=85"></script>
-  <script src="data/names_de.js?v=85"></script>
-  <script src="data/desc_de.js?v=85"></script>
-  <script src="data/desc_en.js?v=85"></script>
-  <script src="data/pick_meta.js?v=85"></script>
-  <script src="data/learnsets_champ.js?v=85"></script>
-  <script src="data/sprite_boxes.js?v=85"></script>
-  <script src="js/online.js?v=85"></script>
-  <script src="js/calc.js?v=85"></script>
-  <script src="js/app.js?v=85"></script>
-  <script src="js/builder.js?v=85"></script>
-  <script src="data/natdex.js?v=85"></script>
-  <script src="data/catch_data.js?v=85"></script>
-  <script src="data/gen3_names.js?v=85"></script>
-  <script src="js/gen3.js?v=85"></script>
-  <script src="data/nds_names.js?v=85"></script>
-  <script src="js/nds_calc.js?v=85"></script>
-  <script src="js/nds.js?v=85"></script>
-  <script src="js/nuz.js?v=85"></script>
-  <script src="js/nuzcalc.js?v=85"></script>
-  <script src="js/shiny_odds.js?v=85"></script>
-  <script src="js/capture.js?v=85"></script>
-  <script src="js/shiny_detect.js?v=85"></script>
-  <script src="js/shiny_clip.js?v=85"></script>
-  <script src="js/shiny.js?v=85"></script>
-  <script src="js/match_parse.js?v=85"></script>
-  <script src="js/match.js?v=85"></script>
-  <script src="data/pokeapi_ids.js?v=85"></script>
-  <script src="js/overlay.js?v=85"></script>
-  <script src="js/catch_calc.js?v=85"></script>
-  <script src="data/dex_gen1.js?v=85"></script>
-  <script src="js/pokedex.js?v=85"></script>
-  <script src="data/meta_archetypes.js?v=85"></script>
-  <script src="js/sim_runner.js?v=85"></script>
-  <script src="js/sim_ui.js?v=85"></script>
+  <script src="js/shim.js?v=86"></script>
+  <script src="data/pokedex.js?v=86"></script>
+  <script src="data/move_data.js?v=86"></script>
+  <script src="data/move_acc.js?v=86"></script>
+  <script src="data/forms_champ.js?v=86"></script>
+  <script src="data/item_data.js?v=86"></script>
+  <script src="data/ability_data.js?v=86"></script>
+  <script src="data/setdex_ncp-g10.js?v=86"></script>
+  <script src="data/names_de.js?v=86"></script>
+  <script src="data/desc_de.js?v=86"></script>
+  <script src="data/desc_en.js?v=86"></script>
+  <script src="data/pick_meta.js?v=86"></script>
+  <script src="data/learnsets_champ.js?v=86"></script>
+  <script src="data/sprite_boxes.js?v=86"></script>
+  <script src="js/online.js?v=86"></script>
+  <script src="js/calc.js?v=86"></script>
+  <script src="js/app.js?v=86"></script>
+  <script src="js/builder.js?v=86"></script>
+  <script src="data/natdex.js?v=86"></script>
+  <script src="data/catch_data.js?v=86"></script>
+  <script src="data/gen3_names.js?v=86"></script>
+  <script src="js/gen3.js?v=86"></script>
+  <script src="data/nds_names.js?v=86"></script>
+  <script src="js/nds_calc.js?v=86"></script>
+  <script src="js/nds.js?v=86"></script>
+  <script src="js/nuz.js?v=86"></script>
+  <script src="js/nuzcalc.js?v=86"></script>
+  <script src="js/shiny_odds.js?v=86"></script>
+  <script src="js/capture.js?v=86"></script>
+  <script src="js/shiny_detect.js?v=86"></script>
+  <script src="js/shiny_clip.js?v=86"></script>
+  <script src="js/shiny.js?v=86"></script>
+  <script src="js/match_parse.js?v=86"></script>
+  <script src="js/match.js?v=86"></script>
+  <script src="data/pokeapi_ids.js?v=86"></script>
+  <script src="js/overlay.js?v=86"></script>
+  <script src="js/catch_calc.js?v=86"></script>
+  <script src="data/dex_gen1.js?v=86"></script>
+  <script src="js/pokedex.js?v=86"></script>
+  <script src="data/meta_archetypes.js?v=86"></script>
+  <script src="js/sim_runner.js?v=86"></script>
+  <script src="js/sim_ui.js?v=86"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-// UI-Komponente für den Headless Matchup-Tester gegen Meta-Teams.
-// Visualisiert Matchup-Matrix, Winrate-Badges, Threat-List und Lead-Performance.
+// UI-Komponente für den Headless Matchup-Tester gegen Meta-Teams (Pokémon Champions).
+// Ermöglicht das Testen des aktiven Teambuilder-Teams, von Beispiel-Archetypen oder eigenen Pastes.
 
 (function () {
   'use strict';
@@ -7,6 +7,113 @@
   var modalEl = null;
   var currentTeamPaste = '';
   var currentTeamName = 'Aktives Team';
+  var selectedArchetypes = null; // null = alle 8
+  var lastResultsData = null;
+
+  function getTeambuilderTeam() {
+    try {
+      var raw = localStorage.getItem('cc_builder');
+      if (!raw) return null;
+      var st = JSON.parse(raw);
+      if (!st || !st.teams || !st.teams.length) return null;
+      var cur = st.teams.find(function (t) { return t.id === st.cur; }) || st.teams[0];
+      if (!cur) return null;
+      var v = (cur.versions && cur.versions.length)
+        ? (cur.versions.find(function (x) { return x.id === cur.curVer; }) || cur.versions[0])
+        : null;
+      var mons = (v && v.mons && v.mons.length) ? v.mons : (cur.mons || []);
+      if (!mons.length) return null;
+      if (!window.CC || !window.CC.exportSet) return null;
+      var paste = mons.map(function (m) {
+        return window.CC.exportSet(m.set, m.setName, m.species);
+      }).join('\n\n');
+      var name = cur.name + (v && cur.versions.length > 1 ? ' (' + v.name + ')' : '');
+      return { paste: paste, name: name, count: mons.length };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function parseMonPreview(paste) {
+    var lines = (paste || '').split('\n');
+    var mons = [];
+    var cur = null;
+
+    lines.forEach(function (line) {
+      line = line.trim();
+      if (!line) return;
+      if (!cur || line.startsWith('- ') || /^(Ability|Level|Shiny|SPs?|EVs?|Tera Type|Nature|IVs):/i.test(line)) {
+        if (!cur) {
+          // Neuer Pokémon-Header: z. B. "Charizard-Mega-Y @ Charizardite Y"
+          var atIdx = line.indexOf('@');
+          var namePart = atIdx !== -1 ? line.slice(0, atIdx).trim() : line;
+          var itemPart = atIdx !== -1 ? line.slice(atIdx + 1).trim() : '';
+          var mName = namePart.replace(/\s*\([MF]\)\s*$/, '').trim();
+          // Alias / Nickname auflösen falls vorhanden: "Nickname (Species)"
+          var nickM = /\(([^)]+)\)$/.exec(mName);
+          if (nickM) mName = nickM[1].trim();
+          cur = { species: mName, item: itemPart, ability: '', sps: '' };
+          mons.push(cur);
+        } else if (/^Ability:/i.test(line)) {
+          cur.ability = line.replace(/^Ability:\s*/i, '').trim();
+        } else if (/^(SPs?|EVs?):/i.test(line)) {
+          cur.sps = line.replace(/^(SPs?|EVs?):\s*/i, '').trim();
+        }
+      } else {
+        // Möglicher neuer Mon-Header
+        var atIdx2 = line.indexOf('@');
+        var namePart2 = atIdx2 !== -1 ? line.slice(0, atIdx2).trim() : line;
+        var itemPart2 = atIdx2 !== -1 ? line.slice(atIdx2 + 1).trim() : '';
+        var mName2 = namePart2.replace(/\s*\([MF]\)\s*$/, '').trim();
+        var nickM2 = /\(([^)]+)\)$/.exec(mName2);
+        if (nickM2) mName2 = nickM2[1].trim();
+        cur = { species: mName2, item: itemPart2, ability: '', sps: '' };
+        mons.push(cur);
+      }
+    });
+
+    return mons.slice(0, 6);
+  }
+
+  function renderTeamPreview(paste) {
+    var container = modalEl.querySelector('#simTeamPreview');
+    if (!container) return;
+    container.innerHTML = '';
+
+    var mons = parseMonPreview(paste);
+    if (!mons.length) {
+      container.innerHTML = '<div class="sim-empty-hint">Kein Pokémon im Team erkannt. Wähle ein Preset oder füge eine Showdown-Paste ein.</div>';
+      return;
+    }
+
+    mons.forEach(function (m) {
+      var card = document.createElement('div');
+      card.className = 'sim-mon-badge';
+
+      var spriteWrap = document.createElement('div');
+      spriteWrap.className = 'sim-mon-ic';
+      if (window.CC && window.CC.spriteFit) {
+        spriteWrap.appendChild(window.CC.spriteFit(m.species));
+      } else {
+        var img = document.createElement('img');
+        img.src = `https://play.pokemonshowdown.com/sprites/gen5/${m.species.toLowerCase().replace(/[^a-z0-9]/g, '')}.png`;
+        img.alt = m.species;
+        spriteWrap.appendChild(img);
+      }
+
+      var info = document.createElement('div');
+      info.className = 'sim-mon-info';
+      info.innerHTML = `
+        <span class="sim-mon-name">${m.species}</span>
+        <span class="sim-mon-sub">${m.item ? '@ ' + m.item : ''} ${m.ability ? '· ' + m.ability : ''}</span>
+        <span class="sim-mon-sp">${m.sps ? 'SPs: ' + m.sps : ''}</span>
+      `;
+
+      card.appendChild(spriteWrap);
+      card.appendChild(info);
+      container.appendChild(card);
+    });
+  }
 
   function createModalDOM() {
     if (modalEl) return;
@@ -19,11 +126,31 @@
         <div class="sim-header">
           <div>
             <h3 class="sim-title">⚔️ Meta Matchup-Tester</h3>
-            <p class="sim-subtitle" id="simTeamSubtitle">Format: [Gen 9 Champions] VGC 2026 Reg M-C</p>
+            <p class="sim-subtitle" id="simTeamSubtitle">Format: [Gen 9 Champions] VGC 2026 Reg M-C (Level 50 · Stat Points)</p>
           </div>
           <button class="tbtn sim-close-btn" id="simBtnClose" title="Schließen">✕</button>
         </div>
 
+        <!-- Team-Auswahl & Vorschau -->
+        <div class="sim-team-bar">
+          <div class="sim-team-select-row">
+            <label for="simTeamSelect"><strong>Test-Team:</strong></label>
+            <select id="simTeamSelect" class="sim-team-dropdown"></select>
+            <button class="tbtn" id="simBtnEditPaste" title="Showdown-Paste anzeigen oder manuell bearbeiten">📝 Paste bearbeiten</button>
+          </div>
+
+          <div class="sim-paste-drawer hidden" id="simPasteDrawer">
+            <textarea id="simPasteInput" class="sim-paste-textarea" spellcheck="false" placeholder="Hier Pokémon Showdown Paste im Champions-Format einfügen (mit SPs oder EVs)..."></textarea>
+            <div class="sim-paste-actions">
+              <button class="tbtn primary" id="simBtnApplyPaste">Übernehmen</button>
+              <button class="tbtn" id="simBtnClosePaste">Schließen</button>
+            </div>
+          </div>
+
+          <div class="sim-team-preview" id="simTeamPreview"></div>
+        </div>
+
+        <!-- Steuerungsleiste -->
         <div class="sim-toolbar">
           <div class="sim-matches-select">
             <label for="simMatchesPerArch">Matches je Archetyp:</label>
@@ -33,12 +160,14 @@
               <option value="50">50 (Präzise: ~400 Matches)</option>
             </select>
           </div>
+
           <div class="sim-actions">
-            <button class="primary-btn" id="simBtnStart">Simulation starten</button>
+            <button class="primary-btn sim-start-btn" id="simBtnStart">⚔️ Simulation starten</button>
             <button class="tbtn danger hidden" id="simBtnCancel">Abbrechen</button>
           </div>
         </div>
 
+        <!-- Fortschrittsbalken -->
         <div class="sim-progress-box hidden" id="simProgressBox">
           <div class="sim-progress-info">
             <span id="simProgressStatus">Bereit...</span>
@@ -49,9 +178,10 @@
           </div>
         </div>
 
+        <!-- Inhaltsbereich / Ergebnisse -->
         <div class="sim-content" id="simContent">
           <div class="sim-placeholder">
-            <p>Starte die Simulation, um dein Team gegen 8 dominierende Champions-Archetypen (Sonne, Regen, Bizarroraum, Tailwind, Psyspam, Schnee & Defense) in hundertfachen Headless-Doppelkämpfen zu testen.</p>
+            <p>Wähle dein Team und starte die Simulation, um hundertfache Headless-Doppelkämpfe gegen alle 8 dominierenden Champions-Meta-Teams (Sonne, Regen, Bizarroraum, Tailwind, Balance, Psyspam, Defense & Schnee) durchzurechnen.</p>
           </div>
         </div>
       </div>
@@ -76,33 +206,149 @@
       var status = modalEl.querySelector('#simProgressStatus');
       if (status) status.textContent = 'Simulation abgebrochen.';
     });
+
+    modalEl.querySelector('#simBtnEditPaste').addEventListener('click', function () {
+      var drawer = modalEl.querySelector('#simPasteDrawer');
+      drawer.classList.toggle('hidden');
+      if (!drawer.classList.contains('hidden')) {
+        modalEl.querySelector('#simPasteInput').value = currentTeamPaste;
+        modalEl.querySelector('#simPasteInput').focus();
+      }
+    });
+
+    modalEl.querySelector('#simBtnClosePaste').addEventListener('click', function () {
+      modalEl.querySelector('#simPasteDrawer').classList.add('hidden');
+    });
+
+    modalEl.querySelector('#simBtnApplyPaste').addEventListener('click', function () {
+      var paste = modalEl.querySelector('#simPasteInput').value.trim();
+      if (!paste) {
+        alert('Bitte gib eine gültige Showdown-Paste ein.');
+        return;
+      }
+      currentTeamPaste = paste;
+      currentTeamName = 'Benutzerdefiniertes Team';
+      modalEl.querySelector('#simPasteDrawer').classList.add('hidden');
+      renderTeamPreview(currentTeamPaste);
+      updateSubtitle();
+    });
+
+    modalEl.querySelector('#simTeamSelect').addEventListener('change', function () {
+      var val = this.value;
+      if (val === 'custom') {
+        modalEl.querySelector('#simPasteDrawer').classList.remove('hidden');
+        modalEl.querySelector('#simPasteInput').value = currentTeamPaste;
+        modalEl.querySelector('#simPasteInput').focus();
+        return;
+      }
+
+      if (val === 'builder') {
+        var tb = getTeambuilderTeam();
+        if (tb) {
+          currentTeamPaste = tb.paste;
+          currentTeamName = tb.name;
+        }
+      } else {
+        var arch = (window.META_ARCHETYPES || []).find(function (a) { return a.id === val; });
+        if (arch) {
+          currentTeamPaste = arch.paste;
+          currentTeamName = arch.name;
+        }
+      }
+      modalEl.querySelector('#simPasteDrawer').classList.add('hidden');
+      renderTeamPreview(currentTeamPaste);
+      updateSubtitle();
+    });
+  }
+
+  function updateSubtitle() {
+    var sub = modalEl.querySelector('#simTeamSubtitle');
+    if (sub) {
+      sub.textContent = `Team: ${currentTeamName} · [Gen 9 Champions] VGC 2026 Reg M-C (Level 50 · SPs)`;
+    }
+  }
+
+  function populateTeamDropdown() {
+    var select = modalEl.querySelector('#simTeamSelect');
+    if (!select) return;
+    select.innerHTML = '';
+
+    var tb = getTeambuilderTeam();
+    if (tb) {
+      var optTb = document.createElement('option');
+      optTb.value = 'builder';
+      optTb.textContent = `⭐ Mein Teambuilder-Team: ${tb.name} (${tb.count} Pokémon)`;
+      select.appendChild(optTb);
+    }
+
+    var group = document.createElement('optgroup');
+    group.label = 'Champions Meta-Vorgaben:';
+    (window.META_ARCHETYPES || []).forEach(function (arch) {
+      var opt = document.createElement('option');
+      opt.value = arch.id;
+      opt.textContent = `Archetyp: ${arch.name}`;
+      group.appendChild(opt);
+    });
+    select.appendChild(group);
+
+    var optCustom = document.createElement('option');
+    optCustom.value = 'custom';
+    optCustom.textContent = '✏️ Eigenes Paste eingeben ...';
+    select.appendChild(optCustom);
   }
 
   function setRunningUI(running) {
     var btnStart = modalEl.querySelector('#simBtnStart');
     var btnCancel = modalEl.querySelector('#simBtnCancel');
-    var select = modalEl.querySelector('#simMatchesPerArch');
+    var selectMatches = modalEl.querySelector('#simMatchesPerArch');
+    var selectTeam = modalEl.querySelector('#simTeamSelect');
+    var btnEditPaste = modalEl.querySelector('#simBtnEditPaste');
     var pBox = modalEl.querySelector('#simProgressBox');
 
     if (running) {
       btnStart.classList.add('hidden');
       btnCancel.classList.remove('hidden');
-      select.disabled = true;
+      selectMatches.disabled = true;
+      selectTeam.disabled = true;
+      btnEditPaste.disabled = true;
       pBox.classList.remove('hidden');
     } else {
       btnStart.classList.remove('hidden');
       btnCancel.classList.add('hidden');
-      select.disabled = false;
+      selectMatches.disabled = false;
+      selectTeam.disabled = false;
+      btnEditPaste.disabled = false;
     }
   }
 
   function open(teamPaste, teamName) {
     createModalDOM();
-    currentTeamPaste = teamPaste || '';
-    currentTeamName = teamName || 'Aktives Team';
+    populateTeamDropdown();
 
-    modalEl.querySelector('#simTeamSubtitle').textContent =
-      `Team: ${currentTeamName} · [Gen 9 Champions] VGC 2026 Reg M-C`;
+    if (teamPaste && teamPaste.trim()) {
+      currentTeamPaste = teamPaste.trim();
+      currentTeamName = teamName || 'Aktives Teambuilder-Team';
+      var select = modalEl.querySelector('#simTeamSelect');
+      if (select && select.querySelector('option[value="builder"]')) {
+        select.value = 'builder';
+      }
+    } else {
+      // Kein Team übergeben -> aus Teambuilder laden oder auf erstes Meta-Team zurückgreifen
+      var tb = getTeambuilderTeam();
+      if (tb) {
+        currentTeamPaste = tb.paste;
+        currentTeamName = tb.name;
+        modalEl.querySelector('#simTeamSelect').value = 'builder';
+      } else {
+        var firstArch = (window.META_ARCHETYPES && window.META_ARCHETYPES[0]);
+        currentTeamPaste = firstArch ? firstArch.paste : '';
+        currentTeamName = firstArch ? firstArch.name : 'Beispiel-Team';
+        if (firstArch) modalEl.querySelector('#simTeamSelect').value = firstArch.id;
+      }
+    }
+
+    renderTeamPreview(currentTeamPaste);
+    updateSubtitle();
 
     modalEl.classList.remove('hidden');
     document.body.classList.add('modal-open');
@@ -133,11 +379,11 @@
 
     pFill.style.width = '0%';
     pPercent.textContent = '0 %';
-    pStatus.textContent = 'Starte Engine...';
+    pStatus.textContent = 'Initialisiere Champions Battle-Engine...';
 
     content.innerHTML = `
       <div class="sim-placeholder">
-        <p class="ma-busy">Simulation läuft im Hintergrund... Bitte warten.</p>
+        <p class="ma-busy">Simulation läuft im Hintergrund mit Stat Points & Level 50... Bitte warten.</p>
       </div>
     `;
 
@@ -152,7 +398,8 @@
         setRunningUI(false);
         pFill.style.width = '100%';
         pPercent.textContent = '100 %';
-        pStatus.textContent = `Abgeschlossen in ${(data.durationMs / 1000).toFixed(1)}s!`;
+        pStatus.textContent = `Fertiggestellt in ${(data.durationMs / 1000).toFixed(1)}s (${data.totalMatches} Matches durchgerechnet)`;
+        lastResultsData = data;
         renderResults(data);
       },
       onError: function (err) {
@@ -183,33 +430,35 @@
         <div class="sim-hero-meta">
           <span><strong>Matches:</strong> ${data.totalMatches} (${data.totalWins} Siege)</span>
           <span><strong>Dauer:</strong> ${(data.durationMs / 1000).toFixed(1)} Sekunden</span>
-          <span><strong>Format:</strong> Gen 9 Champions (Level 50 VGC)</span>
+          <span><strong>Format:</strong> [Gen 9 Champions] VGC 2026 Reg M-C (Level 50 · Stat Points: max. 32 je Wert, 66 gesamt)</span>
         </div>
       </div>
 
       <!-- Matchup Matrix -->
       <div class="sim-section">
-        <h4 class="sim-section-title">Ergebnisse gegen Meta-Archetypen</h4>
+        <h4 class="sim-section-title">Ergebnisse gegen Meta-Archetypen (Klick auf Karte für Lead-Details)</h4>
         <div class="sim-matrix-grid">
     `;
 
-    data.results.forEach(function (r) {
+    data.results.forEach(function (r, rIdx) {
       var badgeCls = getBadgeClass(r.winrate);
       var topThreat = r.threats && r.threats.length ? r.threats[0].mon + ' (' + r.threats[0].kills + ' K.O.s)' : '–';
 
-      // Bester Lead gegen diesen Archetyp
       var bestLead = '–';
       var bestLeadWr = -1;
+      var leadRows = [];
       Object.entries(r.leadStats || {}).forEach(function ([lead, stats]) {
         var wr = stats.total ? Math.round((stats.wins / stats.total) * 100) : 0;
+        leadRows.push({ lead: lead, wins: stats.wins, total: stats.total, wr: wr });
         if (wr > bestLeadWr) {
           bestLeadWr = wr;
           bestLead = `${lead} (${wr} %)`;
         }
       });
+      leadRows.sort(function (a, b) { return b.wr - a.wr || b.total - a.total; });
 
       html += `
-        <div class="sim-arch-card">
+        <div class="sim-arch-card" data-arch-idx="${rIdx}">
           <div class="sim-arch-head">
             <span class="sim-arch-badge" style="background:${r.badgeColor || '#455a64'}">${r.category}</span>
             <span class="sim-arch-name">${r.name}</span>
@@ -221,6 +470,14 @@
             <div><span>Ø Runden:</span> <strong>${r.avgTurns}</strong></div>
             <div><span>Top Threat:</span> <strong>${topThreat}</strong></div>
             <div><span>Bester Lead:</span> <strong>${bestLead}</strong></div>
+          </div>
+          <div class="sim-arch-details hidden" id="simArchDetail_${rIdx}">
+            <h5 class="sim-detail-head">Lead-Aufschlüsselung gegen diesen Archetyp:</h5>
+            <div class="sim-lead-breakdown">
+              ${leadRows.map(function (lr) {
+                return `<div class="sim-lead-row"><span>${lr.lead}</span><strong>${lr.wins}/${lr.total} (${lr.wr}%)</strong></div>`;
+              }).join('')}
+            </div>
           </div>
         </div>
       `;
@@ -265,7 +522,7 @@
 
         <!-- Lead-Performance -->
         <div class="sim-section">
-          <h4 class="sim-section-title">Lead-Performance (Eigene 2er-Leads)</h4>
+          <h4 class="sim-section-title">Lead-Performance (Gesamt über alle Matches)</h4>
           <div class="sim-table-wrap">
             <table class="sim-table">
               <thead>
@@ -298,6 +555,31 @@
     `;
 
     content.innerHTML = html;
+
+    // Klick auf Karten zum Aufklappen der Lead-Details
+    content.querySelectorAll('.sim-arch-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var idx = this.dataset.archIdx;
+        var details = content.querySelector('#simArchDetail_' + idx);
+        if (details) details.classList.toggle('hidden');
+      });
+    });
+  }
+
+  // Automatischer Button-Link in der Kopfzeile
+  function initTopbarButton() {
+    var topBtn = document.getElementById('btnMetaSimTop');
+    if (topBtn) {
+      topBtn.addEventListener('click', function () {
+        open();
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTopbarButton);
+  } else {
+    initTopbarButton();
   }
 
   window.SimUI = {

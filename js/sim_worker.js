@@ -1,34 +1,123 @@
 // Web Worker für den Headless Pokémon Champions Matchup-Tester.
-// Führt Simulationen mit @pkmn/sim und ChampionsBot im Hintergrund-Thread aus.
+// Nutzt die authentische Pokémon Champions Battle-Engine mit Stat Points (SPs),
+// Champions-Stat-Formeln, Mega-Evolution und Doppelkampf-Heuristiken.
 
 import { BattleStreams, Teams, Dex } from '@pkmn/sim';
 import ChampionsBot from './sim_bot.js';
 import ARCHETYPES from '../data/meta_archetypes.js';
 
-// Champions VGC Format registrieren
+// Authentische Pokémon Champions Engine registrieren
+Dex.mod('champions', {
+  Scripts: {
+    init() {
+      // In Champions sind alle Attacken-PP auf maximal 20 gedeckelt
+      for (const i in this.data.Moves) {
+        if (this.data.Moves[i].pp > 20) {
+          this.modData('Moves', i).pp = 20;
+        }
+      }
+    },
+    statModify(baseStats, set, statName) {
+      const tr = this.trunc;
+      let stat = baseStats[statName];
+      // In Champions speichert set.evs direkt die Stat Points (SPs, 0 bis 32)
+      const sp = set.evs ? (set.evs[statName] || 0) : 0;
+      if (statName === 'hp') {
+        return stat + sp + 75;
+      }
+      stat = stat + sp + 20;
+      const nature = this.dex.natures.get(set.nature);
+      if (nature.plus === statName) {
+        stat = tr(tr(stat * 110, 16) / 100);
+      } else if (nature.minus === statName) {
+        stat = tr(tr(stat * 90, 16) / 100);
+      }
+      return stat;
+    },
+    actions: {
+      canTerastallize(pokemon) {
+        // Terakristallisierung ist in Champions deaktiviert
+        return null;
+      },
+      canMegaEvo(pokemon) {
+        const species = pokemon.baseSpecies;
+        const altForme = species.otherFormes && this.dex.species.get(species.otherFormes[0]);
+        const item = pokemon.getItem();
+        if ((this.battle.gen <= 7 || this.battle.ruleTable.has('+tag:past') ||
+          this.battle.ruleTable.has('+tag:future')) &&
+          altForme?.isMega && altForme?.requiredMove &&
+          pokemon.baseMoves.includes(this.battle.toID(altForme.requiredMove)) && !item.zMove) {
+          return altForme.name;
+        }
+        return item.megaStone?.[species.name] || null;
+      },
+      modifyDamage(baseDamage, pokemon, target, move, suppressMessages) {
+        const tr = this.battle.trunc;
+        if (!move.type) move.type = '???';
+        const type = move.type;
+
+        baseDamage += 2;
+
+        if (move.spreadHit) {
+          const spreadModifier = 0.75;
+          baseDamage = this.battle.modify(baseDamage, spreadModifier);
+        } else if (move.multihitType === 'parentalbond' && move.hit > 1) {
+          baseDamage = this.battle.modify(baseDamage, 0.25);
+        }
+
+        baseDamage = this.battle.priorityEvent('WeatherModifyDamage', pokemon, target, move, baseDamage);
+
+        const isCrit = target.getMoveHitData(move).crit;
+        if (isCrit) {
+          baseDamage = tr(baseDamage * (move.critModifier || 1.5));
+        }
+
+        baseDamage = this.battle.randomizer(baseDamage);
+
+        if (type !== '???') {
+          let stab = 1;
+          const isSTAB = move.forceSTAB || pokemon.hasType(type) || pokemon.getTypes(false, true).includes(type);
+          if (isSTAB) stab = 1.5;
+          baseDamage = this.battle.modify(baseDamage, stab);
+        }
+
+        return baseDamage;
+      }
+    }
+  }
+});
+
+// Format für den BattleStream aktivieren
 Dex.formats.extend([
   {
     name: '[Gen 9 Champions] VGC 2026 Reg M-C',
-    mod: 'base',
+    mod: 'champions',
     gameType: 'doubles',
     ruleset: ['Flat Rules', 'NatDex Mod'],
   }
 ]);
 
-// SPs zu Showdown-EVs konvertieren
-function cleanShowdownPaste(paste) {
+const CHAMP_DEX = Dex.mod('champions');
+
+// Konvertiert Team-Pastes sauber in das Champions-SP-Format
+// Erkennt SPs: direkt oder wandelt alte Showdown-252-EVs in SPs (0-32) um
+function normalizeChampionsPaste(paste) {
   if (!paste) return '';
-  return paste.replace(/^SPs?:\s*(.+)$/gim, (match, body) => {
+  return paste.replace(/^(SPs?|EVs?):\s*(.+)$/gim, (match, prefix, body) => {
     const parts = body.split('/').map(p => p.trim());
-    const evParts = parts.map(part => {
+    const spParts = parts.map(part => {
       const m = /^(\d+)\s+([A-Za-z]+)$/.exec(part);
       if (!m) return part;
-      const sp = parseInt(m[1], 10);
-      const stat = m[2];
-      const ev = sp <= 0 ? 0 : Math.min(252, 8 * sp - 4);
-      return `${ev} ${stat}`;
+      let val = parseInt(m[1], 10);
+      if (/^EV/i.test(prefix) && val > 32) {
+        // Altes Showdown EV-Format (0-252) -> in Champions Stat Points (0-32) umrechnen
+        val = val <= 0 ? 0 : Math.min(32, Math.floor((val + 4) / 8));
+      } else {
+        val = Math.max(0, Math.min(32, val));
+      }
+      return `${val} ${m[2]}`;
     });
-    return 'EVs: ' + evParts.join(' / ');
+    return 'EVs: ' + spParts.join(' / ');
   });
 }
 
@@ -38,7 +127,6 @@ function generateLeadCombinations(teamLength) {
   const max = Math.min(6, teamLength);
   for (let i = 0; i < max; i++) {
     for (let j = i + 1; j < max; j++) {
-      // 2 Leads: i + 1, j + 1. Die restlichen Slots als Backups
       const back = [];
       for (let k = 0; k < max; k++) {
         if (k !== i && k !== j) back.push(k + 1);
@@ -51,13 +139,13 @@ function generateLeadCombinations(teamLength) {
 
 let isCancelled = false;
 
-// Ein einzelnes Match ausführen
+// Ein einzelnes Champions-Match ausführen
 async function runSingleMatch(p1Packed, p2Packed, p1LeadOrder, p2LeadOrder) {
   const battleStream = new BattleStreams.BattleStream();
   const streams = BattleStreams.getPlayerStreams(battleStream);
 
-  const p1 = new ChampionsBot(streams.p1, { leadOrder: p1LeadOrder, dex: Dex });
-  const p2 = new ChampionsBot(streams.p2, { leadOrder: p2LeadOrder, dex: Dex });
+  const p1 = new ChampionsBot(streams.p1, { leadOrder: p1LeadOrder, dex: CHAMP_DEX });
+  const p2 = new ChampionsBot(streams.p2, { leadOrder: p2LeadOrder, dex: CHAMP_DEX });
 
   p1.start();
   p2.start();
@@ -77,7 +165,6 @@ async function runSingleMatch(p1Packed, p2Packed, p1LeadOrder, p2LeadOrder) {
           const parts = line.split('|');
           const ident = parts[2] || '';
           if (ident.startsWith('p2')) {
-            // Gegnerische Attacke tracken
             const monName = ident.split(':')[1]?.trim() || 'Opponent';
             lastAttackerP2 = monName;
           }
@@ -116,7 +203,7 @@ async function runSimulation(data) {
   isCancelled = false;
   const startTime = Date.now();
 
-  const userPaste = cleanShowdownPaste(data.userTeamPaste || '');
+  const userPaste = normalizeChampionsPaste(data.userTeamPaste || '');
   const userParsed = Teams.import(userPaste);
   if (!userParsed || !userParsed.length) {
     self.postMessage({ type: 'ERROR', error: 'Ungültiges eigenes Team (Showdown-Paste leer oder fehlerhaft).' });
@@ -126,7 +213,7 @@ async function runSimulation(data) {
   const userMonNames = userParsed.map(m => m.name || m.species);
 
   const archetypesToTest = data.archetypes && data.archetypes.length ? data.archetypes : ARCHETYPES;
-  const matchesPerArchetype = Math.max(1, data.matchesPerArchetype || 30);
+  const matchesPerArchetype = Math.max(1, data.matchesPerArchetype || 25);
   const totalMatches = archetypesToTest.length * matchesPerArchetype;
 
   const leadCombos = generateLeadCombinations(userParsed.length);
@@ -134,14 +221,14 @@ async function runSimulation(data) {
   let totalWins = 0;
 
   const archetypeResults = [];
-  const globalThreatMap = {}; // Mon Name -> { kills: N, appearances: N }
-  const leadPerformanceMap = {}; // "Mon1 + Mon2" -> { wins: N, total: N }
+  const globalThreatMap = {};
+  const leadPerformanceMap = {};
 
   for (let aIdx = 0; aIdx < archetypesToTest.length; aIdx++) {
     if (isCancelled) break;
 
     const arch = archetypesToTest[aIdx];
-    const archPaste = cleanShowdownPaste(arch.paste);
+    const archPaste = normalizeChampionsPaste(arch.paste);
     const archParsed = Teams.import(archPaste);
     const archPacked = Teams.pack(archParsed);
     const archCombos = generateLeadCombinations(archParsed.length);
@@ -154,7 +241,6 @@ async function runSimulation(data) {
     for (let m = 0; m < matchesPerArchetype; m++) {
       if (isCancelled) break;
 
-      // Leads rotieren
       const p1Order = leadCombos[m % leadCombos.length];
       const p2Order = archCombos[m % archCombos.length];
 
@@ -165,7 +251,6 @@ async function runSimulation(data) {
       totalCompleted++;
       archTurns += res.turns;
 
-      // Lead Stats
       if (!archLeads[leadLabel]) archLeads[leadLabel] = { wins: 0, total: 0 };
       archLeads[leadLabel].total++;
 
@@ -179,7 +264,6 @@ async function runSimulation(data) {
         leadPerformanceMap[leadLabel].wins++;
       }
 
-      // Threat Stats (wer hat K.O.s erzielt?)
       for (const f of res.p1Faints) {
         if (f.killer) {
           archThreats[f.killer] = (archThreats[f.killer] || 0) + 1;
@@ -190,7 +274,6 @@ async function runSimulation(data) {
         }
       }
 
-      // Regelmäßiges Fortschritts-Update (z. B. alle 5 Matches oder am Ende eines Archetyps)
       if (m % 5 === 0 || m === matchesPerArchetype - 1) {
         self.postMessage({
           type: 'PROGRESS',
@@ -232,13 +315,11 @@ async function runSimulation(data) {
     return;
   }
 
-  // Top Threats formatieren
   const threatList = Object.entries(globalThreatMap)
     .map(([mon, data]) => ({ mon, kills: data.kills, archetype: data.archetype }))
     .sort((a, b) => b.kills - a.kills)
     .slice(0, 8);
 
-  // Top Leads formatieren
   const leadPerformance = Object.entries(leadPerformanceMap)
     .map(([lead, data]) => ({
       lead,

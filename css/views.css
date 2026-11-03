@@ -213,10 +213,11 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .tb-tabs button:hover { color: var(--text); background: var(--btn-hover); }
 .tb-tabs button.on { color: var(--text); border-bottom-color: var(--accent-2); }
 .tb-work.tab-edit .tb-cover, .tb-work.tab-cover .tb-edit { display: none; }
-.tb-edit, .tb-cover { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 4px; }
+.tb-edit { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 6px; display: flex; flex-direction: column; }
+.tb-cover { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 6px; }
 
 .tb-edit select, .tb-edit input[type=text], .tb-edit .tbtn { height: 28px; }
-.tb-ed-head { display: flex; min-width: 0; align-items: center; gap: 8px; margin-bottom: 5px; }
+.tb-ed-head { display: flex; min-width: 0; align-items: center; gap: 8px; margin-bottom: 6px; flex: none; }
 .tb-pick { flex: 0 1 260px; }
 .tb-pick input { height: 30px; }
 .tb-pick-item { padding-left: 8px; }
@@ -231,19 +232,21 @@ body.is-maximized #winMax .ic-restore { display: block; }
 
 /* editor grid like the sketch:  SP | sprite | moves  /  SP | item | ability  /  stats */
 .tb-ed-grid {
-  display: grid; gap: 5px;
+  flex: 1; min-height: 0;
+  display: grid; gap: 6px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.1fr);
   grid-template-areas: "sp sprite moves" "nature item ability" "stats stats stats";
+  grid-template-rows: minmax(230px, 1fr) auto auto;
 }
-.tb-box { background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 4px 7px; min-width: 0; }
+.tb-box { background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 5px 8px; min-width: 0; }
 .tb-box-title { color: var(--muted); font-size: 11px; font-weight: 700; margin-bottom: 3px; display: block; }
-.tb-area-sp { grid-area: sp; display: flex; flex-direction: column; justify-content: space-between; gap: 3px; }
+.tb-area-sp { grid-area: sp; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; }
 .tb-area-sprite { grid-area: sprite; position: relative; display: flex; flex-direction: column; padding: 6px; }
-.tb-area-moves { grid-area: moves; display: flex; flex-direction: column; gap: 4px; padding: 0; background: transparent; border: 0; }
+.tb-area-moves { grid-area: moves; display: flex; flex-direction: column; gap: 5px; padding: 0; background: transparent; border: 0; }
 .tb-area-item { grid-area: item; }
 .tb-area-nature { grid-area: nature; }
 .tb-area-ability { grid-area: ability; }
-.tb-area-stats { grid-area: stats; }
+.tb-area-stats { grid-area: stats; padding: 6px 10px; }
 .tb-area-item select, .tb-area-ability select, .tb-area-nature select { width: 100%; }
 
 /* SP bars */
@@ -314,21 +317,21 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .look-ic .sprite-fit, .look-ic img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 
 /* big sprite */
-.tb-stage { flex: 1; min-height: 110px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.tb-stage { flex: 1; min-height: 120px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .tb-stage img { display: block; }
 .tb-stage img.still { image-rendering: pixelated; }
-.tb-stage img.hd { max-height: 105px; max-width: 155px; width: auto; height: auto; object-fit: contain; }
-.tb-stage-cap { display: flex; align-items: center; justify-content: center; gap: 8px; padding-top: 4px; }
+.tb-stage img.hd { max-height: clamp(120px, 25vh, 260px); max-width: clamp(160px, 22vw, 300px); width: auto; height: auto; object-fit: contain; }
+.tb-stage-cap { display: flex; align-items: center; justify-content: center; gap: 8px; padding-top: 4px; flex: none; }
 .tb-stage-name { font-weight: 700; font-size: 15px; }
 .tb-ed-types { display: flex; gap: 3px; }
 .tb-forme { position: absolute; top: 6px; left: 6px; max-width: 60%; }
 
 /* moves */
 .tb-movecard {
-  flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 4px 7px;
+  flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; gap: 2px; padding: 4px 8px;
   background: var(--input); border: 1px solid var(--line-soft); border-left: 4px solid var(--line); border-radius: var(--radius);
 }
-.tb-movecard select { width: 100%; height: 24px; font-size: 12px; font-weight: 600; }
+.tb-movecard select { width: 100%; height: 26px; font-size: 12px; font-weight: 600; }
 .tb-move-info { display: flex; align-items: center; gap: 6px; min-height: 14px; font-size: 11px; }
 .tb-move-info .type-badge { min-width: 46px; font-size: 10px; line-height: 14px; text-align: center; }
 .tb-cat { color: var(--muted); font-size: 12px; }

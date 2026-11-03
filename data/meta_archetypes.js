@@ -1,6 +1,6 @@
 // Archetypische Champions-Teams für den Headless Matchup-Tester.
 // Format: [Gen 9 Champions] VGC 2026 Reg M-C (Level 50, Doppelkampf)
-// SPs werden automatisch für die Showdown-Engine in EVs umgerechnet.
+// SPs (Stat Points): Maximal 32 je Wert, genau 66 Stat Points gesamt.
 
 (function () {
   'use strict';
@@ -15,8 +15,7 @@
       paste: `Charizard-Mega-Y @ Charizardite Y
 Ability: Drought
 Level: 50
-Tera Type: Fire
-EVs: 252 SpA / 4 SpD / 252 Spe
+SPs: 30 SpA / 4 SpD / 32 Spe
 Timid Nature
 - Heat Wave
 - Solar Beam
@@ -26,7 +25,7 @@ Timid Nature
 Torkoal @ Charcoal
 Ability: Drought
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 32 SpA / 2 SpD
 Quiet Nature
 IVs: 0 Spe
 - Eruption
@@ -37,7 +36,7 @@ IVs: 0 Spe
 Lilligant-Hisui @ Focus Sash
 Ability: Chlorophyll
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Close Combat
 - Solar Blade
@@ -47,7 +46,7 @@ Jolly Nature
 Flutter Mane @ Booster Energy
 Ability: Protosynthesis
 Level: 50
-EVs: 116 HP / 140 SpA / 252 Spe
+SPs: 15 HP / 19 SpA / 32 Spe
 Timid Nature
 - Moonblast
 - Shadow Ball
@@ -57,7 +56,7 @@ Timid Nature
 Roaring Moon @ Life Orb
 Ability: Protosynthesis
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Knock Off
 - Acrobatics
@@ -67,7 +66,7 @@ Jolly Nature
 Landorus-Therian @ Choice Scarf
 Ability: Intimidate
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Adamant Nature
 - Earthquake
 - Rock Slide
@@ -84,7 +83,7 @@ Adamant Nature
       paste: `Feraligatr-Mega @ Feraligite
 Ability: Dragonize
 Level: 50
-EVs: 252 Atk / 4 Def / 252 Spe
+SPs: 32 Atk / 2 Def / 32 Spe
 Adamant Nature
 - Liquidation
 - Return
@@ -94,7 +93,7 @@ Adamant Nature
 Pelipper @ Focus Sash
 Ability: Drizzle
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 30 SpA / 4 SpD
 Modest Nature
 - Muddy Water
 - Hurricane
@@ -104,7 +103,7 @@ Modest Nature
 Archaludon @ Assault Vest
 Ability: Stamina
 Level: 50
-EVs: 252 HP / 156 SpA / 100 SpD
+SPs: 32 HP / 20 SpA / 14 SpD
 Modest Nature
 - Electro Shot
 - Draco Meteor
@@ -114,7 +113,7 @@ Modest Nature
 Urshifu-Rapid-Strike @ Mystic Water
 Ability: Unseen Fist
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Surging Strikes
 - Close Combat
@@ -124,7 +123,7 @@ Jolly Nature
 Rillaboom @ Miracle Seed
 Ability: Grassy Surge
 Level: 50
-EVs: 252 HP / 252 Atk / 4 SpD
+SPs: 32 HP / 32 Atk / 2 SpD
 Adamant Nature
 - Grassy Glide
 - Wood Hammer
@@ -134,7 +133,7 @@ Adamant Nature
 Raichu-Alola @ Life Orb
 Ability: Surge Surfer
 Level: 50
-EVs: 252 SpA / 4 SpD / 252 Spe
+SPs: 32 SpA / 2 SpD / 32 Spe
 Timid Nature
 - Thunderbolt
 - Psychic
@@ -151,7 +150,7 @@ Timid Nature
       paste: `Farigiraf @ Mental Herb
 Ability: Armor Tail
 Level: 50
-EVs: 252 HP / 140 Def / 116 SpD
+SPs: 32 HP / 18 Def / 16 SpD
 Quiet Nature
 IVs: 0 Spe
 - Trick Room
@@ -162,7 +161,7 @@ IVs: 0 Spe
 Ursaluna-Bloodmoon @ Life Orb
 Ability: Mind's Eye
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 32 SpA / 2 SpD
 Quiet Nature
 IVs: 0 Spe
 - Blood Moon
@@ -173,7 +172,7 @@ IVs: 0 Spe
 Torkoal @ Charcoal
 Ability: Drought
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 32 SpA / 2 SpD
 Quiet Nature
 IVs: 0 Spe
 - Eruption
@@ -184,7 +183,7 @@ IVs: 0 Spe
 Kingambit @ Black Glasses
 Ability: Defiant
 Level: 50
-EVs: 252 HP / 252 Atk / 4 SpD
+SPs: 32 HP / 32 Atk / 2 SpD
 Brave Nature
 IVs: 0 Spe
 - Kowtow Cleave
@@ -195,7 +194,7 @@ IVs: 0 Spe
 Camerupt-Mega @ Cameruptite
 Ability: Sheer Force
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 32 SpA / 2 SpD
 Quiet Nature
 IVs: 0 Spe
 - Heat Wave
@@ -206,7 +205,7 @@ IVs: 0 Spe
 Dusclops @ Eviolite
 Ability: Frisk
 Level: 50
-EVs: 252 HP / 128 Def / 128 SpD
+SPs: 32 HP / 17 Def / 17 SpD
 Relaxed Nature
 IVs: 0 Spe
 - Trick Room
@@ -224,7 +223,7 @@ IVs: 0 Spe
       paste: `Dragonite-Mega @ Dragoninite
 Ability: Multiscale
 Level: 50
-EVs: 4 HP / 252 Atk / 252 Spe
+SPs: 2 HP / 32 Atk / 32 Spe
 Jolly Nature
 - Extreme Speed
 - Dragon Claw
@@ -234,7 +233,7 @@ Jolly Nature
 Whimsicott @ Focus Sash
 Ability: Prankster
 Level: 50
-EVs: 252 HP / 4 SpA / 252 Spe
+SPs: 32 HP / 2 SpA / 32 Spe
 Timid Nature
 - Tailwind
 - Moonblast
@@ -244,7 +243,7 @@ Timid Nature
 Incineroar @ Sitrus Berry
 Ability: Intimidate
 Level: 50
-EVs: 252 HP / 156 Def / 100 SpD
+SPs: 32 HP / 20 Def / 14 SpD
 Careful Nature
 - Fake Out
 - Knock Off
@@ -254,7 +253,7 @@ Careful Nature
 Gholdengo @ Choice Specs
 Ability: Good as Gold
 Level: 50
-EVs: 252 SpA / 4 SpD / 252 Spe
+SPs: 32 SpA / 2 SpD / 32 Spe
 Timid Nature
 - Make It Rain
 - Shadow Ball
@@ -264,7 +263,7 @@ Timid Nature
 Urshifu-Rapid-Strike @ Mystic Water
 Ability: Unseen Fist
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Surging Strikes
 - Close Combat
@@ -274,7 +273,7 @@ Jolly Nature
 Rillaboom @ Assault Vest
 Ability: Grassy Surge
 Level: 50
-EVs: 252 HP / 252 Atk / 4 SpD
+SPs: 32 HP / 32 Atk / 2 SpD
 Adamant Nature
 - Grassy Glide
 - Wood Hammer
@@ -291,7 +290,7 @@ Adamant Nature
       paste: `Clefable-Mega @ Clefablite
 Ability: Magic Bounce
 Level: 50
-EVs: 252 HP / 100 Def / 156 SpA
+SPs: 32 HP / 14 Def / 20 SpA
 Modest Nature
 - Moonblast
 - Air Slash
@@ -301,7 +300,7 @@ Modest Nature
 Incineroar @ Sitrus Berry
 Ability: Intimidate
 Level: 50
-EVs: 252 HP / 156 Def / 100 SpD
+SPs: 32 HP / 20 Def / 14 SpD
 Careful Nature
 - Fake Out
 - Knock Off
@@ -311,7 +310,7 @@ Careful Nature
 Amoonguss @ Rocky Helmet
 Ability: Regenerator
 Level: 50
-EVs: 252 HP / 156 Def / 100 SpD
+SPs: 32 HP / 20 Def / 14 SpD
 Bold Nature
 - Spore
 - Pollen Puff
@@ -321,7 +320,7 @@ Bold Nature
 Archaludon @ Assault Vest
 Ability: Stamina
 Level: 50
-EVs: 252 HP / 156 SpA / 100 SpD
+SPs: 32 HP / 20 SpA / 14 SpD
 Modest Nature
 - Flash Cannon
 - Draco Meteor
@@ -331,7 +330,7 @@ Modest Nature
 Urshifu @ Choice Band
 Ability: Unseen Fist
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Wicked Blow
 - Close Combat
@@ -341,7 +340,7 @@ Jolly Nature
 Landorus-Therian @ Choice Scarf
 Ability: Intimidate
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Adamant Nature
 - Earthquake
 - Rock Slide
@@ -358,7 +357,7 @@ Adamant Nature
       paste: `Alakazam-Mega @ Alakazite
 Ability: Trace
 Level: 50
-EVs: 252 SpA / 4 SpD / 252 Spe
+SPs: 32 SpA / 2 SpD / 32 Spe
 Timid Nature
 - Expanding Force
 - Focus Blast
@@ -368,7 +367,7 @@ Timid Nature
 Indeedee-F @ Psychic Seed
 Ability: Psychic Surge
 Level: 50
-EVs: 252 HP / 252 Def / 4 SpD
+SPs: 32 HP / 32 Def / 2 SpD
 Bold Nature
 - Follow Me
 - Helping Hand
@@ -378,7 +377,7 @@ Bold Nature
 Armarouge @ Life Orb
 Ability: Flash Fire
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 32 SpA / 2 SpD
 Quiet Nature
 IVs: 0 Spe
 - Expanding Force
@@ -389,7 +388,7 @@ IVs: 0 Spe
 Gallade-Mega @ Galladite
 Ability: Inner Focus
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Sacred Sword
 - Psycho Cut
@@ -399,7 +398,7 @@ Jolly Nature
 Sneasler @ Focus Sash
 Ability: Unburden
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Dire Claw
 - Close Combat
@@ -409,7 +408,7 @@ Jolly Nature
 Urshifu-Rapid-Strike @ Mystic Water
 Ability: Unseen Fist
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Surging Strikes
 - Close Combat
@@ -426,7 +425,7 @@ Jolly Nature
       paste: `Skarmory-Mega @ Skarmorite
 Ability: Sturdy
 Level: 50
-EVs: 252 HP / 4 Def / 252 SpD
+SPs: 32 HP / 2 Def / 32 SpD
 Careful Nature
 - Iron Head
 - Body Press
@@ -436,7 +435,7 @@ Careful Nature
 Ting-Lu @ Leftovers
 Ability: Vessel of Ruin
 Level: 50
-EVs: 252 HP / 4 Atk / 252 SpD
+SPs: 32 HP / 2 Atk / 32 SpD
 Careful Nature
 - Stomping Tantrum
 - Ruination
@@ -446,7 +445,7 @@ Careful Nature
 Dondozo @ Sitrus Berry
 Ability: Unaware
 Level: 50
-EVs: 252 HP / 156 Atk / 100 SpD
+SPs: 32 HP / 20 Atk / 14 SpD
 Adamant Nature
 - Wave Crash
 - Order Up
@@ -456,7 +455,7 @@ Adamant Nature
 Tatsugiri @ Choice Scarf
 Ability: Commander
 Level: 50
-EVs: 252 SpA / 4 SpD / 252 Spe
+SPs: 32 SpA / 2 SpD / 32 Spe
 Timid Nature
 - Draco Meteor
 - Muddy Water
@@ -466,7 +465,7 @@ Timid Nature
 Heatran @ Life Orb
 Ability: Flash Fire
 Level: 50
-EVs: 252 HP / 252 SpA / 4 SpD
+SPs: 32 HP / 32 SpA / 2 SpD
 Modest Nature
 - Heat Wave
 - Earth Power
@@ -476,7 +475,7 @@ Modest Nature
 Amoonguss @ Rocky Helmet
 Ability: Regenerator
 Level: 50
-EVs: 252 HP / 156 Def / 100 SpD
+SPs: 32 HP / 20 Def / 14 SpD
 Bold Nature
 - Spore
 - Pollen Puff
@@ -493,7 +492,7 @@ Bold Nature
       paste: `Baxcalibur-Mega @ Baxcalibrite
 Ability: Thermal Exchange
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Glaive Rush
 - Icicle Crash
@@ -503,7 +502,7 @@ Jolly Nature
 Ninetales-Alola @ Light Clay
 Ability: Snow Warning
 Level: 50
-EVs: 252 HP / 4 SpD / 252 Spe
+SPs: 32 HP / 2 SpD / 32 Spe
 Timid Nature
 - Aurora Veil
 - Blizzard
@@ -513,7 +512,7 @@ Timid Nature
 Chien-Pao @ Focus Sash
 Ability: Sword of Ruin
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Icicle Crash
 - Sucker Punch
@@ -523,7 +522,7 @@ Jolly Nature
 Ogerpon-Hearthflame @ Hearthflame Mask
 Ability: Mold Breaker
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Ivy Cudgel
 - Horn Leech
@@ -533,7 +532,7 @@ Jolly Nature
 Urshifu-Rapid-Strike @ Mystic Water
 Ability: Unseen Fist
 Level: 50
-EVs: 252 Atk / 4 SpD / 252 Spe
+SPs: 32 Atk / 2 SpD / 32 Spe
 Jolly Nature
 - Surging Strikes
 - Close Combat
@@ -543,7 +542,7 @@ Jolly Nature
 Gholdengo @ Choice Specs
 Ability: Good as Gold
 Level: 50
-EVs: 252 SpA / 4 SpD / 252 Spe
+SPs: 32 SpA / 2 SpD / 32 Spe
 Timid Nature
 - Make It Rain
 - Shadow Ball
