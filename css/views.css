@@ -223,6 +223,9 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .tb-pick-item .pk-types { margin-left: auto; display: flex; gap: 3px; }
 .tb-preset { flex: 0 1 240px; min-width: 120px; }
 .tb-nick { flex: 0 1 160px; min-width: 80px; padding: 0 8px; }
+.tb-btn-save { flex: none; display: flex; align-items: center; gap: 4px; padding: 0 10px; font-weight: 500; font-size: 13px; }
+.tb-btn-save:hover { border-color: var(--accent); }
+.tb-pick .picker-list { min-width: 280px; max-height: 380px; }
 .tb-ed-head > .danger { margin-left: auto; flex: none; width: 30px; padding: 0; }
 .tb-ed-head > .danger:hover { background: var(--bad); color: var(--on-bad); }
 

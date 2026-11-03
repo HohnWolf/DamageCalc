@@ -1555,6 +1555,12 @@
   }
 
   // ======================= custom sets / teams =======================
+  function saveCustomSet(species, name, set) {
+    if (!species || !name || !set) return;
+    customSets[species] = customSets[species] || {};
+    customSets[species][name] = JSON.parse(JSON.stringify(set));
+    save('cc_customSets', customSets);
+  }
   function saveCustom(side) {
     var suggestion = side.setName && side.setName !== 'Blank Set' ? side.setName : T('mySet');
     var input = window.prompt(T('setPrompt', nSpecies(side.baseSpecies)), suggestion);
@@ -1562,9 +1568,7 @@
     var name = input.trim() || suggestion;
     side.setName = name;
     var sp = side.baseSpecies;
-    customSets[sp] = customSets[sp] || {};
-    customSets[sp][name] = readSet(side);
-    save('cc_customSets', customSets);
+    saveCustomSet(sp, name, readSet(side));
     side.setLabel = sp + ' (' + name + ')'; side.$('pick').value = displayLabel(side);
     toast(T('setSaved', name));
   }
@@ -2245,7 +2249,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.10.5', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.10.6', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2556,7 +2560,7 @@
     el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
     parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
-    setting: setting, openSettings: openSettings
+    setting: setting, openSettings: openSettings, saveCustomSet: saveCustomSet
   };
   // expose for debugging
   window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES };

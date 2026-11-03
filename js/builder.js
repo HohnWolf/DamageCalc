@@ -496,26 +496,34 @@
     wrap.appendChild(input); wrap.appendChild(list);
     if (m) input.value = A.nSpecies(m.species);
     var shown = [], nodes = [], active = -1;
-    function draw() {
+    function draw(showAll) {
       speciesSorted = speciesSorted || A.sortedBy(A.SPECIES, A.nSpecies);
-      var q = input.value.trim().toLowerCase();
+      var q = showAll ? '' : input.value.trim().toLowerCase();
       var hits = speciesSorted.filter(function (s) { return !q || (s + ' ' + A.nSpecies(s)).toLowerCase().indexOf(q) !== -1; });
       if (q) hits.sort(function (a, b) {
         var sa = A.nSpecies(a).toLowerCase().indexOf(q) === 0 || a.toLowerCase().indexOf(q) === 0 ? 0 : 1;
         var sb = A.nSpecies(b).toLowerCase().indexOf(q) === 0 || b.toLowerCase().indexOf(q) === 0 ? 0 : 1;
         return sa - sb;
       });
-      shown = hits.slice(0, 120); nodes = []; list.innerHTML = '';
+      shown = hits; nodes = []; list.innerHTML = '';
       if (!shown.length) list.appendChild(el('div', { class: 'picker-empty', text: T('noHits') }));
+      var currentNode = null;
       shown.forEach(function (s, i) {
-        var it = el('div', { class: 'picker-item tb-pick-item' + (i === active ? ' active' : '') + (m && m.species === s ? ' current' : '') });
+        var isCurrent = m && m.species === s;
+        var it = el('div', { class: 'picker-item tb-pick-item' + (i === active ? ' active' : '') + (isCurrent ? ' current' : '') });
         var ic = el('span', { class: 'pk-mini' }); ic.appendChild(A.spriteImg(s)); it.appendChild(ic);
         it.appendChild(el('span', { text: A.nSpecies(s) }));
         var tw = el('span', { class: 'pk-types' }); typesOf(s).forEach(function (t) { tw.appendChild(A.typeBadge(t)); }); it.appendChild(tw);
         it.addEventListener('mousedown', function (ev) { ev.preventDefault(); pick(s); });
         list.appendChild(it); nodes.push(it);
+        if (isCurrent) currentNode = it;
       });
       list.classList.add('open');
+      if (showAll && currentNode) {
+        currentNode.scrollIntoView({ block: 'center' });
+      } else {
+        list.scrollTop = 0;
+      }
     }
     function pick(s) { list.classList.remove('open'); input.blur(); onChoose(s); }
     function hl() {
@@ -523,13 +531,28 @@
       var n = nodes[active];
       if (n) n.scrollIntoView({ block: 'nearest' });
     }
-    input.addEventListener('focus', function () { input.select(); active = -1; draw(); });
-    input.addEventListener('input', function () { active = -1; draw(); list.scrollTop = 0; });
+    function open() {
+      active = -1;
+      draw(true);
+      input.select();
+    }
+    input.addEventListener('focus', function () {
+      open();
+      setTimeout(function () { input.select(); }, 0);
+    });
+    input.addEventListener('click', function () {
+      open();
+    });
+    input.addEventListener('input', function () { active = -1; draw(false); list.scrollTop = 0; });
     input.addEventListener('blur', function () { list.classList.remove('open'); if (m) input.value = A.nSpecies(m.species); });
     input.addEventListener('keydown', function (ev) {
       if (ev.key === 'ArrowDown') { active = Math.min(shown.length - 1, active + 1); hl(); ev.preventDefault(); }
       else if (ev.key === 'ArrowUp') { active = Math.max(0, active - 1); hl(); ev.preventDefault(); }
-      else if (ev.key === 'Enter') { var s = shown[active >= 0 ? active : 0]; if (s) pick(s); ev.preventDefault(); }
+      else if (ev.key === 'Enter') {
+        var s = shown[active >= 0 ? active : 0];
+        if (s) pick(s);
+        ev.preventDefault();
+      }
       else if (ev.key === 'Escape') { input.blur(); }
     });
     return wrap;
@@ -559,8 +582,13 @@
       tm.mons[sel] = memberFor(s); changed(); renderEditor();
     }));
     var pre = el('select', { class: 'tb-preset', title: T('tbPreset') });
-    pre.innerHTML = '<option value="">' + A.esc(T('tbPreset')) + '</option>' + presetsFor(m.species).map(function (e, i) {
-      return '<option value="' + i + '">' + A.esc(A.nSetName(e.name) + (e.src ? ' · ' + e.src : '')) + '</option>';
+    var pList = presetsFor(m.species);
+    var curIdx = -1;
+    pList.forEach(function (e, i) {
+      if (e.name === m.setName) curIdx = i;
+    });
+    pre.innerHTML = '<option value="">' + A.esc(T('tbPreset')) + '</option>' + pList.map(function (e, i) {
+      return '<option value="' + i + '"' + (i === curIdx ? ' selected' : '') + '>' + A.esc(A.nSetName(e.name) + (e.src ? ' · ' + e.src : '')) + '</option>';
     }).join('');
     pre.addEventListener('change', function () {
       var e = presetsFor(m.species)[+pre.value];
@@ -571,10 +599,28 @@
       m.set = ns; m.setName = e.name; changed(); renderEditor();
     });
     head.appendChild(pre);
+
     var nick = el('input', { class: 'tb-nick', type: 'text', spellcheck: 'false', title: T('tbNick'), placeholder: T('tbNick') });
     nick.value = A.nSetName(m.setName || '');
     nick.addEventListener('input', function () { m.setName = nick.value || 'Set'; persist(); });
     head.appendChild(nick);
+
+    var btnSave = el('button', { class: 'tbtn tb-btn-save', title: A.T('saveSet') });
+    btnSave.innerHTML = '<span style="font-size:12px;margin-right:4px;">💾</span>' + A.esc(de ? 'Set speichern' : 'Save Set');
+    btnSave.addEventListener('click', function () {
+      var suggestion = (m.setName && m.setName !== 'Blank Set' && m.setName !== 'Set') ? m.setName : (nick.value.trim() || A.T('mySet'));
+      var input = window.prompt(A.T('setPrompt', A.nSpecies(m.species)), suggestion);
+      if (input === null) return;
+      var name = input.trim() || suggestion;
+      m.setName = name;
+      nick.value = name;
+      A.saveCustomSet(m.species, name, m.set);
+      A.toast(A.T('setSaved', name));
+      persist();
+      renderEditor();
+    });
+    head.appendChild(btnSave);
+
     var rm = el('button', { class: 'tbtn danger', text: '✕', title: T('tbRemove') });
     rm.addEventListener('click', function () { removeMember(sel); });
     head.appendChild(rm);
