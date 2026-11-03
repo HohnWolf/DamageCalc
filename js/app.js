@@ -1741,14 +1741,14 @@
     else { var t = el('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); toast(T('copied')); }
   }
 
-  // The layout is designed for about 1160 x 735 px. Larger windows scale the whole UI up evenly
-  // (zoom), so the space below is used instead of staying empty. Smaller windows keep the scroll fallback.
-  var BASE_W = 1180, BASE_H = 800;
+  // The layout is designed for about 1160 x 735 px. The UI scales evenly
+  // (zoom) so it always fills the window without any page scrolling.
+  var BASE_W = 1180, BASE_H = 760;
   function fitToWindow() {
     var b = document.body, pref = setting('zoom');
     var fixed = pref && pref !== 'auto' && isFinite(+pref);
     var z = fixed ? (+pref / 100) : Math.min(innerWidth / BASE_W, innerHeight / BASE_H, 1.9);
-    if (!fixed && z < 0.8) z = 1; // very small windows: keep 100 % and let the page scroll (CSS fallback)
+    if (!fixed && z < 0.45) z = 0.45; // smoothly scale down, never allow page scroll
     if (Math.abs(z - 1) > 0.02) {
       z = Math.floor(z * 100) / 100;
       b.style.zoom = z;
@@ -2332,6 +2332,10 @@
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    fitToWindow();
   }
   // ---- top navigation: tabs (only the opened modes, closable), all modes, or none (setting "nav") ----
   function closeTab(v) {

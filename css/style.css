@@ -890,11 +890,21 @@ button.on, .btn-group button.on { background: var(--btn-on); border-color: var(-
    leftover height goes to the move rows and the field panel. */
 .panel .body > .moves { flex: 1 1 auto; justify-content: space-evenly; max-height: 340px; }
 .field-panel .body { justify-content: space-between; }
-/* ================= Small windows: allow page scroll as fallback =================
-   The start screen stays a flex child so its cards can shrink to the viewport. */
-@media (max-height: 640px), (max-width: 1050px) {
-  body:not([data-view="start"]) { overflow: auto; display: block; }
-  body:not([data-view="start"]) .wrap { height: auto; }
+/* ================= Strict no-scroll: the entire application always fits the viewport without scrolling ================= */
+html, body {
+  height: 100%;
+  overflow: hidden !important;
+}
+body {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+.wrap {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 @media (max-width: 1050px) {
   .columns { grid-template-columns: 1fr 1fr; }
