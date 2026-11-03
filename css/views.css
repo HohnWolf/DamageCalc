@@ -17,10 +17,10 @@ body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-vi
 /* ================= Top bar: logo, view tabs ================= */
 .brand-btn {
   display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 8px 0 2px; margin-left: -4px;
-  background: transparent; border: 0; flex: none;
+  background: transparent; border: 0; flex: none; border-radius: var(--radius); cursor: pointer;
 }
 .brand-btn:hover { background: var(--btn-hover); }
-.brand-btn img { width: 28px; height: 28px; object-fit: contain; image-rendering: pixelated; }
+.brand-btn img { width: 30px; height: 30px; object-fit: contain; }
 /* inside a tool the logo alone leads back to the start screen; the tabs name the tool */
 body:not([data-view="start"]) .brand-btn .brand { display: none; }
 body:not([data-view="start"]) .brand-btn { padding-right: 2px; }
