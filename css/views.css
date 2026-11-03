@@ -84,7 +84,7 @@ body.is-maximized #winMax .ic-restore { display: block; }
   overflow: hidden;
   container-type: size;
 }
-.start-logo { width: clamp(38px, 6vh, 60px); height: auto; image-rendering: pixelated; display: block; margin: 0 auto 2px; flex: none; }
+.start-logo { width: clamp(38px, 6vh, 60px); height: auto; object-fit: contain; display: block; margin: 0 auto 2px; flex: none; }
 .start-inner h1 { margin: 0; font-size: clamp(16px, 2.5vh, 22px); font-weight: 700; letter-spacing: .2px; line-height: 1.15; flex: none; }
 .start-sub { margin: 1px 0 0; color: var(--muted); font-size: clamp(10.5px, 1.3vh, 12px); line-height: 1.2; flex: none; }
 .start-cards {
