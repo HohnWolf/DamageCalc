@@ -94,6 +94,7 @@
   var langParam = location.search.match(/[?&]lang=(de|en)\b/);   // index.html?lang=en
   if (langParam) { LANG = langParam[1]; save('cc_lang', LANG); }
   if (LANG !== 'de' && LANG !== 'en') LANG = 'de';
+  var de = LANG === 'de';
   var NDE = window.NAMES_DE || { species: {}, moves: {}, items: {}, abilities: {}, types: {}, natures: {} };
   var UI = {
     de: {
@@ -1586,7 +1587,7 @@
       box.appendChild(el('div', { class: 'team-slot empty', title: T('emptySlot') }));
     }
     var acts = el('div', { class: 'team-actions' });
-    var imp = el('button', { text: de ? 'Import' : 'Import', title: T('importBtn') });
+    var imp = el('button', { text: 'Import', title: T('importBtn') });
     imp.addEventListener('click', function () {
       var m = document.getElementById('importModal');
       if (m) {
@@ -2244,7 +2245,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.10.3', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.10.4', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
