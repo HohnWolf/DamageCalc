@@ -243,6 +243,7 @@
       '<input id="tbName" class="tb-name" spellcheck="false" placeholder="' + A.esc(T('tbName')) + '">' +
       '<span class="tb-count" id="tbCount"></span>' +
       '<span class="tb-acts">' +
+      '<button class="tbtn primary" id="tbMetaSim" title="' + (de ? 'Team gegen 8 Meta-Archetypen testen' : 'Test team against 8 meta archetypes') + '">⚔️ ' + T('tbMetaTest') + '</button>' +
       '<button class="tbtn" id="tbExport">' + T('tbExport') + '</button>' +
       '<button class="tbtn" id="tbDup">' + T('tbDuplicate') + '</button>' +
       '<button class="tbtn danger" id="tbDel">' + T('tbDelete') + '</button>' +
@@ -311,6 +312,17 @@
       setTimeout(function () { var i = root.querySelector('.tb-pick input'); if (i) i.focus(); }, 30);
     });
     root.querySelector('#tbImport').addEventListener('click', openImport);
+    var btnMeta = root.querySelector('#tbMetaSim');
+    if (btnMeta) {
+      btnMeta.addEventListener('click', function () {
+        var tm = team(), v = curVersion(tm);
+        var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
+        var paste = tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n');
+        if (window.SimUI) {
+          window.SimUI.open(paste, title);
+        }
+      });
+    }
     root.querySelector('#tbExport').addEventListener('click', function () {
       var tm = team(), v = curVersion(tm);
       var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
@@ -598,9 +610,10 @@
       rng.addEventListener('input', function () { apply(rng.value); });
       num.addEventListener('input', function () { apply(num.value); });
       num.addEventListener('blur', function () { num.value = set.sps[st] || 0; });
-      r.appendChild(lab); r.appendChild(rng); r.appendChild(num);
+      var valEl = el('span', { class: 'tb-spbar-val' });
+      r.appendChild(lab); r.appendChild(rng); r.appendChild(num); r.appendChild(valEl);
       spBox.appendChild(r);
-      spRefs[st] = { name: lab, rng: rng };
+      spRefs[st] = { name: lab, rng: rng, valEl: valEl };
     });
     var spFoot = el('div', { class: 'tb-sp-foot' });
     var tot = el('span', { class: 'tb-st-total' });
@@ -802,6 +815,10 @@
         r.sub.textContent = T('base') + ' ' + DEX[view].bs[st] + (alt ? ' · ' + T('tbNormalVal', normal) : '');
         var up = nat[0] === st, down = nat[1] === st;
         [r.name, spRefs[st].name].forEach(function (e) { e.classList.toggle('up', up); e.classList.toggle('down', down); });
+        if (spRefs[st] && spRefs[st].valEl) {
+          spRefs[st].valEl.textContent = v;
+          spRefs[st].valEl.title = T('base') + ' ' + DEX[view].bs[st] + (alt ? ' · ' + T('tbNormalVal', normal) : '');
+        }
         spRefs[st].rng.style.setProperty('--p', ((set.sps[st] || 0) / C.SP_MAX * 100) + '%');
       });
       var n = spTotal(set);

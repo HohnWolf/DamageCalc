@@ -166,7 +166,7 @@
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
       startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions',
       startFoot: 'Tasten 1–8 zum Öffnen · Zurück zum Start über das Logo oben links',
-      tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)',
+      tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)', tbMetaTest: 'Gegen Meta testen',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
       tbDeleteConfirm: 'Team „{0}“ löschen?', tbName: 'Teamname', tbDefaultName: 'Team {0}', tbCopyName: '{0} (Kopie)',
@@ -279,7 +279,7 @@
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
       startSub: 'Damage Calculator, Teambuilder, Shiny counter, Catch Calculator and Team-Analyse for Pokémon Champions',
       startFoot: 'Press 1–8 to open · Back to the start via the logo in the top left',
-      tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)',
+      tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)', tbMetaTest: 'Test vs Meta',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
       tbDeleteConfirm: 'Delete team “{0}”?', tbName: 'Team name', tbDefaultName: 'Team {0}', tbCopyName: '{0} (copy)',
@@ -1187,7 +1187,10 @@
     var weathers = ['None', 'Sun', 'Rain', 'Sand', 'Snow'], weathers2 = ['Harsh Sun', 'Heavy Rain', 'Strong Winds'];
     function ruinBtn(k, key, ab) { return '<button class="rtog" data-r="' + k + '" title="' + esc(nAbility(ab)) + '">' + T(key) + '</button>'; }
     root.innerHTML = '<h2 class="field-head"><span>' + T('field') + '</span>' +
-      '<button class="tbtn" id="btnReset" title="' + esc(T('resetTitle')) + '">' + esc(T('reset')) + '</button></h2><div class="body">' +
+      '<div class="field-head-actions">' +
+      '<button type="button" class="tbtn" id="btnSwap" title="' + esc(T('swapTitle')) + '">⇄ ' + esc(T('swapBtn')) + '</button>' +
+      '<button type="button" class="tbtn" id="btnReset" title="' + esc(T('resetTitle')) + '">' + esc(T('reset')) + '</button>' +
+      '</div></h2><div class="body">' +
       '<div class="field-row">' + group('format', ['Singles', 'Doubles'], { Singles: T('singles'), Doubles: T('doubles') }) +
       '<div class="btn-group"><button class="ftog" data-f="trickRoom">' + esc(nMove('Trick Room')) + '</button><button class="ftog" data-f="gravity">' + esc(nMove('Gravity')) + '</button></div></div>' +
       '<div class="field-label">' + T('terrain') + '</div>' +
@@ -1583,12 +1586,21 @@
       box.appendChild(el('div', { class: 'team-slot empty', title: T('emptySlot') }));
     }
     var acts = el('div', { class: 'team-actions' });
+    var imp = el('button', { text: de ? 'Import' : 'Import', title: T('importBtn') });
+    imp.addEventListener('click', function () {
+      var m = document.getElementById('importModal');
+      if (m) {
+        m.classList.remove('hidden');
+        document.getElementById('importMsg').textContent = '';
+        setTimeout(function () { document.getElementById('importText').focus(); }, 30);
+      }
+    });
     var ex = el('button', { text: T('exportShort'), title: T('teamExport') });
     var clr = el('button', { text: T('clearShort'), title: T('teamClear') });
     if (!teams[idx].length) { ex.disabled = true; clr.disabled = true; }
     ex.addEventListener('click', function () { showModal(T('teamExport'), teams[idx].map(function (m) { return exportSet(m.set, m.setName, m.species); }).join('\n\n')); });
     clr.addEventListener('click', function () { if (confirm(T('clearConfirm', idx + 1))) { teams[idx] = []; save('cc_teams', teams); renderTeam(idx); } });
-    acts.appendChild(ex); acts.appendChild(clr);
+    acts.appendChild(imp); acts.appendChild(ex); acts.appendChild(clr);
     box.appendChild(acts);
   }
 
@@ -1800,7 +1812,8 @@
       }
     });
     var importModal = document.getElementById('importModal');
-    document.getElementById('btnOpenImport').addEventListener('click', function () {
+    var bImpHead = document.getElementById('btnOpenImport');
+    if (bImpHead) bImpHead.addEventListener('click', function () {
       importModal.classList.remove('hidden'); document.getElementById('importMsg').textContent = '';
       setTimeout(function () { document.getElementById('importText').focus(); }, 30);
     });
@@ -1876,8 +1889,8 @@
       }).then(function () { btn.disabled = false; btn.textContent = label; applyStatic(btn.parentNode); });
     }
     var de = LANG === 'de';
-    document.getElementById('btnSets').addEventListener('click', function () {
-      onlineRun(this, function (p) { return ONLINE.updateSets(mapSpecies, p); }, {
+    window.runLoadSets = function (btn) {
+      onlineRun(btn || document.createElement('button'), function (p) { return ONLINE.updateSets(mapSpecies, p); }, {
         title: function () { return T('setsDone'); },
         text: function (r) {
           var L = [];
@@ -1889,9 +1902,9 @@
           return L.join('\n');
         }
       });
-    });
-    document.getElementById('btnReg').addEventListener('click', function () {
-      onlineRun(this, ONLINE.updateRegulation, {
+    };
+    window.runLoadReg = function (btn) {
+      onlineRun(btn || document.createElement('button'), ONLINE.updateRegulation, {
         title: function (r) { return T('regReport', r.name); },
         text: function (r) {
           var L = [];
@@ -1905,7 +1918,9 @@
           return L.join('\n');
         }
       });
-    });
+    };
+    var bStaticSets = document.getElementById('btnSets'); if (bStaticSets) bStaticSets.addEventListener('click', function () { window.runLoadSets(this); });
+    var bStaticReg = document.getElementById('btnReg'); if (bStaticReg) bStaticReg.addEventListener('click', function () { window.runLoadReg(this); });
     document.getElementById('btnResetOnline').addEventListener('click', function () {
       if (!ONLINE || !confirm(T('resetConfirm'))) return;
       saveState(); ONLINE.reset(); location.reload();
@@ -2229,7 +2244,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.10.0', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.10.2', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2261,6 +2276,47 @@
           inp.click();
         });
         g.appendChild(bSave); g.appendChild(bLoad);
+        r.appendChild(g);
+        bx.appendChild(r);
+      })();
+      (function () {
+        var r = el('div', { class: 'set-row' });
+        var lab = el('div', { class: 'set-label' });
+        lab.appendChild(el('div', { class: 'set-name', text: de ? 'Online-Daten & Sets' : 'Online data & sets' }));
+        lab.appendChild(el('div', { class: 'hint', text: de ? 'Metagame-Sets von Smogon/NCP und Showdown-Regulationen laden' : 'Update Smogon/NCP sets and Showdown regulations' }));
+        r.appendChild(lab);
+        var g = el('div', { class: 'btn-group set-opts' });
+        var bSets = el('button', { text: T('setsBtn'), title: T('setsTitle') });
+        bSets.addEventListener('click', function () { if (window.runLoadSets) window.runLoadSets(bSets); });
+        var bReg = el('button', { text: T('regBtn'), title: T('regTitle') });
+        bReg.addEventListener('click', function () { if (window.runLoadReg) window.runLoadReg(bReg); });
+        var bReset = el('button', { class: 'danger', text: de ? 'Zurücksetzen' : 'Reset' });
+        bReset.addEventListener('click', function () {
+          if (!ONLINE || !confirm(T('resetConfirm'))) return;
+          saveState(); ONLINE.reset(); location.reload();
+        });
+        g.appendChild(bSets); g.appendChild(bReg); g.appendChild(bReset);
+        r.appendChild(g);
+        bx.appendChild(r);
+      })();
+      (function () {
+        var r = el('div', { class: 'set-row' });
+        var lab = el('div', { class: 'set-label' });
+        lab.appendChild(el('div', { class: 'set-name', text: de ? 'Team-Import (Showdown)' : 'Team import (Showdown)' }));
+        lab.appendChild(el('div', { class: 'hint', text: de ? 'Showdown-Format in Teams oder eigene Sets importieren' : 'Import Showdown format into teams or custom sets' }));
+        r.appendChild(lab);
+        var g = el('div', { class: 'btn-group set-opts' });
+        var bImp = el('button', { class: 'primary', text: T('importBtn') });
+        bImp.addEventListener('click', function () {
+          close();
+          var importModal = document.getElementById('importModal');
+          if (importModal) {
+            importModal.classList.remove('hidden');
+            document.getElementById('importMsg').textContent = '';
+            setTimeout(function () { document.getElementById('importText').focus(); }, 30);
+          }
+        });
+        g.appendChild(bImp);
         r.appendChild(g);
         bx.appendChild(r);
       })();

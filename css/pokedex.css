@@ -404,15 +404,18 @@
   box-shadow: 0 2px 12px rgba(168, 85, 247, 0.25);
 }
 
-/* ---- Mid Grid (Stage Left | Abilities & Stats Right) ---- */
+/* ---- Mid Grid (Stage Left | Abilities Center | Stats Right) ---- */
 .dex-mid-grid {
-  flex: 1;
-  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  gap: 6px;
+  grid-template-columns: 340px minmax(280px, 1fr) minmax(320px, 1.08fr);
+  gap: 14px;
   align-items: stretch;
-  overflow: hidden;
+}
+
+@media (max-width: 1200px) {
+  .dex-mid-grid {
+    grid-template-columns: 340px minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 860px) {
@@ -431,18 +434,47 @@
 }
 
 .dex-stage-box {
-  flex: 1 1 auto;
-  min-height: 80px;
-  max-height: 160px;
-  border-radius: 10px;
-  background: radial-gradient(circle at 50% 60%, rgba(244, 63, 94, 0.14), rgba(15, 23, 42, 0.5) 74%);
+  position: relative;
+  height: 220px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 65%, var(--stage-glow, rgba(244, 63, 94, 0.16)), rgba(15, 23, 42, 0.6) 72%);
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  position: relative;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
 }
+
+.dex-stage-box::after {
+  content: "";
+  position: absolute;
+  bottom: 20px;
+  width: 140px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--stage-pedestal, rgba(255, 255, 255, 0.14)), transparent 70%);
+  pointer-events: none;
+}
+
+.dex-stage-box[data-type="fire"] { --stage-glow: rgba(239, 68, 68, 0.28); --stage-pedestal: rgba(239, 68, 68, 0.45); }
+.dex-stage-box[data-type="water"] { --stage-glow: rgba(14, 165, 233, 0.28); --stage-pedestal: rgba(14, 165, 233, 0.45); }
+.dex-stage-box[data-type="grass"] { --stage-glow: rgba(34, 197, 94, 0.28); --stage-pedestal: rgba(34, 197, 94, 0.45); }
+.dex-stage-box[data-type="electric"] { --stage-glow: rgba(234, 179, 8, 0.28); --stage-pedestal: rgba(234, 179, 8, 0.45); }
+.dex-stage-box[data-type="ice"] { --stage-glow: rgba(6, 182, 212, 0.28); --stage-pedestal: rgba(6, 182, 212, 0.45); }
+.dex-stage-box[data-type="fighting"] { --stage-glow: rgba(220, 38, 38, 0.28); --stage-pedestal: rgba(220, 38, 38, 0.45); }
+.dex-stage-box[data-type="poison"] { --stage-glow: rgba(168, 85, 247, 0.28); --stage-pedestal: rgba(168, 85, 247, 0.45); }
+.dex-stage-box[data-type="ground"] { --stage-glow: rgba(217, 119, 6, 0.28); --stage-pedestal: rgba(217, 119, 6, 0.45); }
+.dex-stage-box[data-type="flying"] { --stage-glow: rgba(96, 165, 250, 0.28); --stage-pedestal: rgba(96, 165, 250, 0.45); }
+.dex-stage-box[data-type="psychic"] { --stage-glow: rgba(236, 72, 153, 0.28); --stage-pedestal: rgba(236, 72, 153, 0.45); }
+.dex-stage-box[data-type="bug"] { --stage-glow: rgba(132, 204, 22, 0.28); --stage-pedestal: rgba(132, 204, 22, 0.45); }
+.dex-stage-box[data-type="rock"] { --stage-glow: rgba(180, 83, 9, 0.28); --stage-pedestal: rgba(180, 83, 9, 0.45); }
+.dex-stage-box[data-type="ghost"] { --stage-glow: rgba(124, 58, 237, 0.28); --stage-pedestal: rgba(124, 58, 237, 0.45); }
+.dex-stage-box[data-type="dragon"] { --stage-glow: rgba(99, 102, 241, 0.28); --stage-pedestal: rgba(99, 102, 241, 0.45); }
+.dex-stage-box[data-type="dark"] { --stage-glow: rgba(139, 92, 246, 0.22); --stage-pedestal: rgba(139, 92, 246, 0.35); }
+.dex-stage-box[data-type="steel"] { --stage-glow: rgba(148, 163, 184, 0.25); --stage-pedestal: rgba(148, 163, 184, 0.38); }
+.dex-stage-box[data-type="fairy"] { --stage-glow: rgba(244, 114, 182, 0.28); --stage-pedestal: rgba(244, 114, 182, 0.45); }
+.dex-stage-box[data-type="normal"] { --stage-glow: rgba(156, 163, 175, 0.22); --stage-pedestal: rgba(156, 163, 175, 0.35); }
 
 .dex-big-img {
   max-width: 130px;
@@ -911,3 +943,109 @@
   font-size: 9px;
   padding: 1px 5px;
 }
+
+/* Metric Grid in Stage */
+.dex-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.dex-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.dex-metric-lbl {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-dim);
+}
+
+.dex-metric-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Battle Profile Card in Abilities Panel */
+.dex-profile-card {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dex-profile-head {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.dex-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dex-profile-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dex-profile-k {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.dex-profile-v {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dex-profile-v.highlight {
+  color: #fb7185;
+}
+
+.dex-bst-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(244, 63, 94, 0.16);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stat Bar Colors */
+.dex-stat-bar > span.stat-hp { background: linear-gradient(90deg, #ef4444, #f87171); }
+.dex-stat-bar > span.stat-atk { background: linear-gradient(90deg, #f97316, #fb923c); }
+.dex-stat-bar > span.stat-def { background: linear-gradient(90deg, #eab308, #facc15); }
+.dex-stat-bar > span.stat-spa { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.dex-stat-bar > span.stat-spd { background: linear-gradient(90deg, #10b981, #34d399); }
+.dex-stat-bar > span.stat-spe { background: linear-gradient(90deg, #ec4899, #f472b6); }

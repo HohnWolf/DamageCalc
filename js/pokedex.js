@@ -433,21 +433,46 @@
     var baseBst = baseBs.reduce(function (s, v) { return s + v; }, 0);
     var bstDiff = bst - baseBst;
 
+    var statClsList = ['stat-hp', 'stat-atk', 'stat-def', 'stat-spa', 'stat-spd', 'stat-spe'];
     var statsHtml = bs.map(function (val, idx) {
       var lbl = (de ? STAT_LABELS_DE : STAT_LABELS_EN)[idx];
       var diff = val - baseBs[idx];
       var diffStr = diff !== 0 ? (' <small class="' + (diff > 0 ? 'pos' : 'neg') + '">(' + (diff > 0 ? '+' : '') + diff + ')</small>') : '';
       var pct = Math.min(100, Math.round((val / 200) * 100));
       var rng50 = statRangeLv50(val, idx === 0);
+      var sCls = statClsList[idx] || '';
       return (
         '<div class="dex-stat-row">' +
           '<span class="dex-stat-name">' + lbl + '</span>' +
           '<span class="dex-stat-val">' + val + diffStr + '</span>' +
-          '<div class="dex-stat-bar"><span style="width:' + pct + '%;background:' + statColor(val) + '"></span></div>' +
+          '<div class="dex-stat-bar"><span class="' + sCls + '" style="width:' + pct + '%;"></span></div>' +
           '<span class="dex-stat-rng" title="Level 50 (Min–Max)">' + rng50 + '</span>' +
         '</div>'
       );
     }).join('');
+
+    var primaryType = (form.types && form.types[0]) ? form.types[0].toLowerCase() : 'normal';
+    var cData = (window.CATCH_DATA && window.CATCH_DATA[mon.num]) || null;
+    var gCode = (cData && cData[3] != null) ? cData[3] : -1;
+    var gStr = gCode === -1 ? (de ? 'Geschlechtslos' : 'Genderless') :
+               gCode === 0 ? '100% ♂' :
+               gCode === 8 ? '100% ♀' :
+               gCode === 1 ? '87,5% ♂ · 12,5% ♀' :
+               gCode === 2 ? '75% ♂ · 25% ♀' :
+               gCode === 4 ? '50% ♂ · 50% ♀' :
+               gCode === 6 ? '25% ♂ · 75% ♀' :
+               gCode === 7 ? '12,5% ♂ · 87,5% ♀' : '–';
+
+    var maxStatIdx = 0, maxStatVal = bs[0];
+    for (var si = 1; si < 6; si++) {
+      if (bs[si] > maxStatVal) { maxStatVal = bs[si]; maxStatIdx = si; }
+    }
+    var maxStatName = (de ? STAT_LABELS_DE : STAT_LABELS_EN)[maxStatIdx];
+    var roleStr = (bs[5] >= 95 && (bs[1] >= 100 || bs[3] >= 100)) ? (de ? 'Schneller Sweeper' : 'Fast Sweeper') :
+      (bs[2] >= 100 || bs[4] >= 100) ? (de ? 'Defensive Wall' : 'Defensive Wall') :
+      (bs[0] >= 100) ? (de ? 'Hohe Ausdauer (Bulky)' : 'High HP Bulky') :
+      (bs[1] >= 100 || bs[3] >= 100) ? (de ? 'Schlagkräftiger Angreifer' : 'Heavy Hitter') :
+      (de ? 'Ausgeglichener Allrounder' : 'Balanced Allrounder');
 
     // Defensive Typ-Effektivität berechnen
     var weakList = [], resList = [], immList = [];
@@ -495,18 +520,19 @@
         formBarHtml +
       '</div>' +
 
-      // MITTLERER BEREICH: MODELL & TYPEN (LINKS) | FÄHIGKEITEN & BASISWERTE (RECHTS)
+      // MITTLERER BEREICH: MODELL & TYPEN (LINKS) | FÄHIGKEITEN & PROFIL (MITTE) | BASISWERTE (RECHTS)
       '<div class="dex-mid-grid">' +
         '<div class="panel dex-stage-panel">' +
-          '<div class="dex-stage-box">' +
+          '<div class="dex-stage-box" data-type="' + primaryType + '">' +
             '<img id="dexBigImg" class="dex-big-img" alt="' + A.esc(de ? form.nameDe : form.nameEn) + '">' +
           '</div>' +
           '<div class="dex-stage-meta">' +
             '<div class="dex-stage-types" id="dexStageTypes"></div>' +
-            '<div class="dex-phys-pills">' +
-              '<span class="catch-meta-pill">' + (de ? 'Größe: ' : 'Height: ') + '<b>' + String(form.heightm).replace('.', de ? ',' : '.') + ' m</b></span>' +
-              '<span class="catch-meta-pill">' + (de ? 'Gewicht: ' : 'Weight: ') + '<b>' + String(form.weightkg).replace('.', de ? ',' : '.') + ' kg</b></span>' +
-              '<span class="catch-meta-pill">' + (de ? 'Fangrate: ' : 'Catch rate: ') + '<b>' + catchRate + '</b></span>' +
+            '<div class="dex-metric-grid">' +
+              '<div class="dex-metric-card"><span class="dex-metric-lbl">' + (de ? 'Größe' : 'Height') + '</span><span class="dex-metric-val">📏 ' + String(form.heightm).replace('.', de ? ',' : '.') + ' m</span></div>' +
+              '<div class="dex-metric-card"><span class="dex-metric-lbl">' + (de ? 'Gewicht' : 'Weight') + '</span><span class="dex-metric-val">⚖️ ' + String(form.weightkg).replace('.', de ? ',' : '.') + ' kg</span></div>' +
+              '<div class="dex-metric-card"><span class="dex-metric-lbl">' + (de ? 'Fangrate' : 'Catch Rate') + '</span><span class="dex-metric-val">🎯 ' + catchRate + '</span></div>' +
+              '<div class="dex-metric-card"><span class="dex-metric-lbl">' + (de ? 'Geschlecht' : 'Gender') + '</span><span class="dex-metric-val">' + gStr + '</span></div>' +
             '</div>' +
           '</div>' +
           '<div class="dex-type-eff-box">' +
@@ -516,25 +542,32 @@
           '</div>' +
         '</div>' +
 
-        '<div class="dex-info-col">' +
-          '<div class="panel dex-abil-panel">' +
-            '<h2 class="field-head"><span>' + (de ? 'Fähigkeiten' : 'Abilities') + '</span></h2>' +
-            '<div class="dex-abil-list">' + abilHtml + '</div>' +
+        '<div class="panel dex-abil-panel">' +
+          '<h2 class="field-head"><span>' + (de ? 'Fähigkeiten & Profil' : 'Abilities & Profile') + '</span></h2>' +
+          '<div class="dex-abil-list">' + abilHtml + '</div>' +
+          '<div class="dex-profile-card">' +
+            '<div class="dex-profile-head"><span>' + (de ? 'Kampf-Profil & Fakten' : 'Battle Profile & Facts') + '</span></div>' +
+            '<div class="dex-profile-grid">' +
+              '<div class="dex-profile-item"><span class="dex-profile-k">' + (de ? 'Bester Basiswert' : 'Highest Stat') + '</span><span class="dex-profile-v highlight">' + maxStatName + ' (' + maxStatVal + ')</span></div>' +
+              '<div class="dex-profile-item"><span class="dex-profile-k">' + (de ? 'Kampfrolle' : 'Combat Role') + '</span><span class="dex-profile-v">' + roleStr + '</span></div>' +
+              '<div class="dex-profile-item"><span class="dex-profile-k">' + (de ? 'BST Summe' : 'Total BST') + '</span><span class="dex-profile-v">' + bst + ' BST</span></div>' +
+              '<div class="dex-profile-item"><span class="dex-profile-k">' + (de ? 'Herkunft' : 'Origin') + '</span><span class="dex-profile-v">' + A.esc(de ? genObj.nameDe : genObj.nameEn) + '</span></div>' +
+            '</div>' +
           '</div>' +
+        '</div>' +
 
-          '<div class="panel dex-stats-panel">' +
-            '<h2 class="field-head">' +
-              '<span>' + (de ? 'Basiswerte (Base Stats)' : 'Base Stats') + '</span>' +
-              '<span class="hint">Lv. 50 (Min–Max)</span>' +
-            '</h2>' +
-            '<div class="dex-stats-body">' +
-              statsHtml +
-              '<div class="dex-stat-row dex-bst-row">' +
-                '<span class="dex-stat-name">' + (de ? 'Summe (BST)' : 'Total (BST)') + '</span>' +
-                '<span class="dex-stat-val"><b>' + bst + '</b>' + (bstDiff !== 0 ? ' <small class="' + (bstDiff > 0 ? 'pos' : 'neg') + '">(' + (bstDiff > 0 ? '+' : '') + bstDiff + ')</small>' : '') + '</span>' +
-                '<div></div>' +
-                '<span class="dex-stat-rng"></span>' +
-              '</div>' +
+        '<div class="panel dex-stats-panel">' +
+          '<h2 class="field-head">' +
+            '<span>' + (de ? 'Basiswerte (Base Stats)' : 'Base Stats') + '</span>' +
+            '<span class="dex-bst-pill">BST ' + bst + '</span>' +
+          '</h2>' +
+          '<div class="dex-stats-body">' +
+            statsHtml +
+            '<div class="dex-stat-row dex-bst-row">' +
+              '<span class="dex-stat-name">' + (de ? 'Summe (BST)' : 'Total (BST)') + '</span>' +
+              '<span class="dex-stat-val"><b>' + bst + '</b>' + (bstDiff !== 0 ? ' <small class="' + (bstDiff > 0 ? 'pos' : 'neg') + '">(' + (bstDiff > 0 ? '+' : '') + bstDiff + ')</small>' : '') + '</span>' +
+              '<div></div>' +
+              '<span class="dex-stat-rng" title="Lv. 50 Min–Max">Lv. 50</span>' +
             '</div>' +
           '</div>' +
         '</div>' +
