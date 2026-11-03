@@ -610,10 +610,9 @@
       rng.addEventListener('input', function () { apply(rng.value); });
       num.addEventListener('input', function () { apply(num.value); });
       num.addEventListener('blur', function () { num.value = set.sps[st] || 0; });
-      var valEl = el('span', { class: 'tb-spbar-val' });
-      r.appendChild(lab); r.appendChild(rng); r.appendChild(num); r.appendChild(valEl);
+      r.appendChild(lab); r.appendChild(rng); r.appendChild(num);
       spBox.appendChild(r);
-      spRefs[st] = { name: lab, rng: rng, valEl: valEl };
+      spRefs[st] = { name: lab, rng: rng };
     });
     var spFoot = el('div', { class: 'tb-sp-foot' });
     var tot = el('span', { class: 'tb-st-total' });
@@ -815,10 +814,6 @@
         r.sub.textContent = T('base') + ' ' + DEX[view].bs[st] + (alt ? ' · ' + T('tbNormalVal', normal) : '');
         var up = nat[0] === st, down = nat[1] === st;
         [r.name, spRefs[st].name].forEach(function (e) { e.classList.toggle('up', up); e.classList.toggle('down', down); });
-        if (spRefs[st] && spRefs[st].valEl) {
-          spRefs[st].valEl.textContent = v;
-          spRefs[st].valEl.title = T('base') + ' ' + DEX[view].bs[st] + (alt ? ' · ' + T('tbNormalVal', normal) : '');
-        }
         spRefs[st].rng.style.setProperty('--p', ((set.sps[st] || 0) / C.SP_MAX * 100) + '%');
       });
       var n = spTotal(set);

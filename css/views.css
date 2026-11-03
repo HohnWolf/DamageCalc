@@ -213,7 +213,7 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .tb-tabs button:hover { color: var(--text); background: var(--btn-hover); }
 .tb-tabs button.on { color: var(--text); border-bottom-color: var(--accent-2); }
 .tb-work.tab-edit .tb-cover, .tb-work.tab-cover .tb-edit { display: none; }
-.tb-edit, .tb-cover { flex: 1; min-height: 0; overflow: auto; padding: 6px 10px 6px; }
+.tb-edit, .tb-cover { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 4px; }
 
 .tb-edit select, .tb-edit input[type=text], .tb-edit .tbtn { height: 28px; }
 .tb-ed-head { display: flex; min-width: 0; align-items: center; gap: 8px; margin-bottom: 5px; }
@@ -228,24 +228,23 @@ body.is-maximized #winMax .ic-restore { display: block; }
 
 /* editor grid like the sketch:  SP | sprite | moves  /  SP | item | ability  /  stats */
 .tb-ed-grid {
-  display: grid; gap: 8px;
+  display: grid; gap: 5px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.1fr);
-  grid-template-areas: "sp sprite moves" "nature item ability";
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr) minmax(0, 1.15fr);
+  grid-template-areas: "sp sprite moves" "nature item ability" "stats stats stats";
 }
-.tb-box { background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 5px 8px; min-width: 0; }
+.tb-box { background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 4px 7px; min-width: 0; }
 .tb-box-title { color: var(--muted); font-size: 11px; font-weight: 700; margin-bottom: 3px; display: block; }
-.tb-area-sp { grid-area: sp; display: flex; flex-direction: column; justify-content: space-between; gap: 5px; }
+.tb-area-sp { grid-area: sp; display: flex; flex-direction: column; justify-content: space-between; gap: 3px; }
 .tb-area-sprite { grid-area: sprite; position: relative; display: flex; flex-direction: column; padding: 6px; }
-.tb-area-moves { grid-area: moves; display: flex; flex-direction: column; gap: 6px; padding: 0; background: transparent; border: 0; }
+.tb-area-moves { grid-area: moves; display: flex; flex-direction: column; gap: 4px; padding: 0; background: transparent; border: 0; }
 .tb-area-item { grid-area: item; }
 .tb-area-nature { grid-area: nature; }
 .tb-area-ability { grid-area: ability; }
-.tb-area-stats { grid-area: stats; display: none !important; }
+.tb-area-stats { grid-area: stats; }
 .tb-area-item select, .tb-area-ability select, .tb-area-nature select { width: 100%; }
 
 /* SP bars */
-.tb-spbar { display: grid; grid-template-columns: 84px minmax(0, 1fr) 42px; align-items: center; gap: 8px; }
+.tb-spbar { display: grid; grid-template-columns: 80px minmax(0, 1fr) 38px; align-items: center; gap: 6px; }
 .tb-spbar-name { white-space: nowrap; font-size: 13px; }
 .tb-spbar-name.up, .tb-stat-name.up { color: var(--bad); font-weight: 600; }
 .tb-spbar-name.down, .tb-stat-name.down { color: var(--accent-2); font-weight: 600; }
@@ -312,10 +311,10 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .look-ic .sprite-fit, .look-ic img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 
 /* big sprite */
-.tb-stage { flex: 1; min-height: 130px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.tb-stage { flex: 1; min-height: 110px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .tb-stage img { display: block; }
 .tb-stage img.still { image-rendering: pixelated; }
-.tb-stage img.hd { max-height: 120px; max-width: 170px; width: auto; height: auto; object-fit: contain; }
+.tb-stage img.hd { max-height: 105px; max-width: 155px; width: auto; height: auto; object-fit: contain; }
 .tb-stage-cap { display: flex; align-items: center; justify-content: center; gap: 8px; padding-top: 4px; }
 .tb-stage-name { font-weight: 700; font-size: 15px; }
 .tb-ed-types { display: flex; gap: 3px; }
@@ -323,7 +322,7 @@ body.is-maximized #winMax .ic-restore { display: block; }
 
 /* moves */
 .tb-movecard {
-  flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; padding: 7px 10px;
+  flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 4px 7px;
   background: var(--input); border: 1px solid var(--line-soft); border-left: 4px solid var(--line); border-radius: var(--radius);
 }
 .tb-movecard select { width: 100%; height: 24px; font-size: 12px; font-weight: 600; }
@@ -335,13 +334,13 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .tb-note { color: var(--muted); font-size: 11px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
 
 /* stats */
-.tb-statrow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
-.tb-stat { display: flex; flex-direction: column; gap: 3px; }
-.tb-stat-name { font-size: 12px; color: var(--muted); }
-.tb-stat-val { font-size: 20px; font-weight: 700; line-height: 1.1; }
-.tb-stat-bar { height: 6px; background: var(--line-soft); border-radius: 3px; overflow: hidden; display: block; }
+.tb-statrow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.tb-stat { display: flex; flex-direction: column; gap: 1px; }
+.tb-stat-name { font-size: 11px; color: var(--muted); }
+.tb-stat-val { font-size: 15px; font-weight: 700; line-height: 1.1; }
+.tb-stat-bar { height: 5px; background: var(--line-soft); border-radius: 3px; overflow: hidden; display: block; }
 .tb-stat-bar span { display: block; height: 100%; }
-.tb-stat-sub { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-stat-sub { color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* type coverage */
 .tb-cover-table { width: 100%; max-width: 760px; border-collapse: separate; border-spacing: 3px; }
@@ -525,14 +524,3 @@ body.is-maximized #winMax .ic-restore { display: block; }
   background: var(--accent-2); border-color: var(--accent-2); color: var(--on-accent-2);
 }
 .tool-toggle .tool-nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* Inline stat indicator for SP sliders */
-.tb-spbar-val {
-  width: 32px;
-  text-align: right;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  padding-left: 2px;
-}
