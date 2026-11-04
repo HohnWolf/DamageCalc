@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pokémon Champions - Duell gegen die KI</title>
-  <script src="js/sim_worker.bundle.js"></script>
+  <script src="js/sim_worker.bundle.js?v=100k"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
@@ -832,17 +832,21 @@ Level: 50
     function initWorker() {
       if (window.ChampionsEngine) {
         worker = window.ChampionsEngine;
+        appendLog('✅ Champions-Engine via In-Memory-Bridge geladen.');
       } else {
         try {
           worker = new Worker('js/sim_worker.bundle.js');
+          appendLog('✅ Champions-Engine via Web Worker geladen.');
         } catch (e) {
           console.warn('Worker instantiation failed, checking ChampionsEngine fallback:', e);
           worker = window.ChampionsEngine;
+          if (worker) appendLog('✅ Fallback auf ChampionsEngine erfolgreich.');
         }
       }
 
       if (!worker) {
-        showToast('Fehler: Die Battle-Engine konnte nicht geladen werden.', 5000);
+        showToast('Fehler: Die Battle-Engine konnte nicht geladen werden. Bitte Strg+F5 drücken.', 6000);
+        appendLog('❌ FEHLER: sim_worker.bundle.js konnte nicht gestartet werden. Bitte Browser-Tab mit Strg+F5 neu laden.', 'faint');
         return;
       }
 
@@ -987,8 +991,13 @@ Level: 50
       const activeList = req.active || [];
       const sidePokemon = req.side.pokemon || [];
 
-      renderSlotControls(0, activeList[0], sidePokemon[0], sidePokemon);
-      renderSlotControls(1, activeList[1], sidePokemon[1], sidePokemon);
+      // Aktive Pokémon auf dem Feld präzise zuordnen
+      const activeMons = sidePokemon.filter(p => p.active);
+      const mon0 = activeMons[0] || sidePokemon[0];
+      const mon1 = activeMons[1] || sidePokemon[1];
+
+      renderSlotControls(0, activeList[0], mon0, sidePokemon);
+      renderSlotControls(1, activeList[1], mon1, sidePokemon);
 
       updateCommitState();
     }
@@ -1070,14 +1079,14 @@ Level: 50
 
       // Target Buttons listener
       targetBar.querySelectorAll('.btn-target').forEach(tBtn => {
-        tBtn.addEventListener('click', () => {
+        tBtn.onclick = () => {
           SFX.playMove();
           const target = tBtn.getAttribute('data-target');
           const choice = activeSlotChoices[slotIdx];
           if (choice && choice.moveNum) {
             setTarget(slotIdx, choice.moveNum, target, chkMega.checked);
           }
-        });
+        };
       });
 
       // Switches

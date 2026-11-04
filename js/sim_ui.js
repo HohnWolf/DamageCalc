@@ -169,7 +169,6 @@
           </div>
 
           <div class="sim-actions">
-            <button class="tbtn" id="simBtnPlayBattle" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; font-weight: 700; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">🎮 Live gegen KI spielen</button>
             <button class="primary-btn sim-start-btn" id="simBtnStart">⚔️ Simulation starten</button>
             <button class="tbtn danger hidden" id="simBtnCancel">Abbrechen</button>
           </div>
@@ -206,14 +205,6 @@
     modalEl.querySelector('#simBtnStart').addEventListener('click', function () {
       var matches = parseInt(modalEl.querySelector('#simMatchesPerArch').value, 10) || 50;
       run(matches);
-    });
-
-    modalEl.querySelector('#simBtnPlayBattle').addEventListener('click', function () {
-      if (window.desktop && window.desktop.openBattle) {
-        window.desktop.openBattle();
-      } else {
-        window.open('battle_play.html', '_blank');
-      }
     });
 
     modalEl.querySelector('#simBtnCancel').addEventListener('click', function () {

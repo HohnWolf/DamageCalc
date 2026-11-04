@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,19 +20,48 @@ class ChampionsNet(nn.Module):
         return self.fc3(h2)
 
 def train_and_export():
-    dataset_path = os.path.join(os.path.dirname(__file__), "dataset.json")
+    base_dir = os.path.dirname(__file__)
+    dataset_path = os.path.join(base_dir, "dataset.json")
+    buffer_path = os.path.join(base_dir, "replay_buffer.json")
+
     if not os.path.exists(dataset_path):
-        print(f"Error: {dataset_path} does not exist. Run train_pipeline.js first.")
+        print(f"Error: {dataset_path} does not exist. Run master_loop_20.js or train_pipeline.js first.")
         return
 
-    print("Loading dataset from JSON...")
     with open(dataset_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+        new_data = json.load(f)
 
-    print(f"Loaded {len(data)} training turns.")
+    # Sliding-Window Replay Buffer (prevents catastrophic forgetting across generations)
+    max_buffer_size = 20000
+    buffer_data = []
+    if os.path.exists(buffer_path):
+        try:
+            with open(buffer_path, "r", encoding="utf-8") as bf:
+                buffer_data = json.load(bf)
+        except Exception:
+            buffer_data = []
+
+    combined = buffer_data + new_data
+    if len(combined) > max_buffer_size:
+        combined = combined[-max_buffer_size:]
+
+    try:
+        with open(buffer_path, "w", encoding="utf-8") as bf:
+            json.dump(combined, bf)
+    except Exception:
+        pass
+
+    # Train on current generation + random replay sample for fast, stable multi-team convergence
+    if len(buffer_data) > 3000:
+        replay_idx = np.random.choice(len(buffer_data), size=3000, replace=False)
+        train_data = new_data + [buffer_data[i] for i in replay_idx]
+    else:
+        train_data = combined
+
+    print(f"Loaded {len(new_data)} new turns (Training set with Replay Buffer: {len(train_data)} turns).")
 
     model = ChampionsNet(input_dim=64)
-    weights_path = os.path.join(os.path.dirname(__file__), "..", "data", "ai_weights.json")
+    weights_path = os.path.join(base_dir, "..", "data", "ai_weights.json")
     if os.path.exists(weights_path):
         try:
             with open(weights_path, "r", encoding="utf-8") as wf:
@@ -43,32 +73,29 @@ def train_and_export():
                 model.fc2.bias.copy_(torch.tensor(old_w["b2"]))
                 model.fc3.weight.copy_(torch.tensor(old_w["W3"]).reshape(1, 64))
                 model.fc3.bias.copy_(torch.tensor(old_w["b3"]))
-            print("Successfully initialized model with previous iteration weights for continuous transfer learning!")
+            print("Loaded previous generation weights for continuous multi-team transfer learning.")
         except Exception as e:
             print(f"Note: Starting with fresh weights ({e})")
 
-    import sys
-    epochs = int(sys.argv[1]) if len(sys.argv) > 1 else 10
-    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
+    epochs = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+    optimizer = optim.AdamW(model.parameters(), lr=0.0008, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
-
-    print(f"Starting PyTorch training for {epochs} epochs...")
 
     for epoch in range(epochs):
         total_loss = 0.0
         correct_win_preds = 0
+        win_samples = 0
         total_samples = 0
 
-        # Shuffle samples
-        indices = np.random.permutation(len(data))
+        indices = np.random.permutation(len(train_data))
 
         for idx in indices:
-            sample = data[idx]
+            sample = train_data[idx]
             cands = sample["features"]
             chosen = sample["chosenIndex"]
-            reward = float(sample["reward"]) # +1.0 for winner, -1.0 for loser
+            reward = float(sample["reward"])
 
-            if len(cands) == 0:
+            if len(cands) == 0 or chosen >= len(cands):
                 continue
 
             cands_tensor = torch.tensor(cands, dtype=torch.float32) # [K, 64]
@@ -78,15 +105,23 @@ def train_and_export():
             target_q = torch.tensor(reward, dtype=torch.float32)
             mse_loss = F.smooth_l1_loss(q_values[chosen], target_q)
 
-            # 2. Preference loss: for winning lines, maximize probability of chosen move
+            # 2. Tactical Blunder Penalty across all candidates (indices 57..60 encode doubleProtect, speedConflict, friendlyFire, immuneOrWaste)
+            blunder_mask = (cands_tensor[:, 57:61].sum(dim=1) > 0.5)
+            blunder_loss = torch.tensor(0.0)
+            if blunder_mask.any():
+                blunder_loss = F.relu(q_values[blunder_mask] - (-0.9)).mean()
+
+            # 3. Preference loss: for winning lines, maximize probability of chosen move
             if reward > 0:
                 ce_loss = F.cross_entropy(q_values.unsqueeze(0), torch.tensor([chosen], dtype=torch.long))
-                loss = mse_loss + 0.5 * ce_loss
+                loss = mse_loss + 0.45 * ce_loss + 0.35 * blunder_loss
+                win_samples += 1
+                if torch.argmax(q_values).item() == chosen:
+                    correct_win_preds += 1
             else:
-                # For losing lines, margin loss: chosen action should be lower than median
                 median_q = torch.median(q_values)
-                margin_loss = F.relu(q_values[chosen] - median_q + 0.2)
-                loss = mse_loss + 0.3 * margin_loss
+                margin_loss = F.relu(q_values[chosen] - median_q + 0.25)
+                loss = mse_loss + 0.35 * margin_loss + 0.35 * blunder_loss
 
             optimizer.zero_grad()
             loss.backward()
@@ -96,18 +131,15 @@ def train_and_export():
             total_loss += loss.item()
             total_samples += 1
 
-            if reward > 0 and torch.argmax(q_values).item() == chosen:
-                correct_win_preds += 1
-
         scheduler.step()
         avg_loss = total_loss / max(total_samples, 1)
-        win_acc = (correct_win_preds / max(total_samples, 1)) * 100.0
+        win_acc = (correct_win_preds / max(win_samples, 1)) * 100.0
         print(f"Epoch {epoch + 1:2d}/{epochs:2d} | Loss: {avg_loss:.4f} | Win Move Accuracy: {win_acc:.1f}%")
 
     model.eval()
 
     # 1. Export to ONNX
-    onnx_path = os.path.join(os.path.dirname(__file__), "champions_bot.onnx")
+    onnx_path = os.path.join(base_dir, "champions_bot.onnx")
     dummy_input = torch.randn(1, 64, dtype=torch.float32)
     try:
         torch.onnx.export(
@@ -120,19 +152,17 @@ def train_and_export():
             opset_version=14,
             dynamo=False
         )
-        print(f"Exported ONNX model to: {onnx_path}")
-    except Exception as e:
-        print(f"ONNX export warning: {e}")
+    except Exception:
+        pass
 
     # 2. Export Weights to JSON for zero-dependency high-speed JS inference
-    weights_path = os.path.join(os.path.dirname(__file__), "..", "data", "ai_weights.json")
     weights = {
-        "W1": model.fc1.weight.detach().cpu().numpy().flatten().tolist(), # [128, 64] -> flat 8192
-        "b1": model.fc1.bias.detach().cpu().numpy().tolist(),            # [128]
-        "W2": model.fc2.weight.detach().cpu().numpy().flatten().tolist(), # [64, 128] -> flat 8192
-        "b2": model.fc2.bias.detach().cpu().numpy().tolist(),            # [64]
-        "W3": model.fc3.weight.detach().cpu().numpy().flatten().tolist(), # [1, 64] -> flat 64
-        "b3": model.fc3.bias.detach().cpu().numpy().tolist(),            # [1]
+        "W1": model.fc1.weight.detach().cpu().numpy().flatten().tolist(),
+        "b1": model.fc1.bias.detach().cpu().numpy().tolist(),
+        "W2": model.fc2.weight.detach().cpu().numpy().flatten().tolist(),
+        "b2": model.fc2.bias.detach().cpu().numpy().tolist(),
+        "W3": model.fc3.weight.detach().cpu().numpy().flatten().tolist(),
+        "b3": model.fc3.bias.detach().cpu().numpy().tolist(),
         "input_dim": 64,
         "h1_dim": 128,
         "h2_dim": 64

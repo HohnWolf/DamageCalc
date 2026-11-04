@@ -49,15 +49,13 @@
   <link rel="stylesheet" href="css/overlay.css?v=86">
   <link rel="stylesheet" href="css/catch.css?v=86">
   <link rel="stylesheet" href="css/pokedex.css?v=86">
-  <link rel="stylesheet" href="css/sim.css?v=86">
-</head>
+  </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
     <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=86" alt=""><span class="brand">Rattata Lab</span></button>
     <nav class="view-nav" id="viewNav"></nav>
     <button id="btnUpdate" class="pill update-pill" hidden></button>
     <div class="top-actions">
-      <button id="btnMetaSimTop" class="pill" title="⚔️ Meta-Tester: Headless Showdown-Simulationen gegen 8 Champions-Archetypen">⚔️ Meta-Tester</button>
       <button id="btnSettings" class="pill icon-pill" data-tt="setBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
     <div class="win-controls" id="winControls" hidden>
@@ -87,9 +85,7 @@
           } catch (e) {}
         })();
       </script>
-      <h1>Rattata Lab</h1>
-      <p class="start-sub" id="startSub">Damage Calculator, Teambuilder, Shiny-Zähler und Team-Analyse für Pokémon Champions</p>
-      <div class="start-cards">
+            <div class="start-cards">
         <button class="start-card card-calc" data-go="calc">
           <span class="sc-art sc-art-calc">
             <span class="sc-dmg">156 – 184 <small>(82,1 – 96,8 %)</small></span>
@@ -259,8 +255,5 @@
   <script src="js/catch_calc.js?v=86"></script>
   <script src="data/dex_gen1.js?v=86"></script>
   <script src="js/pokedex.js?v=86"></script>
-  <script src="data/meta_archetypes.js?v=87"></script>
-  <script src="js/sim_runner.js?v=87"></script>
-  <script src="js/sim_ui.js?v=87"></script>
 </body>
 </html>

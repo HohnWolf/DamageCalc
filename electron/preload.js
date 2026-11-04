@@ -6,7 +6,6 @@ contextBridge.exposeInMainWorld('desktop', {
   minimize: () => ipcRenderer.send('win', 'min'),
   toggleMaximize: () => ipcRenderer.send('win', 'max'),
   close: () => ipcRenderer.send('win', 'close'),
-  openBattle: () => ipcRenderer.send('open-battle'),
   onMaximized: (cb) => ipcRenderer.on('maximized', (e, v) => cb(!!v)),
   shiny: {
     setHotkeys: (map) => ipcRenderer.invoke('shiny-hotkeys', map),

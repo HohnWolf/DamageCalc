@@ -243,7 +243,6 @@
       '<input id="tbName" class="tb-name" spellcheck="false" placeholder="' + A.esc(T('tbName')) + '">' +
       '<span class="tb-count" id="tbCount"></span>' +
       '<span class="tb-acts">' +
-      '<button class="tbtn primary" id="tbMetaSim" title="' + (de ? 'Team gegen 8 Meta-Archetypen testen' : 'Test team against 8 meta archetypes') + '">⚔️ ' + T('tbMetaTest') + '</button>' +
       '<button class="tbtn" id="tbExport">' + T('tbExport') + '</button>' +
       '<button class="tbtn" id="tbDup">' + T('tbDuplicate') + '</button>' +
       '<button class="tbtn danger" id="tbDel">' + T('tbDelete') + '</button>' +
@@ -312,17 +311,6 @@
       setTimeout(function () { var i = root.querySelector('.tb-pick input'); if (i) i.focus(); }, 30);
     });
     root.querySelector('#tbImport').addEventListener('click', openImport);
-    var btnMeta = root.querySelector('#tbMetaSim');
-    if (btnMeta) {
-      btnMeta.addEventListener('click', function () {
-        var tm = team(), v = curVersion(tm);
-        var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
-        var paste = tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n');
-        if (window.SimUI) {
-          window.SimUI.open(paste, title);
-        }
-      });
-    }
     root.querySelector('#tbExport').addEventListener('click', function () {
       var tm = team(), v = curVersion(tm);
       var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
