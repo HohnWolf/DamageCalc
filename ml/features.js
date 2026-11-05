@@ -2,6 +2,18 @@
 // Produces a normalized float vector of length 64 for each candidate joint action (A_slot0, A_slot1)
 // Team-agnostic representation: encodes type matchups, immunities, speed tiers, field control, and synergies.
 
+let Calc = null;
+try {
+  Calc = require('../js/calc.js');
+} catch (e1) {
+  try {
+    Calc = require('./calc.js');
+  } catch (e2) {
+    if (typeof window !== 'undefined' && window.Calc) Calc = window.Calc;
+    else if (typeof globalThis !== 'undefined' && globalThis.Calc) Calc = globalThis.Calc;
+  }
+}
+
 const TYPE_CHART = {
   Normal:   { Rock: 0.5, Ghost: 0, Steel: 0.5 },
   Fire:     { Fire: 0.5, Water: 0.5, Grass: 2, Ice: 2, Bug: 2, Rock: 0.5, Dragon: 0.5, Steel: 2 },
@@ -176,6 +188,85 @@ function estimateDamageRatio(moveData, attacker, targetFoe, foes, field, isSprea
   if (!moveData || moveData.category === 'Status' || !targetFoe || !targetFoe.active) return 0;
   if (isMoveImmuneOrBlocked(moveData, attacker, targetFoe, foes, field)) return 0;
 
+  // Exact Champions damage calculation from RattataLab's Damage Calculator (Calc.calculate)
+  if (Calc && typeof Calc.calculate === 'function') {
+    const atkHp = attacker.maxHp || 175;
+    const defHp = targetFoe.maxHp || 175;
+    const atkObj = {
+      species: attacker.name || 'Pikachu',
+      types: attacker.types || ['Normal'],
+      stats: {
+        hp: atkHp,
+        at: attacker.atk || 130,
+        df: attacker.def || 110,
+        sa: attacker.spa || 130,
+        sd: attacker.spd || 110,
+        sp: attacker.spe || 100
+      },
+      boosts: attacker.boosts || { at: 0, df: 0, sa: 0, sd: 0, sp: 0 },
+      ability: attacker.ability || '',
+      item: attacker.item || '',
+      status: attacker.status === 'brn' ? 'Burned' : (attacker.status === 'par' ? 'Paralyzed' : 'Healthy'),
+      curHP: Math.round((attacker.hpRatio !== undefined ? attacker.hpRatio : 1.0) * atkHp),
+      maxHP: atkHp,
+      weight: attacker.weight || 50,
+      fainted: attacker.faintedAllies || 0
+    };
+
+    const defObj = {
+      species: targetFoe.name || 'Pikachu',
+      types: targetFoe.types || ['Normal'],
+      stats: {
+        hp: defHp,
+        at: targetFoe.atk || 130,
+        df: targetFoe.def || 110,
+        sa: targetFoe.spa || 130,
+        sd: targetFoe.spd || 110,
+        sp: targetFoe.speed || targetFoe.spe || 100
+      },
+      boosts: targetFoe.boosts || { at: 0, df: 0, sa: 0, sd: 0, sp: 0 },
+      ability: targetFoe.ability || '',
+      item: targetFoe.item || '',
+      status: targetFoe.status === 'brn' ? 'Burned' : (targetFoe.status === 'par' ? 'Paralyzed' : 'Healthy'),
+      curHP: Math.round((targetFoe.hpRatio !== undefined ? targetFoe.hpRatio : 1.0) * defHp),
+      maxHP: defHp,
+      weight: targetFoe.weight || 50
+    };
+
+    const weatherMap = { sun: 'Sun', rain: 'Rain', sand: 'Sand', snow: 'Snow', none: 'None' };
+    const terrainMap = { psychic: 'Psychic', electric: 'Electric', grassy: 'Grassy', misty: 'Misty', none: 'None' };
+    const fieldObj = {
+      format: 'Doubles',
+      weather: weatherMap[field?.weather] || 'None',
+      terrain: terrainMap[field?.terrain] || 'None',
+      gravity: false
+    };
+    const aSide = {
+      helpingHand: false
+    };
+    const dSide = {
+      reflect: !!field?.foeReflect,
+      lightScreen: !!field?.foeLightScreen,
+      auroraVeil: !!field?.foeAuroraVeil
+    };
+
+    const moveObj = {
+      name: moveData.name || moveData.id || 'Tackle',
+      bp: moveData.basePower || 60,
+      type: moveData.type || 'Normal',
+      category: moveData.category || 'Physical',
+      isSpread: !!isSpread,
+      crit: false,
+      dealsPhysicalDamage: moveData.defensiveCategory === 'Physical'
+    };
+
+    const res = Calc.calculate(atkObj, defObj, moveObj, fieldObj, aSide, dSide);
+    if (!res || !res.damage || !res.damage.length || res.effectiveness === 0) return 0;
+    const rolls = res.damage;
+    const avgDmg = (rolls[0] + rolls[rolls.length - 1]) * 0.5;
+    return Math.min(2.0, avgDmg / Math.max(1, defHp));
+  }
+
   const moveId = moveData.id || '';
   let bp = moveData.basePower || 60;
   const attackerHpRatio = (attacker && attacker.hpRatio !== undefined) ? attacker.hpRatio : 1.0;
@@ -198,17 +289,44 @@ function estimateDamageRatio(moveData, attacker, targetFoe, foes, field, isSprea
   if (eff === 0) return 0;
 
   const isSpecial = moveData.category === 'Special';
-  const aStat = attacker ? (isSpecial ? (attacker.spa || 130) : (attacker.atk || 130)) : 130;
-  const dStat = targetFoe ? (isSpecial ? (targetFoe.spd || 110) : (targetFoe.def || 110)) : 110;
+  let aStatKey = isSpecial ? 'spa' : 'atk';
+  let dStatKey = isSpecial ? 'spd' : 'def';
+
+  // Body Press uses physical Defense
+  if (moveId === 'bodypress') aStatKey = 'def';
+  // Psyshock / Psystrike / Secret Sword hit physical Defense
+  if (moveId === 'psyshock' || moveId === 'psystrike' || moveId === 'secretsword') dStatKey = 'def';
+
+  let aStat = attacker ? (attacker[aStatKey] || 130) : 130;
+  // Foul Play uses target's physical Attack
+  if (moveId === 'foulplay') aStat = targetFoe ? (targetFoe.atk || 130) : 130;
+
+  let dStat = targetFoe ? (targetFoe[dStatKey] || 110) : 110;
   const maxHp = (targetFoe && targetFoe.maxHp) ? targetFoe.maxHp : 175;
+
+  // Stat stage multipliers ([-6..+6])
+  const getBoostMod = (stage) => {
+    stage = Math.max(-6, Math.min(6, stage || 0));
+    return stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage);
+  };
+
+  if (attacker && attacker.boosts) {
+    aStat *= getBoostMod(attacker.boosts[aStatKey]);
+  }
+  if (targetFoe && targetFoe.boosts) {
+    dStat *= getBoostMod(targetFoe.boosts[dStatKey]);
+  }
 
   let raw = (((22 * bp * (aStat / Math.max(1, dStat))) / 50) + 2);
 
   // STAB & -ate abilities
   const attackerTypes = (attacker && attacker.types) ? attacker.types : ['Normal'];
   const attackerAbil = (attacker && attacker.ability ? String(attacker.ability) : '').toLowerCase().replace(/[^a-z]/g, '');
-  const convertedNormal = (moveData.type === 'Normal' && moveType !== 'Normal');
+  const targetAbil = (targetFoe && targetFoe.ability ? String(targetFoe.ability) : '').toLowerCase().replace(/[^a-z]/g, '');
+  const attackerItem = (attacker && attacker.item ? String(attacker.item) : '').toLowerCase().replace(/[^a-z]/g, '');
+  const targetItem = (targetFoe && targetFoe.item ? String(targetFoe.item) : '').toLowerCase().replace(/[^a-z]/g, '');
 
+  const convertedNormal = (moveData.type === 'Normal' && moveType !== 'Normal');
   if (convertedNormal) {
     raw *= 1.2; // Pixilate / Aerilate boost
   }
@@ -216,8 +334,10 @@ function estimateDamageRatio(moveData, attacker, targetFoe, foes, field, isSprea
     raw *= (attackerAbil === 'adaptability' ? 2.0 : 1.5);
   }
 
+  // Type effectiveness
   raw *= eff;
 
+  // Spread reduction (0.75x in doubles)
   if (isSpread) raw *= 0.75;
 
   // Weather modifiers
@@ -234,6 +354,50 @@ function estimateDamageRatio(moveData, attacker, targetFoe, foes, field, isSprea
     else if (field.terrain === 'electric' && moveType === 'Electric' && isGrounded(attacker, field)) raw *= 1.3;
     else if (field.terrain === 'grassy' && moveType === 'Grass' && isGrounded(attacker, field)) raw *= 1.3;
     else if (field.terrain === 'misty' && moveType === 'Dragon' && isGrounded(targetFoe, field)) raw *= 0.5;
+
+    // Screens on foe's side
+    if (field.foeAuroraVeil) raw *= 0.67;
+    else if (field.foeReflect && !isSpecial) raw *= 0.67;
+    else if (field.foeLightScreen && isSpecial) raw *= 0.67;
+  }
+
+  // Attacker ability boosts
+  if (attackerAbil === 'hugepower' || attackerAbil === 'purepower') {
+    if (!isSpecial && moveId !== 'bodypress') raw *= 2.0;
+  } else if (attackerAbil === 'toughclaws' && moveData.flags?.contact) {
+    raw *= 1.3;
+  } else if (attackerAbil === 'sharpness' && moveData.flags?.slicing) {
+    raw *= 1.5;
+  } else if (attackerAbil === 'strongjaw' && moveData.flags?.bite) {
+    raw *= 1.5;
+  } else if (attackerAbil === 'sheerforce' && moveData.secondaries) {
+    raw *= 1.3;
+  }
+
+  // Defender ability damage reduction
+  if ((targetAbil === 'multiscale' || targetAbil === 'shadowshield') && targetFoe.hpRatio >= 0.99) {
+    raw *= 0.5;
+  } else if (targetAbil === 'fluffy') {
+    if (moveType === 'Fire') raw *= 2.0;
+    else if (moveData.flags?.contact) raw *= 0.5;
+  } else if ((targetAbil === 'filter' || targetAbil === 'solidrock') && eff > 1.0) {
+    raw *= 0.75;
+  } else if (targetAbil === 'thickfat' && (moveType === 'Fire' || moveType === 'Ice')) {
+    raw *= 0.5;
+  }
+
+  // Item boosts
+  if (attackerItem === 'lifeorb') raw *= 1.3;
+  else if (attackerItem === 'choiceband' && !isSpecial) raw *= 1.5;
+  else if (attackerItem === 'choicespecs' && isSpecial) raw *= 1.5;
+  else if (attackerItem === 'expertbelt' && eff > 1.0) raw *= 1.2;
+
+  // Defender item reduction
+  if (targetItem === 'assaultvest' && isSpecial) raw *= (2 / 3);
+
+  // Burn drop (halves physical damage unless Guts or Facade)
+  if (attacker && attacker.status === 'brn' && !isSpecial && attackerAbil !== 'guts' && moveId !== 'facade') {
+    raw *= 0.5;
   }
 
   return Math.min(1.5, raw / Math.max(100, maxHp));

@@ -2,10 +2,43 @@
 // Nutzt die authentische Pokémon Champions Battle-Engine mit Stat Points (SPs),
 // Champions-Stat-Formeln, Mega-Evolution und Doppelkampf-Heuristiken.
 
-import { BattleStreams, Teams, Dex } from '@pkmn/sim';
+import { Battle, BattleStreams, Teams, Dex } from '@pkmn/sim';
 import ChampionsBot from './sim_bot.js';
 import ARCHETYPES from '../data/meta_archetypes.js';
 import aiWeights from '../data/ai_weights.json';
+
+// Authentische Pokémon Champions Engine: Stat Points und Formeln patchen
+if (Battle && Battle.prototype) {
+  Battle.prototype.statModify = function(baseStats, set, statName) {
+    const tr = this.trunc;
+    let stat = baseStats[statName];
+    // In Champions speichert set.evs direkt die Stat Points (SPs, 0 bis 32) oder alte Showdown EVs (0..252)
+    const evVal = set.evs ? (set.evs[statName] || 0) : 0;
+    const sp = evVal > 32 ? Math.min(32, Math.floor((evVal + 4) / 8)) : evVal;
+    if (statName === 'hp') {
+      return stat + sp + 75;
+    }
+    stat = stat + sp + 20;
+    const nature = this.dex.natures.get(set.nature);
+    if (nature.plus === statName) {
+      stat = tr(tr(stat * 110, 16) / 100);
+    } else if (nature.minus === statName) {
+      stat = tr(tr(stat * 90, 16) / 100);
+    }
+    return stat;
+  };
+
+  const origGetTeam = Battle.prototype.getTeam;
+  Battle.prototype.getTeam = function(options) {
+    const team = origGetTeam.call(this, options);
+    if (team && Array.isArray(team)) {
+      for (const set of team) {
+        if (!set.level) set.level = 50;
+      }
+    }
+    return team;
+  };
+}
 
 // Authentische Pokémon Champions Engine registrieren
 Dex.mod('champions', {
@@ -17,23 +50,6 @@ Dex.mod('champions', {
           this.modData('Moves', i).pp = 20;
         }
       }
-    },
-    statModify(baseStats, set, statName) {
-      const tr = this.trunc;
-      let stat = baseStats[statName];
-      // In Champions speichert set.evs direkt die Stat Points (SPs, 0 bis 32)
-      const sp = set.evs ? (set.evs[statName] || 0) : 0;
-      if (statName === 'hp') {
-        return stat + sp + 75;
-      }
-      stat = stat + sp + 20;
-      const nature = this.dex.natures.get(set.nature);
-      if (nature.plus === statName) {
-        stat = tr(tr(stat * 110, 16) / 100);
-      } else if (nature.minus === statName) {
-        stat = tr(tr(stat * 90, 16) / 100);
-      }
-      return stat;
     },
     actions: {
       canTerastallize(pokemon) {
@@ -51,38 +67,6 @@ Dex.mod('champions', {
           return altForme.name;
         }
         return item.megaStone?.[species.name] || null;
-      },
-      modifyDamage(baseDamage, pokemon, target, move, suppressMessages) {
-        const tr = this.battle.trunc;
-        if (!move.type) move.type = '???';
-        const type = move.type;
-
-        baseDamage += 2;
-
-        if (move.spreadHit) {
-          const spreadModifier = 0.75;
-          baseDamage = this.battle.modify(baseDamage, spreadModifier);
-        } else if (move.multihitType === 'parentalbond' && move.hit > 1) {
-          baseDamage = this.battle.modify(baseDamage, 0.25);
-        }
-
-        baseDamage = this.battle.priorityEvent('WeatherModifyDamage', pokemon, target, move, baseDamage);
-
-        const isCrit = target.getMoveHitData(move).crit;
-        if (isCrit) {
-          baseDamage = tr(baseDamage * (move.critModifier || 1.5));
-        }
-
-        baseDamage = this.battle.randomizer(baseDamage);
-
-        if (type !== '???') {
-          let stab = 1;
-          const isSTAB = move.forceSTAB || pokemon.hasType(type) || pokemon.getTypes(false, true).includes(type);
-          if (isSTAB) stab = 1.5;
-          baseDamage = this.battle.modify(baseDamage, stab);
-        }
-
-        return baseDamage;
       }
     }
   }
@@ -94,7 +78,7 @@ Dex.formats.extend([
     name: '[Gen 9 Champions] VGC 2026 Reg M-C',
     mod: 'champions',
     gameType: 'doubles',
-    ruleset: ['Flat Rules', 'NatDex Mod'],
+    ruleset: ['Flat Rules', 'NatDex Mod', '!! Adjust Level = 50'],
   }
 ]);
 
@@ -104,7 +88,11 @@ const CHAMP_DEX = Dex.mod('champions');
 // Erkennt SPs: direkt oder wandelt alte Showdown-252-EVs in SPs (0-32) um
 function normalizeChampionsPaste(paste) {
   if (!paste) return '';
-  return paste.replace(/^(SPs?|EVs?):\s*(.+)$/gim, (match, prefix, body) => {
+  // Mega-Formen im Paste auf die Basisform zurückführen, wenn ein Mega-Stein getragen wird.
+  // Dadurch wird das Pokémon in seiner Basisform eingewechselt und erst auf dem Feld mega-entwickelt.
+  let cleaned = paste.replace(/^([A-Za-z0-9\-]+?)-(Mega|Mega-[XYZ])(\s*@\s*[A-Za-z0-9\s]+ite[z]?)/gim, '$1$3');
+
+  return cleaned.replace(/^(SPs?|EVs?):\s*(.+)$/gim, (match, prefix, body) => {
     const parts = body.split('/').map(p => p.trim());
     const spParts = parts.map(part => {
       const m = /^(\d+)\s+([A-Za-z]+)$/.exec(part);
@@ -245,6 +233,7 @@ async function runSimulation(data) {
     emitMessage({ type: 'ERROR', error: 'Ungültiges eigenes Team (Showdown-Paste leer oder fehlerhaft).' });
     return;
   }
+  userParsed.forEach(m => { if (!m.level) m.level = 50; });
   const userPacked = Teams.pack(userParsed);
   const userMonNames = userParsed.map(m => m.name || m.species);
 
@@ -266,6 +255,7 @@ async function runSimulation(data) {
     const arch = archetypesToTest[aIdx];
     const archPaste = normalizeChampionsPaste(arch.paste);
     const archParsed = Teams.import(archPaste);
+    if (archParsed) archParsed.forEach(m => { if (!m.level) m.level = 50; });
     const archPacked = Teams.pack(archParsed);
     const archCombos = generateLeadCombinations(archParsed.length);
 
@@ -379,29 +369,43 @@ async function runSimulation(data) {
 
 // Interaktives Duell gegen den Bot
 let interactiveHumanStream = null;
+let currentInteractiveBattleStream = null;
 
 async function initInteractiveBattle(msg) {
   try {
+    if (currentInteractiveBattleStream) {
+      try { currentInteractiveBattleStream.destroy(); } catch (e) {}
+    }
+
     const p1Paste = normalizeChampionsPaste(msg.p1Paste || '');
     const p2Paste = normalizeChampionsPaste(msg.p2Paste || '');
 
     const p1Parsed = Teams.import(p1Paste);
     const p2Parsed = Teams.import(p2Paste);
+    if (p1Parsed) p1Parsed.forEach(m => { if (!m.level) m.level = 50; });
+    if (p2Parsed) p2Parsed.forEach(m => { if (!m.level) m.level = 50; });
 
     const p1Packed = msg.p1Packed || Teams.pack(p1Parsed);
     const p2Packed = msg.p2Packed || Teams.pack(p2Parsed);
 
     const battleStream = new BattleStreams.BattleStream();
+    currentInteractiveBattleStream = battleStream;
     const streams = BattleStreams.getPlayerStreams(battleStream);
 
     interactiveHumanStream = streams.p1;
-    const p2Bot = new ChampionsBot(streams.p2, { player: 'p2', dex: CHAMP_DEX, weights: aiWeights });
+    const botOptions = { player: 'p2', dex: CHAMP_DEX, weights: aiWeights };
+    if (msg.leadOrder) {
+      botOptions.leadOrder = msg.leadOrder;
+      botOptions.fixedLeadOrder = true;
+    }
+    const p2Bot = new ChampionsBot(streams.p2, botOptions);
     p2Bot.start();
 
     // Human Player P1 Stream überwachen
     (async () => {
       try {
         for await (const chunk of streams.p1) {
+          if (battleStream !== currentInteractiveBattleStream) break;
           for (const line of chunk.split('\n')) {
             if (line.startsWith('|request|')) {
               const raw = line.slice(9).trim();
@@ -421,6 +425,7 @@ async function initInteractiveBattle(msg) {
     (async () => {
       try {
         for await (const chunk of streams.omniscient) {
+          if (battleStream !== currentInteractiveBattleStream) break;
           const lines = chunk.split('\n').filter(Boolean);
           emitMessage({ type: 'INTERACTIVE_EVENTS', lines });
         }

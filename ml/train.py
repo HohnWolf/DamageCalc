@@ -2,6 +2,10 @@ import json
 import os
 import sys
 import torch
+
+# Laptop Thermal Protection: limit PyTorch CPU threads so system stays cool and stable
+torch.set_num_threads(2)
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -31,8 +35,8 @@ def train_and_export():
     with open(dataset_path, "r", encoding="utf-8") as f:
         new_data = json.load(f)
 
-    # Sliding-Window Replay Buffer (prevents catastrophic forgetting across generations)
-    max_buffer_size = 20000
+    # Sliding-Window Replay Buffer (prevents catastrophic forgetting across generations & memory bloat)
+    max_buffer_size = 6000
     buffer_data = []
     if os.path.exists(buffer_path):
         try:

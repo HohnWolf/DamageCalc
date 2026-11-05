@@ -604,11 +604,15 @@
     return { text: '', n: 0 };
   }
 
-  window.Calc = {
+  var Calc = {
     TYPES: TYPES, CHART: CHART, NATURES: NATURES, STAT_KEYS: STAT_KEYS, STAT_LABEL: STAT_LABEL, STAT_LONG: STAT_LONG,
     SP_MAX: SP_MAX, SP_TOTAL: SP_TOTAL, LEVEL: LEVEL, RESIST_BERRIES: RESIST_BERRIES, TYPE_ITEMS: TYPE_ITEMS,
     calcStat: calcStat, spToEv: spToEv, evToSp: evToSp, natureMod: natureMod, boosted: boosted,
     getSpeed: getSpeed, calculate: calculate, koChance: koChance, typeEff: typeEff, isGrounded: isGrounded,
     effectiveWeather: effectiveWeather, pokeRound: pokeRound
   };
+
+  if (typeof window !== 'undefined') window.Calc = Calc;
+  if (typeof globalThis !== 'undefined') globalThis.Calc = Calc;
+  if (typeof module !== 'undefined' && module.exports) module.exports = Calc;
 })();

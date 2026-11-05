@@ -2,7 +2,7 @@
 // Trains across all 12 Meta & User Teams, all 144 matchup pairings, and all 15 4-out-of-6 lead/back combinations.
 const fs = require('fs');
 const path = require('path');
-const { BattleStreams, Teams, Dex } = require('@pkmn/sim');
+const { Battle, BattleStreams, Teams, Dex } = require('@pkmn/sim');
 const {
   getTypeEff,
   getEffectiveMoveType,
@@ -16,19 +16,40 @@ const {
 } = require(path.join(__dirname, 'features.js'));
 const ARCHETYPES = require(path.join(__dirname, '../data/meta_archetypes.js'));
 
+// Authentische Pokémon Champions Engine: Stat Points patchen
+if (Battle && Battle.prototype) {
+  Battle.prototype.statModify = function(baseStats, set, statName) {
+    const tr = this.trunc;
+    let stat = baseStats[statName];
+    const evVal = set.evs ? (set.evs[statName] || 0) : 0;
+    const sp = evVal > 32 ? Math.min(32, Math.floor((evVal + 4) / 8)) : evVal;
+    if (statName === 'hp') {
+      return stat + sp + 75;
+    }
+    stat = stat + sp + 20;
+    const nature = this.dex.natures.get(set.nature);
+    if (nature.plus === statName) {
+      stat = tr(tr(stat * 110, 16) / 100);
+    } else if (nature.minus === statName) {
+      stat = tr(tr(stat * 90, 16) / 100);
+    }
+    return stat;
+  };
+
+  const origGetTeam = Battle.prototype.getTeam;
+  Battle.prototype.getTeam = function(options) {
+    const team = origGetTeam.call(this, options);
+    if (team && Array.isArray(team)) {
+      for (const set of team) {
+        if (!set.level) set.level = 50;
+      }
+    }
+    return team;
+  };
+}
+
 Dex.mod('champions', {
   Scripts: {
-    statModify(baseStats, set, statName) {
-      const tr = this.trunc;
-      let stat = baseStats[statName];
-      const sp = set.evs ? (set.evs[statName] || 0) : 0;
-      if (statName === 'hp') return stat + sp + 75;
-      stat = stat + sp + 20;
-      const nature = this.dex.natures.get(set.nature);
-      if (nature.plus === statName) stat = tr(tr(stat * 110, 16) / 100);
-      else if (nature.minus === statName) stat = tr(tr(stat * 90, 16) / 100);
-      return stat;
-    },
     actions: {
       canTerastallize() { return null; },
       canMegaEvo(pokemon) {
@@ -173,12 +194,30 @@ function normalizePaste(p) {
   });
 }
 
-// All 12 diverse teams (2 User Teams + 10 Meta Archetypes: Sand, Sun, Rain, Tailwind, Psyspam, Hard TR, Setup, Shadow Tag)
-const ALL_TEAMS = [
-  Teams.import(normalizePaste(userTeam1Paste)),
-  Teams.import(normalizePaste(userTeam2Paste)),
-  ...ARCHETYPES.map(a => Teams.import(normalizePaste(a.paste)))
-];
+// All 210+ diverse competitive teams (crob.at tournament/ladder + meta archetypes + user teams)
+const teams200Path = path.join(__dirname, '../data/champions_teams_200.json');
+let ALL_TEAMS = [];
+
+if (fs.existsSync(teams200Path)) {
+  try {
+    const raw200 = JSON.parse(fs.readFileSync(teams200Path, 'utf8'));
+    ALL_TEAMS = raw200.map(t => Teams.import(normalizePaste(t.paste))).filter(Boolean);
+  } catch (e) {
+    ALL_TEAMS = [];
+  }
+}
+
+if (!ALL_TEAMS.length) {
+  ALL_TEAMS = [
+    Teams.import(normalizePaste(userTeam1Paste)),
+    Teams.import(normalizePaste(userTeam2Paste)),
+    ...ARCHETYPES.map(a => Teams.import(normalizePaste(a.paste)))
+  ];
+}
+
+ALL_TEAMS.forEach(team => {
+  if (team) team.forEach(mon => { if (!mon.level) mon.level = 50; });
+});
 
 // Generate all 15 2-Lead + 2-Back combinations across all 6 team members so slots 5 & 6 are thoroughly trained
 function generateLeadOrders(teamLen, seedVal) {
@@ -212,9 +251,14 @@ class FastSimBot extends BattleStreams.BattlePlayer {
     this.megaUsed = false;
 
     this.foes = {
-      '1': { name: '', types: ['Normal'], ability: '', hpRatio: 1.0, active: false, protectedLastTurn: false, speed: 120, atk: 130, spa: 130, def: 110, spd: 110, maxHp: 175 },
-      '2': { name: '', types: ['Normal'], ability: '', hpRatio: 1.0, active: false, protectedLastTurn: false, speed: 120, atk: 130, spa: 130, def: 110, spd: 110, maxHp: 175 }
+      '1': { name: '', types: ['Normal'], ability: '', hpRatio: 1.0, active: false, protectedLastTurn: false, speed: 120, atk: 130, spa: 130, def: 110, spd: 110, maxHp: 175, boosts: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: '' },
+      '2': { name: '', types: ['Normal'], ability: '', hpRatio: 1.0, active: false, protectedLastTurn: false, speed: 120, atk: 130, spa: 130, def: 110, spd: 110, maxHp: 175, boosts: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: '' }
     };
+    this.myBoosts = [
+      { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+      { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }
+    ];
+    this.myStatus = ['', ''];
 
     this.field = {
       weather: 'none',
@@ -224,6 +268,9 @@ class FastSimBot extends BattleStreams.BattlePlayer {
       foeTailwind: false,
       myReflect: false,
       myLightScreen: false,
+      foeReflect: false,
+      foeLightScreen: false,
+      foeAuroraVeil: false,
       imprisonActive: false
     };
 
@@ -278,11 +325,15 @@ class FastSimBot extends BattleStreams.BattlePlayer {
           spa: bs.spa + 52,
           def: bs.def + 52,
           spd: bs.spd + 52,
-          maxHp: bs.hp + 107
+          maxHp: bs.hp + 107,
+          boosts: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+          status: ''
         };
       } else if (ident.startsWith(myPrefix)) {
         const mySlotIdx = (ident.includes('b:') || ident.endsWith('b')) ? 1 : 0;
         this.slotActiveTurns[mySlotIdx] = 0; // Increments to 1 on '|turn|'
+        this.myBoosts[mySlotIdx] = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+        this.myStatus[mySlotIdx] = '';
       }
     } else if (cmd === '-damage') {
       const ident = parts[2] || '';
@@ -310,6 +361,69 @@ class FastSimBot extends BattleStreams.BattlePlayer {
       if (ident.startsWith(foePrefix)) {
         const slot = (ident.includes('b:') || ident.endsWith('b')) ? '2' : '1';
         this.foes[slot].protectedLastTurn = true;
+      }
+    } else if (cmd === '-boost' || cmd === '-unboost') {
+      const ident = parts[2] || '';
+      const stat = parts[3] || '';
+      const amt = parseInt(parts[4] || '1', 10) * (cmd === '-boost' ? 1 : -1);
+      if (ident.startsWith(foePrefix)) {
+        const slot = (ident.includes('b:') || ident.endsWith('b')) ? '2' : '1';
+        if (this.foes[slot] && this.foes[slot].boosts) {
+          this.foes[slot].boosts[stat] = Math.max(-6, Math.min(6, (this.foes[slot].boosts[stat] || 0) + amt));
+        }
+      } else if (ident.startsWith(myPrefix)) {
+        const mySlotIdx = (ident.includes('b:') || ident.endsWith('b')) ? 1 : 0;
+        if (this.myBoosts[mySlotIdx]) {
+          this.myBoosts[mySlotIdx][stat] = Math.max(-6, Math.min(6, (this.myBoosts[mySlotIdx][stat] || 0) + amt));
+        }
+      }
+    } else if (cmd === '-setboost') {
+      const ident = parts[2] || '';
+      const stat = parts[3] || '';
+      const amt = parseInt(parts[4] || '0', 10);
+      if (ident.startsWith(foePrefix)) {
+        const slot = (ident.includes('b:') || ident.endsWith('b')) ? '2' : '1';
+        if (this.foes[slot] && this.foes[slot].boosts) {
+          this.foes[slot].boosts[stat] = Math.max(-6, Math.min(6, amt));
+        }
+      } else if (ident.startsWith(myPrefix)) {
+        const mySlotIdx = (ident.includes('b:') || ident.endsWith('b')) ? 1 : 0;
+        if (this.myBoosts[mySlotIdx]) {
+          this.myBoosts[mySlotIdx][stat] = Math.max(-6, Math.min(6, amt));
+        }
+      }
+    } else if (cmd === '-clearallboost') {
+      this.foes['1'].boosts = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+      this.foes['2'].boosts = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+      this.myBoosts[0] = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+      this.myBoosts[1] = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+    } else if (cmd === '-clearboost') {
+      const ident = parts[2] || '';
+      if (ident.startsWith(foePrefix)) {
+        const slot = (ident.includes('b:') || ident.endsWith('b')) ? '2' : '1';
+        if (this.foes[slot]) this.foes[slot].boosts = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+      } else if (ident.startsWith(myPrefix)) {
+        const mySlotIdx = (ident.includes('b:') || ident.endsWith('b')) ? 1 : 0;
+        this.myBoosts[mySlotIdx] = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+      }
+    } else if (cmd === '-status') {
+      const ident = parts[2] || '';
+      const st = parts[3] || '';
+      if (ident.startsWith(foePrefix)) {
+        const slot = (ident.includes('b:') || ident.endsWith('b')) ? '2' : '1';
+        if (this.foes[slot]) this.foes[slot].status = st;
+      } else if (ident.startsWith(myPrefix)) {
+        const mySlotIdx = (ident.includes('b:') || ident.endsWith('b')) ? 1 : 0;
+        this.myStatus[mySlotIdx] = st;
+      }
+    } else if (cmd === '-curestatus') {
+      const ident = parts[2] || '';
+      if (ident.startsWith(foePrefix)) {
+        const slot = (ident.includes('b:') || ident.endsWith('b')) ? '2' : '1';
+        if (this.foes[slot]) this.foes[slot].status = '';
+      } else if (ident.startsWith(myPrefix)) {
+        const mySlotIdx = (ident.includes('b:') || ident.endsWith('b')) ? 1 : 0;
+        this.myStatus[mySlotIdx] = '';
       }
     } else if (cmd === '-immune') {
       const ident = parts[2] || '';
@@ -347,22 +461,36 @@ class FastSimBot extends BattleStreams.BattlePlayer {
     } else if (cmd === '-sidestart') {
       const side = parts[2] || '';
       const effect = parts[3] || '';
-      const isMine = side.startsWith(this.player);
+      const isMine = side.startsWith(myPrefix);
       if (effect.includes('Tailwind')) {
         if (isMine) this.field.myTailwind = true;
         else this.field.foeTailwind = true;
-      } else if (effect.includes('Reflect') && isMine) {
-        this.field.myReflect = true;
-      } else if (effect.includes('Light Screen') && isMine) {
-        this.field.myLightScreen = true;
+      } else if (effect.includes('Reflect')) {
+        if (isMine) this.field.myReflect = true;
+        else this.field.foeReflect = true;
+      } else if (effect.includes('Light Screen')) {
+        if (isMine) this.field.myLightScreen = true;
+        else this.field.foeLightScreen = true;
+      } else if (effect.includes('Aurora Veil')) {
+        if (isMine) this.field.myAuroraVeil = true;
+        else this.field.foeAuroraVeil = true;
       }
     } else if (cmd === '-sideend') {
       const side = parts[2] || '';
       const effect = parts[3] || '';
-      const isMine = side.startsWith(this.player);
+      const isMine = side.startsWith(myPrefix);
       if (effect.includes('Tailwind')) {
         if (isMine) this.field.myTailwind = false;
         else this.field.foeTailwind = false;
+      } else if (effect.includes('Reflect')) {
+        if (isMine) this.field.myReflect = false;
+        else this.field.foeReflect = false;
+      } else if (effect.includes('Light Screen')) {
+        if (isMine) this.field.myLightScreen = false;
+        else this.field.foeLightScreen = false;
+      } else if (effect.includes('Aurora Veil')) {
+        if (isMine) this.field.myAuroraVeil = false;
+        else this.field.foeAuroraVeil = false;
       }
     }
   }
@@ -422,7 +550,7 @@ class FastSimBot extends BattleStreams.BattlePlayer {
   }
 
   buildMonContext(mon, slotIndex, allSideMons) {
-    if (!mon) return { name: '', types: ['Normal'], ability: '', hpRatio: 0, activeTurns: 1, atk: 120, spa: 120, spe: 100, faintedAllies: 0 };
+    if (!mon) return { name: '', types: ['Normal'], ability: '', hpRatio: 0, activeTurns: 1, atk: 120, def: 110, spa: 120, spd: 110, spe: 100, faintedAllies: 0, boosts: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: '', item: '' };
     const name = mon.details.split(',')[0].trim();
     const spec = Dex.species.get(name);
     const [hp, maxHp] = (mon.condition || '100/100').split(' ')[0].split('/').map(Number);
@@ -431,11 +559,16 @@ class FastSimBot extends BattleStreams.BattlePlayer {
       name,
       types: spec?.types || ['Normal'],
       ability: mon.ability || mon.baseAbility || spec?.abilities?.['0'] || '',
+      item: mon.item || '',
       hpRatio: maxHp ? hp / maxHp : 1.0,
       activeTurns: Math.max(1, this.slotActiveTurns[slotIndex] || 1),
       atk: mon.stats?.atk || 130,
+      def: mon.stats?.def || 110,
       spa: mon.stats?.spa || 130,
+      spd: mon.stats?.spd || 110,
       spe: mon.stats?.spe || 120,
+      boosts: this.myBoosts ? this.myBoosts[slotIndex] : { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+      status: this.myStatus ? this.myStatus[slotIndex] : '',
       faintedAllies
     };
   }
@@ -447,11 +580,19 @@ class FastSimBot extends BattleStreams.BattlePlayer {
     const monCtx0 = this.buildMonContext(myActiveMons[0], 0, sideMons);
     const monCtx1 = this.buildMonContext(myActiveMons[1], 1, sideMons);
 
-    // Compute real speed advantage
+    // Compute real speed advantage with stages and Tailwind
+    const getBoostMod = (stage) => {
+      stage = Math.max(-6, Math.min(6, stage || 0));
+      return stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage);
+    };
     const myMult = this.field.myTailwind ? 2.0 : 1.0;
     const foeMult = this.field.foeTailwind ? 2.0 : 1.0;
-    const myAvgSpe = ((monCtx0.spe + monCtx1.spe) * 0.5) * myMult;
-    const foeAvgSpe = (((this.foes['1'].speed || 120) + (this.foes['2'].speed || 120)) * 0.5) * foeMult;
+    const mySpe0 = (monCtx0?.spe || 120) * getBoostMod(monCtx0?.boosts?.spe) * (monCtx0?.status === 'par' ? 0.5 : 1.0);
+    const mySpe1 = (monCtx1?.spe || 120) * getBoostMod(monCtx1?.boosts?.spe) * (monCtx1?.status === 'par' ? 0.5 : 1.0);
+    const foeSpe1 = (this.foes['1'].speed || 120) * getBoostMod(this.foes['1'].boosts?.spe) * (this.foes['1'].status === 'par' ? 0.5 : 1.0);
+    const foeSpe2 = (this.foes['2'].speed || 120) * getBoostMod(this.foes['2'].boosts?.spe) * (this.foes['2'].status === 'par' ? 0.5 : 1.0);
+    const myAvgSpe = ((mySpe0 + mySpe1) * 0.5) * myMult;
+    const foeAvgSpe = ((foeSpe1 + foeSpe2) * 0.5) * foeMult;
     const isFaster = this.field.trickRoom ? (myAvgSpe < foeAvgSpe) : (myAvgSpe >= foeAvgSpe);
 
     const battleState = {
@@ -563,19 +704,13 @@ class FastSimBot extends BattleStreams.BattlePlayer {
     if (c1.isImmune) s -= 150.0;
 
     // 2. Damage and KO evaluation
-    let dmgFoe1 = 0;
-    let dmgFoe2 = 0;
+    const dmgFoe1 = (c0.d1 || 0) + (c1.d1 || 0);
+    const dmgFoe2 = (c0.d2 || 0) + (c1.d2 || 0);
     if (c0.type === 'attack' && !c0.isImmune && c0.estDamageRatio) {
       s += c0.estDamageRatio * 10.0;
-      if (c0.isSpread) { dmgFoe1 += c0.estDamageRatio; dmgFoe2 += c0.estDamageRatio; }
-      else if (c0.targetFoe === '1') dmgFoe1 += c0.estDamageRatio;
-      else if (c0.targetFoe === '2') dmgFoe2 += c0.estDamageRatio;
     }
     if (c1.type === 'attack' && !c1.isImmune && c1.estDamageRatio) {
       s += c1.estDamageRatio * 10.0;
-      if (c1.isSpread) { dmgFoe1 += c1.estDamageRatio; dmgFoe2 += c1.estDamageRatio; }
-      else if (c1.targetFoe === '1') dmgFoe1 += c1.estDamageRatio;
-      else if (c1.targetFoe === '2') dmgFoe2 += c1.estDamageRatio;
     }
 
     // K.O. Confirmation Bonus
@@ -742,9 +877,11 @@ class FastSimBot extends BattleStreams.BattlePlayer {
       } else if (isUntargeted) {
         let estDamageRatio = 0;
         let isImmune = false;
+        let d1 = 0;
+        let d2 = 0;
         if (type === 'attack') {
-          const d1 = this.foes['1'].active ? estimateDamageRatio(moveData, monCtx, this.foes['1'], this.foes, this.field, true) : 0;
-          const d2 = this.foes['2'].active ? estimateDamageRatio(moveData, monCtx, this.foes['2'], this.foes, this.field, true) : 0;
+          d1 = this.foes['1'].active ? estimateDamageRatio(moveData, monCtx, this.foes['1'], this.foes, this.field, true) : 0;
+          d2 = this.foes['2'].active ? estimateDamageRatio(moveData, monCtx, this.foes['2'], this.foes, this.field, true) : 0;
           estDamageRatio = d1 + d2;
           const imm1 = !this.foes['1'].active || isMoveImmuneOrBlocked(moveData, monCtx, this.foes['1'], this.foes, this.field);
           const imm2 = !this.foes['2'].active || isMoveImmuneOrBlocked(moveData, monCtx, this.foes['2'], this.foes, this.field);
@@ -757,6 +894,8 @@ class FastSimBot extends BattleStreams.BattlePlayer {
           moveData,
           isSpread,
           allyImmune,
+          d1,
+          d2,
           estDamageRatio,
           isImmune,
           isMega: canMega,
@@ -769,6 +908,8 @@ class FastSimBot extends BattleStreams.BattlePlayer {
           const estDamageRatio = (type === 'attack' && !isImmune)
             ? estimateDamageRatio(moveData, monCtx, this.foes[fSlot], this.foes, this.field, isSpread)
             : 0;
+          const d1 = fSlot === '1' ? estDamageRatio : 0;
+          const d2 = fSlot === '2' ? estDamageRatio : 0;
           candidates.push({
             str: `move ${m + 1} ${fSlot}`,
             type,
@@ -777,6 +918,8 @@ class FastSimBot extends BattleStreams.BattlePlayer {
             targetFoe: fSlot,
             isSpread,
             allyImmune,
+            d1,
+            d2,
             estDamageRatio,
             isImmune,
             isMega: canMega,

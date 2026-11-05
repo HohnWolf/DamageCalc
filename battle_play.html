@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pokémon Champions - Duell gegen die KI</title>
-  <script src="js/sim_worker.bundle.js?v=100k"></script>
+  <script src="data/meta_archetypes.js"></script>
+  <script src="js/sim_worker.bundle.js?v=gen30_v2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
@@ -36,7 +37,7 @@
     .main-layout {
       display: flex;
       flex: 1;
-      height: calc(100vh - 50px);
+      min-height: 0;
       position: relative;
     }
 
@@ -489,6 +490,194 @@
     .log-entry.super { color: #f59e0b; font-weight: 700; }
     .log-entry.faint { color: #ef4444; font-weight: 700; }
     .log-entry.mega { color: #d946ef; font-weight: 700; }
+
+    /* Matchup & Team Selection Bar */
+    .matchup-bar {
+      background: #141724;
+      border-bottom: 1px solid #282d42;
+      padding: 6px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      z-index: 9;
+    }
+    .matchup-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .team-picker-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .picker-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .team-dropdown {
+      background: #1e2438;
+      border: 1px solid #333a56;
+      color: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      max-width: 270px;
+      transition: border-color 0.2s;
+    }
+    .team-dropdown:focus {
+      border-color: #6366f1;
+    }
+    .vs-pill {
+      background: #312e81;
+      color: #a5b4fc;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .matchup-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-match-action {
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-match-action.primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+    }
+    .btn-match-action.primary:hover {
+      background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+      transform: translateY(-1px);
+    }
+    .btn-match-action.secondary {
+      background: #252b3d;
+      color: #cbd5e1;
+      border: 1px solid #374151;
+    }
+    .btn-match-action.secondary:hover {
+      background: #2d354b;
+      color: #fff;
+    }
+    .active-matchup-badge {
+      font-size: 11px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      max-width: 380px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-card {
+      background: #181b29;
+      border: 1px solid #2e354e;
+      border-radius: 12px;
+      width: 620px;
+      max-width: 92vw;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 12px 18px;
+      background: #1e2438;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2e354e;
+    }
+    .btn-close-modal {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .btn-close-modal:hover { color: #fff; }
+    .modal-tabs {
+      display: flex;
+      background: #131622;
+      border-bottom: 1px solid #2e354e;
+    }
+    .modal-tab {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .modal-tab.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.05);
+    }
+    .paste-textarea {
+      width: 100%;
+      height: 280px;
+      background: #0f111a;
+      border: none;
+      padding: 14px;
+      color: #e2e8f0;
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .modal-footer {
+      padding: 10px 18px;
+      background: #181b29;
+      border-top: 1px solid #2e354e;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -502,6 +691,28 @@
       Wähle dein Team & Leads
     </div>
   </header>
+
+  <!-- Matchup & Team Selection Bar -->
+  <div class="matchup-bar">
+    <div class="matchup-controls">
+      <div class="team-picker-box">
+        <label for="selectPlayerTeam" class="picker-label">🎮 Dein Team (P1):</label>
+        <select id="selectPlayerTeam" class="team-dropdown"></select>
+      </div>
+      <div class="vs-pill">VS</div>
+      <div class="team-picker-box">
+        <label for="selectBotTeam" class="picker-label">🤖 Bot-Team (P2):</label>
+        <select id="selectBotTeam" class="team-dropdown"></select>
+      </div>
+      <div class="matchup-actions">
+        <button id="btnNewMatch" class="btn-match-action primary" title="Neues Duell mit gewählten Teams starten">⚔️ Neues Match</button>
+        <button id="btnCustomPaste" class="btn-match-action secondary" title="Eigenes Team einfügen oder bearbeiten">📋 Custom Paste</button>
+      </div>
+    </div>
+    <div id="activeMatchupBadge" class="active-matchup-badge">
+      Duell: Dein Team VS. Psyspam & Tailwind
+    </div>
+  </div>
 
   <div class="main-layout">
     <!-- Battle Column -->
@@ -698,11 +909,23 @@
     function getSprite(name, isBack = false) {
       if (!name) return '';
       let id = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (id.includes('garchomp') && id.includes('mega')) id = 'garchomp-mega';
-      if (id.includes('goodra') && id.includes('hisui')) id = 'goodra-hisui';
-      if (id.includes('arcanine') && id.includes('hisui')) id = 'arcanine-hisui';
-      if (id.includes('typhlosion') && id.includes('hisui')) id = 'typhlosion-hisui';
-      if (id.includes('floette')) id = 'floette-eternal';
+      if (id.includes('charizard') && (id.includes('megay') || id.includes('y'))) id = 'charizard-megay';
+      else if (id.includes('garchomp') && id.includes('mega')) id = 'garchomp-mega';
+      else if (id.includes('swampert') && id.includes('mega')) id = 'swampert-mega';
+      else if (id.includes('salamence') && id.includes('mega')) id = 'salamence-mega';
+      else if (id.includes('gardevoir') && id.includes('mega')) id = 'gardevoir-mega';
+      else if (id.includes('gengar') && id.includes('mega')) id = 'gengar-mega';
+      else if (id.includes('tyranitar') && id.includes('mega')) id = 'tyranitar-mega';
+      else if (id.includes('golisopod') && id.includes('mega')) id = 'golisopod';
+      else if (id.includes('staraptor') && id.includes('mega')) id = 'staraptor';
+      else if (id.includes('goodra') && id.includes('hisui')) id = 'goodra-hisui';
+      else if (id.includes('arcanine') && id.includes('hisui')) id = 'arcanine-hisui';
+      else if (id.includes('typhlosion') && id.includes('hisui')) id = 'typhlosion-hisui';
+      else if (id.includes('floette')) id = 'floette-eternal';
+      else if (id.includes('indeedee') && id.includes('f')) id = 'indeedee-f';
+      else if (id.includes('urshifu') && id.includes('rapid')) id = 'urshifu-rapidstrike';
+      else if (id.includes('ursaluna') && id.includes('bloodmoon')) id = 'ursaluna-bloodmoon';
+      else if (id.includes('ogerpon') && id.includes('wellspring')) id = 'ogerpon-wellspring';
       const folder = isBack ? 'ani-back' : 'ani';
       return `https://play.pokemonshowdown.com/sprites/${folder}/${id}.gif`;
     }
@@ -828,8 +1051,16 @@ Level: 50
     let selectedTeamIndices = [];
     let activeSlotChoices = [null, null]; // { type: 'move'|'switch', moveIdx, target, isMega, switchSlot }
     let foesActive = { '1': { name: '', active: false }, '2': { name: '', active: false } };
+    let playerMegaUsed = false;
+    let currentP1Paste = DEFAULT_P1;
+    let currentP2Paste = DEFAULT_P2;
+    let currentP1Name = 'Du (Champions-Team)';
+    let currentP2Name = 'Champions Bot (KI)';
+    let customP1Paste = '';
+    let customP2Paste = '';
+    let activeModalTab = 'player';
 
-    function initWorker() {
+    function initWorker(p1Paste = currentP1Paste, p2Paste = currentP2Paste, p1Name = currentP1Name, p2Name = currentP2Name) {
       if (window.ChampionsEngine) {
         worker = window.ChampionsEngine;
         appendLog('✅ Champions-Engine via In-Memory-Bridge geladen.');
@@ -858,16 +1089,23 @@ Level: 50
           handleEvents(msg.lines);
         } else if (msg.type === 'INTERACTIVE_ERROR') {
           appendLog(`Fehler: ${msg.error}`, 'faint');
+          const turnPanel = document.getElementById('turnPanel');
+          if (turnPanel) turnPanel.style.pointerEvents = 'auto';
+          const btnCommit = document.getElementById('btnCommitTurn');
+          if (btnCommit) btnCommit.disabled = false;
+          const statusText = document.getElementById('battleStatusText');
+          if (statusText) statusText.innerText = 'Fehler beim Zug. Bitte korrigieren und neu bestätigen!';
+          showToast(`⚠️ ${msg.error}`, 4000);
         }
       };
 
-      // Start Battle
+      // Start Battle mit dynamisch gewähltem Team
       worker.postMessage({
         type: 'INTERACTIVE_START',
-        p1Paste: DEFAULT_P1,
-        p2Paste: DEFAULT_P2,
-        p1Name: 'Du',
-        p2Name: 'Champions Bot (KI)'
+        p1Paste: p1Paste,
+        p2Paste: p2Paste,
+        p1Name: p1Name,
+        p2Name: p2Name
       });
     }
 
@@ -1029,12 +1267,22 @@ Level: 50
       nameEl.innerText = `${monName} (${monData.condition})`;
 
       // Mega Evo Checkbox
-      if (activeData.canMegaEvo) {
+      if (activeData.canMegaEvo && !playerMegaUsed) {
         megaLabel.style.display = 'flex';
         chkMega.checked = false;
       } else {
         megaLabel.style.display = 'none';
+        chkMega.checked = false;
       }
+
+      chkMega.onchange = () => {
+        const choice = activeSlotChoices[slotIdx];
+        if (choice && choice.moveNum) {
+          const willMega = (!playerMegaUsed && activeData.canMegaEvo && chkMega.checked);
+          const tgtPart = choice.target ? ` ${choice.target}` : '';
+          choice.str = `move ${choice.moveNum}${tgtPart}${willMega ? ' mega' : ''}`;
+        }
+      };
 
       // Attack Buttons
       const moves = activeData.moves || [];
@@ -1058,18 +1306,22 @@ Level: 50
           switchRow.querySelectorAll('.btn-switch-mon').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
 
+          const willMega = (!playerMegaUsed && activeData.canMegaEvo && chkMega.checked);
           const isSpread = ['allAdjacentFoes', 'allAdjacent', 'self', 'all'].includes(m.target);
           if (isSpread) {
             targetBar.style.display = 'none';
             activeSlotChoices[slotIdx] = {
-              str: `move ${mIdx + 1}${chkMega.checked ? ' mega' : ''}`,
+              moveNum: mIdx + 1,
+              isSpread: true,
+              target: '',
+              str: `move ${mIdx + 1}${willMega ? ' mega' : ''}`,
               ready: true
             };
           } else {
             targetBar.style.display = 'flex';
             // Default target 1 or 2
             const defaultTgt = foesActive['1'].active ? '1' : '2';
-            setTarget(slotIdx, mIdx + 1, defaultTgt, chkMega.checked);
+            setTarget(slotIdx, mIdx + 1, defaultTgt, willMega);
           }
           updateCommitState();
         });
@@ -1084,7 +1336,8 @@ Level: 50
           const target = tBtn.getAttribute('data-target');
           const choice = activeSlotChoices[slotIdx];
           if (choice && choice.moveNum) {
-            setTarget(slotIdx, choice.moveNum, target, chkMega.checked);
+            const willMega = (!playerMegaUsed && activeData.canMegaEvo && chkMega.checked);
+            setTarget(slotIdx, choice.moveNum, target, willMega);
           }
         };
       });
@@ -1123,9 +1376,13 @@ Level: 50
         else b.classList.remove('selected');
       });
 
+      const willMega = !playerMegaUsed && Boolean(isMega);
+
       activeSlotChoices[slotIdx] = {
         moveNum,
-        str: `move ${moveNum} ${targetNum}${isMega ? ' mega' : ''}`,
+        isSpread: false,
+        target: targetNum,
+        str: `move ${moveNum} ${targetNum}${willMega ? ' mega' : ''}`,
         ready: true
       };
       updateCommitState();
@@ -1294,6 +1551,17 @@ Level: 50
           appendLog(`${ident} vollzieht die Mega-Entwicklung!`, 'mega');
           const isMegaZ = parts[3].includes('Garchomp');
           setSlotMega(ident, isMegaZ);
+          if (ident.startsWith('p1')) {
+            playerMegaUsed = true;
+            const m0 = document.getElementById('chkMega0');
+            const m1 = document.getElementById('chkMega1');
+            if (m0) m0.checked = false;
+            if (m1) m1.checked = false;
+            const l0 = document.getElementById('megaLabel0');
+            const l1 = document.getElementById('megaLabel1');
+            if (l0) l0.style.display = 'none';
+            if (l1) l1.style.display = 'none';
+          }
         } else if (cmd === 'win') {
           const winner = parts[2];
           appendLog(`🏆 SIEGER: ${winner}!`, 'turn-header');
@@ -1317,8 +1585,13 @@ Level: 50
 
       const isBack = slot.startsWith('p1');
       document.getElementById(`name-${slot}`).innerText = monName;
-      document.getElementById(`sprite-${slot}`).src = getSprite(monName, isBack);
+      const sprite = document.getElementById(`sprite-${slot}`);
+      if (sprite) {
+        sprite.src = getSprite(monName, isBack);
+        sprite.classList.remove('attacking-lunge', 'hit-shake', 'mega-z-active');
+      }
       document.getElementById(`slot-${slot}`).classList.remove('fainted');
+      document.getElementById(`badge-${slot}`).innerHTML = '';
 
       if (slot === 'p2a') foesActive['1'] = { name: monName, active: true };
       if (slot === 'p2b') foesActive['2'] = { name: monName, active: true };
@@ -1380,17 +1653,359 @@ Level: 50
       const blocks = paste.trim().split(/\n\s*\n/);
       blocks.forEach(b => {
         const firstLine = b.trim().split('\n')[0] || '';
-        const name = firstLine.split('@')[0].trim().replace(/\s*\([MF]\)\s*$/i, '');
+        let name = firstLine.split('@')[0].trim().replace(/\s*\([MF]\)\s*$/i, '');
+        const nickMatch = /\(([^)]+)\)/.exec(name);
+        if (nickMatch) name = nickMatch[1].trim();
+        name = name.replace(/-(Mega|Mega-[XYZ])$/i, '');
         if (name) mons.push({ details: name });
       });
       return mons;
     }
 
-    // Start Worker on load
+    function formatMonToShowdown(m) {
+      if (!m) return '';
+      if (typeof m === 'string') return m;
+      const set = m.set || m;
+      let species = m.species || set.species || (set.forme ? set.forme.replace(/^Mega /, '') : 'Pokemon');
+      species = species.replace(/-(Mega|Mega-[XYZ])$/i, '');
+      const name = (m.setName && m.setName !== 'Set' && m.setName !== 'Import' && m.setName !== species) ? `${m.setName} (${species})` : species;
+      const item = (set.item && set.item !== '(none)') ? ` @ ${set.item}` : '';
+      const lines = [name + item];
+      if (set.ability) lines.push(`Ability: ${set.ability}`);
+      lines.push('Level: 50');
+      if (set.sps) {
+        const spKeys = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+        const spLabels = { hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe' };
+        const sps = spKeys.filter(k => set.sps[k]).map(k => `${set.sps[k]} ${spLabels[k]}`);
+        if (sps.length) lines.push(`SPs: ${sps.join(' / ')}`);
+      }
+      if (set.nature) lines.push(`${set.nature} Nature`);
+      if (Array.isArray(set.moves)) {
+        set.moves.forEach(mv => { if (mv) lines.push(`- ${mv}`); });
+      }
+      return lines.join('\n');
+    }
+
+    function getSavedBuilderTeams() {
+      const teams = [];
+      try {
+        const raw = localStorage.getItem('cc_builder');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const list = Array.isArray(parsed?.teams) ? parsed.teams : [];
+          list.forEach((t, idx) => {
+            let mons = Array.isArray(t.mons) && t.mons.length ? t.mons : [];
+            if (!mons.length && Array.isArray(t.versions) && t.versions.length) {
+              mons = t.versions[0].mons || [];
+            }
+            if (mons.length >= 2) {
+              const paste = mons.map(m => formatMonToShowdown(m)).filter(Boolean).join('\n\n');
+              if (paste.trim()) {
+                teams.push({
+                  id: 'builder_' + (t.id || idx),
+                  name: `📁 ${t.name || ('Teambuilder Team ' + (idx + 1))}`,
+                  paste: paste.trim(),
+                  shortName: t.name || ('Team ' + (idx + 1))
+                });
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Could not read cc_builder teams:', e);
+      }
+      return teams;
+    }
+
+    function getAllAvailableTeams() {
+      const archetypes = (window.META_ARCHETYPES || []).map(a => ({
+        id: a.id,
+        name: a.name,
+        shortName: a.name.split(' (')[0] || a.name,
+        paste: a.paste
+      }));
+      const builderTeams = getSavedBuilderTeams();
+      const predefined = [
+        { id: 'user_main', name: '⭐ Dein Champions-Team (Espathra, Goodra-H, Raichu-Y...)', shortName: 'Champions-Team', paste: DEFAULT_P1 },
+        { id: 'default_p2', name: '🔮 Psyspam & Tailwind (Indeedee, Whimsicott, Garchomp...)', shortName: 'Psyspam & Tailwind', paste: DEFAULT_P2 }
+      ];
+      return { predefined, archetypes, builderTeams };
+    }
+
+    function populateTeamDropdowns() {
+      const p1Select = document.getElementById('selectPlayerTeam');
+      const p2Select = document.getElementById('selectBotTeam');
+      if (!p1Select || !p2Select) return;
+
+      const { predefined, archetypes, builderTeams } = getAllAvailableTeams();
+
+      const buildOptions = (isBot) => {
+        let html = '';
+        if (isBot) {
+          html += `<option value="random" selected>🎲 Zufälliges Team (wechselt jedes Match aus dem gesamten Pool!)</option>`;
+        } else {
+          html += `<option value="random">🎲 Zufälliges Team (Überraschungs-Pick)</option>`;
+        }
+
+        html += `<optgroup label="── Kern-Teams ──">`;
+        predefined.forEach(t => {
+          const sel = (!isBot && t.id === 'user_main') ? ' selected' : '';
+          html += `<option value="${t.id}"${sel}>${t.name}</option>`;
+        });
+        html += `</optgroup>`;
+
+        html += `<optgroup label="── 10 Meta-Archetypen ──">`;
+        archetypes.forEach(a => {
+          html += `<option value="${a.id}">${a.name}</option>`;
+        });
+        html += `</optgroup>`;
+
+        if (builderTeams.length) {
+          html += `<optgroup label="── 📁 Deine Teambuilder-Teams ──">`;
+          builderTeams.forEach(b => {
+            html += `<option value="${b.id}">${b.name}</option>`;
+          });
+          html += `</optgroup>`;
+        }
+
+        html += `<option value="custom">📝 Eigenes ${isBot ? 'Bot-' : ''}Team (Custom Paste)...</option>`;
+        return html;
+      };
+
+      p1Select.innerHTML = buildOptions(false);
+      p2Select.innerHTML = buildOptions(true);
+    }
+
+    function resolveTeamByValue(val, customPaste, defaultPaste, defaultName, isBot = false) {
+      const { predefined, archetypes, builderTeams } = getAllAvailableTeams();
+      const allPool = [...predefined, ...archetypes, ...builderTeams];
+
+      if (val === 'random') {
+        if (allPool.length) {
+          const chosen = allPool[Math.floor(Math.random() * allPool.length)];
+          const prefix = isBot ? 'Champions Bot' : 'Du';
+          return { paste: chosen.paste, name: `${prefix} (${chosen.shortName || chosen.name})`, isRandom: true };
+        }
+      }
+
+      if (val === 'custom') {
+        const prefix = isBot ? 'Champions Bot (Custom)' : 'Du (Custom-Team)';
+        return { paste: customPaste || defaultPaste, name: prefix };
+      }
+
+      const match = allPool.find(t => t.id === val);
+      if (match) {
+        const prefix = isBot ? 'Champions Bot' : 'Du';
+        return { paste: match.paste, name: `${prefix} (${match.shortName || match.name})` };
+      }
+
+      return { paste: defaultPaste, name: defaultName };
+    }
+
+    function getSelectedPlayerTeam() {
+      const p1Select = document.getElementById('selectPlayerTeam');
+      const val = p1Select ? p1Select.value : 'user_main';
+      return resolveTeamByValue(val, customP1Paste, DEFAULT_P1, 'Du (Champions-Team)', false);
+    }
+
+    function getSelectedBotTeam() {
+      const p2Select = document.getElementById('selectBotTeam');
+      const val = p2Select ? p2Select.value : 'random';
+      return resolveTeamByValue(val, customP2Paste, DEFAULT_P2, 'Champions Bot (Psyspam & Tailwind)', true);
+    }
+
+    function resetBattleArena() {
+      appendLog(`========================================`, 'turn-header');
+      appendLog(`⚔️ NEUES DUELL GESTARTET`, 'turn-header');
+      appendLog(`========================================`);
+
+      ['p1a', 'p1b', 'p2a', 'p2b'].forEach(slot => {
+        const slotEl = document.getElementById(`slot-${slot}`);
+        if (slotEl) {
+          slotEl.classList.remove('fainted');
+          const sprite = document.getElementById(`sprite-${slot}`);
+          if (sprite) {
+            sprite.src = '';
+            sprite.classList.remove('attacking-lunge', 'hit-shake', 'mega-z-active');
+          }
+          const nameEl = document.getElementById(`name-${slot}`);
+          if (nameEl) nameEl.innerText = slot.startsWith('p1') ? 'Dein Pokémon' : 'Gegner';
+          const bar = document.getElementById(`bar-${slot}`);
+          if (bar) {
+            bar.style.width = '100%';
+            bar.className = 'hp-bar-fill';
+          }
+          const hptext = document.getElementById(`hptext-${slot}`);
+          if (hptext) hptext.innerText = '100%';
+          const badge = document.getElementById(`badge-${slot}`);
+          if (badge) badge.innerHTML = '';
+        }
+      });
+
+      document.getElementById('stadiumField').classList.remove('psychic-terrain');
+      document.getElementById('bannerPsychic').style.display = 'none';
+      document.getElementById('bannerTailwind').style.display = 'none';
+
+      playerMegaUsed = false;
+      const m0 = document.getElementById('chkMega0');
+      const m1 = document.getElementById('chkMega1');
+      if (m0) m0.checked = false;
+      if (m1) m1.checked = false;
+      const l0 = document.getElementById('megaLabel0');
+      const l1 = document.getElementById('megaLabel1');
+      if (l0) l0.style.display = 'none';
+      if (l1) l1.style.display = 'none';
+
+      activeSlotChoices = [null, null];
+      foesActive = { '1': { name: '', active: false }, '2': { name: '', active: false } };
+      document.getElementById('turnPanel').style.display = 'none';
+      document.getElementById('teamPreviewPanel').style.display = 'flex';
+      document.getElementById('battleStatusText').innerText = 'Wähle dein Team & Leads';
+    }
+
+    function startNewBattle() {
+      const p1 = getSelectedPlayerTeam();
+      const p2 = getSelectedBotTeam();
+
+      currentP1Paste = p1.paste;
+      currentP2Paste = p2.paste;
+      currentP1Name = p1.name;
+      currentP2Name = p2.name;
+
+      const badge = document.getElementById('activeMatchupBadge');
+      if (badge) {
+        badge.innerText = `Duell: ${currentP1Name} VS. ${currentP2Name}`;
+      }
+
+      if (p2.isRandom) {
+        showToast(`🎲 Gegner wählt: ${p2.name}!`, 2500);
+      }
+
+      resetBattleArena();
+
+      if (worker && typeof worker.terminate === 'function') {
+        worker.terminate();
+        worker = null;
+      }
+
+      renderTeamPreview(parseDefaultPreview(currentP1Paste));
+      initWorker(currentP1Paste, currentP2Paste, currentP1Name, currentP2Name);
+    }
+
+    function setupMatchupEvents() {
+      const btnNew = document.getElementById('btnNewMatch');
+      if (btnNew) btnNew.addEventListener('click', () => startNewBattle());
+
+      const btnCustom = document.getElementById('btnCustomPaste');
+      const modal = document.getElementById('customTeamModal');
+      const btnClose = document.getElementById('btnCloseModal');
+      const btnCancel = document.getElementById('btnCancelModal');
+      const btnApply = document.getElementById('btnApplyCustomTeam');
+      const tabP1 = document.getElementById('tabPlayerPaste');
+      const tabP2 = document.getElementById('tabBotPaste');
+      const textarea = document.getElementById('pasteTextarea');
+
+      const openModal = (tab = 'player') => {
+        activeModalTab = tab;
+        if (tab === 'player') {
+          tabP1.classList.add('active');
+          tabP2.classList.remove('active');
+          textarea.value = customP1Paste || currentP1Paste;
+        } else {
+          tabP2.classList.add('active');
+          tabP1.classList.remove('active');
+          textarea.value = customP2Paste || currentP2Paste;
+        }
+        modal.style.display = 'flex';
+      };
+
+      const closeModal = () => {
+        modal.style.display = 'none';
+      };
+
+      if (btnCustom) btnCustom.addEventListener('click', () => openModal('player'));
+      if (btnClose) btnClose.addEventListener('click', closeModal);
+      if (btnCancel) btnCancel.addEventListener('click', closeModal);
+
+      if (tabP1) tabP1.addEventListener('click', () => {
+        activeModalTab = 'player';
+        tabP1.classList.add('active');
+        tabP2.classList.remove('active');
+        textarea.value = customP1Paste || currentP1Paste;
+      });
+
+      if (tabP2) tabP2.addEventListener('click', () => {
+        activeModalTab = 'bot';
+        tabP2.classList.add('active');
+        tabP1.classList.remove('active');
+        textarea.value = customP2Paste || currentP2Paste;
+      });
+
+      if (btnApply) btnApply.addEventListener('click', () => {
+        const text = textarea.value.trim();
+        if (!text) {
+          showToast('Bitte Team-Paste eingeben!', 2000);
+          return;
+        }
+        if (activeModalTab === 'player') {
+          customP1Paste = text;
+          document.getElementById('selectPlayerTeam').value = 'custom';
+        } else {
+          customP2Paste = text;
+          document.getElementById('selectBotTeam').value = 'custom';
+        }
+        closeModal();
+        startNewBattle();
+      });
+
+      const selectP1 = document.getElementById('selectPlayerTeam');
+      if (selectP1) {
+        selectP1.addEventListener('change', () => {
+          if (selectP1.value === 'custom') {
+            openModal('player');
+          } else {
+            startNewBattle();
+          }
+        });
+      }
+
+      const selectP2 = document.getElementById('selectBotTeam');
+      if (selectP2) {
+        selectP2.addEventListener('change', () => {
+          if (selectP2.value === 'custom') {
+            openModal('bot');
+          } else {
+            startNewBattle();
+          }
+        });
+      }
+    }
+
+    // Start Worker & UI on load
     window.addEventListener('DOMContentLoaded', () => {
-      renderTeamPreview(parseDefaultPreview(DEFAULT_P1));
-      initWorker();
+      populateTeamDropdowns();
+      setupMatchupEvents();
+      startNewBattle();
     });
   </script>
+
+  <!-- Custom Team Paste Modal -->
+  <div id="customTeamModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span style="font-weight:700; font-size:15px; color:#f8fafc;">📋 Eigenes Team importieren (Showdown Paste)</span>
+        <button id="btnCloseModal" class="btn-close-modal" title="Schließen">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button id="tabPlayerPaste" class="modal-tab active">Dein Team (P1)</button>
+        <button id="tabBotPaste" class="modal-tab">Bot-Team (P2)</button>
+      </div>
+      <textarea id="pasteTextarea" class="paste-textarea" spellcheck="false" placeholder="Füge hier ein Showdown/Champions-Paste mit 6 Pokémon ein..."></textarea>
+      <div class="modal-footer">
+        <button id="btnCancelModal" class="btn-match-action secondary">Abbrechen</button>
+        <button id="btnApplyCustomTeam" class="btn-match-action primary">Speichern & Match starten</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

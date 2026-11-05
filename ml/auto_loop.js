@@ -3,24 +3,44 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { BattleStreams, Teams, Dex } = require('@pkmn/sim');
+const { Battle, BattleStreams, Teams, Dex } = require('@pkmn/sim');
 const { extractStateFeatures, extractActionFeatures, extractJointFeatures, getTypeEff } = require(path.join(__dirname, 'features.js'));
 const ARCHETYPES = require(path.join(__dirname, '../data/meta_archetypes.js'));
 
-// Register champions mod
+// Authentische Pokémon Champions Engine: Stat Points patchen
+if (Battle && Battle.prototype) {
+  Battle.prototype.statModify = function(baseStats, set, statName) {
+    const tr = this.trunc;
+    let stat = baseStats[statName];
+    const evVal = set.evs ? (set.evs[statName] || 0) : 0;
+    const sp = evVal > 32 ? Math.min(32, Math.floor((evVal + 4) / 8)) : evVal;
+    if (statName === 'hp') {
+      return stat + sp + 75;
+    }
+    stat = stat + sp + 20;
+    const nature = this.dex.natures.get(set.nature);
+    if (nature.plus === statName) {
+      stat = tr(tr(stat * 110, 16) / 100);
+    } else if (nature.minus === statName) {
+      stat = tr(tr(stat * 90, 16) / 100);
+    }
+    return stat;
+  };
+
+  const origGetTeam = Battle.prototype.getTeam;
+  Battle.prototype.getTeam = function(options) {
+    const team = origGetTeam.call(this, options);
+    if (team && Array.isArray(team)) {
+      for (const set of team) {
+        if (!set.level) set.level = 50;
+      }
+    }
+    return team;
+  };
+}
+
 Dex.mod('champions', {
   Scripts: {
-    statModify(baseStats, set, statName) {
-      const tr = this.trunc;
-      let stat = baseStats[statName];
-      const sp = set.evs ? (set.evs[statName] || 0) : 0;
-      if (statName === 'hp') return stat + sp + 75;
-      stat = stat + sp + 20;
-      const nature = this.dex.natures.get(set.nature);
-      if (nature.plus === statName) stat = tr(tr(stat * 110, 16) / 100);
-      else if (nature.minus === statName) stat = tr(tr(stat * 90, 16) / 100);
-      return stat;
-    },
     actions: {
       canTerastallize() { return null; },
       canMegaEvo(pokemon) {
@@ -171,6 +191,9 @@ const ALL_TEAMS = [
   Teams.import(normalizePaste(userTeam2Paste)),
   ...ARCHETYPES.map(a => Teams.import(normalizePaste(a.paste)))
 ];
+ALL_TEAMS.forEach(team => {
+  if (team) team.forEach(mon => { if (!mon.level) mon.level = 50; });
+});
 
 function evaluateNeuralForward(vec, w) {
   if (!w || !w.W1) return 0;

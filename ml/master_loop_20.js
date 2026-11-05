@@ -69,7 +69,12 @@ async function runMultiTeamGenerations() {
 
   const numGenerations = parseInt(args[0], 10) || 30;
   const matchesPerGen = parseInt(args[1], 10) || 5000;
-  const workerCount = Math.max(2, Math.min(8, (os.cpus() || []).length - 1 || 6));
+  // Laptop Thermal Protection: Default strictly to 2 workers to keep laptop cool and prevent thermal shutdowns
+  let workerCount = 2;
+  const workerFlag = process.argv.find(a => a.startsWith('--workers='));
+  if (workerFlag) {
+    workerCount = Math.max(1, Math.min(2, parseInt(workerFlag.split('=')[1], 10) || 2));
+  }
 
   const historyPath = path.join(__dirname, '20_generations_progress.json');
   const bufferPath = path.join(__dirname, 'replay_buffer.json');
@@ -80,21 +85,30 @@ async function runMultiTeamGenerations() {
     try { history = JSON.parse(fs.readFileSync(historyPath, 'utf8')); } catch (e) {}
   }
 
-  // If previous run already reached or exceeded numGenerations (or --reset was passed), start fresh from Gen 1
-  if (flags.has('--reset') || history.length >= numGenerations) {
+  // If --reset is passed, start fresh from Gen 1
+  if (flags.has('--reset')) {
     history = [];
     if (fs.existsSync(historyPath)) try { fs.unlinkSync(historyPath); } catch (e) {}
     if (flags.has('--fresh-weights')) {
       if (fs.existsSync(weightsPath)) try { fs.unlinkSync(weightsPath); } catch (e) {}
       if (fs.existsSync(bufferPath)) try { fs.unlinkSync(bufferPath); } catch (e) {}
     }
+  } else if (history.length >= numGenerations) {
+    console.log(`Already completed ${history.length} generations (target was ${numGenerations}).`);
+    console.log(`To start fresh, pass --reset.`);
+    return;
   }
 
   const startGen = history.length + 1;
+  const teams200Path = path.join(__dirname, '..', 'data', 'champions_teams_200.json');
+  let poolSize = 12;
+  if (fs.existsSync(teams200Path)) {
+    try { poolSize = JSON.parse(fs.readFileSync(teams200Path, 'utf8')).length; } catch (e) {}
+  }
 
   console.log(`================================================================`);
   console.log(`Multi-Team Neural Training: ${numGenerations} Generations x ${matchesPerGen} Matches`);
-  console.log(`Team Pool: 12 Teams (144 Matchups x 15 4-of-6 Lead/Back Combos)`);
+  console.log(`Team Pool: ${poolSize} Teams (${poolSize * (poolSize - 1)} Matchups x 15 4-of-6 Lead/Back Combos)`);
   console.log(`Multi-Core Parallelization: ${workerCount} Subworkers active`);
   console.log(`Starting at Generation ${startGen} of ${numGenerations}`);
   console.log(`================================================================\n`);
@@ -124,7 +138,7 @@ async function runMultiTeamGenerations() {
 
   for (let g = startGen; g <= numGenerations; g++) {
     const t0 = Date.now();
-    console.log(`--- [ GENERATION ${g} / ${numGenerations} (${matchesPerGen} Matches across 144 Matchups) ] ---`);
+    console.log(`--- [ GENERATION ${g} / ${numGenerations} (${matchesPerGen} Matches across ${poolSize * (poolSize - 1)} Matchups) ] ---`);
 
     const { totalBlunders, allSamples } = await runWorkerBatch(workerCount, matchesPerGen, g, weightsPath);
     const durationSec = ((Date.now() - t0) / 1000).toFixed(1);
@@ -144,10 +158,16 @@ async function runMultiTeamGenerations() {
     fs.writeFileSync(datasetPath, JSON.stringify(allSamples));
 
     console.log(`  Training PyTorch Neural Network (with Replay Buffer)...`);
+    let pytorchLoss = null;
+    let pytorchWinAcc = null;
     try {
       const trainOut = execSync('python ml/train.py 4', { cwd: projectRoot, encoding: 'utf8' });
       const lastLine = trainOut.trim().split('\n').filter(l => l.includes('Epoch')).pop() || '';
       console.log(`  PyTorch Result: ${lastLine}`);
+      const lossMatch = lastLine.match(/Loss:\s*([\d.]+)/);
+      const accMatch = lastLine.match(/Win Move Accuracy:\s*([\d.]+)%/);
+      if (lossMatch) pytorchLoss = parseFloat(lossMatch[1]);
+      if (accMatch) pytorchWinAcc = parseFloat(accMatch[1]);
     } catch (err) {
       console.error('  Training notice:', err.message);
     }
@@ -158,12 +178,18 @@ async function runMultiTeamGenerations() {
       samples: allSamples.length,
       durationSec,
       blunders: totalBlunders,
-      fixDescription
+      fixDescription,
+      pytorchLoss,
+      pytorchWinAcc
     };
     history.push(reportItem);
     fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
 
-    console.log(`--- [ GENERATION ${g} BEENDET in ${durationSec}s ] ---\n`);
+    console.log(`--- [ GENERATION ${g} BEENDET in ${durationSec}s ] ---`);
+    if (g < numGenerations) {
+      console.log(`  [Thermal Cooldown] 8s Pause zur CPU-Abkühlung...\n`);
+      await new Promise(res => setTimeout(res, 8000));
+    }
   }
 
   console.log(`Rebuilding production worker bundle (js/sim_worker.bundle.js) with new neural weights...`);

@@ -153,7 +153,7 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', homeTitle: 'Zum Startbildschirm',
+      catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: '1025 Pokémon · 3D-Modelle & Werte', catRestText: 'Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
@@ -199,7 +199,7 @@
       tbSpColMon: 'Pokémon', tbSpColBase: 'Basis', tbSpColSpread: 'SP / Wesen', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Schal ×1,5', tbSpColTW: 'Rückenw. ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0,5',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm, in der oberen Leiste und bei den Tastenkürzeln ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
-      setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: immer alle Modi. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
+      setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: alle Tools der aktuellen Kategorie. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
       setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
       setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis.',
@@ -266,7 +266,7 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', homeTitle: 'Back to the start screen',
+      catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: '1025 Pokémon · 3D models & stats', catRestText: 'Shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: Showdown replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
@@ -312,7 +312,7 @@
       tbSpColMon: 'Pokémon', tbSpColBase: 'Base', tbSpColSpread: 'SP / Nature', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Scarf ×1.5', tbSpColTW: 'Tailwind ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0.5',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen, in the top bar and from keyboard shortcuts. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
-      setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: always every mode. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
+      setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: every tool of the current category. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
       setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
       setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice.',
@@ -2035,7 +2035,7 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs', zoom: 'auto', uiStyle: 'classic', disabledTools: [] };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs', zoom: 'auto', uiStyle: 'classic', startLayout: 'cats', disabledTools: [] };
   function disabledToolsList() {
     var d = setting('disabledTools');
     return Array.isArray(d) ? d : [];
@@ -2154,6 +2154,13 @@
         applyUiStyle(v);
         fitToWindow();
       });
+      row(T('setStartLayout'), T('setStartLayoutHint'), [['cats', T('setLayoutCats')], ['all', T('setLayoutAll')]], flatStart() ? 'all' : 'cats', function (v) {
+        setSetting('startLayout', v);
+        startCat = null;
+        syncStartCards();
+        renderNav();
+        if (settingsRedraw) settingsRedraw();
+      });
       row(T('setZoom'), T('setZoomHint'), [['auto', T('setZoomAuto')], ['85', '85 %'], ['100', '100 %'], ['115', '115 %'], ['130', '130 %'], ['150', '150 %']], String(setting('zoom') || 'auto'), function (v) {
         setSetting('zoom', v);
         fitToWindow();
@@ -2249,7 +2256,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.10.10', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.10.11', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2333,32 +2340,104 @@
 
   // ======================= views: start screen / calculator / teambuilder =======================
   var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['shiny', 'navShiny'], ['match', 'navMatch'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['dex', 'navDex']];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch']];
+  // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz']], ['dex', ['dex']], ['rest', ['shiny', 'overlay', 'catch']]];
+  function catOf(v) {
+    for (var i = 0; i < CATS.length; i++) if (CATS[i][1].indexOf(v) !== -1) return CATS[i];
+    return null;
+  }
   var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
 
+  // start screen: first the categories (single-tool categories show their tool directly), then the tools of the chosen category
+  var startCat = null;
+  function flatStart() { return setting('startLayout') === 'all'; }
+  function catTools(c) { return c[1].filter(isToolEnabled); }
+  function startItems() {
+    var out = [];
+    if (flatStart()) {
+      enabledModes().forEach(function (m) { out.push({ tool: m[0] }); });
+      return out;
+    }
+    if (startCat) {
+      var c = CATS.filter(function (x) { return x[0] === startCat; })[0];
+      if (c) catTools(c).forEach(function (t) { out.push({ tool: t }); });
+      return out;
+    }
+    CATS.forEach(function (c) {
+      var t = catTools(c);
+      if (!t.length) return;
+      out.push({ cat: c[0] });
+    });
+    return out;
+  }
+  // pictures for the category cards (sprites)
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
+  function renderCatArt() {
+    Object.keys(CAT_ART).forEach(function (k) {
+      var box = document.getElementById('catArt_' + k);
+      if (!box || box.dataset.done === (window.SPRITE_BOXES ? '2' : '1')) return;
+      box.innerHTML = '';
+      CAT_ART[k].forEach(function (sp) {
+        if (sp === '⛓') { box.appendChild(el('span', { class: 'sc-chain', text: sp })); return; }
+        var c = el('span', { class: 'sc-mon' });
+        try { c.appendChild(spriteFit(sp, k === 'rest')); } catch (e) { /* sprite not available */ }
+        box.appendChild(c);
+      });
+      box.dataset.done = window.SPRITE_BOXES ? '2' : '1';
+    });
+  }
   function syncStartCards() {
     var grid = document.querySelector('#startView .start-cards');
     if (!grid) return;
-    var visIdx = 0;
+    if (startCat && !startItems().length) startCat = null;
+    var flat = flatStart();
+    if (flat) startCat = null;
+    grid.classList.toggle('is-all', flat);
+    grid.classList.toggle('is-cat', !!startCat);
+    var back = document.getElementById('catBack');
+    if (back) back.hidden = !startCat;
     MODES.forEach(function (m) {
       var card = grid.querySelector('.start-card[data-go="' + m[0] + '"]');
-      if (!card) return;
-      var on = isToolEnabled(m[0]);
-      card.hidden = !on;
-      if (on) {
-        visIdx++;
-        var keyEl = card.querySelector('.sc-key');
-        if (keyEl) keyEl.textContent = String(visIdx);
-      }
+      if (card) card.hidden = !isToolEnabled(m[0]);
     });
-    var cols = visIdx <= 4 ? Math.max(1, visIdx) : Math.ceil(visIdx / 2);
-    grid.style.setProperty('--start-cols', String(cols));
+    CATS.forEach(function (c) {
+      var t = catTools(c);
+      var g = grid.querySelector('.start-group[data-cat="' + c[0] + '"]');
+      var cc = grid.querySelector('.cat-card[data-cat="' + c[0] + '"]');
+      if (g) g.hidden = !t.length || (flat ? false : (!startCat || startCat !== c[0]));
+      if (cc) cc.hidden = flat || !t.length || !!startCat;
+    });
+    var n = 0;
+    startItems().forEach(function (it) {
+      var el2 = it.cat ? grid.querySelector('.cat-card[data-cat="' + it.cat + '"]') : grid.querySelector('.start-card[data-go="' + it.tool + '"]');
+      var k = el2 && el2.querySelector('.sc-key');
+      n++;
+      if (k) k.textContent = String(n);
+    });
+    grid.style.setProperty('--cards', String(Math.max(1, n)));
+    grid.style.setProperty('--start-cols', String(n <= 4 ? Math.max(1, n) : Math.ceil(n / 2)));
+    renderCatArt();
     var foot = document.querySelector('#startView .start-foot');
     if (foot) {
-      if (LANG === 'de') {
-        foot.textContent = (visIdx === 1 ? 'Taste 1 zum Öffnen' : 'Tasten 1–' + visIdx + ' zum Öffnen') + ' · Zurück zum Start über das Logo oben links';
-      } else {
-        foot.textContent = (visIdx === 1 ? 'Press 1 to open' : 'Press 1–' + visIdx + ' to open') + ' · Back to the start via the logo in the top left';
+      var keyHelp = (LANG === 'de')
+        ? (n === 1 ? 'Taste 1 zum Öffnen' : 'Tasten 1–' + n + ' zum Öffnen')
+        : (n === 1 ? 'Press 1 to open' : 'Press 1–' + n + ' to open');
+      var toggleLabel = flat
+        ? (LANG === 'de' ? 'Zu Kategorien wechseln' : 'Switch to categories')
+        : (LANG === 'de' ? 'Alle Tools anzeigen (Vorherige Ansicht)' : 'Show all tools (Previous view)');
+      var backHelp = (LANG === 'de')
+        ? 'Zurück zum Start über das Logo oben links'
+        : 'Back to the start via the logo in the top left';
+      foot.innerHTML = keyHelp + ' · <button type="button" class="start-toggle-link" id="btnToggleStartLayout">' + toggleLabel + '</button> · ' + backHelp;
+      var btnToggle = document.getElementById('btnToggleStartLayout');
+      if (btnToggle) {
+        btnToggle.addEventListener('click', function () {
+          setSetting('startLayout', flat ? 'cats' : 'all');
+          startCat = null;
+          syncStartCards();
+          renderNav();
+        });
       }
     }
   }
@@ -2376,7 +2455,8 @@
     }
   }
 
-  function showView(v) {
+  function showView(v, keepCat) {
+    if (v === 'start' && !keepCat) startCat = null;
     if (VIEWS.indexOf(v) === -1 || !isToolEnabled(v)) v = 'start';
     document.body.dataset.view = v;
     try { sessionStorage.setItem('cc_view', v); } catch (e) { /* ignore */ }
@@ -2413,8 +2493,10 @@
     nav.innerHTML = '';
     nav.className = 'view-nav nav-' + mode;
     if (mode === 'off' || (mode === 'all' && cur === 'start')) return;
+    var curCat = mode === 'all' && !flatStart() ? catOf(cur) : null;
     enabledModes().forEach(function (m) {
       if (mode === 'tabs' && openTabs.indexOf(m[0]) === -1) return;
+      if (curCat && curCat[1].indexOf(m[0]) === -1) return;
       var b = el('button', { class: 'nav-tab' + (m[0] === cur ? ' on' : ''), 'data-go': m[0] });
       b.appendChild(el('span', { class: 'nav-label', text: T(m[1]) }));
       if (m[2]) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
@@ -2455,6 +2537,19 @@
       b.addEventListener('click', function () { showView(b.dataset.go); });
     });
     document.getElementById('btnHome').addEventListener('click', function () { showView('start'); });
+    document.querySelectorAll('.cat-card').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var cat = b.dataset.cat;
+        var c = CATS.filter(function (x) { return x[0] === cat; })[0];
+        if (c && c[1].length === 1) {
+          showView(c[1][0]);
+        } else {
+          startCat = cat;
+          showView('start', true);
+        }
+      });
+    });
+    document.getElementById('catBack').addEventListener('click', function () { showView('start'); });
     document.getElementById('btnSettings').addEventListener('click', openSettings);
     var vNav = document.getElementById('viewNav');
     if (vNav) {
@@ -2474,6 +2569,18 @@
       }
       var n = parseInt(ev.key, 10);
       if (!(n >= 1 && n <= 9)) return;
+      if (document.body.dataset.view === 'start' && !ev.altKey && !ev.ctrlKey && !ev.metaKey) {
+        var it = startItems()[n - 1];
+        if (!it) return;
+        if (it.tool) {
+          showView(it.tool);
+        } else if (it.cat) {
+          var c = CATS.filter(function (x) { return x[0] === it.cat; })[0];
+          if (c && c[1].length === 1) showView(c[1][0]);
+          else { startCat = it.cat; showView('start', true); }
+        }
+        return;
+      }
       var act = enabledModes();
       var target = act[n - 1] && act[n - 1][0];
       if (!target) return;

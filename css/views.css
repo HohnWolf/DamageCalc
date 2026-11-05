@@ -89,16 +89,199 @@ body.is-maximized #winMax .ic-restore { display: block; }
   image-rendering: pixelated; display: block; margin: 0 auto 6px; flex: none;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
 }
+/* Start screen, two steps: category cards (overview, one row), then the tools of one category (is-cat). is-all: every tool at once. */
 .start-cards {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: repeat(var(--start-cols, 5), minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr));
-  align-content: stretch;
-  gap: clamp(5px, 0.8vh, 8px); margin-top: clamp(4px, 0.8vh, 10px); text-align: left;
+  display: grid;
+  grid-template-columns: repeat(var(--cards, 4), minmax(0, 210px));
+  grid-template-rows: minmax(0, 215px);
+  justify-content: center; align-content: center;
+  gap: clamp(10px, 1.4vw, 20px);
+  margin-top: clamp(4px, 0.8vh, 12px);
+  text-align: center;
 }
-/* Short and still wide enough for one row: prefer one row over a clipped 4x2. */
+.start-cards .cat-card.cat-fight { order: 1; }
+.start-cards .cat-card.cat-runs { order: 2; }
+.start-cards .cat-card.cat-dex { order: 3; }
+.start-cards .cat-card.cat-rest { order: 4; }
+.start-cards .start-group.sg-fight { order: 5; }
+.start-cards .start-group.sg-runs { order: 6; }
+.start-cards .start-group.sg-dex { order: 7; }
+.start-cards .start-group.sg-rest { order: 8; }
+.start-cards .cat-card[hidden], .start-group[hidden] { display: none !important; }
+
+/* In category detail view (Schritt 2) */
+.start-cards.is-cat {
+  grid-template-columns: auto;
+  grid-template-rows: auto;
+}
+.start-group { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.sg-label {
+  display: none; flex: none;
+  font-size: clamp(11px, 1.4vh, 13px); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent); padding: 0 8px 4px;
+  border-bottom: 1px solid var(--line-soft); line-height: 1.5;
+}
+.start-cards.is-cat .sg-label { display: block; align-self: stretch; text-align: left; }
+.sg-cards {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 220px);
+  grid-template-rows: minmax(0, 235px);
+  gap: clamp(10px, 1.4vw, 18px);
+  justify-content: center;
+}
+
+/* Category cards (sleek, compact & attractive) */
+.cat-card {
+  position: relative;
+  height: 100%;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-top: 3px solid var(--line-soft);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+.cat-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.cat-card.cat-fight { border-top-color: #ef4444; }
+.cat-card.cat-fight:hover { border-color: #ef4444; }
+.cat-card.cat-runs { border-top-color: #3b82f6; }
+.cat-card.cat-runs:hover { border-color: #3b82f6; }
+.cat-card.cat-dex { border-top-color: #10b981; }
+.cat-card.cat-dex:hover { border-color: #10b981; }
+.cat-card.cat-rest { border-top-color: #eab308; }
+.cat-card.cat-rest:hover { border-color: #eab308; }
+
+.start-card .sc-art-cat, .sc-art-cat {
+  flex: 1;
+  width: 100%;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 4px;
+  min-height: 75px;
+  background: transparent;
+}
+.sc-art-cat .sc-mon {
+  flex: 0 1 54px;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-art-cat .sc-mon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+}
+.sc-art-cat .sc-chain {
+  color: var(--muted);
+  font-size: 18px;
+  opacity: 0.75;
+}
+.cat-card .sc-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  margin: 4px 0 2px;
+}
+.cat-card .sc-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.cat-card .sc-key {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: var(--bg-soft);
+  color: var(--muted);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.cat-card .sc-text {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+  margin: 0;
+  padding: 0 2px;
+}
+
+/* Category back button */
+.cat-back {
+  flex: none;
+  align-self: center;
+  height: 28px;
+  padding: 0 14px;
+  margin-bottom: 6px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cat-back:hover {
+  border-color: var(--accent);
+  background: var(--bg-soft);
+  color: var(--accent);
+}
+
+/* previous view: all tools in one grid */
+.start-cards.is-all {
+  grid-template-columns: repeat(var(--start-cols, 5), minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  justify-content: stretch; align-content: stretch;
+  gap: clamp(5px, 0.8vh, 8px);
+  text-align: left;
+}
+.start-cards.is-all .start-group, .start-cards.is-all .sg-cards { display: contents; }
+.start-cards.is-all .start-group[hidden] { display: none !important; }
 @container (max-height: 460px) and (min-width: 1080px) {
-  .start-cards { grid-template-columns: repeat(9, minmax(0, 1fr)); grid-template-rows: 1fr; }
+  .start-cards.is-all { grid-template-columns: repeat(9, minmax(0, 1fr)); grid-template-rows: 1fr; }
 }
+
+/* Footer layout toggle link */
+.start-toggle-link {
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0 4px;
+  font: inherit;
+  font-size: inherit;
+  font-weight: 600;
+}
+.start-toggle-link:hover {
+  filter: brightness(1.25);
+}
+
 .start-card {
   position: relative; height: 100%; min-width: 0; min-height: 0;
   padding: clamp(5px, 0.7vh, 10px) clamp(7px, 0.9vw, 12px);

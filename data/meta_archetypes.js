@@ -13,7 +13,7 @@
       category: 'Sand',
       badgeColor: '#795548',
       description: 'Sturmgewaltige Sand-Offensive mit Mega-Despotar, Stalobor Sand Rush und Rough-Skin-Garchomp.',
-      paste: `Tyranitar-Mega @ Tyranitarite
+      paste: `Tyranitar @ Tyranitarite
 Ability: Sand Stream
 Level: 50
 SPs: 2 HP / 32 Atk / 32 Spe
@@ -80,8 +80,8 @@ Bold Nature
       category: 'Sun',
       badgeColor: '#e65100',
       description: 'Klassische Sonnen-Offensive mit Mega-Glurak Y, Chlorophyll-Bisaflor, conas Worlds-Garchomp und Farigiraf.',
-      paste: `Charizard-Mega-Y @ Charizardite Y
-Ability: Drought
+      paste: `Charizard @ Charizardite Y
+Ability: Blaze
 Level: 50
 SPs: 2 HP / 32 SpA / 32 Spe
 Modest Nature
@@ -147,8 +147,8 @@ Adamant Nature
       category: 'Rain',
       badgeColor: '#0288d1',
       description: 'Wuchtiger VGC-Regen mit Mega-Sumpex (Swift Swim), Pelipper, Stamina-Archaludon und Basculegion.',
-      paste: `Swampert-Mega @ Swampertite
-Ability: Swift Swim
+      paste: `Swampert @ Swampertite
+Ability: Torrent
 Level: 50
 SPs: 2 HP / 32 Atk / 32 Spe
 Adamant Nature
@@ -214,8 +214,8 @@ Careful Nature
       category: 'Tailwind',
       badgeColor: '#00897b',
       description: 'Turnier-dominanter Tailwind-Druck mit Mega-Brutalanda (Aerilate Hyper Voice), Sneasler und Kingambit.',
-      paste: `Salamence-Mega @ Salamencite
-Ability: Aerilate
+      paste: `Salamence @ Salamencite
+Ability: Intimidate
 Level: 50
 SPs: 2 HP / 32 SpA / 32 Spe
 Timid Nature
@@ -281,8 +281,8 @@ Timid Nature
       category: 'Psyspam',
       badgeColor: '#c2185b',
       description: 'Metagame-Spitze für Psyspam: Mega-Gardevoir (Expanding Force & Feen-Schall) mit Indeedee-F und Sneasler.',
-      paste: `Gardevoir-Mega @ Gardevoirite
-Ability: Pixilate
+      paste: `Gardevoir @ Gardevoirite
+Ability: Trace
 Level: 50
 SPs: 2 HP / 32 SpA / 32 Spe
 Modest Nature
@@ -420,7 +420,7 @@ Careful Nature
       category: 'Setup',
       badgeColor: '#303f9f',
       description: 'Neuzeitlicher Champions-Archetyp: Spezielles Mega-Knakrack Z (Power Gem / Erdkräfte) mit Falterreigen-Ramoth.',
-      paste: `Garchomp-Mega-Z @ Garchompite Z
+      paste: `Garchomp @ Garchompite Z
 Ability: Rough Skin
 Level: 50
 SPs: 2 HP / 32 SpA / 32 Spe
@@ -487,7 +487,7 @@ Quiet Nature
       category: 'Rain',
       badgeColor: '#0097a7',
       description: 'Beliebter Champions-Regen mit Mega-Tectass (Iron Head & Blutsauger), Archaludon und Grimmsnarl Screens.',
-      paste: `Golisopod-Mega @ Golisopite
+      paste: `Golisopod @ Golisopite
 Ability: Emergency Exit
 Level: 50
 SPs: 32 HP / 32 Atk / 2 Spe
@@ -554,7 +554,7 @@ Impish Nature
       category: 'Tailwind',
       badgeColor: '#5c6bc0',
       description: 'Ultraschnelle Hyper-Offense mit Mega-Staraptor (Umkehrung Nahkampf), Whimsicott, Arkani-Hisui und Milotic.',
-      paste: `Staraptor-Mega @ Staraptite
+      paste: `Staraptor @ Staraptite
 Ability: Intimidate
 Level: 50
 SPs: 2 HP / 32 Atk / 32 Spe
@@ -621,7 +621,7 @@ Adamant Nature
       category: 'Setup',
       badgeColor: '#4a148c',
       description: 'Taktisches Auswechsel-Verbot mit Mega-Gengar Wegsperre, Clangorous-Soul-Grandiras und Regen-Support.',
-      paste: `Gengar-Mega @ Gengarite
+      paste: `Gengar @ Gengarite
 Ability: Cursed Body
 Level: 50
 SPs: 2 HP / 32 SpA / 32 Spe

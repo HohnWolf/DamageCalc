@@ -42,7 +42,7 @@
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css?v=86">
-  <link rel="stylesheet" href="css/views.css?v=87">
+  <link rel="stylesheet" href="css/views.css?v=92">
   <link rel="stylesheet" href="css/nuz.css?v=86">
   <link rel="stylesheet" href="css/shiny.css?v=86">
   <link rel="stylesheet" href="css/match.css?v=86">
@@ -52,7 +52,7 @@
   </head>
 <body data-view="start">
   <header class="topbar" id="topbar">
-    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=86" alt=""><span class="brand">Rattata Lab</span></button>
+    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=86" alt=""></button>
     <nav class="view-nav" id="viewNav"></nav>
     <button id="btnUpdate" class="pill update-pill" hidden></button>
     <div class="top-actions">
@@ -85,7 +85,31 @@
           } catch (e) {}
         })();
       </script>
-            <div class="start-cards">
+            <button id="catBack" class="cat-back" data-t="catBack" hidden></button>
+      <div class="start-cards">
+        <button class="start-card cat-card cat-fight" data-cat="fight">
+          <span class="sc-art sc-art-cat" id="catArt_fight"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catFight"></span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="catFightText"></span>
+        </button>
+        <button class="start-card cat-card cat-runs" data-cat="runs">
+          <span class="sc-art sc-art-cat" id="catArt_runs"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catRuns"></span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="catRunsText"></span>
+        </button>
+        <button class="start-card cat-card cat-dex" data-cat="dex" data-go="dex">
+          <span class="sc-art sc-art-cat" id="catArt_dex"></span>
+          <span class="sc-head"><span class="sc-title" data-t="navDex"></span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="catDexText"></span>
+        </button>
+        <button class="start-card cat-card cat-rest" data-cat="rest">
+          <span class="sc-art sc-art-cat" id="catArt_rest"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catRest"></span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="catRestText"></span>
+        </button>
+        <div class="start-group sg-fight"  data-cat="fight">
+          <div class="sg-label" data-t="catFight"></div>
+          <div class="sg-cards">
         <button class="start-card card-calc" data-go="calc">
           <span class="sc-art sc-art-calc">
             <span class="sc-dmg">156 – 184 <small>(82,1 – 96,8 %)</small></span>
@@ -100,6 +124,20 @@
           <span class="sc-head"><span class="sc-title" data-t="navBuilder">Teambuilder</span><span class="sc-key">2</span></span>
           <span class="sc-text" data-t="startBuilderText"></span>
         </button>
+        <button class="start-card card-match" data-go="match">
+          <span class="sc-art sc-art-match">
+            <span class="sc-dmg">8–4 <small>66,7 %</small></span>
+            <span class="sc-bar"><span style="width:67%"></span></span>
+            <span class="sc-ko">Bo3 · Leads · Matchups</span>
+          </span>
+          <span class="sc-head"><span class="sc-title">Team-Analyse</span><span class="sc-key">6</span></span>
+          <span class="sc-text" data-t="startMatchText"></span>
+        </button>
+          </div>
+        </div>
+        <div class="start-group sg-runs" data-cat="runs">
+          <div class="sg-label" data-t="catRuns"></div>
+          <div class="sg-cards">
         <button class="start-card card-sl" data-go="soullink">
           <span class="sc-art sc-art-nuz" id="startSL"></span>
           <span class="sc-head"><span class="sc-title" data-t="navSL">Soul Link</span><span class="sc-key">3</span></span>
@@ -114,19 +152,29 @@
           <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge">ALPHA</span></span><span class="sc-key">4</span></span>
           <span class="sc-text" data-t="startNuzText"></span>
         </button>
+          </div>
+        </div>
+        <div class="start-group sg-dex" data-cat="dex">
+          <div class="sg-label" data-t="catDex"></div>
+          <div class="sg-cards">
+        <button class="start-card card-dex" data-go="dex">
+          <span class="sc-art sc-art-dex">
+            <span class="sc-dmg">#001 – #1025 <small>Gen 1–9</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko">3D · Formen · Werte · Entwicklung</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span><span class="sc-key">9</span></span>
+          <span class="sc-text" data-t="startDexText"></span>
+        </button>
+          </div>
+        </div>
+        <div class="start-group sg-rest" data-cat="rest">
+          <div class="sg-label" data-t="catRest"></div>
+          <div class="sg-cards">
         <button class="start-card card-shiny" data-go="shiny">
           <span class="sc-art sc-art-shiny" id="startShiny"></span>
           <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span><span class="sc-key">5</span></span>
           <span class="sc-text" data-t="startShinyText"></span>
-        </button>
-        <button class="start-card card-match" data-go="match">
-          <span class="sc-art sc-art-match">
-            <span class="sc-dmg">8–4 <small>66,7 %</small></span>
-            <span class="sc-bar"><span style="width:67%"></span></span>
-            <span class="sc-ko">Bo3 · Leads · Matchups</span>
-          </span>
-          <span class="sc-head"><span class="sc-title">Team-Analyse</span><span class="sc-key">6</span></span>
-          <span class="sc-text" data-t="startMatchText"></span>
         </button>
         <button class="start-card card-overlay" data-go="overlay">
           <span class="sc-art sc-art-overlay">
@@ -146,15 +194,8 @@
           <span class="sc-head"><span class="sc-title" data-t="navCatch">Fangrechner</span><span class="sc-key">8</span></span>
           <span class="sc-text" data-t="startCatchText"></span>
         </button>
-        <button class="start-card card-dex" data-go="dex">
-          <span class="sc-art sc-art-dex">
-            <span class="sc-dmg">#001 – #1025 <small>Gen 1–9</small></span>
-            <span class="sc-bar"><span style="width:100%"></span></span>
-            <span class="sc-ko">3D · Formen · Werte · Entwicklung</span>
-          </span>
-          <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span><span class="sc-key">9</span></span>
-          <span class="sc-text" data-t="startDexText"></span>
-        </button>
+          </div>
+        </div>
       </div>
       <p class="start-foot" data-t="startFoot"></p>
     </div>
@@ -232,7 +273,7 @@
   <script src="data/sprite_boxes.js?v=86"></script>
   <script src="js/online.js?v=86"></script>
   <script src="js/calc.js?v=86"></script>
-  <script src="js/app.js?v=86"></script>
+  <script src="js/app.js?v=92"></script>
   <script src="js/builder.js?v=86"></script>
   <script src="data/natdex.js?v=86"></script>
   <script src="data/catch_data.js?v=86"></script>
