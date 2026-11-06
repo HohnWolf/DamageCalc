@@ -238,3 +238,7 @@ html[data-ui-style="studio"] .dex-evo-sp { width: 52px; }
 html[data-ui-style="studio"] .dex-big-img:not(.is-home) { height: 72%; width: auto; max-width: 82%; image-rendering: pixelated; }
 html[data-ui-style="studio"] .dex-big-img.is-pixel { height: 72%; min-height: 0; max-height: none; max-width: 82%; }
 html[data-ui-style="studio"] .dex-big-img.is-home { height: 88%; width: auto; max-width: 88%; }
+
+/* ---- Damage Calculator: slightly tighter vertical rhythm so nothing is cut off at the bottom ---- */
+html[data-ui-style="studio"] .panel .body { gap: 5px; padding: 6px 12px 8px; }
+html[data-ui-style="studio"] .side-row { min-height: 19px; }
