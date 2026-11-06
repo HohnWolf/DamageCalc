@@ -179,3 +179,7 @@ html[data-theme="light"] .mo-frame {
 
 .mo-mcol { display: flex; flex-direction: column; gap: 5px; padding: 7px 9px; border: 1px solid var(--line); border-top: 3px solid var(--ov-me); border-radius: var(--radius); background: var(--input); min-height: 0; }
 .mo-mcol.opp { border-top-color: var(--ov-opp); }
+
+/* PNG export buttons above the live previews */
+.mo-png-row { display: flex; justify-content: flex-end; flex: none; margin: 4px 0 -2px; }
+.mo-png-row .mo-png-btn { height: 26px; padding: 0 12px; font-size: 12px; font-weight: 600; }

@@ -473,9 +473,10 @@
     cfg.appendChild(hk);
     var del = el('button', { class: 'tbtn danger sh-del', text: t('del') });
     del.addEventListener('click', function () {
-      if (!confirm(t('delConfirm', huntName(h)))) return;
-      if (window.CCShinyDetect) window.CCShinyDetect.stop(h.id);
-      store.hunts = store.hunts.filter(function (x) { return x !== h; }); store.sel = store.hunts[0] ? store.hunts[0].id : null; persist(); render();
+      ccConfirm(t('delConfirm', huntName(h)), function () {
+        if (window.CCShinyDetect) window.CCShinyDetect.stop(h.id);
+        store.hunts = store.hunts.filter(function (x) { return x !== h; }); store.sel = store.hunts[0] ? store.hunts[0].id : null; persist(); render();
+      }, { danger: true });
     });
     cfg.appendChild(del);
     main.appendChild(cfg);
@@ -513,8 +514,9 @@
       gb.addEventListener('click', function () { autoClip(h, 'found'); openCatch(null, h); });
       var rb = el('button', { class: 'tbtn', text: t('resetBtn') });
       rb.addEventListener('click', function () {
-        if (!confirm(t('resetConfirm'))) return;
-        h.count = 0; h.total = 0; h.phases = []; h.timeMs = 0; h.runStart = h.runStart ? Date.now() : 0; h.days = {}; persist(); render();
+        ccConfirm(t('resetConfirm'), function () {
+          h.count = 0; h.total = 0; h.phases = []; h.timeMs = 0; h.runStart = h.runStart ? Date.now() : 0; h.days = {}; persist(); render();
+        }, { danger: true, ok: ['Zurücksetzen', 'Reset'] });
       });
       var setb = el('button', { class: 'tbtn', text: t('setBtn'), title: t('setT') });
       setb.addEventListener('click', function () { openSetCount(h); });
@@ -818,7 +820,7 @@
       var ed = el('button', { class: 'tbtn', text: '✎', title: t('editCatch') });
       ed.addEventListener('click', function () { openCatch(c, null); });
       var dl = el('button', { class: 'tbtn danger', text: '✕', title: t('delCatch') });
-      dl.addEventListener('click', function () { if (!confirm(t('delCatchConfirm'))) return; store.collection = store.collection.filter(function (x) { return x !== c; }); persist(); render(); });
+      dl.addEventListener('click', function () { ccConfirm(t('delCatchConfirm'), function () { store.collection = store.collection.filter(function (x) { return x !== c; }); persist(); render(); }, { danger: true }); });
       if (c.clip && Clip && D) { var pl = el('button', { class: 'tbtn', text: '▶', title: t('clipPlay') }); pl.addEventListener('click', function () { Clip.open(c.clip); }); tools.appendChild(pl); }
       tools.appendChild(ed); tools.appendChild(dl);
       card.appendChild(tools);

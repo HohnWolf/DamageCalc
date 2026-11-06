@@ -94,6 +94,8 @@ html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;ov
 <iframe id="intro" title="Start" scrolling="no"></iframe>
 <script>
 const $=id=>document.getElementById(id);
+// ?export=1: Bild-Export aus der App (electron/match.js): immer sichtbar, ohne Animationen, meldet window.__ready
+if(/[?&]export=1/.test(location.search)){const xs=document.createElement('style');xs.textContent='*,*::before,*::after{animation:none!important;transition:none!important}#view.hid{opacity:1!important;visibility:visible!important}';document.head.appendChild(xs);}
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const px=u=>u&&(u.indexOf('/')===0||u.indexOf('data:')===0)?u:'/match/img?u='+encodeURIComponent(u);
 const FB='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="#cbb8e8" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="#fff"/></svg>');
@@ -238,9 +240,9 @@ async function poll(){
     if(introPlay!==null&&d.play!==introPlay)playIntro(d.play);
     introPlay=d.play;
     const j=JSON.stringify(d.preview||{});
-    if(j===last)return;
+    if(j===last){window.__ready=true;return;}
     last=j;st=Object.assign(st,d.preview||{});
-    render();
+    render();window.__ready=true;
   }catch(e){}
 }
 initParts();render();poll();setInterval(poll,1000);

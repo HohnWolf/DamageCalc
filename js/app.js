@@ -1604,7 +1604,7 @@
     var clr = el('button', { text: T('clearShort'), title: T('teamClear') });
     if (!teams[idx].length) { ex.disabled = true; clr.disabled = true; }
     ex.addEventListener('click', function () { showModal(T('teamExport'), teams[idx].map(function (m) { return exportSet(m.set, m.setName, m.species); }).join('\n\n')); });
-    clr.addEventListener('click', function () { if (confirm(T('clearConfirm', idx + 1))) { teams[idx] = []; save('cc_teams', teams); renderTeam(idx); } });
+    clr.addEventListener('click', function () { ccConfirm(T('clearConfirm', idx + 1), function () { teams[idx] = []; save('cc_teams', teams); renderTeam(idx); }, { danger: true, ok: ['Leeren', 'Clear'] }); });
     acts.appendChild(imp); acts.appendChild(ex); acts.appendChild(clr);
     box.appendChild(acts);
   }
@@ -1835,7 +1835,7 @@
     document.getElementById('btnImportRight').addEventListener('click', function () { doImport(1); });
     document.getElementById('btnImportCustom').addEventListener('click', function () { doImport('custom'); });
     document.getElementById('btnDeleteCustom').addEventListener('click', function () {
-      if (confirm(T('deleteConfirm'))) { customSets = {}; save('cc_customSets', customSets); toast(T('deleted')); }
+      ccConfirm(T('deleteConfirm'), function () { customSets = {}; save('cc_customSets', customSets); toast(T('deleted')); }, { danger: true });
     });
     document.getElementById('modalClose').addEventListener('click', function () {
       document.getElementById('modal').classList.add('hidden');
@@ -1929,8 +1929,8 @@
     var bStaticSets = document.getElementById('btnSets'); if (bStaticSets) bStaticSets.addEventListener('click', function () { window.runLoadSets(this); });
     var bStaticReg = document.getElementById('btnReg'); if (bStaticReg) bStaticReg.addEventListener('click', function () { window.runLoadReg(this); });
     document.getElementById('btnResetOnline').addEventListener('click', function () {
-      if (!ONLINE || !confirm(T('resetConfirm'))) return;
-      saveState(); ONLINE.reset(); location.reload();
+      if (!ONLINE) return;
+      ccConfirm(T('resetConfirm'), function () { saveState(); ONLINE.reset(); location.reload(); }, { danger: true, ok: ['Zurücksetzen', 'Reset'] });
     });
     recalc();
     initViews();
@@ -2279,7 +2279,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.11.2', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.11.3', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2327,8 +2327,8 @@
         bReg.addEventListener('click', function () { if (window.runLoadReg) window.runLoadReg(bReg); });
         var bReset = el('button', { class: 'danger', text: de ? 'Zurücksetzen' : 'Reset' });
         bReset.addEventListener('click', function () {
-          if (!ONLINE || !confirm(T('resetConfirm'))) return;
-          saveState(); ONLINE.reset(); location.reload();
+          if (!ONLINE) return;
+      ccConfirm(T('resetConfirm'), function () { saveState(); ONLINE.reset(); location.reload(); }, { danger: true, ok: ['Zurücksetzen', 'Reset'] });
         });
         g.appendChild(bSets); g.appendChild(bReg); g.appendChild(bReset);
         r.appendChild(g);
@@ -2594,7 +2594,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.11.2';
+    var ver = (updStatus && updStatus.current) || '1.11.3';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));

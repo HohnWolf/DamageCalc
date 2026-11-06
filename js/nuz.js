@@ -217,10 +217,11 @@
     head.appendChild(ex);
     var dl = el('button', { class: 'tbtn danger', text: t('del') });
     dl.addEventListener('click', function () {
-      if (!confirm(t('delConfirm', r.name))) return;
-      store.runs = store.runs.filter(function (x) { return x.id !== r.id; });
-      store.cur = store.runs[0] ? store.runs[0].id : null;
-      persist(); render();
+      ccConfirm(t('delConfirm', r.name), function () {
+        store.runs = store.runs.filter(function (x) { return x.id !== r.id; });
+        store.cur = store.runs[0] ? store.runs[0].id : null;
+        persist(); render();
+      }, { danger: true });
     });
     head.appendChild(dl);
     main.appendChild(head);
@@ -395,8 +396,9 @@
     var dn = el('button', { text: '▼', title: t('moveDown') }); dn.addEventListener('click', function () { mv(1); });
     var x = el('button', { class: 'del', text: '✕', title: t('remove') });
     x.addEventListener('click', function () {
-      if (!confirm(t('removeConfirm', l.route || '—'))) return;
-      r.links = r.links.filter(function (y) { return y !== l; }); persist(); render();
+      ccConfirm(t('removeConfirm', l.route || '—'), function () {
+        r.links = r.links.filter(function (y) { return y !== l; }); persist(); render();
+      }, { danger: true, ok: ['Entfernen', 'Remove'] });
     });
     tools.appendChild(up); tools.appendChild(dn); tools.appendChild(x);
     row.appendChild(tools);

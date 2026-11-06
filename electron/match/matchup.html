@@ -49,6 +49,8 @@ html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;ov
 </div></div>
 <script>
 const $=id=>document.getElementById(id);
+// ?export=1: Bild-Export aus der App (electron/match.js): immer sichtbar, ohne Animationen, meldet window.__ready
+if(/[?&]export=1/.test(location.search)){const xs=document.createElement('style');xs.textContent='*,*::before,*::after{animation:none!important;transition:none!important}#view.hid{opacity:1!important;visibility:visible!important}';document.head.appendChild(xs);}
 let last='',boot=null,prev=null;
 function fitAll(){
   document.querySelectorAll('.nm').forEach(e=>{
@@ -84,8 +86,8 @@ async function poll(){
     boot=d.v;
     const m=Object.assign({},d.match||{},{logoL:d.logoL,logoR:d.logoR});
     const j=JSON.stringify(m);
-    if(j===last)return;
-    last=j;render(m);prev=m;
+    if(j===last){window.__ready=true;return;}
+    last=j;render(m);prev=m;window.__ready=true;
   }catch(e){}
 }
 window.addEventListener('resize',fitStage);

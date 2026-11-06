@@ -326,11 +326,12 @@
     });
     root.querySelector('#tbDel').addEventListener('click', function () {
       var tm = team();
-      if (!confirm(T('tbDeleteConfirm', tm.name))) return;
-      var i = store.teams.indexOf(tm);
-      store.teams.splice(i, 1);
-      if (!store.teams.length) store.teams.push({ id: newId(), name: T('tbDefaultName', 1), mons: [] });
-      store.cur = store.teams[Math.max(0, i - 1)].id; sel = 0; persist(); render();
+      ccConfirm(T('tbDeleteConfirm', tm.name), function () {
+        var i = store.teams.indexOf(tm);
+        store.teams.splice(i, 1);
+        if (!store.teams.length) store.teams.push({ id: newId(), name: T('tbDefaultName', 1), mons: [] });
+        store.cur = store.teams[Math.max(0, i - 1)].id; sel = 0; persist(); render();
+      }, { danger: true });
     });
     [['#tbToYou', 0, 'tbSentYou'], ['#tbToFoe', 1, 'tbSentFoe']].forEach(function (b) {
       root.querySelector(b[0]).addEventListener('click', function () {
@@ -358,16 +359,17 @@
         del.addEventListener('click', function (ev) {
           ev.stopPropagation();
           var vName = v.name || ('v' + (idx + 1));
-          if (!confirm(de ? 'Version „' + vName + '“ wirklich löschen?' : 'Delete version “' + vName + '”?')) return;
-          var vi = tm.versions.indexOf(v);
-          if (vi !== -1) tm.versions.splice(vi, 1);
-          if (tm.curVer === v.id) {
-            tm.curVer = tm.versions[Math.max(0, vi - 1)].id;
-          }
-          ensureVersions(tm);
-          if (sel > tm.mons.length) sel = tm.mons.length;
-          persist();
-          render();
+          ccConfirm(de ? 'Version „' + vName + '“ wirklich löschen?' : 'Delete version “' + vName + '”?', function () {
+            var vi = tm.versions.indexOf(v);
+            if (vi !== -1) tm.versions.splice(vi, 1);
+            if (tm.curVer === v.id) {
+              tm.curVer = tm.versions[Math.max(0, vi - 1)].id;
+            }
+            ensureVersions(tm);
+            if (sel > tm.mons.length) sel = tm.mons.length;
+            persist();
+            render();
+          }, { danger: true, title: ['Version löschen', 'Delete version'] });
         });
         pill.appendChild(del);
       }

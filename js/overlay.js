@@ -22,7 +22,7 @@
 
   var S = de ? {
     title: 'Match-Overlay', sub: 'OBS-Overlays fürs Match: Team-Overlay (beide Teams als Spalte) und Teampreview mit Matchup-Banner und Startseite. Jedes lässt sich einzeln ein- und ausschalten.',
-    onOff: '{0}: An', offOn: '{0}: Aus', ovTeam: 'Team-Overlay', ovPreview: 'Teampreview', ovMatch: 'Matchup-Banner',
+    onOff: '{0}: An', offOn: '{0}: Aus', savePng: 'Als PNG speichern', savePngT: 'Speichert das Bild genau so, wie es in OBS aussieht (mit durchsichtigem Hintergrund)', pngSaved: 'Gespeichert: {0}', pngErr: 'PNG-Export fehlgeschlagen', ovTeam: 'Team-Overlay', ovPreview: 'Teampreview', ovMatch: 'Matchup-Banner',
     lang: 'Sprache im Overlay', play: '▶ Start-Screen abspielen (15 s)', playHint: 'Läuft im Teampreview, danach erscheinen wieder die Teams.',
     tabTeam: 'Team-Overlay', tabPreview: 'Teampreview', tabMatch: 'Matchup & Start',
     desktop: 'Die OBS-Overlays laufen nur in der Desktop-App (lokaler Server). Im Browser lässt sich alles vorbereiten, OBS bekommt es aber erst in der App.',
@@ -56,7 +56,7 @@
     backPick: '← Auswahl'
   } : {
     title: 'Match overlay', sub: 'OBS overlays for matches: team overlay (both teams as a column) and team preview with matchup banner and start screen. Each one can be switched on and off.',
-    onOff: '{0}: on', offOn: '{0}: off', ovTeam: 'Team overlay', ovPreview: 'Team preview', ovMatch: 'Matchup banner',
+    onOff: '{0}: on', offOn: '{0}: off', savePng: 'Save as PNG', savePngT: 'Saves the image exactly as OBS shows it (with transparent background)', pngSaved: 'Saved: {0}', pngErr: 'PNG export failed', ovTeam: 'Team overlay', ovPreview: 'Team preview', ovMatch: 'Matchup banner',
     lang: 'Overlay language', play: '▶ Play start screen (15 s)', playHint: 'Runs in the team preview, then the teams come back.',
     tabTeam: 'Team overlay', tabPreview: 'Team preview', tabMatch: 'Matchup & start',
     desktop: 'The OBS overlays only run in the desktop app (local server). In the browser you can prepare everything, OBS only gets it in the app.',
@@ -877,9 +877,10 @@
       persist(); render();
     }));
     metaBar.appendChild(btn(t('clearAll'), 'danger', function () {
-      if (!confirm(t('clearConfirm'))) return;
-      p.t1 = p.t2 = p.b1 = p.b2 = '';
-      persist(); render();
+      ccConfirm(t('clearConfirm'), function () {
+        p.t1 = p.t2 = p.b1 = p.b2 = '';
+        persist(); render();
+      }, { danger: true, ok: ['Leeren', 'Clear'] });
     }));
     leftPane.appendChild(metaBar);
 
@@ -967,16 +968,37 @@
       var frBanner = el('div', { class: 'mo-frame banner is-trans' });
       frBanner.appendChild(el('span', { class: 'mo-trans-badge', text: t('ovMatch') + ' · ' + t('bgT') }));
       frBanner.appendChild(el('iframe', { src: base + '/match/matchup', title: t('ovMatch') }));
+      rightPane.appendChild(pngRow('matchup'));
       rightPane.appendChild(frBanner);
 
       var frWide = el('div', { class: 'mo-frame wide' + (p.bg === 't' ? ' is-trans' : '') });
       frWide.appendChild(el('span', { class: 'mo-trans-badge', text: t('ovPreview') + ' · ' + (p.bg === 't' ? t('bgT') : t('bgS')) }));
       frWide.appendChild(el('iframe', { src: base + '/match/preview', title: t('tabPreview') }));
+      rightPane.appendChild(pngRow('preview'));
       rightPane.appendChild(frWide);
     }
     split.appendChild(rightPane);
     w.appendChild(split);
     return w;
+  }
+
+  // saves the banner / the team preview as a PNG file, drawn like OBS shows it (transparent background)
+  function pngButton(kind) {
+    var b = btn(t('savePng'), 'mo-png-btn', function () {
+      if (!D || !D.exportPng || b.disabled) return;
+      b.disabled = true;
+      D.exportPng(kind).then(function (r) {
+        if (r && r.ok) A.toast(t('pngSaved', r.file));
+        else if (r && !r.canceled) A.toast(t('pngErr') + (r.error ? ' (' + r.error + ')' : ''));
+      }, function () { A.toast(t('pngErr')); }).then(function () { b.disabled = false; });
+    }, t('savePngT'));
+    return b;
+  }
+
+  function pngRow(kind) {
+    var row = el('div', { class: 'mo-png-row' });
+    row.appendChild(pngButton(kind));
+    return row;
   }
 
   // the state reaches OBS right after the app starts, not only when this view is opened

@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('desktop', {
     clearLogo: (side) => ipcRenderer.invoke('match-logo-del', String(side)),
     swapLogos: () => ipcRenderer.invoke('match-logo-swap'),
     play: () => ipcRenderer.send('match-play'),
+    exportPng: (kind) => ipcRenderer.invoke('match-export', String(kind)),
   },
   // Updates über GitHub-Releases (electron/updater.js)
   update: {
