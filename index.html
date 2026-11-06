@@ -38,7 +38,8 @@
   <link rel="stylesheet" href="css/overlay.css?v=91">
   <link rel="stylesheet" href="css/catch.css?v=86">
   <link rel="stylesheet" href="css/pokedex.css?v=86">
-  <link rel="stylesheet" href="css/godex.css?v=1">
+  <link rel="stylesheet" href="css/godex.css?v=2">
+  <link rel="stylesheet" href="css/randomizer.css?v=1">
   <link rel="stylesheet" href="css/pro.css?v=16">
   <link rel="stylesheet" href="css/studio.css?v=15">
   </head>
@@ -147,6 +148,15 @@
           <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge">ALPHA</span></span><span class="sc-key">4</span></span>
           <span class="sc-text" data-t="startNuzText"></span>
         </button>
+        <button class="start-card card-randomizer" data-go="randomizer">
+          <span class="sc-art sc-art-randomizer">
+            <span class="sc-dmg">?? → ?? <small>Seed 4711</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko" data-t="startRandomizerKo">Gen 3 · Wild · Trainer · Starter</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navRandomizer">Randomizer</span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="startRandomizerText"></span>
+        </button>
           </div>
         </div>
         <div class="start-group sg-dex" data-cat="dex">
@@ -214,6 +224,7 @@
   <main id="catchView" class="wrap catch-view"></main>
   <main id="dexView" class="wrap dex-view"></main>
   <main id="godexView" class="wrap dex-view godex-view"></main>
+  <main id="randomizerView" class="wrap randomizer-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -292,6 +303,8 @@
   <script src="js/nds_calc.js?v=86"></script>
   <script src="js/nds.js?v=86"></script>
   <script src="js/nuz.js?v=86"></script>
+  <script src="js/rand_gen3.js?v=1"></script>
+  <script src="js/randomizer.js?v=1"></script>
   <script src="js/nuzcalc.js?v=86"></script>
   <script src="js/shiny_odds.js?v=86"></script>
   <script src="js/capture.js?v=86"></script>

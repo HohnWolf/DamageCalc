@@ -116,6 +116,7 @@
     if (names < 0) rom.warnings.push('names');
 
     var NSP = 412;
+    rom.off = { bs: bs, mv: -1, learn: [], natTab: natTab };
     rom.species = [];
     for (var s = 0; s < NSP; s++) {
       var o = bs + s * 28;
@@ -137,6 +138,7 @@
       return false;
     });
     if (mv < 0) throw new Error('rom:nomoves');
+    rom.off.mv = mv;
     rom.moves = [];
     for (var m = 0; m < 355; m++) {
       var mo = mv + m * 12;
@@ -181,6 +183,7 @@
     for (var l = 0; l < NSP; l++) {
       var list = [];
       var lp = lt >= 0 ? ptr(lt + l * 4) : -1;
+      rom.off.learn.push(lp);
       if (lp >= 0) for (var e = 0; e < 40; e++) { var v = u16(u8, lp + e * 2); if (v === 0xFFFF) break; list.push([v >> 9, v & 0x1FF]); }
       rom.learnsets.push(list);
     }
@@ -239,7 +242,7 @@
       }
       var items = [];
       for (var i = 0; i < 4; i++) { var iv = u16(u8, o + 0x10 + i * 2); if (iv) items.push(iv); }
-      list.push({ id: t, cls: u8[o + 1], female: !!(u8[o + 2] & 0x80), name: decode(u8, o + 4, 12), nameBytes: nameBytes,
+      list.push({ id: t, off: o, partyOff: pp, partySize: sz, cls: u8[o + 1], female: !!(u8[o + 2] & 0x80), name: decode(u8, o + 4, 12), nameBytes: nameBytes,
         double: u8[o + 0x18] === 1, items: items, custom: !!(flags & 1), party: party });
     }
     return list;

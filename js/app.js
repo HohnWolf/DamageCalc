@@ -158,7 +158,7 @@
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
       startCatchText: 'Fangwahrscheinlichkeiten für alle Hauptspiele (Gen 1–9): KP-IV-Spannen, alle Pokébälle im Direktvergleich, Kritischer Fang, Orden-Caps und Fangkraft.',
-      navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'Alle Pokémon aus Pokémon GO mit Typen, Basiswerten, schnellen und Lade-Attacken (inkl. Elite-TM und STAB) sowie der WP eines 100%-IV-Pokémon auf Level 15, 20, 25 und 50.', startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
+      navRandomizer: 'Randomizer', startRandomizerText: 'Mischt wilde Pokémon, Trainer, Starter, Entwicklungen, Werte, Typen und Attacken einer Spiel-ROM (Generation 3) und speichert eine neue Datei.', navRandomizer: 'Randomizer', startRandomizerText: 'Shuffles wild Pokémon, trainers, starters, evolutions, stats, types and moves of a game ROM (generation 3) and saves a new file.', navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'Alle Pokémon aus Pokémon GO mit Typen, Basiswerten, schnellen und Lade-Attacken (inkl. Elite-TM und STAB) sowie der WP eines 100%-IV-Pokémon auf Level 15, 20, 25 und 50.', startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
       startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
@@ -1764,6 +1764,7 @@
   var BASE_W = 1180, BASE_H = 760;
   function fitToWindow() {
     var b = document.body, pref = setting('zoom');
+    if (window.RL_ANDROID) { b.style.zoom = ''; b.style.height = ''; return; } // Android: kein Verkleinern, die Seiten passen sich über mobile.css an
     var fixed = pref && pref !== 'auto' && isFinite(+pref);
     var studio = isStudio(), sbW = (isPro() && !studio) ? (setting('sbCollapsed') ? 46 : 184) : 0;
     var z = fixed ? (+pref / 100) : Math.min(innerWidth / (BASE_W + sbW * 1.6), innerHeight / (BASE_H + (studio ? 24 : (sbW ? 18 : 0))), 1.9);
@@ -2279,7 +2280,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.11.4', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.13.0', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2374,16 +2375,16 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['godex', 'navGoDex']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'randomizer'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['godex', 'navGoDex']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz']], ['dex', ['dex', 'godex']], ['rest', ['shiny', 'overlay', 'catch']]];
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer']], ['dex', ['dex', 'godex']], ['rest', ['shiny', 'overlay', 'catch']]];
   // Android-App (Capacitor, mobile/): ohne die Werkzeuge der Kategorie 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner), sie brauchen den Desktop
   if (window.RL_ANDROID) {
-    var REST = ['shiny', 'overlay', 'catch'];
+    var REST = ['shiny', 'overlay', 'catch', 'randomizer']; // der Randomizer braucht ROM-Dateien vom PC
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
-    CATS = CATS.filter(function (c) { return c[0] !== 'rest'; });
+    CATS = CATS.filter(function (c) { return c[0] !== 'rest'; }).map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; });
   }
   function catOf(v) {
     for (var i = 0; i < CATS.length; i++) if (CATS[i][1].indexOf(v) !== -1) return CATS[i];
@@ -2511,6 +2512,7 @@
     if (v === 'builder' && window.CCBuilder) window.CCBuilder.render();
     if (v === 'soullink' && window.CCSoulLink) window.CCSoulLink.render();
     if (v === 'nuz' && window.CCNuz) window.CCNuz.render();
+    if (v === 'randomizer' && window.CCRandomizer) window.CCRandomizer.render();
     if (v === 'shiny' && window.CCShiny) window.CCShiny.render();
     if (v === 'match' && window.CCMatch) window.CCMatch.render();
     if (v === 'overlay' && window.CCOverlay) (window.CCOverlay.open || window.CCOverlay.render)();
@@ -2602,7 +2604,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.11.4';
+    var ver = (updStatus && updStatus.current) || '1.13.0';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -2768,6 +2770,7 @@
     if (/^#(selftest|runreg|runsets|runreset|calc)$/.test(location.hash) || /[?&]teamdemo\b/.test(location.search)) v = 'calc';
     else if (location.hash === '#builder') v = 'builder';
     else if (location.hash === '#nuz') v = 'nuz';
+    else if (location.hash === '#randomizer') v = 'randomizer';
     else if (location.hash === '#soullink') v = 'soullink';
     else if (location.hash === '#shiny') v = 'shiny';
     else if (location.hash === '#match' || location.hash === '#matchtest') v = 'match';

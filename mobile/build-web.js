@@ -1,5 +1,6 @@
 // Baut mobile/www aus der Desktop-Web-App: gleiche Dateien wie im Electron-Paket (ohne Simulator und Electron-Teil),
-// plus ein Schalter, der die Werkzeuge aus 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner) ausblendet.
+// plus ein Schalter, der die Werkzeuge aus 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner) ausblendet,
+// und css/mobile.css für Touch-Bedienung und schmale Bildschirme.
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..'), out = path.join(__dirname, 'www');
 fs.rmSync(out, { recursive: true, force: true });
@@ -14,6 +15,11 @@ function copy(rel) {
 }
 ['css', 'js', 'data', 'img'].forEach(copy);
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-html = html.replace('<head>', '<head>\n  <script>window.RL_ANDROID = true; document.documentElement.classList.add("rl-android");</script>');
+const flag = '<script>window.RL_ANDROID = true; document.documentElement.classList.add("rl-android");' +
+  ' try { if (!localStorage.getItem("cc_settings")) localStorage.setItem("cc_settings", JSON.stringify({ uiStyle: "studio" })); } catch (e) {}</script>';
+html = html.replace('<head>', '<head>\n  ' + flag);
+html = html.replace('<meta name="viewport" content="width=device-width, initial-scale=1">',
+  '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">');
+html = html.replace('</head>', '  <link rel="stylesheet" href="css/mobile.css">\n  </head>');
 fs.writeFileSync(path.join(out, 'index.html'), html);
 console.log('mobile/www fertig');

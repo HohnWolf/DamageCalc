@@ -1,0 +1,41 @@
+/* Android-App: Seiten scrollen, Spalten werden einspaltig, größere Touch-Ziele. Wird nur im Android-Build geladen (mobile/build-web.js). */
+html.rl-android, html.rl-android body { height: auto !important; min-height: 100%; overflow-x: hidden !important; overflow-y: auto !important; -webkit-text-size-adjust: 100%; }
+html.rl-android body { display: block !important; font-size: 14px; padding-bottom: env(safe-area-inset-bottom); -webkit-tap-highlight-color: transparent; }
+html.rl-android .app-main { display: block; overflow: visible; min-height: 100vh; }
+html.rl-android .wrap { height: auto !important; min-height: 0; overflow: visible !important; padding: 8px 10px 12px; flex: none; }
+html.rl-android img { max-width: 100%; }
+html.rl-android .statusbar { display: none !important; }
+
+/* Navigationsleiste (in Studio die Seitenleiste als obere Leiste): fest oben, Werkzeuge wischbar, Abstand für Statusleiste/Notch */
+html.rl-android .sidebar { position: sticky !important; top: 0; z-index: 60; width: 100% !important; height: calc(46px + env(safe-area-inset-top)) !important; padding: env(safe-area-inset-top) 6px 0 8px !important; }
+html.rl-android .sidebar .sb-list { overflow-x: auto !important; scrollbar-width: none; }
+html.rl-android .sidebar .sb-list::-webkit-scrollbar { display: none; }
+html.rl-android .sb-head .sb-title { display: none; }
+html.rl-android .topbar, html.rl-android .win-controls { display: none !important; }
+html.rl-android button, html.rl-android select, html.rl-android input { min-height: 36px; font-size: 14px; }
+
+/* alle mehrspaltigen Raster einspaltig */
+html.rl-android .columns, html.rl-android .results, html.rl-android .tb, html.rl-android .look-body,
+html.rl-android .gd-grid, html.rl-android .dex-layout, html.rl-android .dex-mid-grid, html.rl-android .catch-grid, html.rl-android .mo-two,
+html.rl-android .mo-rec-split, html.rl-android .mo-hub-cards { display: flex !important; flex-direction: column; grid-template-columns: 1fr !important; gap: 10px; }
+html.rl-android .panel { overflow: visible; }
+html.rl-android .panel .body { overflow: visible; }
+
+/* Startseite: Kategorien untereinander */
+html.rl-android .start-cards, html.rl-android .start-cards.is-all, html.rl-android .start-cards.is-cat, html.rl-android .start-cards:not(.is-all) { display: flex !important; flex-direction: column; gap: 12px; grid-template-columns: 1fr !important; justify-content: flex-start; }
+html.rl-android .start-cards .start-group { margin: 0; }
+html.rl-android .start-cards .sg-cards { display: flex !important; flex-direction: column; gap: 12px; }
+html.rl-android .start-card { width: 100%; }
+html.rl-android .start-view { overflow: visible; height: auto; }
+
+/* Listen */
+html.rl-android .gd-cp-row { grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); font-size: 12px; }
+html.rl-android .gd-mv { grid-template-columns: 62px minmax(0, 1fr) 38px 40px 38px 38px; font-size: 12px; }
+html.rl-android .gd-list, html.rl-android .dex-list, html.rl-android .gd-listbox { max-height: 60vh; }
+html.rl-android .set-box { width: 96vw; height: calc(100vh - 24px); }
+html.rl-android .set-row { grid-template-columns: 1fr; }
+html.rl-android .pick-row.pick-move, html.rl-android .pick-row.pick-item, html.rl-android .pick-row.pick-ability { grid-template-columns: minmax(0, 1fr); }
+html.rl-android table { display: block; overflow-x: auto; max-width: 100%; }
+html.rl-android .wrap > *, html.rl-android .panel, html.rl-android .dex-layout > * { min-width: 0; max-width: 100%; }
+html.rl-android .dex-layout { height: auto !important; }
+html.rl-android .dex-layout > * { height: auto !important; max-height: none !important; }

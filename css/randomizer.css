@@ -1,0 +1,19 @@
+/* Randomizer-Ansicht */
+.randomizer-view { overflow: auto !important; }
+.rd-box { max-width: 860px; margin: 0 auto; width: 100%; }
+.rd-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.rd-drop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px; border: 1px dashed var(--line); border-radius: var(--radius); }
+.rd-drop.on { border-color: var(--accent-2); background: var(--accent-soft); }
+.rd-pick, .rd-go { height: 34px; padding: 0 16px; }
+.rd-game { font-size: 13px; }
+.rd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px 16px; }
+.rd-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); }
+.rd-lbl { font-weight: 600; font-size: 12.5px; }
+.rd-sel, .rd-seed, .rd-num { height: 28px; max-width: 210px; min-width: 0; }
+.rd-num { width: 64px; text-align: right; }
+.rd-starters { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.rd-check { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.rd-err { color: var(--bad, #e5484d); font-weight: 600; }
+.rd-ok { color: var(--good, #3dd68c); font-weight: 600; }
+.rd-log { max-height: 320px; overflow: auto; margin: 0; padding: 8px 10px; font: 11.5px/1.4 Consolas, monospace; background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); white-space: pre-wrap; }
+.rd-logbtn { align-self: flex-start; height: 28px; padding: 0 12px; }
