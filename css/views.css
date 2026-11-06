@@ -589,18 +589,34 @@ body.is-maximized #winMax .ic-restore { display: block; }
   .tb { min-height: 640px; }
 }
 
-/* settings window */
-.set-box { width: min(720px, 94vw); max-height: min(720px, calc(100vh - 40px)); overflow: auto; padding: 14px 16px 16px; }
-.set-row { display: grid; grid-template-columns: minmax(190px, 260px) minmax(0, 1fr); gap: 14px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line-soft); }
-.set-label { padding-top: 3px; }
+/* settings window: fixed header + section navigation, scrolling body, cards per setting */
+.set-box { width: min(780px, 94vw); height: min(760px, calc(100vh - 40px)); max-height: none; overflow: hidden; padding: 0; display: flex; flex-direction: column; }
+.set-box > .nat-head { flex: none; padding: 14px 18px 10px; margin: 0; }
+.set-nav { flex: none; display: flex; gap: 6px; padding: 0 18px 10px; border-bottom: 1px solid var(--line-soft); overflow-x: auto; }
+.set-nav-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; background: transparent; border: 1px solid var(--line-soft); color: var(--muted); font-weight: 600; font-size: 12.5px; white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }
+.set-nav-btn:hover { color: var(--text); border-color: var(--line); background: var(--btn-hover); }
+.set-nav-btn.on { background: var(--accent-soft); border-color: var(--accent-2); color: var(--text); }
+.set-nav-ic { width: 15px; height: 15px; }
+.set-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 18px 18px; scrollbar-gutter: stable; position: relative; }
+.set-sec { margin: 18px 0 8px; font-size: 11.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--accent-2); display: flex; align-items: center; gap: 10px; }
+.set-sec::after { content: ''; flex: 1; height: 1px; background: var(--line-soft); }
+.set-sec:first-child { margin-top: 12px; }
+.set-row { display: grid; grid-template-columns: minmax(190px, 250px) minmax(0, 1fr); gap: 14px; align-items: center; padding: 11px 14px; margin-bottom: 8px; background: var(--panel); border: 1px solid var(--line-soft); border-radius: calc(var(--radius) + 3px); transition: border-color .15s; }
+.set-row:hover { border-color: var(--line); }
+.set-label { padding-top: 0; }
 .set-name { font-weight: 700; font-size: 13.5px; }
 .set-label .hint { margin-top: 2px; }
 .set-opts { max-width: 100%; justify-content: flex-end; }
 .set-opts button { white-space: nowrap; }
+@media (max-width: 640px) {
+  .set-row { grid-template-columns: 1fr; gap: 8px; }
+  .set-opts { justify-content: flex-start; }
+}
 .set-themes-row { grid-template-columns: 1fr; gap: 8px; align-items: stretch; }
 .set-themes { display: flex; flex-wrap: wrap; gap: 6px; }
-.theme-swatch { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 6px; }
-.theme-swatch .swatch { width: 16px; height: 16px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, .35); flex: none; }
+.theme-swatch { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 6px; border-radius: 999px; }
+.theme-swatch.on { border-color: var(--accent-2); background: var(--accent-soft); color: var(--text); }
+.theme-swatch .swatch { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .35); flex: none; }
 .sw-dark { background: linear-gradient(135deg, #1b1d21 52%, #3a7bd5 52%); }
 .sw-light { background: linear-gradient(135deg, #e8eaed 52%, #1f5fbf 52%); }
 .sw-oled { background: linear-gradient(135deg, #000 52%, #6aabff 52%); }
@@ -715,3 +731,12 @@ body.is-maximized #winMax .ic-restore { display: block; }
   background: var(--accent-2); border-color: var(--accent-2); color: var(--on-accent-2);
 }
 .tool-toggle .tool-nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* settings window: soft entrance, off for reduced motion */
+@keyframes set-pop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+.set-modal .set-box { animation: set-pop .16s ease-out; }
+@media (prefers-reduced-motion: reduce) { .set-modal .set-box, .set-nav-btn, .set-row { animation: none; transition: none; } }
+
+/* UI skin tiles in the settings */
+.set-sub { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+.set-forms { justify-content: flex-start; }
