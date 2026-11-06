@@ -205,7 +205,7 @@
       setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis.',
       updCheck: 'Jetzt suchen', updChecking: 'Suche …', updNone: 'Du hast die neueste Version.', updLoading: 'Version {0} wird geladen …',
       updProgress: 'Version {0} wird geladen … {1} %', updErr: 'Suche fehlgeschlagen: {0}', updOff: 'Updates gibt es nur in der Windows-App.',
-      updReady: 'Update {0}: neu starten', updReadyT: 'Rattata Lab {0} ist geladen. Klicken zum Neustarten und Installieren, sonst wird es beim nächsten Beenden installiert.',
+      updReady: 'Update {0}: neu starten', updReadyT: 'Rattata Labs {0} ist geladen. Klicken zum Neustarten und Installieren, sonst wird es beim nächsten Beenden installiert.',
       updReadyMsg: 'Version {0} ist geladen und wird beim nächsten Beenden installiert.', updRestart: 'Jetzt neu starten',
       updPortable: 'Update {0} verfügbar', updPortableT: 'Version {0} ist auf GitHub. Die portable Version aktualisiert sich nicht selbst: Klicken öffnet die Download-Seite.',
       updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite'
@@ -318,7 +318,7 @@
       setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice.',
       updCheck: 'Check now', updChecking: 'Checking …', updNone: 'You have the latest version.', updLoading: 'Downloading version {0} …',
       updProgress: 'Downloading version {0} … {1}%', updErr: 'Check failed: {0}', updOff: 'Updates are only available in the Windows app.',
-      updReady: 'Update {0}: restart', updReadyT: 'Rattata Lab {0} is downloaded. Click to restart and install, otherwise it is installed the next time you quit.',
+      updReady: 'Update {0}: restart', updReadyT: 'Rattata Labs {0} is downloaded. Click to restart and install, otherwise it is installed the next time you quit.',
       updReadyMsg: 'Version {0} is downloaded and will be installed the next time you quit.', updRestart: 'Restart now',
       updPortable: 'Update {0} available', updPortableT: 'Version {0} is on GitHub. The portable version does not update itself: click to open the download page.',
       updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page'
@@ -2279,7 +2279,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.11.1', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.11.2', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2543,7 +2543,7 @@
     sb.innerHTML = '';
     var head = el('div', { class: 'sb-head' });
     head.appendChild(el('img', { class: 'sb-logo', src: 'img/home.png', alt: '' }));
-    head.appendChild(el('span', { class: 'sb-title', text: 'Rattata Lab' }));
+    head.appendChild(el('span', { class: 'sb-title', text: 'Rattata Labs' }));
     sb.appendChild(head);
     var list = el('nav', { class: 'sb-list' });
     function item(id, label, ic, alpha, onClick) {
@@ -2594,7 +2594,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.11.1';
+    var ver = (updStatus && updStatus.current) || '1.11.2';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));

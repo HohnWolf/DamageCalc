@@ -1,8 +1,8 @@
 {
   "name": "rattata-lab",
-  "productName": "Rattata Lab",
-  "version": "1.11.1",
-  "description": "Rattata Lab: Damage Calculator, Teambuilder, Nationaler Pokédex, Fangrechner, Soul-Link-Planer, Nuzlocke-Rechner (Alpha), Shiny-Zähler, Team-Analyse und Match-Overlays für OBS",
+  "productName": "Rattata Labs",
+  "version": "1.11.2",
+  "description": "Rattata Labs: Damage Calculator, Teambuilder, Nationaler Pokédex, Fangrechner, Soul-Link-Planer, Nuzlocke-Rechner (Alpha), Shiny-Zähler, Team-Analyse und Match-Overlays für OBS",
   "author": "HohnWolf",
   "license": "UNLICENSED",
   "private": true,
@@ -23,7 +23,7 @@
   },
   "build": {
     "appId": "de.hohnwolf.championscalc",
-    "productName": "Rattata Lab",
+    "productName": "Rattata Labs",
     "directories": {
       "output": "dist"
     },
@@ -52,7 +52,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Rattata Lab",
+      "shortcutName": "Rattata Labs",
       "artifactName": "RattataLab-Setup-${version}.${ext}"
     },
     "portable": {

@@ -1,4 +1,4 @@
-// Desktop-Hülle für Rattata Lab (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse, Match-Overlay): öffnet index.html in einem eigenen Fenster.
+// Desktop-Hülle für Rattata Labs (Damage Calculator, Teambuilder, Soul Link, Nuzlocke, Shiny-Zähler, Team-Analyse, Match-Overlay): öffnet index.html in einem eigenen Fenster.
 // Die Web-App selbst bleibt unverändert und läuft auch weiterhin direkt im Browser.
 // Das Fenster hat keinen Windows-Rahmen; die Kopfzeile der App ist die Titelleiste (Ziehen, Doppelklick
 // maximiert) und zeigt eigene Knöpfe für Minimieren, Maximieren und Schließen (electron/preload.js).
@@ -34,11 +34,11 @@ process.on('unhandledRejection', (err) => {
 
 const ROOT = path.join(__dirname, '..');
 
-// Version 1.0/1.1 hieß "Champions Damage Calc": Teams, Sets und Einstellungen beim ersten Start übernehmen
+// Frühere Namen ("Champions Damage Calc" bis 1.1, "Rattata Lab" bis 1.11.1): Teams, Sets und Einstellungen beim ersten Start übernehmen
 try {
-  const oldData = path.join(app.getPath('appData'), 'Champions Damage Calc');
   const newData = app.getPath('userData');
-  if (!fs.existsSync(newData) && fs.existsSync(oldData)) fs.cpSync(oldData, newData, { recursive: true });
+  const oldData = ['Rattata Lab', 'Champions Damage Calc'].map((n) => path.join(app.getPath('appData'), n)).find((p) => p !== newData && fs.existsSync(p));
+  if (oldData && !fs.existsSync(path.join(newData, 'Local Storage'))) fs.cpSync(oldData, newData, { recursive: true });
 } catch (e) { /* ohne alte Daten geht es auch */ }
 const boundsFile = () => path.join(app.getPath('userData'), 'window.json');
 
@@ -64,7 +64,7 @@ function createWindow() {
     x: b.x, y: b.y, width: b.width, height: b.height,
     minWidth: 1000, minHeight: 640,
     frame: false,
-    title: 'Rattata Lab',
+    title: 'Rattata Labs',
     icon: iconPath,
     backgroundColor: '#1b1d21',
     show: false,
