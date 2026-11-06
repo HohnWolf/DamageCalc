@@ -9,6 +9,7 @@
   --ic-soullink: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2014a4%204%200%200%200%205.7%200l3-3a4%204%200%200%200-5.7-5.7l-1%201%22%2F%3E%3Cpath%20d%3D%22M14%2010a4%204%200%200%200-5.7%200l-3%203a4%204%200%200%200%205.7%205.7l1-1%22%2F%3E%3C%2Fsvg%3E");
   --ic-nuz: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2020.5s-7.5-4.6-7.5-10.5a4.2%204.2%200%200%201%207.5-2.6%204.2%204.2%200%200%201%207.5%202.6c0%205.9-7.5%2010.5-7.5%2010.5z%22%2F%3E%3C%2Fsvg%3E");
   --ic-dex: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%205h7a2%202%200%200%201%202%202v13a2%202%200%200%200-2-2H3z%22%2F%3E%3Cpath%20d%3D%22M21%205h-7a2%202%200%200%200-2%202v13a2%202%200%200%201%202-2h7z%22%2F%3E%3C%2Fsvg%3E");
+  --ic-godex: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2021s-6.5-6-6.5-11a6.5%206.5%200%200%201%2013%200c0%205-6.5%2011-6.5%2011z%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2210%22%20r%3D%222.5%22%2F%3E%3C%2Fsvg%3E");
   --ic-shiny: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203l2.2%205.8L20%2011l-5.8%202.2L12%2019l-2.2-5.8L4%2011l5.8-2.2z%22%2F%3E%3C%2Fsvg%3E");
   --ic-overlay: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M8%2020h8M12%2016v4%22%2F%3E%3C%2Fsvg%3E");
   --ic-catch: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223.5%22%2F%3E%3Cpath%20d%3D%22M12%202v3M12%2019v3M2%2012h3M19%2012h3%22%2F%3E%3C%2Fsvg%3E");
@@ -76,6 +77,7 @@ html[data-ui-style="pro"] .sb-foot { flex: none; padding: 6px; border-top: 1px s
 .ic[data-ic="soullink"] { --ic: var(--ic-soullink); }
 .ic[data-ic="nuz"] { --ic: var(--ic-nuz); }
 .ic[data-ic="dex"] { --ic: var(--ic-dex); }
+.ic[data-ic="godex"] { --ic: var(--ic-godex); }
 .ic[data-ic="shiny"] { --ic: var(--ic-shiny); }
 .ic[data-ic="overlay"] { --ic: var(--ic-overlay); }
 .ic[data-ic="catch"] { --ic: var(--ic-catch); }
@@ -155,6 +157,7 @@ html[data-ui-style="pro"] .start-card.card-dex::before { --ic: var(--ic-dex); }
 html[data-ui-style="pro"] .start-card.card-shiny::before { --ic: var(--ic-shiny); }
 html[data-ui-style="pro"] .start-card.card-overlay::before { --ic: var(--ic-overlay); }
 html[data-ui-style="pro"] .start-card.card-catch::before { --ic: var(--ic-catch); }
+html[data-ui-style="pro"] .start-card.card-godex::before { --ic: var(--ic-godex); }
 html[data-ui-style="pro"] .sc-head { display: contents; }
 html[data-ui-style="pro"] .sc-title { grid-column: 2; grid-row: 1; font-size: 13px; font-weight: 600; }
 html[data-ui-style="pro"] .sc-key { grid-column: 3; grid-row: 1; }

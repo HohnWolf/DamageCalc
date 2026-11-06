@@ -1,0 +1,84 @@
+/* ==========================================================
+   POKÉMON-GO-POKÉDEX (nutzt Liste, Kopf und Formenleiste des Pokédex; Pro und Studio färben es über die gleichen Variablen)
+   ========================================================== */
+.start-card.card-godex { --card-accent: #22c55e; --card-glow: rgba(34, 197, 94, 0.22); }
+
+.gd-row-val { margin-left: auto; align-self: center; padding-left: 8px; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted, #9aa3b2); }
+.dex-row.on .gd-row-val { color: var(--text, #fff); }
+.dex-filter-row .dex-type-sel { flex: 1 1 0; min-width: 0; }
+
+.gd-grid {
+  flex: 1; min-height: 0; display: grid; gap: 8px; align-items: stretch;
+  grid-template-columns: minmax(250px, 26%) minmax(0, 1fr) minmax(0, 1.15fr);
+  overflow: auto;
+}
+@media (max-width: 1250px) { .gd-grid { grid-template-columns: minmax(230px, 34%) minmax(0, 1fr); } .gd-moves-col { grid-column: 1 / -1; } }
+@media (max-width: 860px) { .gd-grid { grid-template-columns: 1fr; } }
+
+.gd-card { padding: 8px 12px 10px !important; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.gd-hero { align-items: stretch; }
+.gd-stage {
+  flex: 1 1 auto; min-height: 150px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line, var(--border)); border-radius: 4px; background: var(--input, rgba(255,255,255,.04));
+}
+.gd-img { max-width: 80%; max-height: 220px; width: auto; height: auto; image-rendering: pixelated; transform: scale(1.7); transform-origin: 50% 60%; }
+.gd-types { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.gd-sub { margin-top: 2px; }
+
+.gd-stats { display: flex; flex-direction: column; gap: 9px; }
+.gd-stat { display: grid; grid-template-columns: 92px 40px minmax(40px, 1fr); align-items: center; gap: 8px; font-size: 13px; }
+.gd-stat-k { font-weight: 600; }
+.gd-stat-v { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.gd-bar { height: 8px; border-radius: 2px; background: var(--input, rgba(255,255,255,.08)); overflow: hidden; }
+.gd-bar > span { display: block; height: 100%; border-radius: 2px; }
+
+.gd-cp { display: flex; flex-direction: column; }
+.gd-cp-row { display: grid; grid-template-columns: minmax(110px, 1.5fr) 0.9fr 0.9fr 0.9fr 0.7fr; align-items: center; gap: 6px; padding: 9px 2px; border-bottom: 1px solid var(--line-soft, rgba(255,255,255,.07)); font-size: 13px; font-variant-numeric: tabular-nums; }
+.gd-cp-row > span:not(:first-child) { text-align: right; }
+.gd-cp-row:last-child { border-bottom: 0; }
+.gd-cp-head { padding-top: 2px; padding-bottom: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted, #9aa3b2); text-transform: uppercase; letter-spacing: .04em; }
+.gd-cp-lv { display: flex; flex-direction: column; gap: 1px; }
+.gd-cp-lv b { font-size: 14px; }
+.gd-cp-lv small { font-size: 11px; color: var(--muted, #9aa3b2); line-height: 1.2; }
+.gd-cp-wp { font-size: 20px; font-weight: 800; color: var(--accent-2, #7aa2ff); }
+.gd-foot { margin: 4px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--muted, #9aa3b2); }
+
+.gd-moves-col { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.gd-moves { padding: 8px 12px 10px !important; }
+.gd-moves-body { display: flex; flex-direction: column; }
+.gd-mv { display: grid; grid-template-columns: 74px minmax(0, 1fr) 48px 52px 48px 46px; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid var(--line-soft, rgba(255,255,255,.07)); font-size: 13px; }
+.gd-mv:last-child { border-bottom: 0; }
+.gd-mv .type-badge { justify-self: start; font-size: 10.5px; min-width: 66px; text-align: center; }
+.gd-mv-head { padding: 0 0 5px; font-size: 11.5px; font-weight: 600; color: var(--muted, #9aa3b2); text-transform: uppercase; letter-spacing: .04em; }
+.gd-mv-head span:not(.gd-mv-name) { text-align: right; }
+.gd-mv-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-weight: 600; flex-wrap: wrap; }
+.gd-mv.elite .gd-mv-name > span:first-child { font-style: italic; }
+.gd-num { text-align: right; font-variant-numeric: tabular-nums; }
+.gd-dps { font-weight: 700; }
+.gd-tag { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; padding: 1px 5px; border-radius: 3px; line-height: 1.4; }
+.gd-stab { background: var(--accent-soft, rgba(122,162,255,.18)); color: var(--accent-2, #7aa2ff); }
+.gd-elite { background: rgba(224, 160, 58, .2); color: #e0a03a; }
+.gd-none { padding: 8px 0; font-size: 12.5px; color: var(--muted, #9aa3b2); }
+
+/* Liste: Name und Typen haben Platz, der Wert steht rechts */
+.godex-view .dex-row { gap: 6px; }
+.godex-view .dex-row-info { min-width: 0; flex: 1 1 auto; }
+.godex-view .dex-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.godex-view .dex-row-types { flex-wrap: nowrap; gap: 3px; }
+.godex-view .dex-row-types .type-badge { font-size: 9.5px; padding: 1px 5px; min-width: 0; }
+.gd-row-val { flex: none; }
+.gd-grid { align-content: start; align-items: start; }
+.gd-hero { align-self: start; }
+.gd-stage { flex: none; height: 230px; min-height: 0; }
+.gd-img { max-width: 78%; max-height: 82%; transform: none; image-rendering: auto; }
+.gd-cp-row { grid-template-columns: minmax(120px, 1.7fr) .9fr 1fr .9fr .6fr; }
+.gd-grid { grid-template-columns: minmax(250px, 24%) minmax(0, 1fr) minmax(0, 1.4fr); }
+.gd-mv { grid-template-columns: 70px minmax(0, 1fr) 44px 48px 42px 44px; }
+.gd-mv .type-badge { min-width: 62px; }
+.gd-mv-name { flex-wrap: nowrap; }
+.gd-mv-name > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gd-tag { flex: none; }
+.sc-key:empty { display: none; }
+
+/* Android-App: keine Kategorie Sonstiges */
+html.rl-android .cat-rest, html.rl-android .sg-rest, html.rl-android .card-shiny, html.rl-android .card-overlay, html.rl-android .card-catch { display: none !important; }

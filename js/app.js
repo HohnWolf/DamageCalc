@@ -153,12 +153,12 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: '1025 Pokémon · 3D-Modelle & Werte', catRestText: 'Pokédex, Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', homeTitle: 'Zum Startbildschirm',
+      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Pokédex & Pokémon GO Pokédex', catRestText: 'Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
       startCatchText: 'Fangwahrscheinlichkeiten für alle Hauptspiele (Gen 1–9): KP-IV-Spannen, alle Pokébälle im Direktvergleich, Kritischer Fang, Orden-Caps und Fangkraft.',
-      startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
+      navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'Alle Pokémon aus Pokémon GO mit Typen, Basiswerten, schnellen und Lade-Attacken (inkl. Elite-TM und STAB) sowie der WP eines 100%-IV-Pokémon auf Level 15, 20, 25 und 50.', startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
       startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
@@ -266,12 +266,12 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: '1025 Pokémon · 3D models & stats', catRestText: 'Pokédex, shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'Pokédex & Pokémon GO Pokédex', catRestText: 'Shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: Showdown replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
       startCatchText: 'Exact capture probabilities across all main-series games (Gen 1–9): HP IV ranges, all Poké Balls compared live, Critical Capture, badge caps and Catching Power.',
-      startDexText: 'National Pokédex (Gen 1–9, all 1025 Pokémon): 3D models & sprites, all forms (Mega, Primal, Alola, Galar, Hisui, Paldea), types, abilities, base stats and evolution chains with methods.',
+      navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'All Pokémon from Pokémon GO with types, base stats, fast and charged moves (incl. elite TM and STAB) and the CP of a 100% IV Pokémon at level 15, 20, 25 and 50.', startDexText: 'National Pokédex (Gen 1–9, all 1025 Pokémon): 3D models & sprites, all forms (Mega, Primal, Alola, Galar, Hisui, Paldea), types, abilities, base stats and evolution chains with methods.',
       startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
       startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Early test version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
       winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
@@ -2374,10 +2374,17 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['godex', 'navGoDex']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz']], ['dex', ['dex', 'godex']], ['rest', ['shiny', 'overlay', 'catch']]];
+  // Android-App (Capacitor, mobile/): ohne die Werkzeuge der Kategorie 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner), sie brauchen den Desktop
+  if (window.RL_ANDROID) {
+    var REST = ['shiny', 'overlay', 'catch'];
+    VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
+    MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
+    CATS = CATS.filter(function (c) { return c[0] !== 'rest'; });
+  }
   function catOf(v) {
     for (var i = 0; i < CATS.length; i++) if (CATS[i][1].indexOf(v) !== -1) return CATS[i];
     return null;
@@ -2452,7 +2459,7 @@
       var el2 = it.cat ? grid.querySelector('.cat-card[data-cat="' + it.cat + '"]') : grid.querySelector('.start-card[data-go="' + it.tool + '"]');
       var k = el2 && el2.querySelector('.sc-key');
       n++;
-      if (k) k.textContent = String(n);
+      if (k) k.textContent = n <= 9 ? String(n) : '';
     });
     grid.style.setProperty('--cards', String(Math.max(1, n)));
     grid.style.setProperty('--start-cols', String(n <= 4 ? Math.max(1, n) : Math.ceil(n / 2)));
@@ -2509,6 +2516,7 @@
     if (v === 'overlay' && window.CCOverlay) (window.CCOverlay.open || window.CCOverlay.render)();
     if (v === 'catch' && window.CCCatchCalc) window.CCCatchCalc.render();
     if (v === 'dex' && window.CCDex) window.CCDex.render();
+    if (v === 'godex' && window.CCGoDex) window.CCGoDex.render();
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2526,7 +2534,7 @@
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', rest: 'shiny' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', rest: 'shiny' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }
@@ -2766,6 +2774,7 @@
     else if (location.hash === '#overlay') v = 'overlay';
     else if (location.hash === '#catch') v = 'catch';
     else if (location.hash === '#dex') v = 'dex';
+    else if (location.hash === '#godex') v = 'godex';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

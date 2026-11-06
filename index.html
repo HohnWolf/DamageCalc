@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="css/overlay.css?v=91">
   <link rel="stylesheet" href="css/catch.css?v=86">
   <link rel="stylesheet" href="css/pokedex.css?v=86">
+  <link rel="stylesheet" href="css/godex.css?v=1">
   <link rel="stylesheet" href="css/pro.css?v=16">
   <link rel="stylesheet" href="css/studio.css?v=15">
   </head>
@@ -91,6 +92,11 @@
           <span class="sc-head"><span class="sc-title" data-t="catRuns"></span><span class="sc-key"></span></span>
           <span class="sc-text" data-t="catRunsText"></span>
         </button>
+        <button class="start-card cat-card cat-dex" data-cat="dex">
+          <span class="sc-art sc-art-cat" id="catArt_dex"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catDex"></span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="catDexText"></span>
+        </button>
         <button class="start-card cat-card cat-rest" data-cat="rest">
           <span class="sc-art sc-art-cat" id="catArt_rest"></span>
           <span class="sc-head"><span class="sc-title" data-t="catRest"></span><span class="sc-key"></span></span>
@@ -143,8 +149,8 @@
         </button>
           </div>
         </div>
-        <div class="start-group sg-rest" data-cat="rest">
-          <div class="sg-label" data-t="catRest"></div>
+        <div class="start-group sg-dex" data-cat="dex">
+          <div class="sg-label" data-t="catDex"></div>
           <div class="sg-cards">
         <button class="start-card card-dex" data-go="dex">
           <span class="sc-art sc-art-dex">
@@ -155,6 +161,20 @@
           <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span><span class="sc-key">9</span></span>
           <span class="sc-text" data-t="startDexText"></span>
         </button>
+        <button class="start-card card-godex" data-go="godex">
+          <span class="sc-art sc-art-godex">
+            <span class="sc-dmg">CP 4724 <small>Lv 50 · 100 %</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko">Lv 15 · 20 · 25 · 50</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navGoDex">Pokémon GO Pokédex</span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="startGoDexText"></span>
+        </button>
+          </div>
+        </div>
+        <div class="start-group sg-rest" data-cat="rest">
+          <div class="sg-label" data-t="catRest"></div>
+          <div class="sg-cards">
         <button class="start-card card-shiny" data-go="shiny">
           <span class="sc-art sc-art-shiny" id="startShiny"></span>
           <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span><span class="sc-key">5</span></span>
@@ -193,6 +213,7 @@
   <main id="overlayView" class="wrap overlay-view"></main>
   <main id="catchView" class="wrap catch-view"></main>
   <main id="dexView" class="wrap dex-view"></main>
+  <main id="godexView" class="wrap dex-view godex-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -284,5 +305,7 @@
   <script src="js/catch_calc.js?v=86"></script>
   <script src="data/dex_gen1.js?v=86"></script>
   <script src="js/pokedex.js?v=86"></script>
+  <script src="data/godex.js?v=1"></script>
+  <script src="js/godex.js?v=1"></script>
 </body>
 </html>
