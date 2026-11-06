@@ -1708,7 +1708,8 @@
     lines.push('Level: 50');
     if (set.shiny) lines.push('Shiny: Yes');
     var sps = C.STAT_KEYS.filter(function (k) { return set.sps[k]; }).map(function (k) { return set.sps[k] + ' ' + STAT_TO_SD[k]; });
-    if (sps.length) lines.push('SPs: ' + sps.join(' / '));
+    // Showdown has no "SPs:" line; Champions pastes carry the Stat Points (0-32) in the EVs line, and the importer reads such a line as Stat Points again
+    if (sps.length) lines.push('EVs: ' + sps.join(' / '));
     lines.push(set.nature + ' Nature');
     set.moves.forEach(function (m) { lines.push('- ' + m); });
     return lines.join('\n');
@@ -2278,7 +2279,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.11.0', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.11.1', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2593,7 +2594,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.11.0';
+    var ver = (updStatus && updStatus.current) || '1.11.1';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));

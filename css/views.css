@@ -420,7 +420,8 @@ body.is-maximized #winMax .ic-restore { display: block; }
   display: grid; gap: 6px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.1fr);
   grid-template-areas: "sp sprite moves" "nature item ability" "stats stats stats";
-  grid-template-rows: minmax(auto, 1fr) auto auto;
+  /* fixed rows: the controls stay in the same place for every Pokémon (only the text inside changes) */
+  grid-template-rows: minmax(0, 1fr) 116px 86px;
 }
 .tb-box { background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 5px 8px; min-width: 0; }
 .tb-box-title { color: var(--muted); font-size: 11px; font-weight: 700; margin-bottom: 3px; display: block; }
@@ -431,6 +432,7 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .tb-area-nature { grid-area: nature; }
 .tb-area-ability { grid-area: ability; }
 .tb-area-stats { grid-area: stats; padding: 6px 10px; }
+.tb-area-item, .tb-area-ability, .tb-area-nature, .tb-area-stats { overflow: hidden; }
 .tb-area-item select, .tb-area-ability select, .tb-area-nature select { width: 100%; }
 
 /* SP bars */
@@ -473,12 +475,14 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .nat-eff.down { color: var(--accent-2); font-weight: 600; }
 
 /* form change bar + appearance button above the big sprite */
-.tb-stage-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+/* two fixed rows: form change on top (empty for Pokémon without forms), the appearance button always below it, right aligned */
+.tb-stage-bar { display: grid; grid-template-rows: 28px 28px; row-gap: 4px; align-items: center; }
+.tb-stage-bar .tb-formseg { grid-row: 1; justify-self: start; }
 .tb-formseg { display: flex; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .tb-formseg-l { font-size: 11px; color: var(--muted); padding: 0 8px; }
 .tb-formseg button { height: 26px; border: 0; border-left: 1px solid var(--line); border-radius: 0; padding: 0 10px; font-weight: 600; }
 .tb-formseg button.on { background: var(--btn-on); color: var(--on-btn); }
-.tb-look-btn { margin-left: auto; height: 28px; }
+.tb-look-btn { grid-row: 2; justify-self: end; margin: 0; height: 28px; }
 .tb-gender { font-weight: 700; font-size: 16px; font-family: 'Segoe UI Symbol', 'Segoe UI', sans-serif; }
 .tb-gender.M { color: #4a8fe6; }
 .tb-gender.F { color: #e5609a; }
