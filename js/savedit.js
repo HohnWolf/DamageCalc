@@ -229,7 +229,7 @@
     sv.baseOf = function (species) { var e = P.g3[G3.defaultNat(species)]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
     sv.natOf = function (species) { return G3.defaultNat(species); };
     sv.speciesFromNat = function (nat) { if (nat <= 251) return nat; var i = HOENN.indexOf(nat); return i >= 0 ? 277 + i : 0; };
-    sv.maxSpecies = 386;
+    sv.maxSpecies = 386; sv.maxMove = 354; sv.maxItem = 376; sv.maxAbility = 76; sv.items = 'items3';
     sv.finish = function () {
       var out = new Uint8Array(data);
       // beide Spielstand-Kopien bleiben wie sie waren; nur der aktive Block wird neu berechnet
@@ -410,7 +410,7 @@
     sv.baseOf = function (species) { var e = P.g4[species]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
     sv.natOf = function (s) { return s; };
     sv.speciesFromNat = function (n) { return n; };
-    sv.maxSpecies = 493;
+    sv.maxSpecies = 493; sv.maxMove = 467; sv.maxItem = 536; sv.maxAbility = 123; sv.items = 'items';
     sv.finish = function () {
       var out = new Uint8Array(data);
       [[gb, g.gSize], [sb, sb === g.sStart ? g.sSize : g.sSize]].forEach(function (x) {
@@ -422,10 +422,77 @@
     return sv;
   }
 
-  function open(buf) {
-    var u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
-    return open3(u8) || open4(u8) || null;
+
+  // ======================= Generation 5 =======================
+  var G5_ENC = { '×': 0x2467, '÷': 0x2468, '…': 0x246C, '♂': 0x246D, '♀': 0x246E };
+  function enc5(str, max, size) {
+    var out = new Uint8Array(size * 2).fill(0xFF), n = 0;
+    for (var i = 0; i < str.length && n < max; i++) { var c = G5_ENC[str.charAt(i)] || str.charCodeAt(i); w16(out, n * 2, c); n++; }
+    return out;
+  }
+  var PK5 = Object.create(PK4);
+  PK5.gen = 5;
+  PK5.decode = function (u8, off, party) { var d = PK4.decode(u8, off, party); if (d && u16(d, 8) > 649) return null; return d; };
+  PK5.get = function (d, k, i) {
+    switch (k) {
+      case 'nick': return NDS.g5str(d, 72, 11);
+      case 'ot': return NDS.g5str(d, 104, 8);
+      case 'nature': return d[0x41];
+      case 'hiddenAbility': return d[0x42] & 1;
+    }
+    return PK4.get(d, k, i);
+  };
+  PK5.set = function (d, k, v, i) {
+    switch (k) {
+      case 'nick': d.set(enc5(v, 10, 11), 72); return;
+      case 'ot': d.set(enc5(v, 7, 8), 104); return;
+      case 'nature': d[0x41] = v; return;
+      case 'hiddenAbility': d[0x42] = (d[0x42] & ~1) | (v ? 1 : 0); return;
+    }
+    PK4.set(d, k, v, i);
+  };
+  PK5.nature = function (d) { return d[0x41] < 25 ? d[0x41] : u32(d, 0) % 25; };
+  PK5.natureIsPid = false;
+  function open5(u8raw) {
+    var u8 = u8raw;
+    if (u8.length === 0x80000 + 0x7A) u8 = u8.subarray(0, 0x80000);
+    else if (u8.length === 0x80000 + 0xA4) u8 = u8.subarray(0xA4);
+    if (u8.length < 0x80000 || !window.PKBLOCKS) return null;
+    var b2 = crc16(u8, 0x25F00, 0x25F94) === u16(u8, 0x25FA2), bw = !b2 && crc16(u8, 0x23F00, 0x23F8C) === u16(u8, 0x23F9A);
+    if (!b2 && !bw) return null;
+    var data = new Uint8Array(u8.subarray(0, 0x80000)), blocks = window.PKBLOCKS[b2 ? 'b2w2' : 'bw'];
+    var ver = data[0x1941F], NM = { 20: ['Weiß', 'White'], 21: ['Schwarz', 'Black'], 22: ['Weiß 2', 'White 2'], 23: ['Schwarz 2', 'Black 2'] };
+    var nm = NM[ver] || (b2 ? ['Schwarz 2/Weiß 2', 'Black 2/White 2'] : ['Schwarz/Weiß', 'Black/White']);
+    var sv = { gen: 5, game: b2 ? 'B2W2' : 'BW', gameName: nm[0], gameNameEn: nm[1], fmt: PK5, data: data, boxCount: 24, slotsPerBox: 30, ext: 'sav', partyMax: 6 };
+    var tr = 0x19400, moneyOff = blocks[52][0];
+    sv.getTrainer = function () { return { name: NDS.g5str(data, tr + 4, 8), tid: u16(data, tr + 0x14), sid: u16(data, tr + 0x16), gender: data[tr + 0x21], money: u32(data, moneyOff), hours: 0, minutes: 0, seconds: 0 }; };
+    sv.setTrainer = function (t) { data.set(enc5(t.name, 7, 8), tr + 4); w16(data, tr + 0x14, t.tid); w16(data, tr + 0x16, t.sid); data[tr + 0x21] = t.gender ? 1 : 0; w32(data, moneyOff, Math.min(t.money, 9999999)); };
+    sv.partyCount = function () { return Math.min(6, data[0x18E04]); };
+    sv.getParty = function () { var out = [], n = sv.partyCount(); for (var i = 0; i < n; i++) out.push(PK5.decode(data, 0x18E08 + i * 220, true)); return out; };
+    sv.setParty = function (list) {
+      var packed = list.filter(Boolean), old = sv.partyCount();
+      data[0x18E04] = packed.length;
+      for (var i = 0; i < Math.max(packed.length, old); i++) { var o = 0x18E08 + i * 220; if (packed[i]) PK5.encode(packed[i], data, o, true); else data.fill(0, o, o + 220); }
+    };
+    sv.getBoxMon = function (b, s) { return PK5.decode(data, 0x400 + b * 0x1000 + s * 136, false); };
+    sv.setBoxMon = function (b, s, d) { var o = 0x400 + b * 0x1000 + s * 136; if (d) PK5.encode(d, data, o, false); else data.fill(0, o, o + 136); };
+    sv.getBoxName = function (b) { return NDS.g5str(data, 0x04 + 0x28 * b, 10); };
+    sv.growthOf = function (sp) { var e = P.g5[sp]; return e ? e[6] : 0; };
+    sv.baseOf = function (sp) { var e = P.g5[sp]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
+    sv.natOf = function (n) { return n; }; sv.speciesFromNat = function (n) { return n; };
+    sv.maxSpecies = 649; sv.maxMove = 559; sv.maxItem = 638; sv.maxAbility = 164; sv.items = 'items';
+    sv.finish = function () {
+      var out = new Uint8Array(data);
+      blocks.forEach(function (b) { var c = crc16(out, b[0], b[0] + b[1]); w16(out, b[2], c); w16(out, b[3], c); });
+      return out;
+    };
+    return sv;
   }
 
-  window.CCSave = { open: open, expFor: expFor, levelFor: levelFor, calcStats: calcStats, NAT_MOD: NAT_MOD, PK3: PK3, PK4: PK4 };
+  function open(buf) {
+    var u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+    return open3(u8) || open4(u8) || open5(u8) || null;
+  }
+
+  window.CCSave = { PK5: PK5, open: open, expFor: expFor, levelFor: levelFor, calcStats: calcStats, NAT_MOD: NAT_MOD, PK3: PK3, PK4: PK4 };
 })();

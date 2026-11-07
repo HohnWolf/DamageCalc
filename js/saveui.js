@@ -6,16 +6,16 @@
   if (!A || !S || !T0 || !P) return;
   var el = A.el, esc = A.esc, de = A.LANG === 'de', T = de ? T0.de : T0.en;
   var L = de ? {
-    title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 3 und 4 (.sav, .dsv).',
-    pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 3 (GBA) und 4 (DS).',
+    title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 3, 4 und 5 (.sav, .dsv).',
+    pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 3 (GBA), 4 und 5 (DS).',
     game: 'Erkannt:', save: 'Spielstand speichern', saved: 'Gespeichert. Mach vorher immer eine Sicherungskopie deines echten Spielstands.', trainer: 'Trainer', party: 'Team', box: 'Box',
     name: 'Name', money: 'Geld', gender: 'Geschlecht', male: 'Männlich', female: 'Weiblich', time: 'Spielzeit (Std : Min)', empty: 'Leer', apply: 'Übernehmen', remove: 'Entfernen', create: 'Neues Pokémon',
     species: 'Pokémon', nick: 'Spitzname', level: 'Level', exp: 'Erfahrung', item: 'Item', none: '–', nature: 'Wesen', shiny: 'Shiny', friendship: 'Freundschaft', egg: 'Ei', ability: 'Fähigkeit',
     slot2: 'Zweite Fähigkeit', moves: 'Attacken', pp: 'AP', ppups: 'AP-Ups', ev: 'EP', iv: 'IP', stats: 'Werte', ot: 'Ursprungstrainer', stat: ['KP', 'Angr', 'Vert', 'Init', 'SpA', 'SpV'],
     edit: 'Pokémon bearbeiten', ok: 'Pokémon übernommen (noch nicht gespeichert).', evsum: 'EP-Summe', delconfirm: 'Dieses Pokémon entfernen?', all: 'Maximal', self: 'Eigenes Team'
   } : {
-    title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generation 3 and 4 (.sav, .dsv).',
-    pick: 'Choose save file …', drop: 'or drag a .sav / .dsv file here', bad: 'This file is not recognized. Generation 3 (GBA) and 4 (DS) saves are supported.',
+    title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generation 3, 4 and 5 (.sav, .dsv).',
+    pick: 'Choose save file …', drop: 'or drag a .sav / .dsv file here', bad: 'This file is not recognized. Generation 3 (GBA), 4 and 5 (DS) saves are supported.',
     game: 'Detected:', save: 'Save file', saved: 'Saved. Always keep a backup of your real save first.', trainer: 'Trainer', party: 'Party', box: 'Box',
     name: 'Name', money: 'Money', gender: 'Gender', male: 'Male', female: 'Female', time: 'Play time (h : min)', empty: 'Empty', apply: 'Apply', remove: 'Remove', create: 'New Pokémon',
     species: 'Pokémon', nick: 'Nickname', level: 'Level', exp: 'Experience', item: 'Item', none: '–', nature: 'Nature', shiny: 'Shiny', friendship: 'Friendship', egg: 'Egg', ability: 'Ability',
@@ -32,10 +32,10 @@
   }
   function nm(list, i) { return (list && list[i]) || ''; }
   function speciesName(nat) { return nm(T.species, nat); }
-  function itemList() { return st.sv.gen === 3 ? T.items3 : T.items; }
-  function maxMove() { return st.sv.gen === 3 ? 354 : 467; }
-  function maxItem() { return st.sv.gen === 3 ? 376 : 536; }
-  function maxAbility() { return st.sv.gen === 3 ? 76 : 123; }
+  function itemList() { return T[st.sv.items]; }
+  function maxMove() { return st.sv.maxMove; }
+  function maxItem() { return st.sv.maxItem; }
+  function maxAbility() { return st.sv.maxAbility; }
   function pers(species) { var e = P['g' + st.sv.gen][st.sv.natOf(species)]; return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0]; }
   function isShiny(d) { var F = st.sv.fmt, p = F.get(d, 'pid'); return ((F.get(d, 'tid') ^ F.get(d, 'sid') ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < 8; }
   function genderOf(d, species) { var r = pers(species)[7], pid = st.sv.fmt.get(d, 'pid'); return r === 255 ? 2 : r === 254 ? 1 : r === 0 ? 0 : ((pid & 0xFF) < r ? 1 : 0); }
@@ -45,7 +45,7 @@
     for (var i = 0; i < 600000; i++) {
       var p = ((Math.random() * 0x10000) << 16 | (Math.random() * 0x10000)) >>> 0;
       p = ((p & 0xFFFFFF00) | low) >>> 0;
-      if (p % 25 !== nature) continue;
+      if (F.natureIsPid && p % 25 !== nature) continue;
       var sh = ((tid ^ sid ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < 8;
       if (sh !== shiny) continue;
       if (st.sv.gen === 3 && ((p & 1) !== bit) && false) continue;
@@ -85,7 +85,7 @@
     }
     F.set(d, 'exp', S.expFor(pers(species)[6], 5));
     var g = pers(species)[7], pid = F.get(d, 'pid');
-    if (sv.gen === 4) { d[64] = (d[64] & ~6) | ((g === 255 ? 2 : g === 254 ? 1 : g === 0 ? 0 : ((pid & 0xFF) < g ? 1 : 0)) << 1); F.set(d, 'ability', pers(species)[8 + (pid & 1)] || pers(species)[8]); }
+    if (sv.gen >= 4) { d[64] = (d[64] & ~6) | ((g === 255 ? 2 : g === 254 ? 1 : g === 0 ? 0 : ((pid & 0xFF) < g ? 1 : 0)) << 1); F.set(d, 'ability', pers(species)[8 + (pid & 1)] || pers(species)[8]); }
     var mv = defaultMoves(species);
     for (var k = 0; k < 4; k++) { F.set(d, 'move', mv[k] || 0, k); F.set(d, 'pp', mv[k] ? 10 : 0, k); }
     if (party) refreshParty(d);
@@ -164,7 +164,7 @@
     // Wesen, Shiny, Ei
     var natureOpts = ''; for (var k = 0; k < 25; k++) natureOpts += '<option value="' + k + '"' + (k === F.nature(d) ? ' selected' : '') + '>' + esc(T.natures[k]) + '</option>';
     var row2 = el('div', { class: 'sv-row' });
-    row2.appendChild(field(L.nature, select2(natureOpts, function (v) { F.set(d, 'pid', newPid(d, v, isShiny(d))); if (party) refreshParty(d); changed(); })));
+    row2.appendChild(field(L.nature, select2(natureOpts, function (v) { if (F.natureIsPid) F.set(d, 'pid', newPid(d, v, isShiny(d))); else F.set(d, 'nature', v); if (party) refreshParty(d); changed(); })));
     var sh = el('input', { type: 'checkbox' }); sh.checked = isShiny(d);
     sh.onchange = function () { F.set(d, 'pid', newPid(d, F.nature(d), sh.checked)); changed(); };
     var shl = el('label', { class: 'sv-check' }); shl.appendChild(sh); shl.appendChild(el('span', { text: L.shiny })); row2.appendChild(shl);
