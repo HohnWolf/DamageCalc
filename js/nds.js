@@ -188,9 +188,9 @@
       bank: { U: [618, 619, 647, 610, 392], J: [611, 612, 636, 604, 390], K: [612, 613, 637, 605, 390] } },
     HGSS: { evo: 'a/0/3/4', wild: 'a/0/3/7', personal: 'a/0/0/2', moves: 'a/0/1/1', learn: 'a/0/3/3', trdata: 'a/0/5/5', trpoke: 'a/0/5/6', text: 'a/0/2/7',
       bank: { U: [729, 730, 750, 720, 222], J: [719, 720, 739, 711, 219], K: [723, 724, 743, 715, 220] } },
-    BW: { personal: 'a/0/1/6', moves: 'a/0/2/1', learn: 'a/0/1/8', trdata: 'a/0/9/2', trpoke: 'a/0/9/3', text: 'a/0/0/2',
+    BW: { personal: 'a/0/1/6', moves: 'a/0/2/1', learn: 'a/0/1/8', evo: 'a/0/1/9', wild: 'a/1/2/6', trdata: 'a/0/9/2', trpoke: 'a/0/9/3', text: 'a/0/0/2',
       bank: { U: [190, 191, 203, 182, 54], J: [190, 191, 204, 182, 54] } },
-    B2W2: { personal: 'a/0/1/6', moves: 'a/0/2/1', learn: 'a/0/1/8', trdata: 'a/0/9/1', trpoke: 'a/0/9/2', text: 'a/0/0/2',
+    B2W2: { personal: 'a/0/1/6', moves: 'a/0/2/1', learn: 'a/0/1/8', evo: 'a/0/1/9', wild: 'a/1/2/7', trdata: 'a/0/9/1', trpoke: 'a/0/9/2', text: 'a/0/0/2',
       bank: { U: [382, 383, 403, 374, 64] } }
   };
   // Gen 4 trainer class genders (0 male, 1 female, 2 pair), needed for the PID of trainer Pokémon
