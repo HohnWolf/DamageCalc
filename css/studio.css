@@ -98,11 +98,6 @@ html[data-ui-style="studio"] .sc-key { position: static; }
 html[data-ui-style="studio"] .sc-text { font-size: 12px; line-height: 1.4; }
 
 /* ---- settings window ---- */
-html[data-ui-style="studio"] .set-nav-btn { border-radius: 6px; }
-html[data-ui-style="studio"] .set-nav-btn.on { background: var(--accent-soft); border-color: var(--accent-2); color: var(--text); }
-html[data-ui-style="studio"] .set-row { border-radius: 8px; }
-html[data-ui-style="studio"] .theme-swatch { border-radius: 6px; }
-html[data-ui-style="studio"] .theme-swatch .swatch { border-radius: 4px; }
 html[data-ui-style="studio"] .sb-label { overflow: visible; }
 
 /* ---- base box rules of the shared sidebar element (Pro defines them for itself) ---- */

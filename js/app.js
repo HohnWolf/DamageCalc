@@ -2070,7 +2070,7 @@
   }
   function setting(k) { var s = load('cc_settings', {}) || {}; return s[k] != null ? s[k] : SETTING_DEFAULTS[k]; }
   function setSetting(k, v) { var s = load('cc_settings', {}) || {}; s[k] = v; save('cc_settings', s); }
-  var settingsModal = null, settingsRedraw = null;
+  var settingsModal = null, settingsRedraw = null, settingsTab = 'look';
   // update state from the desktop app (electron/updater.js): idle | checking | none | available | progress | ready | portable | error | off
   var updStatus = { state: 'off' };
   function updMessage(s) {
@@ -2086,27 +2086,47 @@
       default: return '';
     }
   }
-  function updRow(box) {
+  function updCard(box) {
     var D = window.desktop, s = updStatus;
-    var r = el('div', { class: 'set-row' });
-    var lab = el('div', { class: 'set-label' });
-    lab.appendChild(el('div', { class: 'set-name', text: T('setUpd') }));
-    lab.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
+    var card = el('div', { class: 'set-upd-card' });
+    var top = el('div', { class: 'set-upd-top' });
+    var badge = el('div', { class: 'set-upd-badge' });
+    badge.appendChild(el('img', { src: 'img/home.png', alt: '' }));
+    top.appendChild(badge);
+    var info = el('div', { class: 'set-upd-info' });
+    var titleRow = el('div', { class: 'set-upd-title' });
+    titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.16.2') + (s.portable ? ' · Portable' : '') }));
+    info.appendChild(titleRow);
+    info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
     var msg = updMessage(s);
-    if (msg) lab.appendChild(el('div', { class: 'hint upd-msg upd-' + s.state, text: msg }));
-    r.appendChild(lab);
-    var g = el('div', { class: 'btn-group set-opts' }), b;
+    if (msg) {
+      var stRow = el('div', { class: 'set-upd-status upd-' + s.state });
+      stRow.appendChild(el('span', { class: 'set-upd-dot' }));
+      stRow.appendChild(el('span', { text: msg }));
+      info.appendChild(stRow);
+    }
+    if (s.state === 'progress' || s.state === 'available') {
+      var bar = el('div', { class: 'set-upd-bar' });
+      var fill = el('div', { class: 'set-upd-fill' });
+      fill.style.width = (s.state === 'progress' ? Math.max(4, Math.min(100, s.percent || 0)) : 15) + '%';
+      bar.appendChild(fill);
+      info.appendChild(bar);
+    }
+    top.appendChild(info);
+    var act = el('div', { class: 'set-upd-act' }), b;
     if (s.state === 'ready' || s.state === 'portable') {
-      b = el('button', { class: 'on', text: T(s.state === 'ready' ? 'updRestart' : 'updDownload') });
+      b = el('button', { class: 'primary-btn', text: T(s.state === 'ready' ? 'updRestart' : 'updDownload') });
       b.addEventListener('click', function () { D.update.install(); });
     } else {
-      b = el('button', { text: T(s.state === 'checking' ? 'updChecking' : 'updCheck') });
+      b = el('button', { class: 'set-btn', text: T(s.state === 'checking' ? 'updChecking' : 'updCheck') });
       b.disabled = s.state === 'checking' || s.state === 'available' || s.state === 'progress' || s.state === 'off';
       b.addEventListener('click', function () { D.update.check(); });
     }
-    g.appendChild(b);
-    r.appendChild(g);
-    box.appendChild(r);
+    act.appendChild(b);
+    top.appendChild(act);
+    card.appendChild(top);
+    box.appendChild(card);
   }
   function openSettings() {
     if (settingsModal) return;
@@ -2125,108 +2145,159 @@
     function draw() {
       var keepScroll = body ? body.scrollTop : 0;
       bx.innerHTML = '';
-      var head = el('div', { class: 'nat-head' });
-      head.appendChild(el('h3', { text: T('setTitle') }));
-      var done = el('button', { class: 'primary-btn', text: T('tbDone') });
-      done.addEventListener('click', close);
-      head.appendChild(done);
-      bx.appendChild(head);
-      var SECS = [['look', de ? 'Darstellung' : 'Appearance', 'look'], ['tools', de ? 'Werkzeuge & Start' : 'Tools & start', 'tools'], ['data', de ? 'Daten' : 'Data', 'data']];
-      if (window.desktop && window.desktop.update) SECS.push(['app', de ? 'App & Updates' : 'App & updates', 'app']);
-      var nav = el('div', { class: 'set-nav', role: 'tablist' });
-      body = el('div', { class: 'set-body' });
-      bx.appendChild(nav); bx.appendChild(body);
-      function section(id, label) {
-        body.appendChild(el('div', { class: 'set-sec', id: 'set-sec-' + id, text: label }));
+      var SECS = [
+        ['look', de ? 'Darstellung' : 'Appearance', 'look', de ? 'Design, Layout, Skalierung und Sprache der Oberfläche' : 'Theme, layout style, UI scaling and language'],
+        ['tools', de ? 'Werkzeuge & Start' : 'Tools & start', 'tools', de ? 'Startbildschirm, obere Leiste und sichtbare Werkzeuge anpassen' : 'Customize startup behavior, top bar and active tools'],
+        ['data', de ? 'Daten & Import' : 'Data & import', 'data', de ? 'Backups verwalten, Online-Daten aktualisieren und Teams importieren' : 'Manage backups, update online data and import teams']
+      ];
+      if (window.desktop && window.desktop.update) {
+        SECS.push(['app', de ? 'App & Updates' : 'App & updates', 'app', de ? 'Versionsstatus prüfen und automatische Updates verwalten' : 'Check version status and manage automatic updates']);
       }
+      if (!SECS.some(function (s) { return s[0] === settingsTab; })) settingsTab = SECS[0][0];
+      var curSec = SECS.filter(function (s) { return s[0] === settingsTab; })[0] || SECS[0];
+
+      var shell = el('div', { class: 'set-shell' });
+      var side = el('aside', { class: 'set-side' });
+      var sideHead = el('div', { class: 'set-side-head' });
+      sideHead.appendChild(el('span', { class: 'ic set-side-ic', 'data-ic': 'settings', 'aria-hidden': 'true' }));
+      sideHead.appendChild(el('span', { text: T('setTitle') }));
+      side.appendChild(sideHead);
+
+      var nav = el('div', { class: 'set-nav', role: 'tablist' });
       SECS.forEach(function (sc) {
-        var nb = el('button', { type: 'button', class: 'set-nav-btn', role: 'tab', 'data-sec': sc[0] });
+        var on = sc[0] === settingsTab;
+        var nb = el('button', { type: 'button', class: 'set-nav-btn' + (on ? ' on' : ''), role: 'tab', 'aria-selected': on ? 'true' : 'false', 'data-sec': sc[0] });
         nb.appendChild(el('span', { class: 'ic set-nav-ic', 'data-ic': sc[2], 'aria-hidden': 'true' }));
         nb.appendChild(el('span', { text: sc[1] }));
         nb.addEventListener('click', function () {
-          var t = body.querySelector('#set-sec-' + sc[0]);
-          if (t) body.scrollTo({ top: t.offsetTop - 2, behavior: 'smooth' });
+          if (settingsTab !== sc[0]) { settingsTab = sc[0]; if (body) body.scrollTop = 0; draw(); }
         });
         nav.appendChild(nb);
       });
-      section('look', SECS[0][1]);
-      function row(title, hint, opts, cur, pick) {
+      side.appendChild(nav);
+
+      var sideFoot = el('div', { class: 'set-side-foot' });
+      var ver = (updStatus && updStatus.current) || '1.16.2';
+      sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
+      side.appendChild(sideFoot);
+      shell.appendChild(side);
+
+      var main = el('div', { class: 'set-main' });
+      var head = el('div', { class: 'set-main-head' });
+      var hText = el('div', { class: 'set-main-titles' });
+      hText.appendChild(el('h3', { text: curSec[1] }));
+      hText.appendChild(el('p', { class: 'hint', text: curSec[3] }));
+      head.appendChild(hText);
+      var closeBtn = el('button', { type: 'button', class: 'set-close-btn', title: T('tbDone'), 'aria-label': T('tbDone') });
+      closeBtn.appendChild(el('span', { text: '✕' }));
+      closeBtn.addEventListener('click', close);
+      head.appendChild(closeBtn);
+      main.appendChild(head);
+
+      body = el('div', { class: 'set-body' });
+      main.appendChild(body);
+      shell.appendChild(main);
+      bx.appendChild(shell);
+
+      function makeGroup(title) {
+        var grp = el('div', { class: 'set-group' });
+        if (title) grp.appendChild(el('div', { class: 'set-group-title', text: title }));
+        var list = el('div', { class: 'set-group-list' });
+        grp.appendChild(list);
+        body.appendChild(grp);
+        return list;
+      }
+      function row(target, title, hint, opts, cur, pick) {
         var r = el('div', { class: 'set-row' });
         var lab = el('div', { class: 'set-label' });
         lab.appendChild(el('div', { class: 'set-name', text: title }));
         if (hint) lab.appendChild(el('div', { class: 'hint', text: hint }));
         r.appendChild(lab);
-        var g = el('div', { class: 'btn-group set-opts' });
+        var g = el('div', { class: 'set-seg' });
         opts.forEach(function (o) {
-          var b = el('button', { class: o[0] === cur ? 'on' : '', text: o[1], 'data-v': o[0] });
+          var b = el('button', { type: 'button', class: o[0] === cur ? 'on' : '', text: o[1], 'data-v': o[0] });
           b.addEventListener('click', function () { if (o[0] !== cur) { pick(o[0]); draw(); } });
           g.appendChild(b);
         });
         r.appendChild(g);
-        body.appendChild(r);
+        target.appendChild(r);
       }
-      row(T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]], setting('model'), function (v) {
-        setSetting('model', v);
-        if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
-      });
-      row(T('setUiStyle'), T('setUiStyleHint'), [['pro', T('uiPro')], ['studio', T('uiStudio')]], setting('uiStyle'), function (v) {
-        setSetting('uiStyle', v);
-        applyUiStyle(v);
-        syncStartCards();
-        renderNav();
-        fitToWindow();
-      });
-      row(T('setZoom'), T('setZoomHint'), [['auto', T('setZoomAuto')], ['85', '85 %'], ['100', '100 %'], ['115', '115 %'], ['130', '130 %'], ['150', '150 %']], String(setting('zoom') || 'auto'), function (v) {
-        setSetting('zoom', v);
-        fitToWindow();
-      });
-      (function () {
-        var cur = document.documentElement.getAttribute('data-theme') || 'oled';
-        var r = el('div', { class: 'set-row set-themes-row' });
+      function selectRow(target, title, hint, opts, cur, pick) {
+        var r = el('div', { class: 'set-row' });
         var lab = el('div', { class: 'set-label' });
-        lab.appendChild(el('div', { class: 'set-name', text: T('setTheme') }));
-                lab.appendChild(el('div', { class: 'hint', text: T('setThemeHint') }));
+        lab.appendChild(el('div', { class: 'set-name', text: title }));
+        if (hint) lab.appendChild(el('div', { class: 'hint', text: hint }));
         r.appendChild(lab);
-        var g = el('div', { class: 'set-themes', role: 'radiogroup', 'aria-label': T('setTheme') });
-        THEMES.forEach(function (id) {
-          var b = el('button', { class: 'theme-swatch' + (id === cur ? ' on' : ''), type: 'button', role: 'radio', 'aria-checked': id === cur ? 'true' : 'false', text: '' });
-          b.appendChild(el('span', { class: 'swatch sw-' + id, 'aria-hidden': 'true' }));
-          b.appendChild(el('span', { text: T(THEME_LABEL[id]) }));
-          b.addEventListener('click', function () { if (id !== cur) { setTheme(id); draw(); } });
-          g.appendChild(b);
+        var sel = el('select', { class: 'set-select' });
+        opts.forEach(function (o) {
+          var opt = el('option', { value: o[0], text: o[1] });
+          if (o[0] === cur) opt.selected = true;
+          sel.appendChild(opt);
         });
-        g.addEventListener('keydown', function (ev) {
-          var dir = ev.key === 'ArrowRight' || ev.key === 'ArrowDown' ? 1 : ev.key === 'ArrowLeft' || ev.key === 'ArrowUp' ? -1 : 0;
-          if (!dir) return;
-          ev.preventDefault();
-          var i = THEMES.indexOf(cur);
-          setTheme(THEMES[(i + dir + THEMES.length) % THEMES.length]);
-          draw();
-          var on = bx.querySelector('.theme-swatch.on');
-          if (on) on.focus();
+        sel.addEventListener('change', function () { pick(sel.value); draw(); });
+        r.appendChild(sel);
+        target.appendChild(r);
+      }
+
+      if (settingsTab === 'look') {
+        var gLook = makeGroup(de ? 'Erscheinungsbild' : 'Visual appearance');
+        (function () {
+          var cur = document.documentElement.getAttribute('data-theme') || 'oled';
+          var r = el('div', { class: 'set-row' });
+          var lab = el('div', { class: 'set-label' });
+          lab.appendChild(el('div', { class: 'set-name', text: T('setTheme') }));
+          lab.appendChild(el('div', { class: 'hint', text: T('setThemeHint') }));
+          r.appendChild(lab);
+          var g = el('div', { class: 'set-themes', role: 'radiogroup', 'aria-label': T('setTheme') });
+          THEMES.forEach(function (id) {
+            var b = el('button', { class: 'theme-swatch' + (id === cur ? ' on' : ''), type: 'button', role: 'radio', 'aria-checked': id === cur ? 'true' : 'false', text: '' });
+            b.appendChild(el('span', { class: 'swatch sw-' + id, 'aria-hidden': 'true' }));
+            b.appendChild(el('span', { text: T(THEME_LABEL[id]) }));
+            b.addEventListener('click', function () { if (id !== cur) { setTheme(id); draw(); } });
+            g.appendChild(b);
+          });
+          r.appendChild(g);
+          gLook.appendChild(r);
+        })();
+        row(gLook, T('setUiStyle'), T('setUiStyleHint'), [['pro', de ? 'Pro (Seitenleiste)' : 'Pro (Sidebar)'], ['studio', de ? 'Studio (Obere Leiste)' : 'Studio (Top bar)']], setting('uiStyle'), function (v) {
+          setSetting('uiStyle', v);
+          applyUiStyle(v);
+          syncStartCards();
+          renderNav();
+          fitToWindow();
         });
-        r.appendChild(g);
-        body.appendChild(r);
-      })();
-      row(T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
-      section('tools', SECS[1][1]);
-      row(T('setStartLayout'), T('setStartLayoutHint'), [['cats', T('setLayoutCats')], ['all', T('setLayoutAll')]], flatStart() ? 'all' : 'cats', function (v) {
-        setSetting('startLayout', v);
-        startCat = null;
-        syncStartCards();
-        renderNav();
-        if (settingsRedraw) settingsRedraw();
-      });
-      (function () {
-        var r = el('div', { class: 'set-row set-themes-row' });
+        row(gLook, T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]], setting('model'), function (v) {
+          setSetting('model', v);
+          if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
+        });
+
+        var gScale = makeGroup(de ? 'Anzeige & Sprache' : 'Display & language');
+        row(gScale, T('setZoom'), T('setZoomHint'), [['auto', T('setZoomAuto')], ['85', '85 %'], ['100', '100 %'], ['115', '115 %'], ['130', '130 %'], ['150', '150 %']], String(setting('zoom') || 'auto'), function (v) {
+          setSetting('zoom', v);
+          fitToWindow();
+        });
+        row(gScale, T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
+      } else if (settingsTab === 'tools') {
+        var gNav = makeGroup(de ? 'Navigation & Startverhalten' : 'Navigation & startup');
+        var startOpts = [['start', T('setStartScreen')]];
+        enabledModes().forEach(function (m) { startOpts.push([m[0], T(m[1])]); });
+        selectRow(gNav, T('setStart'), T('setStartHint'), startOpts, setting('start'), function (v) { setSetting('start', v); });
+        row(gNav, T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
+        row(gNav, T('setStartLayout'), T('setStartLayoutHint'), [['cats', T('setLayoutCats')], ['all', de ? 'Alle Tools' : 'All tools']], flatStart() ? 'all' : 'cats', function (v) {
+          setSetting('startLayout', v);
+          startCat = null;
+          syncStartCards();
+          renderNav();
+          if (settingsRedraw) settingsRedraw();
+        });
+
+        var gTools = makeGroup(T('setTools'));
+        var r = el('div', { class: 'set-row set-row-stack' });
         var lab = el('div', { class: 'set-label set-tools-head' });
-        var titleWrap = el('div');
-        titleWrap.appendChild(el('div', { class: 'set-name', text: T('setTools') }));
-        titleWrap.appendChild(el('div', { class: 'hint', text: T('setToolsHint') }));
-        lab.appendChild(titleWrap);
+        lab.appendChild(el('div', { class: 'hint', text: T('setToolsHint') }));
         var dis = disabledToolsList();
         if (dis.length > 0) {
-          var btnAll = el('button', { type: 'button', class: 'tbtn set-tools-all', text: T('setToolsAll') });
+          var btnAll = el('button', { type: 'button', class: 'set-btn set-tools-all', text: T('setToolsAll') });
           btnAll.addEventListener('click', function () {
             setSetting('disabledTools', []);
             syncDisabledTools();
@@ -2239,9 +2310,10 @@
         MODES.forEach(function (m) {
           var id = m[0], on = isToolEnabled(id);
           var b = el('button', { type: 'button', class: 'tool-toggle' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false' });
-          b.appendChild(el('span', { class: 'tool-chk', text: on ? '✓' : '✕' }));
+          b.appendChild(el('span', { class: 'ic tool-ic', 'data-ic': id, 'aria-hidden': 'true' }));
           b.appendChild(el('span', { class: 'tool-nm', text: T(m[1]) }));
           if (m[2]) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+          b.appendChild(el('span', { class: 'tool-switch', 'aria-hidden': 'true' }));
           b.addEventListener('click', function () {
             var curDis = disabledToolsList().slice();
             var idx = curDis.indexOf(id);
@@ -2261,114 +2333,101 @@
           g.appendChild(b);
         });
         r.appendChild(g);
-        body.appendChild(r);
-      })();
-      row(T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
-      (function () {
-        var startOpts = [['start', T('setStartScreen')]];
-        enabledModes().forEach(function (m) { startOpts.push([m[0], T(m[1])]); });
-        row(T('setStart'), T('setStartHint'), startOpts, setting('start'), function (v) { setSetting('start', v); });
-      })();
-      section('data', SECS[2][1]);
-      (function () {
-        var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex'];
-        var r = el('div', { class: 'set-row' });
-        var lab = el('div', { class: 'set-label' });
-        lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
-        lab.appendChild(el('div', { class: 'hint', text: T('setBackupHint') }));
-        r.appendChild(lab);
-        var g = el('div', { class: 'btn-group set-opts' });
-        var bSave = el('button', { text: T('setBackupSave') });
-        bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.16.1', date: new Date().toISOString().slice(0, 10), storage: {} };
-          BACKUP_KEYS.forEach(function (k) {
-            try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
+        gTools.appendChild(r);
+      } else if (settingsTab === 'data') {
+        var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
+        (function () {
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex'];
+          var r = el('div', { class: 'set-row' });
+          var lab = el('div', { class: 'set-label' });
+          lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
+          lab.appendChild(el('div', { class: 'hint', text: T('setBackupHint') }));
+          r.appendChild(lab);
+          var g = el('div', { class: 'set-actions' });
+          var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
+          bSave.addEventListener('click', function () {
+            var data = { app: 'RattataLab', version: '1.16.2', date: new Date().toISOString().slice(0, 10), storage: {} };
+            BACKUP_KEYS.forEach(function (k) {
+              try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
+            });
+            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            var a = el('a', { href: URL.createObjectURL(blob), download: 'rattata-lab-backup-' + data.date + '.json' });
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+            toast(T('backupSaved'));
           });
-          var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-          var a = el('a', { href: URL.createObjectURL(blob), download: 'rattata-lab-backup-' + data.date + '.json' });
-          document.body.appendChild(a); a.click(); a.remove();
-          setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-          toast(T('backupSaved'));
-        });
-        var bLoad = el('button', { text: T('setBackupLoad') });
-        bLoad.addEventListener('click', function () {
-          var inp = el('input', { type: 'file', accept: '.json,application/json' });
-          inp.addEventListener('change', function () {
-            var f = inp.files && inp.files[0];
-            if (!f) return;
-            var rd = new FileReader();
-            rd.onload = function () {
-              try {
-                var parsed = JSON.parse(String(rd.result || ''));
-                var st = parsed && parsed.storage && typeof parsed.storage === 'object' ? parsed.storage : null;
-                if (!st) { toast(T('backupInvalid')); return; }
-                BACKUP_KEYS.forEach(function (k) { if (st[k] !== undefined) save(k, st[k]); });
-                toast(T('backupLoaded'));
-                setTimeout(function () { location.reload(); }, 400);
-              } catch (e) { toast(T('backupInvalid')); }
-            };
-            rd.readAsText(f);
+          var bLoad = el('button', { type: 'button', class: 'set-btn', text: T('setBackupLoad') });
+          bLoad.addEventListener('click', function () {
+            var inp = el('input', { type: 'file', accept: '.json,application/json' });
+            inp.addEventListener('change', function () {
+              var f = inp.files && inp.files[0];
+              if (!f) return;
+              var rd = new FileReader();
+              rd.onload = function () {
+                try {
+                  var parsed = JSON.parse(String(rd.result || ''));
+                  var st = parsed && parsed.storage && typeof parsed.storage === 'object' ? parsed.storage : null;
+                  if (!st) { toast(T('backupInvalid')); return; }
+                  BACKUP_KEYS.forEach(function (k) { if (st[k] !== undefined) save(k, st[k]); });
+                  toast(T('backupLoaded'));
+                  setTimeout(function () { location.reload(); }, 400);
+                } catch (e) { toast(T('backupInvalid')); }
+              };
+              rd.readAsText(f);
+            });
+            inp.click();
           });
-          inp.click();
-        });
-        g.appendChild(bSave); g.appendChild(bLoad);
-        r.appendChild(g);
-        body.appendChild(r);
-      })();
-      (function () {
-        var r = el('div', { class: 'set-row' });
-        var lab = el('div', { class: 'set-label' });
-        lab.appendChild(el('div', { class: 'set-name', text: de ? 'Online-Daten & Sets' : 'Online data & sets' }));
-        lab.appendChild(el('div', { class: 'hint', text: de ? 'Metagame-Sets von Smogon/NCP und Showdown-Regulationen laden' : 'Update Smogon/NCP sets and Showdown regulations' }));
-        r.appendChild(lab);
-        var g = el('div', { class: 'btn-group set-opts' });
-        var bSets = el('button', { text: T('setsBtn'), title: T('setsTitle') });
-        bSets.addEventListener('click', function () { if (window.runLoadSets) window.runLoadSets(bSets); });
-        var bReg = el('button', { text: T('regBtn'), title: T('regTitle') });
-        bReg.addEventListener('click', function () { if (window.runLoadReg) window.runLoadReg(bReg); });
-        var bReset = el('button', { class: 'danger', text: de ? 'Zurücksetzen' : 'Reset' });
-        bReset.addEventListener('click', function () {
-          if (!ONLINE) return;
-      ccConfirm(T('resetConfirm'), function () { saveState(); ONLINE.reset(); location.reload(); }, { danger: true, ok: ['Zurücksetzen', 'Reset'] });
-        });
-        g.appendChild(bSets); g.appendChild(bReg); g.appendChild(bReset);
-        r.appendChild(g);
-        body.appendChild(r);
-      })();
-      (function () {
-        var r = el('div', { class: 'set-row' });
-        var lab = el('div', { class: 'set-label' });
-        lab.appendChild(el('div', { class: 'set-name', text: de ? 'Team-Import (Showdown)' : 'Team import (Showdown)' }));
-        lab.appendChild(el('div', { class: 'hint', text: de ? 'Showdown-Format in Teams oder eigene Sets importieren' : 'Import Showdown format into teams or custom sets' }));
-        r.appendChild(lab);
-        var g = el('div', { class: 'btn-group set-opts' });
-        var bImp = el('button', { class: 'primary', text: T('importBtn') });
-        bImp.addEventListener('click', function () {
-          close();
-          var importModal = document.getElementById('importModal');
-          if (importModal) {
-            importModal.classList.remove('hidden');
-            document.getElementById('importMsg').textContent = '';
-            setTimeout(function () { document.getElementById('importText').focus(); }, 30);
-          }
-        });
-        g.appendChild(bImp);
-        r.appendChild(g);
-        body.appendChild(r);
-      })();
-      if (window.desktop && window.desktop.update) { section('app', SECS[3][1]); updRow(body); }
-      body.scrollTop = keepScroll;
-      function spy() {
-        var cur = SECS[0][0];
-        SECS.forEach(function (sc) { var t = body.querySelector('#set-sec-' + sc[0]); if (t && t.offsetTop <= body.scrollTop + 24) cur = sc[0]; });
-        if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4) cur = SECS[SECS.length - 1][0];
-        nav.querySelectorAll('.set-nav-btn').forEach(function (nb) {
-          var on = nb.getAttribute('data-sec') === cur;
-          nb.classList.toggle('on', on); nb.setAttribute('aria-selected', on ? 'true' : 'false');
-        });
+          g.appendChild(bSave); g.appendChild(bLoad);
+          r.appendChild(g);
+          gData.appendChild(r);
+        })();
+        (function () {
+          var r = el('div', { class: 'set-row' });
+          var lab = el('div', { class: 'set-label' });
+          lab.appendChild(el('div', { class: 'set-name', text: de ? 'Online-Daten & Sets' : 'Online data & sets' }));
+          lab.appendChild(el('div', { class: 'hint', text: de ? 'Metagame-Sets von Smogon/NCP und Showdown-Regulationen laden' : 'Update Smogon/NCP sets and Showdown regulations' }));
+          r.appendChild(lab);
+          var g = el('div', { class: 'set-actions' });
+          var bSets = el('button', { type: 'button', class: 'set-btn', text: T('setsBtn'), title: T('setsTitle') });
+          bSets.addEventListener('click', function () { if (window.runLoadSets) window.runLoadSets(bSets); });
+          var bReg = el('button', { type: 'button', class: 'set-btn', text: T('regBtn'), title: T('regTitle') });
+          bReg.addEventListener('click', function () { if (window.runLoadReg) window.runLoadReg(bReg); });
+          var bReset = el('button', { type: 'button', class: 'set-btn danger', text: de ? 'Zurücksetzen' : 'Reset' });
+          bReset.addEventListener('click', function () {
+            if (!ONLINE) return;
+            ccConfirm(T('resetConfirm'), function () { saveState(); ONLINE.reset(); location.reload(); }, { danger: true, ok: ['Zurücksetzen', 'Reset'] });
+          });
+          g.appendChild(bSets); g.appendChild(bReg); g.appendChild(bReset);
+          r.appendChild(g);
+          gData.appendChild(r);
+        })();
+
+        var gImp = makeGroup(de ? 'Import' : 'Import');
+        (function () {
+          var r = el('div', { class: 'set-row' });
+          var lab = el('div', { class: 'set-label' });
+          lab.appendChild(el('div', { class: 'set-name', text: de ? 'Team-Import (Showdown)' : 'Team import (Showdown)' }));
+          lab.appendChild(el('div', { class: 'hint', text: de ? 'Showdown-Format in Teams oder eigene Sets importieren' : 'Import Showdown format into teams or custom sets' }));
+          r.appendChild(lab);
+          var g = el('div', { class: 'set-actions' });
+          var bImp = el('button', { type: 'button', class: 'set-btn primary', text: T('importBtn') });
+          bImp.addEventListener('click', function () {
+            close();
+            var importModal = document.getElementById('importModal');
+            if (importModal) {
+              importModal.classList.remove('hidden');
+              document.getElementById('importMsg').textContent = '';
+              setTimeout(function () { document.getElementById('importText').focus(); }, 30);
+            }
+          });
+          g.appendChild(bImp);
+          r.appendChild(g);
+          gImp.appendChild(r);
+        })();
+      } else if (settingsTab === 'app' && window.desktop && window.desktop.update) {
+        updCard(body);
       }
-      body.addEventListener('scroll', spy, { passive: true });
-      spy();
+      body.scrollTop = keepScroll;
     }
     settingsRedraw = draw;
     draw();
@@ -2608,7 +2667,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.16.1';
+    var ver = (updStatus && updStatus.current) || '1.16.2';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));

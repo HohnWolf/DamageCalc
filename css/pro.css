@@ -167,14 +167,7 @@ html[data-ui-style="pro"] .start-foot { display: none; }
 html[data-ui-style="pro"] .start-toggle-link { display: none; }
 
 /* ---- settings window in the Pro look ---- */
-html[data-ui-style="pro"] .set-nav-btn { border-radius: 0; border: 0; border-bottom: 2px solid transparent; background: transparent; height: 32px; padding: 0 12px; }
-html[data-ui-style="pro"] .set-nav-btn.on { background: transparent; border-bottom-color: var(--accent-2); color: var(--text); }
-html[data-ui-style="pro"] .set-nav-btn:hover { background: var(--btn-hover); }
-html[data-ui-style="pro"] .set-nav { gap: 2px; padding-bottom: 0; }
-html[data-ui-style="pro"] .set-row { border-radius: 6px; }
-html[data-ui-style="pro"] .set-sec { color: var(--muted); }
-html[data-ui-style="pro"] .theme-swatch { border-radius: 4px; }
-html[data-ui-style="pro"] .theme-swatch .swatch { border-radius: 3px; }
+html[data-ui-style="pro"] .set-box { box-shadow: 0 24px 64px rgba(0, 0, 0, .55), 0 4px 16px rgba(0, 0, 0, .3); }
 
 /* ---- small details ---- */
 html[data-ui-style="pro"] .nav-title { align-items: center; }

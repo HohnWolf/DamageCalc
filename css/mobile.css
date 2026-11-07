@@ -33,7 +33,13 @@ html.rl-android .gd-cp-row { grid-template-columns: 1.4fr repeat(4, minmax(0, 1f
 html.rl-android .gd-mv { grid-template-columns: 62px minmax(0, 1fr) 38px 40px 38px 38px; font-size: 12px; }
 html.rl-android .gd-list, html.rl-android .dex-list, html.rl-android .gd-listbox { max-height: 60vh; }
 html.rl-android .set-box { width: 96vw; height: calc(100vh - 24px); }
-html.rl-android .set-row { grid-template-columns: 1fr; }
+html.rl-android .set-shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+html.rl-android .set-side { flex-direction: row; align-items: center; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--line-soft); overflow-x: auto; }
+html.rl-android .set-side-head, html.rl-android .set-side-foot { display: none; }
+html.rl-android .set-nav { flex-direction: row; gap: 4px; }
+html.rl-android .set-nav-btn { width: auto; height: 34px; padding: 0 10px; }
+html.rl-android .set-row { flex-direction: column; align-items: stretch; gap: 10px; }
+html.rl-android .set-seg { align-self: flex-start; flex-wrap: wrap; }
 html.rl-android .pick-row.pick-move, html.rl-android .pick-row.pick-item, html.rl-android .pick-row.pick-ability { grid-template-columns: minmax(0, 1fr); }
 html.rl-android table { display: block; overflow-x: auto; max-width: 100%; }
 html.rl-android .wrap > *, html.rl-android .panel, html.rl-android .dex-layout > * { min-width: 0; max-width: 100%; }
