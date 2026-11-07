@@ -269,7 +269,7 @@
   // mapSpecies(name) -> {sp: base species in the calculator, forme} or null (provided by app.js)
   function updateSets(mapSpecies, progress) {
     progress = progress || function () {};
-    progress('NCP, data.pkmn.cc');
+    progress('online');
     var jobs = [
       get(NCP + '?t=' + Date.now()).then(parseSetdexJs),
       get(PKMN + 'stats/index.json', true).then(function (ix) {
@@ -324,7 +324,7 @@
               Object.keys(ev).forEach(function (k) { if (STAT_MAP[k]) sps[STAT_MAP[k]] = ev[k]; });
               var set = { sps: clampSps(sps), nature: first(s.nature) || 'Hardy', item: first(s.item) || '', moves: (s.moves || []).map(first).slice(0, 4) };
               if (s.ability) set.ability = first(s.ability);
-              if (put(out.smogon, mon, 'Smogon: ' + sn, set)) cnt2++;
+              if (put(out.smogon, mon, 'Online: ' + sn, set)) cnt2++;
             });
           });
           out.report.smogon = cnt2; out.report.smogonFile = r[2].v.file;

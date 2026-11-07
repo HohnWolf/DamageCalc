@@ -230,7 +230,7 @@ async function runSimulation(data) {
   const userPaste = normalizeChampionsPaste(data.userTeamPaste || '');
   const userParsed = Teams.import(userPaste);
   if (!userParsed || !userParsed.length) {
-    emitMessage({ type: 'ERROR', error: 'Ungültiges eigenes Team (Showdown-Paste leer oder fehlerhaft).' });
+    emitMessage({ type: 'ERROR', error: 'Ungültiges eigenes Team (Team-Paste leer oder fehlerhaft).' });
     return;
   }
   userParsed.forEach(m => { if (!m.level) m.level = 50; });

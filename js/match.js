@@ -1,6 +1,6 @@
 // Team-Analyse: alle Spiele eines Teambuilder-Teams als ein Bericht.
 // Einträge liegen unter localStorage "cc_match", je Spiel mit teamId.
-// Quelle sind Showdown-Replays, gelesen über js/match_parse.js.
+// Quelle sind Replays, gelesen über js/match_parse.js.
 (function () {
   'use strict';
   var A = window.CC;
@@ -10,9 +10,9 @@
 
   var S = de ? {
     title: 'Team-Analyse',
-    sub: 'Ein Team aus dem Teambuilder, alle Spiele dazu: Showdown-Replays in einem Bericht.',
+    sub: 'Ein Team aus dem Teambuilder, alle Spiele dazu: Replays in einem Bericht.',
     team: 'Team', teamNone: 'Kein Team im Teambuilder', teamPick: 'Team wählen …',
-    names: 'Showdown-Namen', namesPh: 'Namen, mit Komma getrennt',
+    names: 'Spielernamen', namesPh: 'Namen, mit Komma getrennt',
     namesHint: 'Daran erkennt das Tool deine Seite. Leer lassen geht, wenn das gewählte Team im Replay vorkommt.',
     gamesN: '{0} Spiele', record: '{0}–{1}', noGames: 'Noch keine Spiele',
     tabGames: 'Spiele', tabSeries: 'Serien', tabUsage: 'Nutzung', tabMatch: 'Matchups', tabMoves: 'Attacken', tabCheck: 'Prüfen',
@@ -20,10 +20,10 @@
     assigned: '{0} Spiele diesem Team zugeordnet', loose: '{0} Spiele ohne Team', claim: 'Diesem Team geben',
     noTeam: 'Leg im Teambuilder zuerst ein Team an. Die sechs Pokémon sind der Bericht.',
     importTitle: 'Spiele hinzufügen',
-    pastePh: 'Ein Replay-Link pro Zeile\nhttps://replay.pokemonshowdown.com/…\n\nOder ein Showdown-Log oder ein Replay-JSON hier einfügen.',
+    pastePh: 'Ein Replay-Link pro Zeile\nhttps://…\n\nOder ein Log oder ein Replay-JSON hier einfügen.',
     load: 'Übernehmen', demo: 'Beispiel laden', clearDemo: 'Beispiele entfernen',
     backup: 'Sichern', restore: 'Datei laden',
-    cors: 'Replays lädt der Browser direkt von replay.pokemonshowdown.com. Die Seite erlaubt das von anderen Seiten aus. Klappt der Abruf nicht (privates Replay, kein Netz), das .json oder den Log-Text oben einfügen.',
+    cors: 'Replays lädt der Browser direkt von dem Replay-Anbieter. Die Seite erlaubt das von anderen Seiten aus. Klappt der Abruf nicht (privates Replay, kein Netz), das .json oder den Log-Text oben einfügen.',
     loadingN: 'Lade {0} von {1} …', addedN: '{0} neu, {1} doppelt, {2} fehlgeschlagen',
     demoIn: 'Beispiele geladen', demoOut: 'Beispiele entfernt',
     badJson: 'Das JSON konnte nicht gelesen werden.',
@@ -45,7 +45,7 @@
     side: 'Deine Seite', sideAuto: 'Automatisch',
     split: 'Neue Serie davor', bo1: 'Eigenes Spiel (Bo1)',
     del: 'Löschen', delConfirm: 'Diesen Eintrag löschen?',
-    warnSide: 'Seite unklar: kein Showdown-Name und kein Team-Treffer. Oben die Seite wählen.',
+    warnSide: 'Seite unklar: kein Spielername und kein Team-Treffer. Oben die Seite wählen.',
     partial: 'Team von sechs unbekannt (nur wer im Kampf zu sehen war).',
     noSheet: 'Offen oder geschlossen ist nicht bekannt.',
     noElo: 'Keine Elo.', noWin: 'Kein Sieger erkannt.',
@@ -72,7 +72,7 @@
     checkOk: 'Keine Probleme.',
     notices: 'Hinweise beim Übernehmen', dismiss: 'Ausblenden',
     errDup: 'Doppelter Link, nicht noch einmal übernommen: {0}',
-    errBad: 'Kein Showdown-Replay: {0}',
+    errBad: 'Kein Replay: {0}',
     errFetch: 'Replay nicht geladen ({0}): {1}',
     errSide: 'Seite unklar bei {0}',
     errWin: 'Kein Sieger: {0}',
@@ -80,9 +80,9 @@
     vs: 'gegen', backYou: 'Dein Back', backFoe: 'Gegner-Back', picks: 'Eingesetzt'
   } : {
     title: 'Team-Analyse',
-    sub: 'One teambuilder team, every game with it: Showdown replays in a single report.',
+    sub: 'One teambuilder team, every game with it: replays in a single report.',
     team: 'Team', teamNone: 'No team in the teambuilder', teamPick: 'Choose a team …',
-    names: 'Showdown names', namesPh: 'Names, separated by commas',
+    names: 'Player names', namesPh: 'Names, separated by commas',
     namesHint: 'This is how the tool finds your side. Leaving it empty is fine when the chosen team appears in the replay.',
     gamesN: '{0} games', record: '{0}–{1}', noGames: 'No games yet',
     tabGames: 'Games', tabSeries: 'Series', tabUsage: 'Usage', tabMatch: 'Matchups', tabMoves: 'Moves', tabCheck: 'Check',
@@ -90,10 +90,10 @@
     assigned: '{0} games filed under this team', loose: '{0} games with no team', claim: 'Add to this team',
     noTeam: 'Build a team in the teambuilder first. Those six Pokémon are the report.',
     importTitle: 'Add games',
-    pastePh: 'One replay link per line\nhttps://replay.pokemonshowdown.com/…\n\nOr paste a Showdown log or a replay JSON here.',
+    pastePh: 'One replay link per line\nhttps://…\n\nOr paste a log or a replay JSON here.',
     load: 'Add', demo: 'Load sample', clearDemo: 'Remove samples',
     backup: 'Save', restore: 'Load file',
-    cors: 'The browser loads replays directly from replay.pokemonshowdown.com. That site allows other pages to read them. If a fetch fails (private replay, no network), paste the .json or the log text above.',
+    cors: 'The browser loads replays directly from the replay host. That site allows other pages to read them. If a fetch fails (private replay, no network), paste the .json or the log text above.',
     loadingN: 'Loading {0} of {1} …', addedN: '{0} new, {1} duplicate, {2} failed',
     demoIn: 'Samples loaded', demoOut: 'Samples removed',
     badJson: 'Could not read that JSON.',
@@ -115,7 +115,7 @@
     side: 'Your side', sideAuto: 'Automatic',
     split: 'New series before this', bo1: 'Standalone game (Bo1)',
     del: 'Delete', delConfirm: 'Delete this entry?',
-    warnSide: 'Side unknown: no Showdown name and no team overlap. Pick the side above.',
+    warnSide: 'Side unknown: no player name and no team overlap. Pick the side above.',
     partial: 'Team of six unknown (only Pokémon that appeared in the battle).',
     noSheet: 'Open or closed is not known.',
     noElo: 'No Elo.', noWin: 'No winner detected.',
@@ -142,7 +142,7 @@
     checkOk: 'No problems.',
     notices: 'Notes from importing', dismiss: 'Dismiss',
     errDup: 'Duplicate link, not added again: {0}',
-    errBad: 'Not a Showdown replay: {0}',
+    errBad: 'Not a replay: {0}',
     errFetch: 'Replay not loaded ({0}): {1}',
     errSide: 'Side unknown for {0}',
     errWin: 'No winner: {0}',

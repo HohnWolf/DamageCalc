@@ -3,6 +3,8 @@
 
 (function () {
   'use strict';
+  // HTML-Escape für Werte aus Pastes und Berechnungen (Species, Items, Namen)
+  function h(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
   var modalEl = null;
   var currentTeamPaste = '';
@@ -89,7 +91,7 @@
 
     var mons = parseMonPreview(paste);
     if (!mons.length) {
-      container.innerHTML = '<div class="sim-empty-hint">Kein Pokémon im Team erkannt. Wähle ein Preset oder füge eine Showdown-Paste ein.</div>';
+      container.innerHTML = '<div class="sim-empty-hint">Kein Pokémon im Team erkannt. Wähle ein Preset oder füge eine Team-Paste ein.</div>';
       return;
     }
 
@@ -111,9 +113,9 @@
       var info = document.createElement('div');
       info.className = 'sim-mon-info';
       info.innerHTML = `
-        <span class="sim-mon-name">${m.species}</span>
-        <span class="sim-mon-sub">${m.item ? '@ ' + m.item : ''} ${m.ability ? '· ' + m.ability : ''}</span>
-        <span class="sim-mon-sp">${m.sps ? 'SPs: ' + m.sps : ''}</span>
+        <span class="sim-mon-name">${h(m.species)}</span>
+        <span class="sim-mon-sub">${h(m.item ? '@ ' + m.item : '')} ${h(m.ability ? '· ' + m.ability : '')}</span>
+        <span class="sim-mon-sp">${h(m.sps ? 'SPs: ' + m.sps : '')}</span>
       `;
 
       card.appendChild(spriteWrap);
@@ -143,11 +145,11 @@
           <div class="sim-team-select-row">
             <label for="simTeamSelect"><strong>Test-Team:</strong></label>
             <select id="simTeamSelect" class="sim-team-dropdown"></select>
-            <button class="tbtn" id="simBtnEditPaste" title="Showdown-Paste anzeigen oder manuell bearbeiten">📝 Paste bearbeiten</button>
+            <button class="tbtn" id="simBtnEditPaste" title="Team-Paste anzeigen oder manuell bearbeiten">📝 Paste bearbeiten</button>
           </div>
 
           <div class="sim-paste-drawer hidden" id="simPasteDrawer">
-            <textarea id="simPasteInput" class="sim-paste-textarea" spellcheck="false" placeholder="Hier Pokémon Showdown Paste im Champions-Format einfügen (mit SPs oder EVs)..."></textarea>
+            <textarea id="simPasteInput" class="sim-paste-textarea" spellcheck="false" placeholder="Hier Team-Paste im Champions-Format einfügen (mit SPs oder EVs)..."></textarea>
             <div class="sim-paste-actions">
               <button class="tbtn primary" id="simBtnApplyPaste">Übernehmen</button>
               <button class="tbtn" id="simBtnClosePaste">Schließen</button>
@@ -230,7 +232,7 @@
     modalEl.querySelector('#simBtnApplyPaste').addEventListener('click', function () {
       var paste = modalEl.querySelector('#simPasteInput').value.trim();
       if (!paste) {
-        alert('Bitte gib eine gültige Showdown-Paste ein.');
+        alert('Bitte gib eine gültige Team-Paste ein.');
         return;
       }
       currentTeamPaste = paste;
@@ -468,22 +470,22 @@
       html += `
         <div class="sim-arch-card" data-arch-idx="${rIdx}">
           <div class="sim-arch-head">
-            <span class="sim-arch-badge" style="background:${r.badgeColor || '#455a64'}">${r.category}</span>
-            <span class="sim-arch-name">${r.name}</span>
+            <span class="sim-arch-badge" style="background:${r.badgeColor || '#455a64'}">${h(r.category)}</span>
+            <span class="sim-arch-name">${h(r.name)}</span>
             <span class="sim-arch-wr wr ${badgeCls}">${r.winrate} %</span>
           </div>
-          <div class="sim-arch-desc">${r.description || ''}</div>
+          <div class="sim-arch-desc">${h(r.description || '')}</div>
           <div class="sim-arch-stats">
             <div><span>Bilanz:</span> <strong>${r.wins}W – ${r.losses}L</strong> (${r.total} Spiele)</div>
             <div><span>Ø Runden:</span> <strong>${r.avgTurns}</strong></div>
-            <div><span>Top Threat:</span> <strong>${topThreat}</strong></div>
-            <div><span>Bester Lead:</span> <strong>${bestLead}</strong></div>
+            <div><span>Top Threat:</span> <strong>${h(topThreat)}</strong></div>
+            <div><span>Bester Lead:</span> <strong>${h(bestLead)}</strong></div>
           </div>
           <div class="sim-arch-details hidden" id="simArchDetail_${rIdx}">
             <h5 class="sim-detail-head">Lead-Aufschlüsselung gegen diesen Archetyp:</h5>
             <div class="sim-lead-breakdown">
               ${leadRows.map(function (lr) {
-                return `<div class="sim-lead-row"><span>${lr.lead}</span><strong>${lr.wins}/${lr.total} (${lr.wr}%)</strong></div>`;
+                return `<div class="sim-lead-row"><span>${h(lr.lead)}</span><strong>${lr.wins}/${lr.total} (${lr.wr}%)</strong></div>`;
               }).join('')}
             </div>
           </div>
@@ -515,8 +517,8 @@
     data.threatList.forEach(function (t) {
       html += `
         <tr>
-          <td class="left"><strong>${t.mon}</strong></td>
-          <td>${t.archetype || '–'}</td>
+          <td class="left"><strong>${h(t.mon)}</strong></td>
+          <td>${h(t.archetype || '–')}</td>
           <td><span class="sim-kill-badge">${t.kills} K.O.s</span></td>
         </tr>
       `;
@@ -547,7 +549,7 @@
       var lCls = getBadgeClass(l.winrate);
       html += `
         <tr>
-          <td class="left"><strong>${l.lead}</strong></td>
+          <td class="left"><strong>${h(l.lead)}</strong></td>
           <td>${l.wins} / ${l.total}</td>
           <td><span class="wr ${lCls}">${l.winrate} %</span></td>
         </tr>

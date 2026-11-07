@@ -375,3 +375,6 @@ html.rl-android .cat-rest, html.rl-android .sg-rest, html.rl-android .card-shiny
 #gcBossBanner .gc-boss-stage img.is-pixel { width: 88px; height: 88px; }
 #gcBossBanner .gc-boss-info { align-items: flex-start; }
 #gcBossBanner .gc-boss-top, #gcBossBanner .gc-boss-weak, #gcBossBanner .gc-boss-stats { justify-content: flex-start; }
+
+/* Platzhalter-Bild: für diese Form gibt es noch kein eigenes Sprite, gezeigt wird das Basis-Pokémon */
+img.is-fallback { opacity: .7; filter: grayscale(.35); }

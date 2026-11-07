@@ -46,6 +46,16 @@
     store.teams.forEach(ensureVersions);
     A.save('cc_builder', store);
   }
+  // vor dem Löschen den ganzen Builder-Stand merken: Strg+Z oder der Knopf im Hinweis stellt ihn wieder her
+  function snapUndo(label) {
+    var snap = JSON.stringify(store);
+    A.pushUndo(label, function () {
+      var o = JSON.parse(snap);
+      Object.keys(store).forEach(function (k) { delete store[k]; });
+      Object.keys(o).forEach(function (k) { store[k] = o[k]; });
+      sel = 0; persist(); render();
+    });
+  }
   function team() {
     var t = null;
     store.teams.some(function (x) { if (x.id === store.cur) { t = x; return true; } return false; });
@@ -214,8 +224,9 @@
     return g ? g.sets : [];
   }
   function memberFor(species) {
-    var first = presetsFor(species).filter(function (e) { return e.set; })[0];
-    var set = first ? clone(first.set) : A.defaultSet(species);
+    // neues Pok?mon startet mit einem leeren Set (keine Attacken, kein Item); fertige Sets bleiben ?ber die Set-Auswahl erreichbar
+    var first = null;
+    var set = A.defaultSet(species);
     set.species = species;
     set.sps = set.sps || { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 };
     set.moves = (set.moves || []).filter(function (mv) { return MOVES[mv] && mv !== '(No Move)'; }).slice(0, 4);
@@ -328,6 +339,7 @@
       var tm = team();
       ccConfirm(T('tbDeleteConfirm', tm.name), function () {
         var i = store.teams.indexOf(tm);
+        snapUndo(de ? 'Team „' + tm.name + '“ gelöscht' : 'Team “' + tm.name + '” deleted');
         store.teams.splice(i, 1);
         if (!store.teams.length) store.teams.push({ id: newId(), name: T('tbDefaultName', 1), mons: [] });
         store.cur = store.teams[Math.max(0, i - 1)].id; sel = 0; persist(); render();
@@ -361,6 +373,7 @@
           var vName = v.name || ('v' + (idx + 1));
           ccConfirm(de ? 'Version „' + vName + '“ wirklich löschen?' : 'Delete version “' + vName + '”?', function () {
             var vi = tm.versions.indexOf(v);
+            snapUndo(de ? 'Version „' + vName + '“ gelöscht' : 'Version “' + vName + '” deleted');
             if (vi !== -1) tm.versions.splice(vi, 1);
             if (tm.curVer === v.id) {
               tm.curVer = tm.versions[Math.max(0, vi - 1)].id;
@@ -469,6 +482,7 @@
   }
   function removeMember(i) {
     var tm = team();
+    snapUndo(de ? 'Pokémon entfernt' : 'Pokémon removed');
     tm.mons.splice(i, 1);
     if (sel > tm.mons.length) sel = tm.mons.length;
     if (sel === tm.mons.length && sel > 0 && i <= sel) sel = Math.max(0, Math.min(i, tm.mons.length - 1));
@@ -543,6 +557,7 @@
         if (s) pick(s);
         ev.preventDefault();
       }
+      else if (ev.key === 'Tab' && !ev.shiftKey && input.value.trim()) { var s2 = shown[active >= 0 ? active : 0]; if (s2) pick(s2); } // Tab übernimmt den Treffer und springt weiter
       else if (ev.key === 'Escape') { input.blur(); }
     });
     return wrap;
@@ -725,6 +740,21 @@
       mvBox.innerHTML = '';
       for (var k = 0; k < 4; k++) mvBox.appendChild(moveCard(k));
     }
+    function openMovePick(k) {
+      var cur = set.moves[k] || '';
+      openPicker({
+        kind: 'move', title: T('pkMove') + ' ' + (k + 1) + '/4 · ' + A.nSpecies(baseForme(m)), list: moveList(cur), cur: cur,
+        legal: moveOpts, used: set.moves.filter(function (x, i) { return i !== k; }), none: cur ? T('pkNoMove') : '',
+        onPick: function (v, next) {
+          var slots = [0, 1, 2, 3].map(function (i) { return set.moves[i] || ''; });
+          slots[k] = v;
+          set.moves = slots.filter(Boolean);
+          changed(); drawMoves();
+          // per Tab gewählt: gleich den nächsten freien Attacken-Slot öffnen
+          if (next && v && set.moves.length < 4) setTimeout(function () { openMovePick(set.moves.length); }, 30);
+        }
+      });
+    }
     function moveCard(k) {
       var card = el('div', { class: 'tb-movecard' });
       var cur = set.moves[k] || '', d = MOVES[cur];
@@ -733,18 +763,7 @@
       if (d) btn.appendChild(typeIcon(d.type));
       btn.appendChild(el('span', { class: 'nm', text: d ? A.nMove(cur) + (moveOpts.indexOf(cur) === -1 ? ' ⚠' : '') : T('pkAddMove') }));
       btn.appendChild(el('span', { class: 'caret', text: '▾' }));
-      btn.addEventListener('click', function () {
-        openPicker({
-          kind: 'move', title: T('pkMove') + ' ' + (k + 1) + '/4 · ' + A.nSpecies(baseForme(m)), list: moveList(cur), cur: cur,
-          legal: moveOpts, used: set.moves.filter(function (x, i) { return i !== k; }), none: cur ? T('pkNoMove') : '',
-          onPick: function (v) {
-            var slots = [0, 1, 2, 3].map(function (i) { return set.moves[i] || ''; });
-            slots[k] = v;
-            set.moves = slots.filter(Boolean);
-            changed(); drawMoves();
-          }
-        });
-      });
+      btn.addEventListener('click', function () { openMovePick(k); });
       card.appendChild(btn);
       var info = el('div', { class: 'tb-move-info' });
       if (!d) info.appendChild(el('span', { class: 'tb-cat', text: T('tbMoveN', k + 1) }));
@@ -1185,7 +1204,7 @@
     pickModal.appendChild(bx);
     document.body.appendChild(pickModal);
 
-    function choose(v) { closePicker(); cfg.onPick(v); }
+    function choose(v, next) { closePicker(); cfg.onPick(v, next); }
 
     function buildRow(r) {
       var row = el('div', { class: 'pick-row pick-' + kind + (r.v === cfg.cur ? ' cur' : '') + (used[r.v] ? ' used' : '') });
@@ -1273,6 +1292,11 @@
       else if (ev.key === 'Enter') {
         var r = shown[active >= 0 ? active : step0()];
         if (r && !used[r.v]) choose(r.v);
+        ev.preventDefault();
+      } else if (ev.key === 'Tab' && !ev.shiftKey && ev.target === input) {
+        // Tab: Treffer übernehmen und bei Attacken gleich den nächsten freien Slot öffnen
+        var rt = shown[active >= 0 ? active : step0()];
+        if (rt && !used[rt.v]) choose(rt.v, true);
         ev.preventDefault();
       }
     };

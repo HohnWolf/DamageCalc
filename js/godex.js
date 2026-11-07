@@ -107,7 +107,7 @@
       if (mode === 'sprite') return [px, dex, home, ani];
       return [ani, home, dex, px];
     }
-    var chain = urlsFor(id).concat(id !== s.sid ? urlsFor(s.sid) : []);
+    var own = urlsFor(id).length, chain = urlsFor(id).concat(id !== s.sid ? urlsFor(s.sid) : []);
     var i = 0;
     var img = el('img', { class: cls || '', alt: de ? s.nameDe : s.nameEn });
     function syncCls(u) {
@@ -117,6 +117,8 @@
     img.onerror = function () {
       i++;
       if (i < chain.length) {
+        // kein eigenes Bild der Form: Basis-Pokémon zeigen, aber gedimmt und mit Hinweis kennzeichnen
+        if (i === own) { img.classList.add('is-fallback'); img.title = de ? 'Für diese Form gibt es noch kein Bild: Basis-Pokémon dargestellt' : 'No image for this form yet: showing the base Pokémon'; }
         syncCls(chain[i]);
         img.src = chain[i];
       } else {

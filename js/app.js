@@ -131,13 +131,13 @@
       reset: 'Zurücksetzen', resetTitle: 'Gegnerseite leeren und alle Feldeffekte ausschalten (Einzel/Doppel bleibt)',
       resetDone: 'Gegner und Feld zurückgesetzt', choosePokemon: '+ Pokémon wählen',
       emptyHint: 'Kein Pokémon gewählt. Oben suchen oder eins aus dem Team anklicken.',
-      setsBtn: 'Sets laden', setsTitle: 'Aktuell beliebte Sets online laden: NCP-Setdex, Usage-Statistik (Smogon/Showdown) und Smogon-Sets',
-      regBtn: 'Regulation laden', regTitle: 'Aktuelle Champions-Regulation von Pokémon Showdown laden und neu erlaubte Pokémon, Attacken und Lernsets hinzufügen',
+      setsBtn: 'Sets laden', setsTitle: 'Aktuell beliebte Sets online laden: Standard-Sets, Usage-Statistik und weitere Online-Sets',
+      regBtn: 'Regulation laden', regTitle: 'Aktuelle Champions-Regulation online laden und neu erlaubte Pokémon, Attacken und Lernsets hinzufügen',
       loading: 'Lädt …', setsDone: 'Sets aktualisiert', regDone: 'Regulation aktualisiert', onlineFail: 'Fehler beim Laden: {0}',
       setsReport: 'Sets aktualisiert ({0})', regReport: 'Regulation: {0}',
       resetOnline: 'Online-Daten zurücksetzen', resetConfirm: 'Heruntergeladene Sets und Regulationsdaten löschen und den Auslieferungszustand wiederherstellen?',
       reloadHint: 'Die Seite lädt neu, damit alles übernommen wird.',
-      saveSet: 'Set speichern (eigene Sets)', exportSet: 'Set exportieren (Showdown-Format)', addTeam: 'Zum Team hinzufügen', saveShort: 'Speichern', exportSetShort: 'Export', addTeamShort: 'Zum Team',
+      saveSet: 'Set speichern (eigene Sets)', exportSet: 'Set exportieren (Textformat)', addTeam: 'Zum Team hinzufügen', saveShort: 'Speichern', exportSetShort: 'Export', addTeamShort: 'Zum Team',
       search: 'Pokémon / Set suchen…', type: 'Typ', forme: 'Form', base: 'Base', sp: 'SP', value: 'Wert', stage: 'Stufe',
       nature: 'Wesen', ability: 'Fähigkeit', item: 'Item', status: 'Status', hp: 'KP', crit: 'Volltreffer (Krit)',
       details: 'Details anzeigen', spTotal: 'SP: {0} / {1} (frei: {2})', speedFinal: 'Effektive Initiative: {0}', speedBase: ' (Basis {0})',
@@ -154,10 +154,10 @@
       spikes: 'Spikes', trickRoom: 'Trick Room', gravity: 'Gravity',
       noHits: 'Keine Treffer', own: 'Eigenes', hits: '{0}× Treffer', hitsAuto: 'auto Treffer', hitsTitle: 'Anzahl Treffer', x2: '×2',
       dmgTaken: 'Schaden', doubleTitle: '{0} → doppelte Stärke',
-      importTitle: 'Team-Import (Showdown-Format)', importHint: 'Paste aus Showdown, PokéPaste oder VGCPastes einfügen. EVs: werden automatisch in Stat Points umgerechnet, SPs: werden direkt übernommen.',
+      importTitle: 'Team-Import (Textformat)', importHint: 'Team als Text einfügen. EVs: werden automatisch in Stat Points umgerechnet, SPs: werden direkt übernommen.',
       importLeft: 'In linkes Team (eigene Seite)', importRight: 'In rechtes Team (Gegner)', importCustom: 'Als eigene Sets speichern',
       deleteCustom: 'Alle eigenen Sets löschen', deleteConfirm: 'Alle eigenen Sets löschen?', deleted: 'Eigene Sets gelöscht',
-      credits: 'Daten: NCP VGC Damage Calculator (Alex Collins / Jake White) · Sprites: Pokémon Showdown · Deutsche Namen: PokeAPI',
+      credits: '',
       close: 'Schließen', copy: 'Kopieren', copied: 'Kopiert', copyFail: 'Kopieren fehlgeschlagen', exportTitle: 'Set exportieren',
       importNothing: 'Nichts erkannt', unknown: 'unbekannt: {0}', importedCustom: '{0} Set(s) als eigene Sets gespeichert.',
       importedTeam: '{0} Pokémon ins {1} Team importiert.', left: 'linke', right: 'rechte', notAvailable: ' Nicht in Champions verfügbar/unbekannt: {0}',
@@ -166,8 +166,8 @@
       flashFire: 'Flash Fire aktiv', flashFireT: 'Feuer-Attacken ×1.5', analytic: 'Zieht zuletzt (Analytic)', stakeout: 'Ziel eingewechselt (Stakeout)',
       koOwn: 'Eigene Pokémon K.O.', koShort: 'K.O.', hitTimes: 'Wie oft getroffen', hitShort: '× getr.', stockpile: 'Stockpile', stockShort: 'Stock',
       notesNoEffect: 'Keine Wirkung', notesSpread: 'Spread-Attacke (×0.75 im Doppel)',
-      importHintH: 'Paste aus Showdown, PokéPaste oder VGCPastes einfügen. <code>EVs:</code> werden automatisch in Stat Points umgerechnet, <code>SPs:</code> werden direkt übernommen. Pastes immer mit englischen Namen.',
-      creditsH: 'Daten: <a href="https://github.com/nerd-of-now/NCP-VGC-Damage-Calculator" target="_blank" rel="noopener">NCP VGC Damage Calculator</a> (Alex Collins / Jake White) · Sprites: Pokémon Showdown · Deutsche Namen: PokeAPI',
+      importHintH: 'Team als Text einfügen. <code>EVs:</code> werden automatisch in Stat Points umgerechnet, <code>SPs:</code> werden direkt übernommen. Pastes immer mit englischen Namen.',
+      creditsH: '',
       notLegal: 'Kann dieses Pokémon in Champions nicht lernen/haben', langBtn: 'EN', singles: 'Einzel', doubles: 'Doppel', blankSet: 'Leeres Set', analyticT: '×1.3', stakeoutT: 'Angriff ×2',
       xPayback: 'Ziel war zuerst dran', xAvalanche: 'Vorher vom Ziel getroffen', xAssurance: 'Ziel diese Runde schon getroffen',
       xFailed: 'Letzte Attacke schlug fehl', xRound: 'Partner nutzte Runde vorher', xLashOut: 'Werte diese Runde gesenkt',
@@ -179,21 +179,21 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter (DialgaDex)', catRestText: 'Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (DialgaDex-Formel: eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
+      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter (DialgaDex)', catRestText: 'Pokédex, Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (DialgaDex-Formel: eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
-      startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
+      startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
       startCatchText: 'Fangwahrscheinlichkeiten für alle Hauptspiele (Gen 1–9): KP-IV-Spannen, alle Pokébälle im Direktvergleich, Kritischer Fang, Orden-Caps und Fangkraft.',
       navRandomizer: 'Randomizer', navSave: 'Save File Editor', startSaveText: 'Bearbeite Spielstände (Team, Boxen, Pokémon, Items, Trainerdaten) und speichere eine neue Datei.', startSaveKo: 'Team · Boxen · Pokémon', startRandomizerText: 'Mischt wilde Pokémon, Trainer, Starter, Entwicklungen, Werte, Typen und Attacken einer Spiel-ROM (Generation 3) und speichert eine neue Datei.', navRandomizer: 'Randomizer', navSave: 'Save File Editor', startSaveText: 'Edit save files (party, boxes, Pokémon, items, trainer data) and save a new file.', startSaveKo: 'Party · Boxes · Pokémon', startRandomizerText: 'Shuffles wild Pokémon, trainers, starters, evolutions, stats, types and moves of a game ROM (generation 3) and saves a new file.', navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'Alle Pokémon aus Pokémon GO mit Typen, Basiswerten, schnellen und Lade-Attacken (inkl. Elite-TM und STAB) sowie der WP eines 100%-IV-Pokémon auf Level 15, 20, 25 und 50.', startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
-      startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Frühe Testversion.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
+      startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Beta-Version.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
       startCalcKo: '43,8 % Chance auf OHKO',
       startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
       startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions',
       startFoot: 'Zurück zum Start über das Logo oben links',
-      tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)', tbMetaTest: 'Gegen Meta testen',
+      tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Textformat)', tbMetaTest: 'Gegen Meta testen',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
       tbDeleteConfirm: 'Team „{0}“ löschen?', tbName: 'Teamname', tbDefaultName: 'Team {0}', tbCopyName: '{0} (Kopie)',
@@ -207,7 +207,7 @@
       pkSearchMove: 'Suchen: Name, Typ oder Effekt …', pkSearchItem: 'Suchen: Name oder Effekt …', pkSearchAbility: 'Suchen: Name oder Effekt …',
       pkAddMove: '+ Attacke wählen', pkNoMove: 'Attacke entfernen', pkNoItem: 'Kein Item tragen',
       pkColType: 'Typ', pkColMove: 'Attacke', pkColCat: 'Art', pkColPower: 'Stärke', pkColAcc: 'Gen.', pkColPP: 'AP', pkColEffect: 'Effekt',
-      pkAccT: 'Genauigkeit', pkPPT: 'Attackenpunkte', pkUsed: 'Schon im Set', pkCount: '{0} von {1}', pkHint: '↑ ↓ wählen · Enter übernehmen · Esc schließen',
+      pkAccT: 'Genauigkeit', pkPPT: 'Attackenpunkte', pkUsed: 'Schon im Set', pkCount: '{0} von {1}', pkHint: '↑ ↓ wählen · Enter übernehmen · Tab übernehmen + weiter · Esc schließen',
       pkAllTypes: 'Alle Typen', pkClearFilter: 'Filter zurücksetzen', pkSortT: 'Sortieren nach {0}',
       pkGroupFit: 'Passt zu diesem Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Beeren', pkGroupStones: 'Mega-Steine', tbPP: 'AP {0}',
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
@@ -244,13 +244,13 @@
       reset: 'Reset', resetTitle: 'Clear the opponent side and turn off all field effects (Singles/Doubles stays)',
       resetDone: 'Opponent and field reset', choosePokemon: '+ Choose Pokémon',
       emptyHint: 'No Pokémon selected. Search above or click one in the team.',
-      setsBtn: 'Load sets', setsTitle: 'Load currently popular sets online: NCP setdex, usage stats (Smogon/Showdown) and Smogon sets',
-      regBtn: 'Load regulation', regTitle: 'Load the current Champions regulation from Pokémon Showdown and add newly allowed Pokémon, moves and learnsets',
+      setsBtn: 'Load sets', setsTitle: 'Load currently popular sets online: standard sets, usage stats and further online sets',
+      regBtn: 'Load regulation', regTitle: 'Load the current Champions regulation online and add newly allowed Pokémon, moves and learnsets',
       loading: 'Loading …', setsDone: 'Sets updated', regDone: 'Regulation updated', onlineFail: 'Loading failed: {0}',
       setsReport: 'Sets updated ({0})', regReport: 'Regulation: {0}',
       resetOnline: 'Reset online data', resetConfirm: 'Delete downloaded sets and regulation data and restore the bundled state?',
       reloadHint: 'The page reloads so everything takes effect.',
-      saveSet: 'Save set (custom sets)', exportSet: 'Export set (Showdown format)', addTeam: 'Add to team', saveShort: 'Save', exportSetShort: 'Export', addTeamShort: 'Add to team',
+      saveSet: 'Save set (custom sets)', exportSet: 'Export set (text format)', addTeam: 'Add to team', saveShort: 'Save', exportSetShort: 'Export', addTeamShort: 'Add to team',
       search: 'Search Pokémon / set…', type: 'Type', forme: 'Forme', base: 'Base', sp: 'SP', value: 'Stat', stage: 'Stage',
       nature: 'Nature', ability: 'Ability', item: 'Item', status: 'Status', hp: 'HP', crit: 'Critical hit',
       details: 'Show details', spTotal: 'SP: {0} / {1} (left: {2})', speedFinal: 'Effective speed: {0}', speedBase: ' (base {0})',
@@ -267,10 +267,10 @@
       spikes: 'Spikes', trickRoom: 'Trick Room', gravity: 'Gravity',
       noHits: 'No results', own: 'Custom', hits: '{0} hits', hitsAuto: 'auto hits', hitsTitle: 'Number of hits', x2: '×2',
       dmgTaken: 'Damage', doubleTitle: '{0} → double power',
-      importTitle: 'Team import (Showdown format)', importHint: 'Paste from Showdown, PokéPaste or VGCPastes. EVs: are converted to Stat Points automatically, SPs: are used as they are.',
+      importTitle: 'Team import (text format)', importHint: 'Paste a team as text. EVs: are converted to Stat Points automatically, SPs: are used as they are.',
       importLeft: 'Into left team (your side)', importRight: 'Into right team (opponent)', importCustom: 'Save as custom sets',
       deleteCustom: 'Delete all custom sets', deleteConfirm: 'Delete all custom sets?', deleted: 'Custom sets deleted',
-      credits: 'Data: NCP VGC Damage Calculator (Alex Collins / Jake White) · Sprites: Pokémon Showdown · German names: PokeAPI',
+      credits: '',
       close: 'Close', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', exportTitle: 'Export set',
       importNothing: 'Nothing recognized', unknown: 'unknown: {0}', importedCustom: '{0} set(s) saved as custom sets.',
       importedTeam: '{0} Pokémon imported into the {1} team.', left: 'left', right: 'right', notAvailable: ' Not available in Champions/unknown: {0}',
@@ -279,8 +279,8 @@
       flashFire: 'Flash Fire active', flashFireT: 'Fire moves ×1.5', analytic: 'Moves last (Analytic)', stakeout: 'Target switched in (Stakeout)',
       koOwn: 'Own Pokémon fainted', koShort: 'fainted', hitTimes: 'Times hit', hitShort: '× hit', stockpile: 'Stockpile', stockShort: 'Stock',
       notesNoEffect: 'No effect', notesSpread: 'Spread move (×0.75 in doubles)',
-      importHintH: 'Paste from Showdown, PokéPaste or VGCPastes. <code>EVs:</code> are converted to Stat Points automatically, <code>SPs:</code> are used as they are.',
-      creditsH: 'Data: <a href="https://github.com/nerd-of-now/NCP-VGC-Damage-Calculator" target="_blank" rel="noopener">NCP VGC Damage Calculator</a> (Alex Collins / Jake White) · Sprites: Pokémon Showdown · German names: PokeAPI',
+      importHintH: 'Paste a team as text. <code>EVs:</code> are converted to Stat Points automatically, <code>SPs:</code> are used as they are.',
+      creditsH: '',
       notLegal: 'Not available to this Pokémon in Champions', langBtn: 'DE', singles: 'Singles', doubles: 'Doubles', blankSet: 'Blank Set', analyticT: '×1.3', stakeoutT: 'Attack ×2',
       xPayback: 'Target moved first', xAvalanche: 'Hit by the target first', xAssurance: 'Target already hit this turn',
       xFailed: 'Last move failed', xRound: 'Partner used Round first', xLashOut: 'Stats lowered this turn',
@@ -292,21 +292,21 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter (DialgaDex)', catRestText: 'Shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (DialgaDex formula: eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter (DialgaDex)', catRestText: 'Pokédex, shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (DialgaDex formula: eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
-      startMatchText: 'Every game with one teambuilder team: Showdown replays, usage, leads and matchups.',
+      startMatchText: 'Every game with one teambuilder team: replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
       startCatchText: 'Exact capture probabilities across all main-series games (Gen 1–9): HP IV ranges, all Poké Balls compared live, Critical Capture, badge caps and Catching Power.',
       navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'All Pokémon from Pokémon GO with types, base stats, fast and charged moves (incl. elite TM and STAB) and the CP of a 100% IV Pokémon at level 15, 20, 25 and 50.', startDexText: 'National Pokédex (Gen 1–9, all 1025 Pokémon): 3D models & sprites, all forms (Mega, Primal, Alola, Galar, Hisui, Paldea), types, abilities, base stats and evolution chains with methods.',
       startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
-      startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Early test version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
+      startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Beta version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
       winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
       startCalcKo: '43.8% chance to OHKO',
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
       startSub: 'Damage Calculator, Teambuilder, Shiny counter, Catch Calculator and Team-Analyse for Pokémon Champions',
       startFoot: 'Back to the start via the logo in the top left',
-      tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)', tbMetaTest: 'Test vs Meta',
+      tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (text format)', tbMetaTest: 'Test vs Meta',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
       tbDeleteConfirm: 'Delete team “{0}”?', tbName: 'Team name', tbDefaultName: 'Team {0}', tbCopyName: '{0} (copy)',
@@ -320,7 +320,7 @@
       pkSearchMove: 'Search: name, type or effect …', pkSearchItem: 'Search: name or effect …', pkSearchAbility: 'Search: name or effect …',
       pkAddMove: '+ Choose a move', pkNoMove: 'Remove move', pkNoItem: 'Hold no item',
       pkColType: 'Type', pkColMove: 'Move', pkColCat: 'Cat.', pkColPower: 'Power', pkColAcc: 'Acc.', pkColPP: 'PP', pkColEffect: 'Effect',
-      pkAccT: 'Accuracy', pkPPT: 'Power points', pkUsed: 'Already in the set', pkCount: '{0} of {1}', pkHint: '↑ ↓ select · Enter confirm · Esc close',
+      pkAccT: 'Accuracy', pkPPT: 'Power points', pkUsed: 'Already in the set', pkCount: '{0} of {1}', pkHint: '↑ ↓ select · Enter confirm · Tab confirm + next · Esc close',
       pkAllTypes: 'All types', pkClearFilter: 'Reset filters', pkSortT: 'Sort by {0}',
       pkGroupFit: 'Fits this Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Berries', pkGroupStones: 'Mega Stones', tbPP: 'PP {0}',
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
@@ -459,6 +459,34 @@
     var t = el('div', { class: 'toast', text: msg }); document.body.appendChild(t);
     setTimeout(function () { t.remove(); }, 1800);
   }
+  // ---- Rückgängig (Strg+Z): gelöschte Teams, Versionen, Pokémon und Sets lassen sich wiederherstellen ----
+  var undoStack = [], undoToast = null;
+  function pushUndo(label, restore) {
+    undoStack.push({ label: label, restore: restore });
+    if (undoStack.length > 20) undoStack.shift();
+    if (undoToast) undoToast.remove();
+    var t = el('div', { class: 'toast toast-undo' });
+    t.appendChild(el('span', { text: label }));
+    var b = el('button', { type: 'button', class: 'toast-undo-btn', text: (LANG === 'de' ? 'Rückgängig' : 'Undo') + ' (Strg+Z)' });
+    b.addEventListener('click', function () { doUndo(); });
+    t.appendChild(b); document.body.appendChild(t); undoToast = t;
+    setTimeout(function () { if (undoToast === t) undoToast = null; t.remove(); }, 7000);
+  }
+  function doUndo() {
+    var u = undoStack.pop();
+    if (undoToast) { undoToast.remove(); undoToast = null; }
+    if (!u) { toast(LANG === 'de' ? 'Nichts zum Rückgängigmachen' : 'Nothing to undo'); return false; }
+    try { u.restore(); } catch (e) { console.warn('Undo fehlgeschlagen', e); }
+    toast((LANG === 'de' ? 'Wiederhergestellt: ' : 'Restored: ') + u.label);
+    return true;
+  }
+  document.addEventListener('keydown', function (ev) {
+    if (!(ev.ctrlKey || ev.metaKey) || ev.shiftKey || ev.altKey || String(ev.key).toLowerCase() !== 'z') return;
+    var t = ev.target;
+    if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return; // Textfelder behalten ihr eigenes Rückgängig
+    if (!undoStack.length) return;
+    ev.preventDefault(); doUndo();
+  });
   function megaFormeFor(base, item) {
     if (!item || typeof MEGA_STONE_USER_LOOKUP === 'undefined' || !MEGA_STONE_USER_LOOKUP[item]) return null;
     var b = base.replace(/-.*$/, '');
@@ -733,7 +761,7 @@
       Object.keys(c).forEach(function (n) { sets.push({ species: sp, name: n, set: c[n], src: T('own') }); });
       var s = SETDEX[sp] || {};
       Object.keys(s).forEach(function (n) { sets.push({ species: sp, name: n, set: s[n], src: '' }); });
-      [['usage', 'Usage'], ['smogon', 'Smogon']].forEach(function (src) {
+      [['usage', 'Usage'], ['smogon', 'Online']].forEach(function (src) {
         var o = (ONLINE_SETS[src[0]] || {})[sp] || {};
         Object.keys(o).forEach(function (n) { sets.push({ species: sp, name: n, set: o[n], src: src[1] }); });
       });
@@ -814,6 +842,7 @@
       if (ev.key === 'ArrowDown') { active = Math.min(shown.length - 1, active + 1); highlight(); ev.preventDefault(); }
       else if (ev.key === 'ArrowUp') { active = Math.max(0, active - 1); highlight(); ev.preventDefault(); }
       else if (ev.key === 'Enter') { var e = shown[active >= 0 ? active : 0]; if (e) choose(e); ev.preventDefault(); }
+      else if (ev.key === 'Tab' && !ev.shiftKey && input.value.trim()) { var e2 = shown[active >= 0 ? active : 0]; if (e2) choose(e2); } // Tab übernimmt den Treffer und springt weiter
       else if (ev.key === 'Escape') { input.blur(); }
     });
   }
@@ -1609,7 +1638,7 @@
       var toOther = el('button', { class: 'slot-btn other', title: T('toOther'), text: '⇄' });
       toOther.addEventListener('click', function (ev) { ev.stopPropagation(); loadSet(sides[1 - idx], m.species, m.set, m.setName); recalc(); });
       var del = el('button', { class: 'slot-btn del', title: T('removeTeam'), text: '✕' });
-      del.addEventListener('click', function (ev) { ev.stopPropagation(); teams[idx].splice(i, 1); save('cc_teams', teams); renderTeam(idx); });
+      del.addEventListener('click', function (ev) { ev.stopPropagation(); var before = teams[idx].slice(); teams[idx].splice(i, 1); save('cc_teams', teams); renderTeam(idx); pushUndo(LANG === 'de' ? 'Pokémon aus Team entfernt' : 'Pokémon removed from team', function () { teams[idx] = before; save('cc_teams', teams); renderTeam(idx); }); });
       slot.appendChild(toOther); slot.appendChild(del);
       box.appendChild(slot);
     });
@@ -1630,7 +1659,7 @@
     var clr = el('button', { text: T('clearShort'), title: T('teamClear') });
     if (!teams[idx].length) { ex.disabled = true; clr.disabled = true; }
     ex.addEventListener('click', function () { showModal(T('teamExport'), teams[idx].map(function (m) { return exportSet(m.set, m.setName, m.species); }).join('\n\n')); });
-    clr.addEventListener('click', function () { ccConfirm(T('clearConfirm', idx + 1), function () { teams[idx] = []; save('cc_teams', teams); renderTeam(idx); }, { danger: true, ok: ['Leeren', 'Clear'] }); });
+    clr.addEventListener('click', function () { ccConfirm(T('clearConfirm', idx + 1), function () { var before = teams[idx].slice(); teams[idx] = []; save('cc_teams', teams); renderTeam(idx); if (before.length) pushUndo(LANG === 'de' ? 'Team geleert' : 'Team cleared', function () { teams[idx] = before; save('cc_teams', teams); renderTeam(idx); }); }, { danger: true, ok: ['Leeren', 'Clear'] }); });
     acts.appendChild(imp); acts.appendChild(ex); acts.appendChild(clr);
     box.appendChild(acts);
   }
@@ -1862,7 +1891,7 @@
     document.getElementById('btnImportRight').addEventListener('click', function () { doImport(1); });
     document.getElementById('btnImportCustom').addEventListener('click', function () { doImport('custom'); });
     document.getElementById('btnDeleteCustom').addEventListener('click', function () {
-      ccConfirm(T('deleteConfirm'), function () { customSets = {}; save('cc_customSets', customSets); toast(T('deleted')); }, { danger: true });
+      ccConfirm(T('deleteConfirm'), function () { var before = JSON.stringify(customSets); customSets = {}; save('cc_customSets', customSets); toast(T('deleted')); pushUndo(LANG === 'de' ? 'Eigene Sets gelöscht' : 'Custom sets deleted', function () { customSets = JSON.parse(before); save('cc_customSets', customSets); }); }, { danger: true });
     });
     document.getElementById('modalClose').addEventListener('click', function () {
       document.getElementById('modal').classList.add('hidden');
@@ -1928,11 +1957,11 @@
         title: function () { return T('setsDone'); },
         text: function (r) {
           var L = [];
-          L.push('NCP-Setdex: ' + (r.ncp != null ? r.ncp + (de ? ' Sets' : ' sets') : (de ? 'Fehler – ' : 'error – ') + r.ncpError));
+          L.push((de ? 'Standard-Sets: ' : 'Standard sets: ') + (r.ncp != null ? r.ncp + (de ? ' Sets' : ' sets') : (de ? 'Fehler – ' : 'error – ') + r.ncpError));
           L.push((de ? 'Usage-Statistik' : 'Usage stats') + ': ' + (r.usage != null ? r.usage + (de ? ' Pokémon (meistgespieltes Set, ' : ' Pokémon (most used set, ') + r.usageFile + ', ' + (r.battles || 0).toLocaleString() + (de ? ' Kämpfe)' : ' battles)') : (de ? 'Fehler – ' : 'error – ') + r.usageError));
-          L.push('Smogon-Sets: ' + (r.smogon != null ? r.smogon + ' (' + r.smogonFile + ')' : (de ? 'Fehler – ' : 'error – ') + r.smogonError));
+          L.push((de ? 'Weitere Online-Sets: ' : 'Further online sets: ') + (r.smogon != null ? r.smogon + ' (' + r.smogonFile + ')' : (de ? 'Fehler – ' : 'error – ') + r.smogonError));
           if (r.unknown && r.unknown.length) L.push('', (de ? 'Nicht im Rechner (erst „Regulation laden“ ausführen): ' : 'Not in the calculator (run “Load regulation” first): ') + r.unknown.join(', '));
-          L.push('', de ? 'Im Set-Suchfeld erscheinen sie mit den Markierungen „Usage“ und „Smogon“.' : 'They appear in the set search tagged “Usage” and “Smogon”.');
+          L.push('', de ? 'Im Set-Suchfeld erscheinen sie mit den Markierungen „Usage“ und „Online“.' : 'They appear in the set search tagged “Usage” and “Online”.');
           return L.join('\n');
         }
       });
@@ -1942,13 +1971,13 @@
         title: function (r) { return T('regReport', r.name); },
         text: function (r) {
           var L = [];
-          L.push((de ? 'Aktuelle Regulation: ' : 'Current regulation: ') + r.name + (de ? ' (Quelle: Pokémon Showdown)' : ' (source: Pokémon Showdown)'));
+          L.push((de ? 'Aktuelle Regulation: ' : 'Current regulation: ') + r.name + (de ? ' (online geladen)' : ' (loaded online)'));
           L.push((de ? 'Erlaubte Pokémon und Formen: ' : 'Legal Pokémon and formes: ') + r.legal);
           L.push((de ? 'Neu hinzugefügt (' : 'Newly added (') + r.added.length + '): ' + (r.added.length ? r.added.map(nSpecies).join(', ') : (de ? 'keine, der Rechner ist aktuell' : 'none, the calculator is up to date')));
           L.push((de ? 'Neue Attacken (' : 'New moves (') + r.moves.length + '): ' + (r.moves.join(', ') || '–'));
-          L.push((de ? 'Erlaubte Items laut Showdown: ' : 'Legal items according to Showdown: ') + r.itemsLegal + (de ? ', neu hinzugefügt (' : ', newly added (') + r.items.length + '): ' + (r.items.length ? r.items.map(nItem).join(', ') : (de ? 'keine, die Item-Liste ist aktuell' : 'none, the item list is up to date')));
+          L.push((de ? 'Erlaubte Items: ' : 'Legal items: ') + r.itemsLegal + (de ? ', neu hinzugefügt (' : ', newly added (') + r.items.length + '): ' + (r.items.length ? r.items.map(nItem).join(', ') : (de ? 'keine, die Item-Liste ist aktuell' : 'none, the item list is up to date')));
           L.push((de ? 'Lernsets und Fähigkeiten: aktualisiert' : 'Learnsets and abilities: updated'));
-          L.push('', (de ? 'Alle Champions-VGC-Regulationen bei Showdown: ' : 'All Champions VGC regulations on Showdown: ') + r.allRegs.join(', '));
+          L.push('', (de ? 'Alle Champions-VGC-Regulationen: ' : 'All Champions VGC regulations: ') + r.allRegs.join(', '));
           return L.join('\n');
         }
       });
@@ -2122,7 +2151,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.2') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.3') + (s.portable ? ' · Portable' : '') }));
     info.appendChild(titleRow);
     info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
     var msg = updMessage(s);
@@ -2203,7 +2232,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.17.2';
+      var ver = (updStatus && updStatus.current) || '1.17.3';
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
       side.appendChild(sideFoot);
       shell.appendChild(side);
@@ -2341,7 +2370,7 @@
           var b = el('button', { type: 'button', class: 'tool-toggle' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false' });
           b.appendChild(el('span', { class: 'ic tool-ic', 'data-ic': id, 'aria-hidden': 'true' }));
           b.appendChild(el('span', { class: 'tool-nm', text: T(m[1]) }));
-          if (m[2]) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+          if (m[2]) b.appendChild(stageBadge(m[2]));
           b.appendChild(el('span', { class: 'tool-switch', 'aria-hidden': 'true' }));
           b.addEventListener('click', function () {
             var curDis = disabledToolsList().slice();
@@ -2375,7 +2404,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: '1.17.2', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: '1.17.3', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2411,7 +2440,7 @@
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: de ? 'Online-Daten & Sets' : 'Online data & sets' }));
-          lab.appendChild(el('div', { class: 'hint', text: de ? 'Metagame-Sets von Smogon/NCP und Showdown-Regulationen laden' : 'Update Smogon/NCP sets and Showdown regulations' }));
+          lab.appendChild(el('div', { class: 'hint', text: de ? 'Metagame-Sets und Regulationen online laden' : 'Update metagame sets and regulations online' }));
           r.appendChild(lab);
           var g = el('div', { class: 'set-actions' });
           var bSets = el('button', { type: 'button', class: 'set-btn', text: T('setsBtn'), title: T('setsTitle') });
@@ -2432,8 +2461,8 @@
         (function () {
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
-          lab.appendChild(el('div', { class: 'set-name', text: de ? 'Team-Import (Showdown)' : 'Team import (Showdown)' }));
-          lab.appendChild(el('div', { class: 'hint', text: de ? 'Showdown-Format in Teams oder eigene Sets importieren' : 'Import Showdown format into teams or custom sets' }));
+          lab.appendChild(el('div', { class: 'set-name', text: de ? 'Team-Import' : 'Team import' }));
+          lab.appendChild(el('div', { class: 'hint', text: de ? 'Textformat in Teams oder eigene Sets importieren' : 'Import text format into teams or custom sets' }));
           r.appendChild(lab);
           var g = el('div', { class: 'set-actions' });
           var bImp = el('button', { type: 'button', class: 'set-btn primary', text: T('importBtn') });
@@ -2461,16 +2490,18 @@
 
   // ======================= views: start screen / calculator / teambuilder =======================
   var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'randomizer', 'savedit'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave']];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['dex', ['dex']], ['go', ['godex', 'gocounter']], ['rest', ['shiny', 'overlay', 'catch']]];
-  // Android-App (Capacitor, mobile/): ohne die Werkzeuge der Kategorie 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner), sie brauchen den Desktop
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
+  // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
     var REST = ['shiny', 'overlay', 'catch']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
-    CATS = CATS.filter(function (c) { return c[0] !== 'rest'; }).map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; });
+    CATS = CATS.map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; }).filter(function (c) { return c[1].length; });
+    UI.de.catRestText = UI.de.catDexText; UI.en.catRestText = UI.en.catDexText;
   }
+  function stageBadge(stage) { return el('span', { class: 'alpha-badge' + (stage === 'BETA' ? ' is-beta' : ''), text: stage === true ? 'ALPHA' : stage }); }
   function catOf(v) {
     for (var i = 0; i < CATS.length; i++) if (CATS[i][1].indexOf(v) !== -1) return CATS[i];
     return null;
@@ -2502,7 +2533,7 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['Bulbasaur', 'Gyarados', 'Charizard'] };
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
@@ -2614,7 +2645,7 @@
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', rest: 'shiny' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', rest: window.RL_ANDROID ? 'dex' : 'shiny' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }
@@ -2643,7 +2674,7 @@
       if (id === cur) b.setAttribute('aria-current', 'page');
       b.appendChild(el('span', { class: 'ic', 'data-ic': ic, 'aria-hidden': 'true' }));
       b.appendChild(el('span', { class: 'sb-label', text: label }));
-      if (alpha) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+      if (alpha) b.appendChild(stageBadge(alpha));
       b.addEventListener('click', onClick || function () { showView(id); });
       return b;
     }
@@ -2685,7 +2716,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.17.2';
+    var ver = (updStatus && updStatus.current) || '1.17.3';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -2718,7 +2749,7 @@
       if (curCat && curCat[1].indexOf(m[0]) === -1) return;
       var b = el('button', { class: 'nav-tab' + (m[0] === cur ? ' on' : ''), 'data-go': m[0] });
       b.appendChild(el('span', { class: 'nav-label', text: T(m[1]) }));
-      if (m[2]) b.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+      if (m[2]) b.appendChild(stageBadge(m[2]));
       b.addEventListener('click', function () { showView(m[0]); });
       if (mode === 'tabs') {
         var x = el('span', { class: 'nav-close', text: '×', title: T('closeTab') });
@@ -2857,7 +2888,7 @@
     baseOf: baseOf, formesOf: formesOf, megaFormeFor: megaFormeFor, legalMoves: legalMoves, legalAbilities: legalAbilities,
     nSpecies: nSpecies, nMove: nMove, nItem: nItem, nAbility: nAbility, nNature: nNature, nType: nType, nStat: nStat, nStatLong: nStatLong,
     natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
-    el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
+    el: el, esc: esc, opt: opt, toast: toast, pushUndo: pushUndo, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
     parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
     setting: setting, setSetting: setSetting, saveFile: saveFile, openSettings: openSettings, saveCustomSet: saveCustomSet

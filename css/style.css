@@ -1001,3 +1001,8 @@ html[data-ui-style="compact"] .tb,
 html[data-ui-style="compact"] .catch-grid {
   gap: 6px;
 }
+
+/* Hinweis mit Rückgängig-Knopf (Strg+Z) nach dem Löschen */
+.toast.toast-undo { display: flex; align-items: center; gap: 12px; }
+.toast-undo-btn { background: var(--accent, #4a90e2); color: #fff; border: 0; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.toast-undo-btn:hover { filter: brightness(1.1); }

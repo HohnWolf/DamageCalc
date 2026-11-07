@@ -1,0 +1,20 @@
+# Führt bei jedem Push und Pull Request alle Tests aus (npm test), inklusive Oberflächen-Smoke-Test mit Chrome
+name: Tests
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Abhängigkeiten installieren (ohne Electron-Download)
+        run: npm ci --ignore-scripts
+      - name: Tests
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: npm test

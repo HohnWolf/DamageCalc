@@ -30,19 +30,19 @@
   </style>
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=86">
+  <link rel="stylesheet" href="css/style.css?v=87">
   <link rel="stylesheet" href="css/views.css?v=100">
-  <link rel="stylesheet" href="css/nuz.css?v=86">
+  <link rel="stylesheet" href="css/nuz.css?v=87">
   <link rel="stylesheet" href="css/shiny.css?v=86">
   <link rel="stylesheet" href="css/match.css?v=86">
   <link rel="stylesheet" href="css/overlay.css?v=91">
   <link rel="stylesheet" href="css/catch.css?v=86">
   <link rel="stylesheet" href="css/pokedex.css?v=86">
-  <link rel="stylesheet" href="css/godex.css?v=6">
+  <link rel="stylesheet" href="css/godex.css?v=7">
   <link rel="stylesheet" href="css/randomizer.css?v=1">
   <link rel="stylesheet" href="css/savedit.css?v=1">
-  <link rel="stylesheet" href="css/pro.css?v=17">
-  <link rel="stylesheet" href="css/studio.css?v=15">
+  <link rel="stylesheet" href="css/pro.css?v=18">
+  <link rel="stylesheet" href="css/studio.css?v=16">
   </head>
 <body data-view="start">
   <aside id="sidebar" class="sidebar" aria-label="Navigation"></aside>
@@ -93,11 +93,6 @@
           <span class="sc-art sc-art-cat" id="catArt_runs"></span>
           <span class="sc-head"><span class="sc-title" data-t="catRuns"></span></span>
           <span class="sc-text" data-t="catRunsText"></span>
-        </button>
-        <button class="start-card cat-card cat-dex" data-cat="dex">
-          <span class="sc-art sc-art-cat" id="catArt_dex"></span>
-          <span class="sc-head"><span class="sc-title" data-t="catDex"></span></span>
-          <span class="sc-text" data-t="catDexText"></span>
         </button>
         <button class="start-card cat-card cat-go" data-cat="go">
           <span class="sc-art sc-art-cat" id="catArt_go"></span>
@@ -151,7 +146,7 @@
             <span class="sc-bar"><span style="width:62%"></span></span>
             <span class="sc-ko" data-t="startNuzKo">Gen 3 · Trainer, Box, Schaden</span>
           </span>
-          <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge">ALPHA</span></span></span>
+          <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge is-beta">BETA</span></span></span>
           <span class="sc-text" data-t="startNuzText"></span>
         </button>
         <button class="start-card card-randomizer" data-go="randomizer">
@@ -165,26 +160,12 @@
         </button>
         <button class="start-card card-savedit" data-go="savedit">
           <span class="sc-art sc-art-randomizer">
-            <span class="sc-dmg">.sav <small>PKHeX</small></span>
+            <span class="sc-dmg">.sav</span>
             <span class="sc-bar"><span style="width:100%"></span></span>
             <span class="sc-ko" data-t="startSaveKo">Team · Boxen · Pokémon</span>
           </span>
           <span class="sc-head"><span class="sc-title" data-t="navSave">Save File Editor</span></span>
           <span class="sc-text" data-t="startSaveText"></span>
-        </button>
-          </div>
-        </div>
-        <div class="start-group sg-dex" data-cat="dex">
-          <div class="sg-label" data-t="catDex"></div>
-          <div class="sg-cards">
-        <button class="start-card card-dex" data-go="dex">
-          <span class="sc-art sc-art-dex">
-            <span class="sc-dmg">#001 – #1025 <small>Gen 1–9</small></span>
-            <span class="sc-bar"><span style="width:100%"></span></span>
-            <span class="sc-ko">3D · Formen · Werte · Entwicklung</span>
-          </span>
-          <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span></span>
-          <span class="sc-text" data-t="startDexText"></span>
         </button>
           </div>
         </div>
@@ -214,6 +195,15 @@
         <div class="start-group sg-rest" data-cat="rest">
           <div class="sg-label" data-t="catRest"></div>
           <div class="sg-cards">
+        <button class="start-card card-dex" data-go="dex">
+          <span class="sc-art sc-art-dex">
+            <span class="sc-dmg">#001 – #1025 <small>Gen 1–9</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko">3D · Formen · Werte · Entwicklung</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span></span>
+          <span class="sc-text" data-t="startDexText"></span>
+        </button>
         <button class="start-card card-shiny" data-go="shiny">
           <span class="sc-art sc-art-shiny" id="startShiny"></span>
           <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span></span>
@@ -277,7 +267,7 @@
   <div id="importModal" class="modal hidden">
     <div class="modal-box wide">
       <div class="modal-head">
-        <h3 data-t="importTitle">Team-Import (Showdown-Format)</h3>
+        <h3 data-t="importTitle">Team-Import (Textformat)</h3>
         <button id="importClose" class="icon-btn" data-tt="close">✕</button>
       </div>
       <p class="hint" data-th="importHintH"></p>
@@ -324,8 +314,8 @@
   <script src="data/sprite_boxes.js?v=86"></script>
   <script src="js/online.js?v=86"></script>
   <script src="js/calc.js?v=86"></script>
-  <script src="js/app.js?v=110"></script>
-  <script src="js/builder.js?v=86"></script>
+  <script src="js/app.js?v=113"></script>
+  <script src="js/builder.js?v=88"></script>
   <script src="data/natdex.js?v=86"></script>
   <script src="data/catch_data.js?v=86"></script>
   <script src="data/gen3_names.js?v=86"></script>
@@ -333,7 +323,7 @@
   <script src="data/nds_names.js?v=86"></script>
   <script src="js/nds_calc.js?v=86"></script>
   <script src="js/nds.js?v=86"></script>
-  <script src="js/nuz.js?v=86"></script>
+  <script src="js/nuz.js?v=87"></script>
   <script src="js/rand_gen3.js?v=1"></script>
   <script src="js/rand_nds.js?v=1"></script>
   <script src="js/rand_core.js?v=1"></script>
@@ -363,9 +353,9 @@
   <script src="js/overlay.js?v=91"></script>
   <script src="js/catch_calc.js?v=86"></script>
   <script src="data/dex_gen1.js?v=86"></script>
-  <script src="js/pokedex.js?v=87"></script>
+  <script src="js/pokedex.js?v=88"></script>
   <script src="data/godex.js?v=2"></script>
-  <script src="js/godex.js?v=5"></script>
-  <script src="js/gocounter.js?v=3"></script>
+  <script src="js/godex.js?v=6"></script>
+  <script src="js/gocounter.js?v=4"></script>
 </body>
 </html>

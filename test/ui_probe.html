@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Hilfsseite für test_ui_smoke.js: lädt die App in einem Frame der Breite ?w=, öffnet die Ansichten und schreibt das Ergebnis als JSON nach #out -->
+<body style="margin:0">
+<pre id="out">pending</pre>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), W = parseInt(q.get('w'), 10) || 1280;
+  var VIEWS = (q.get('views') || 'start').split(',');
+  var fr = document.createElement('iframe');
+  fr.style.cssText = 'width:' + W + 'px;height:800px;border:0;position:absolute;left:0;top:0';
+  var errors = [], res = [];
+  fr.src = '/index.html?smoke=1';
+  document.body.appendChild(fr);
+  function done() { document.getElementById('out').textContent = JSON.stringify({ width: W, errors: errors, views: res, undo: undoTest }); }
+  var undoTest = null;
+  fr.addEventListener('load', function () {
+    var w = fr.contentWindow;
+    w.addEventListener('error', function (e) { errors.push('error: ' + e.message); });
+    w.addEventListener('unhandledrejection', function (e) { errors.push('promise: ' + (e.reason && e.reason.message || e.reason)); });
+    // Rückgängig: pushUndo + Strg+Z muss die Wiederherstellung auslösen (nicht in einem Textfeld)
+    try { var hit = 0; w.CC.pushUndo('Test', function () { hit++; }); w.document.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true })); undoTest = hit === 1; } catch (e) { undoTest = false; errors.push('undo: ' + e.message); }
+    var i = 0;
+    (function next() {
+      if (i >= VIEWS.length) return done();
+      var v = VIEWS[i++];
+      try { w.CC.showView(v); } catch (e) { errors.push(v + ': ' + e.message); }
+      setTimeout(function () {
+        var d = w.document, de = d.documentElement;
+        // sichtbare Elemente, die rechts über den Rand ragen (ohne Elemente in scrollbaren Containern)
+        var off = [], all = d.body.querySelectorAll('*');
+        for (var k = 0; k < all.length && off.length < 3; k++) {
+          var e = all[k], cs = w.getComputedStyle(e), r = e.getBoundingClientRect();
+          if (r.width < 2 || r.right <= W + 4 || cs.visibility === 'hidden' || cs.display === 'none' || cs.position === 'fixed' || +cs.opacity === 0) continue;
+          var p = e.parentElement, clipped = false;
+          while (p && p !== d.body) { var ps = w.getComputedStyle(p); if (/(auto|scroll|hidden|clip)/.test(ps.overflowX) || ps.display === 'none' || ps.visibility === 'hidden' || +ps.opacity === 0) { clipped = true; break; } p = p.parentElement; }
+          if (!clipped) off.push((e.id ? '#' + e.id : e.tagName.toLowerCase()) + (e.className && e.className.baseVal === undefined ? '.' + String(e.className).trim().split(/\s+/).join('.') : '') + ' +' + Math.round(r.right - W));
+        }
+        res.push({ view: v, overflow: off, bodyChars: d.body.innerText.length });
+        next();
+      }, 600);
+    })();
+  });
+})();
+</script>

@@ -1463,6 +1463,13 @@
       ]);
     }
 
+    segGroup(de ? 'Mega-Level' : 'Mega Level', 'superMegaLevel', [
+      [1, de ? 'Basis' : 'Base', de ? 'Mega-Level Basis: Mega-Attacken (+) ohne Bonus' : 'Base Mega Level: Mega (+) moves without bonus'],
+      [2, de ? 'Hoch' : 'High', de ? 'Hohes Mega-Level: Mega-Attacken (+) +10 % Schaden' : 'High Mega Level: Mega (+) moves +10% damage'],
+      [3, 'Max', de ? 'Max-Mega-Level: Mega-Attacken (+) +20 % Schaden' : 'Max Mega Level: Mega (+) moves +20% damage'],
+      [4, 'Super Max', de ? 'Super-Max-Mega-Level: Mega-Attacken (+) +30 % Schaden' : 'Super Max Mega Level: Mega (+) moves +30% damage']
+    ]);
+
     var benchGrid = el('div', { class: 'gc-bench-grid' });
     (function () {
       var b1 = el('div', { class: 'gc-opt-block' });

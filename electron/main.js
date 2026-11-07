@@ -120,6 +120,18 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    // Sprites und Item-Symbole kommen von Drittanbietern: 30 Tage im Festplatten-Cache halten, damit sie bei Ausfall oder ohne Netz weiter erscheinen
+    session.defaultSession.webRequest.onHeadersReceived({ urls: [
+      'https://play.pokemonshowdown.com/sprites/*', 'https://raw.githubusercontent.com/PokeAPI/sprites/*',
+      'https://cdn.jsdelivr.net/gh/PokeAPI/sprites*', 'https://www.pokewiki.de/*'
+    ], types: ['image'] }, (details, callback) => {
+      const h = details.responseHeaders || {};
+      if (details.statusCode === 200) {
+        Object.keys(h).forEach((k) => { if (/^(cache-control|expires|pragma)$/i.test(k)) delete h[k]; });
+        h['Cache-Control'] = ['public, max-age=2592000'];
+      }
+      callback({ responseHeaders: h });
+    });
     createWindow();
     shiny.init(win);
     match.init(shiny);

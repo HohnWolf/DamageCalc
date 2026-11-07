@@ -1,4 +1,4 @@
-// Zwei eigene Modi: Soul-Link-Planer (#slView) und Nuzlocke-Rechner (#nuzView, Alpha, Inhalt in js/nuzcalc.js).
+// Zwei eigene Modi: Soul-Link-Planer (#slView) und Nuzlocke-Rechner (#nuzView, Beta, Inhalt in js/nuzcalc.js).
 // Soul-Link-Planer: verbundene Pokémon mehrerer Spieler pro Begegnung (Route) planen und nachhalten.
 // Gespeichert im Browser unter localStorage "cc_soullink":
 //   { runs: [{ id, name, game, players: [Name, …], typeRule: 'off'|'primary'|'any',
@@ -12,7 +12,7 @@
 
   var S = de ? {
     slTitle: 'Soul-Link-Planer', slSub: 'Nur zum Planen und Nachhalten: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist. Rechnet nichts und ist unabhängig vom Nuzlocke-Rechner.',
-    ncTitle: 'Nuzlocke-Rechner', alphaNote: 'Frühe Testversion: Das Auslesen von ROM und Spielstand ist noch nicht mit allen Spielen und Emulatoren erprobt. Ergebnisse bitte im Spiel gegenprüfen und Fehler melden.',
+    ncTitle: 'Nuzlocke-Rechner', alphaNote: 'Beta: Das Auslesen von ROM und Spielstand ist noch nicht mit allen Spielen und Emulatoren erprobt. Ergebnisse bitte im Spiel gegenprüfen und Fehler melden.',
     runs: 'Runs', newRun: '+ Neuer Run', runName: 'Name des Runs', game: 'Spiel (optional)',
     players: 'Spieler', player: 'Spieler {0}', defRun: 'Soul Link {0}', export: 'Exportieren', import: 'Importieren', del: 'Löschen',
     delConfirm: 'Run „{0}“ löschen?', route: 'Route / Ort', addLink: '+ Begegnung', routePh: 'z. B. Route 101',
@@ -30,7 +30,7 @@
     moveUp: 'Nach oben', moveDown: 'Nach unten'
   } : {
     slTitle: 'Soul Link planner', slSub: 'Only for planning and tracking: which Pokémon are linked, who is in the team and who died. Does not calculate anything and is separate from the Nuzlocke calculator.',
-    ncTitle: 'Nuzlocke calculator', alphaNote: 'Early test version: reading ROMs and saves has not been tried with all games and emulators yet. Please double-check results in the game and report problems.',
+    ncTitle: 'Nuzlocke calculator', alphaNote: 'Beta: reading ROMs and saves has not been tried with all games and emulators yet. Please double-check results in the game and report problems.',
     runs: 'Runs', newRun: '+ New run', runName: 'Run name', game: 'Game (optional)',
     players: 'Players', player: 'Player {0}', defRun: 'Soul Link {0}', export: 'Export', import: 'Import', del: 'Delete',
     delConfirm: 'Delete run "{0}"?', route: 'Route / place', addLink: '+ Encounter', routePh: 'e.g. Route 101',
@@ -150,7 +150,7 @@
     r.innerHTML = '';
     var head = el('div', { class: 'nz-head' });
     var h = el('h2', { text: t('ncTitle') });
-    h.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+    h.appendChild(el('span', { class: 'alpha-badge is-beta', text: 'BETA' }));
     head.appendChild(h);
     head.appendChild(el('span', { class: 'nz-alpha-note', text: t('alphaNote') }));
     r.appendChild(head);

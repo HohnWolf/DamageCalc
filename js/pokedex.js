@@ -90,7 +90,7 @@
     else chain.push(ani, home, dex, px);
     if (shiny) chain.push(home.replace('-shiny/', '/'), pxNormal);
 
-    var baseId = spriteId.replace(/-.*$/, '');
+    var baseId = spriteId.replace(/-.*$/, ''), ownLen = chain.length;
     if (baseId && baseId !== spriteId) {
       var bAni = base + (shiny ? 'ani-shiny/' : 'ani/') + baseId + '.gif';
       var bHome = base + (shiny ? 'home-centered-shiny/' : 'home-centered/') + baseId + '.png';
@@ -109,6 +109,8 @@
     img.onerror = function () {
       i++;
       if (i < chain.length) {
+        // kein eigenes Bild der Form: Basis-Pokémon gedimmt und mit Hinweis kennzeichnen
+        if (i === ownLen && ownLen < chain.length) { img.classList.add('is-fallback'); img.title = A.LANG === 'de' ? 'Für diese Form gibt es noch kein Bild: Basis-Pokémon dargestellt' : 'No image for this form yet: showing the base Pokémon'; }
         syncCls(chain[i]);
         img.src = chain[i];
       }
