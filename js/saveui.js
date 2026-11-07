@@ -6,7 +6,7 @@
   if (!A || !S || !T0 || !P) return;
   var el = A.el, esc = A.esc, de = A.LANG === 'de', T = de ? T0.de : T0.en;
   var L = de ? {
-    title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 3, 4 und 5 (.sav, .dsv).',
+    title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 1–7.',
     pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 1 und 2 (Game Boy), 3 (GBA), 4 und 5 (DS) sowie 6 und 7 (3DS, die "main"-Datei).',
     game: 'Erkannt:', save: 'Spielstand speichern', saved: 'Gespeichert. Mach vorher immer eine Sicherungskopie deines echten Spielstands.', trainer: 'Trainer', party: 'Team', box: 'Box',
     name: 'Name', money: 'Geld', gender: 'Geschlecht', male: 'Männlich', female: 'Weiblich', time: 'Spielzeit (Std : Min)', empty: 'Leer', apply: 'Übernehmen', remove: 'Entfernen', create: 'Neues Pokémon',

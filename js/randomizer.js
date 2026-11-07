@@ -1,14 +1,14 @@
 // Randomizer-Ansicht (#randomizerView): ROM wählen, Optionen einstellen, randomisierte Kopie speichern. Engine: js/rand_gen3.js
 (function () {
   'use strict';
-  var A = window.CC, R3 = window.CCRand3, RN = window.CCRandNds, N = window.NDS, G = window.GEN3;
+  var A = window.CC, R3 = window.CCRand3, RN = window.CCRandNds, N = window.NDS, G = window.GEN3, R5 = window.CCRandGen5, R67 = window.CCRand3DS, RGB = window.CCRandGB;
   if (!A || !R3 || !G) return;
   var R = R3;
   var el = A.el, esc = A.esc, de = A.LANG === 'de';
   var S = de ? {
     title: 'Randomizer', sub: 'Mischt wilde Pokémon, Trainer, Starter, Entwicklungen, Werte, Typen, Fähigkeiten und Attacken einer Spiel-ROM. Die Originaldatei bleibt unverändert, du bekommst eine neue Datei.',
-    gens: 'Unterstützt: Generation 3 (Rubin, Saphir, Smaragd, Feuerrot, Blattgrün) und Generation 4 (Diamant, Perl, Platin, HeartGold, SoulSilver; ohne Starter). Die anderen Generationen (1, 2, 5–7) folgen.',
-    pick: 'ROM wählen …', drop: 'oder eine .gba- / .nds-Datei hierher ziehen', game: 'Erkannt:', scan: 'Gefunden: {0} Karten mit wilden Pokémon, {1} Trainer, Starter {2}, Entwicklungen {3}',
+    gens: 'Unterstützt: Generation 1 (Rot, Blau, Gelb), 2 (Gold, Silber, Kristall), 3 (Rubin, Saphir, Smaragd, Feuerrot, Blattgrün), 4 (Diamant, Perl, Platin, HeartGold, SoulSilver), 5 (Schwarz, Weiß, Schwarz 2, Weiß 2) und 6/7 (X, Y, Omega Rubin, Alpha Saphir, Sonne, Mond, Ultra Sonne, Ultra Mond; entschlüsselte .cxi). Starter lassen sich nur in Generation 1–3 ändern.',
+    pick: 'ROM wählen …', drop: 'oder eine .gb- / .gbc- / .gba- / .nds- / .cxi-Datei hierher ziehen', enc: 'Diese 3DS-Datei ist verschlüsselt. Gebraucht wird eine entschlüsselte .cxi (oder .3ds).', big: 'Große Datei, bitte kurz warten …', game: 'Erkannt:', scan: 'Gefunden: {0} Karten mit wilden Pokémon, {1} Trainer, Starter {2}, Entwicklungen {3}',
     yes: 'ja', no: 'nein', bad: 'Diese Datei wird nicht unterstützt. Gebraucht wird eine unveränderte GBA-ROM der 3. Generation.',
     gen12: 'Game-Boy-ROMs (Generation 1 und 2) werden noch nicht unterstützt.', gen45: 'DS-ROMs der Generation 5 werden noch nicht unterstützt.', gen67: '3DS-ROMs (Generation 6 und 7) werden noch nicht unterstützt.',
     wild: 'Wilde Pokémon', trainers: 'Trainer-Pokémon', starters: 'Starter', evo: 'Entwicklungen', stats: 'Basiswerte', types: 'Typen', abilities: 'Fähigkeiten', moves: 'Level-Attacken',
@@ -18,8 +18,8 @@
     warn: 'Nutze die neue Datei nur mit einer Kopie deines Spielstands. Randomisierte Spiele können unfair oder unspielbar sein.'
   } : {
     title: 'Randomizer', sub: 'Shuffles wild Pokémon, trainers, starters, evolutions, stats, types, abilities and moves of a game ROM. The original file stays untouched, you get a new file.',
-    gens: 'Supported: generation 3 (Ruby, Sapphire, Emerald, FireRed, LeafGreen) and generation 4 (Diamond, Pearl, Platinum, HeartGold, SoulSilver; no starters). The other generations (1, 2, 5–7) are coming.',
-    pick: 'Choose ROM …', drop: 'or drag a .gba / .nds file here', game: 'Detected:', scan: 'Found: {0} maps with wild Pokémon, {1} trainers, starters {2}, evolutions {3}',
+    gens: 'Supported: generation 1 (Red, Blue, Yellow), 2 (Gold, Silver, Crystal), 3 (Ruby, Sapphire, Emerald, FireRed, LeafGreen), 4 (Diamond, Pearl, Platinum, HeartGold, SoulSilver), 5 (Black, White, Black 2, White 2) and 6/7 (X, Y, Omega Ruby, Alpha Sapphire, Sun, Moon, Ultra Sun, Ultra Moon; decrypted .cxi). Starters can only be changed in generations 1–3.',
+    pick: 'Choose ROM …', drop: 'or drag a .gb / .gbc / .gba / .nds / .cxi file here', enc: 'This 3DS file is encrypted. A decrypted .cxi (or .3ds) is required.', big: 'Large file, please wait …', game: 'Detected:', scan: 'Found: {0} maps with wild Pokémon, {1} trainers, starters {2}, evolutions {3}',
     yes: 'yes', no: 'no', bad: 'This file is not supported. An unmodified generation 3 GBA ROM is required.',
     gen12: 'Game Boy ROMs (generation 1 and 2) are not supported yet.', gen45: 'DS ROMs of generation 5 are not supported yet.', gen67: '3DS ROMs (generation 6 and 7) are not supported yet.',
     wild: 'Wild Pokémon', trainers: 'Trainer Pokémon', starters: 'Starters', evo: 'Evolutions', stats: 'Base stats', types: 'Types', abilities: 'Abilities', moves: 'Level-up moves',
@@ -38,11 +38,30 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
   }
+  function setup(eng, rom, info, ext, name, extra) {
+    st.eng = eng; st.ext = ext; st.opts = JSON.parse(JSON.stringify(eng.DEFAULTS));
+    st.rom = rom; st.name = name; st.info = info; st.kind = extra && extra.kind || 'buf';
+    st.ctx = extra && extra.ctx || null; st.buf = extra && extra.buf || null;
+    if (ext === 'gba' && eng.makePool) {
+      var pool = eng.makePool(rom, false), first = pool.filter(function (s) { return rom.species[s].nat === (rom.frlg ? 1 : 252); })[0] || pool[0];
+      st.opts.starterPick = [first, first, first];
+    }
+  }
   function load(file) {
-    st.err = ''; st.msg = ''; st.log = '';
+    st.err = ''; st.msg = ''; st.log = ''; st.rom = null;
     var ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (ext === 'gb' || ext === 'gbc') { st.err = S.gen12; return render(); }
-    if (ext === '3ds' || ext === 'cia' || ext === 'cxi') { st.err = S.gen67; return render(); }
+    if (ext === 'cxi' || ext === '3ds') {
+      if (!R67) { st.err = S.bad; return render(); }
+      st.busy = true; st.msg = S.big; render();
+      R67.open(R67.fileSource(file)).then(function (ctx) {
+        return R67.scan(ctx).then(function (info) {
+          st.busy = false; st.msg = '';
+          setup(R67, { game: ctx.g.name, gameEn: ctx.g.nameEn, code: ctx.code, title: ctx.g.nameEn }, info, ext, file.name, { kind: '3ds', ctx: ctx });
+          render();
+        });
+      }).catch(function (e) { st.busy = false; st.msg = ''; st.rom = null; st.err = /encrypted/.test(String(e && e.message)) ? S.enc : S.bad; render(); });
+      return;
+    }
     var fr = new FileReader();
     fr.onload = function () {
       try {
@@ -50,13 +69,13 @@
         if (ext === 'nds') {
           if (!RN || !N) throw new Error('x');
           rom = N.parseRom(u8);
-          if (rom.gen !== 4) { st.rom = null; st.err = S.gen45; return render(); }
-          eng = RN;
+          eng = rom.gen === 4 ? RN : R5;
+          if (!eng) throw new Error('x');
+        } else if (ext === 'gb' || ext === 'gbc') {
+          if (!RGB) throw new Error('x');
+          rom = RGB.parseRom(u8); eng = RGB;
         } else { rom = G.parseRom(u8); eng = R3; }
-        st.eng = eng; st.ext = ext === 'nds' ? 'nds' : 'gba'; st.opts = JSON.parse(JSON.stringify(eng.DEFAULTS));
-        st.rom = rom; st.buf = u8; st.name = file.name; st.info = eng.scan(rom, u8);
-        var pool = eng.makePool(rom, false), first = pool.filter(function (s) { return rom.species[s].nat === (rom.frlg ? 1 : 252); })[0] || pool[0];
-        st.opts.starterPick = [first, first, first];
+        setup(eng, rom, eng.scan(rom, u8), ext, file.name, { buf: u8 });
       } catch (e) { st.rom = null; st.err = S.bad; }
       render();
     };
@@ -75,17 +94,17 @@
   }
   function run() {
     if (!st.rom || st.busy) return;
-    st.busy = true; st.err = '';
+    st.busy = true; st.err = ''; st.msg = ''; render();
     setTimeout(function () {
-      try {
-        var res = st.eng.run(st.buf, st.rom, st.opts);
+      var p;
+      try { p = Promise.resolve(st.kind === '3ds' ? st.eng.run(st.ctx, st.opts) : st.eng.run(st.buf, st.rom, st.opts)); } catch (e) { p = Promise.reject(e); }
+      p.then(function (res) {
         st.log = res.log;
         var base = st.name.replace(/\.[^.]*$/, '');
         download(base + ' (Randomizer ' + res.seed + ').' + st.ext, res.data);
         st.msg = S.done + ' ' + res.seed;
         st.opts.seed = res.seed;
-      } catch (e) { st.err = String((e && e.message) || e); }
-      st.busy = false; render();
+      }).catch(function (e) { st.err = String((e && e.message) || e); }).then(function () { st.busy = false; render(); });
     }, 30);
   }
 
@@ -97,7 +116,7 @@
     var body = el('div', { class: 'rd-body' });
     body.appendChild(el('p', { class: 'hint', text: S.sub }));
     body.appendChild(el('p', { class: 'hint', text: S.gens }));
-    var inp = el('input', { type: 'file', accept: '.gba,.gb,.gbc,.nds,.3ds,.cia,.cxi', style: 'display:none' });
+    var inp = el('input', { type: 'file', accept: '.gba,.gb,.gbc,.nds,.3ds,.cxi', style: 'display:none' });
     inp.onchange = function () { if (inp.files[0]) load(inp.files[0]); };
     var pick = el('button', { class: 'primary-btn rd-pick', text: S.pick }); pick.onclick = function () { inp.click(); };
     var dz = el('div', { class: 'rd-drop' }); dz.appendChild(pick); dz.appendChild(el('span', { class: 'hint', text: S.drop })); dz.appendChild(inp);
@@ -109,13 +128,13 @@
     if (st.rom) {
       var i = st.info;
       body.appendChild(el('div', { class: 'rd-game', html: '<b>' + esc(S.game) + '</b> ' + esc((de ? st.rom.game : st.rom.gameEn) || st.rom.title) + ' (' + esc(st.rom.code) + ') – ' + esc(st.name) }));
-      body.appendChild(el('div', { class: 'hint', text: S.scan.replace('{0}', i.wildMaps).replace('{1}', i.trainers).replace('{2}', st.ext === 'nds' ? '–' : (i.starterOff >= 0 ? S.yes : S.no)).replace('{3}', (st.ext === 'nds' ? i.evo : i.evoOff >= 0) ? S.yes : S.no) }));
+      body.appendChild(el('div', { class: 'hint', text: S.scan.replace('{0}', i.wildMaps).replace('{1}', i.trainers).replace('{2}', st.ext !== 'gba' && st.ext !== 'gb' && st.ext !== 'gbc' ? '–' : (i.starterOff >= 0 || i.starters ? S.yes : S.no)).replace('{3}', (st.ext === 'gba' ? i.evoOff >= 0 : i.evo) ? S.yes : S.no) }));
       var g = el('div', { class: 'rd-grid' });
       var mode = { keep: S.keep, random: S.random, similar: S.similar };
       g.appendChild(row(S.wild, sel('wild', ['keep', 'random', 'similar'], mode)));
       g.appendChild(row(S.trainers, sel('trainers', ['keep', 'random', 'similar'], mode)));
-      if (st.ext !== 'nds') g.appendChild(row(S.starters, sel('starters', ['keep', 'random', 'custom'], { keep: S.keep, random: S.random, custom: S.custom })));
-      if (st.opts.starters === 'custom' && st.ext !== 'nds') {
+      if (st.ext === 'gba' || st.ext === 'gb' || st.ext === 'gbc') g.appendChild(row(S.starters, sel('starters', ['keep', 'random', 'custom'], { keep: S.keep, random: S.random, custom: S.custom })));
+      if (st.opts.starters === 'custom' && st.ext === 'gba') {
         var sr = el('div', { class: 'rd-starters' }), pool = st.eng.makePool(st.rom, false);
         for (var k = 0; k < 3; k++) (function (k) {
           var s = el('select', { class: 'rd-sel' }, pool.map(function (p) { return '<option value="' + p + '"' + (st.opts.starterPick[k] === p ? ' selected' : '') + '>#' + st.rom.species[p].nat + ' ' + esc(st.rom.species[p].name) + '</option>'; }).join(''));
