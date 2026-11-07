@@ -76,7 +76,7 @@ html[data-ui-style="pro"] .sb-foot { flex: none; padding: 6px; border-top: 1px s
 .ic[data-ic="match"] { --ic: var(--ic-match); }
 .ic[data-ic="soullink"] { --ic: var(--ic-soullink); }
 .ic[data-ic="nuz"] { --ic: var(--ic-nuz); }
-.ic[data-ic="randomizer"] { --ic: var(--ic-nuz); }
+.ic[data-ic="randomizer"], .ic[data-ic="savedit"] { --ic: var(--ic-nuz); }
 .ic[data-ic="dex"] { --ic: var(--ic-dex); }
 .ic[data-ic="godex"] { --ic: var(--ic-godex); }
 .ic[data-ic="shiny"] { --ic: var(--ic-shiny); }
@@ -153,7 +153,7 @@ html[data-ui-style="pro"] .start-card.card-calc::before { --ic: var(--ic-calc); 
 html[data-ui-style="pro"] .start-card.card-builder::before { --ic: var(--ic-builder); }
 html[data-ui-style="pro"] .start-card.card-match::before { --ic: var(--ic-match); }
 html[data-ui-style="pro"] .start-card.card-sl::before { --ic: var(--ic-soullink); }
-html[data-ui-style="pro"] .start-card.card-nuz::before, html[data-ui-style="pro"] .start-card.card-randomizer::before { --ic: var(--ic-nuz); }
+html[data-ui-style="pro"] .start-card.card-nuz::before, html[data-ui-style="pro"] .start-card.card-randomizer::before, html[data-ui-style="pro"] .start-card.card-savedit::before { --ic: var(--ic-nuz); }
 html[data-ui-style="pro"] .start-card.card-dex::before { --ic: var(--ic-dex); }
 html[data-ui-style="pro"] .start-card.card-shiny::before { --ic: var(--ic-shiny); }
 html[data-ui-style="pro"] .start-card.card-overlay::before { --ic: var(--ic-overlay); }

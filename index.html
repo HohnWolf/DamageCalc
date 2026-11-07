@@ -40,6 +40,7 @@
   <link rel="stylesheet" href="css/pokedex.css?v=86">
   <link rel="stylesheet" href="css/godex.css?v=2">
   <link rel="stylesheet" href="css/randomizer.css?v=1">
+  <link rel="stylesheet" href="css/savedit.css?v=1">
   <link rel="stylesheet" href="css/pro.css?v=16">
   <link rel="stylesheet" href="css/studio.css?v=15">
   </head>
@@ -157,6 +158,15 @@
           <span class="sc-head"><span class="sc-title" data-t="navRandomizer">Randomizer</span><span class="sc-key"></span></span>
           <span class="sc-text" data-t="startRandomizerText"></span>
         </button>
+        <button class="start-card card-savedit" data-go="savedit">
+          <span class="sc-art sc-art-randomizer">
+            <span class="sc-dmg">.sav <small>PKHeX</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko" data-t="startSaveKo">Team · Boxen · Pokémon</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navSave">Save File Editor</span><span class="sc-key"></span></span>
+          <span class="sc-text" data-t="startSaveText"></span>
+        </button>
           </div>
         </div>
         <div class="start-group sg-dex" data-cat="dex">
@@ -225,6 +235,7 @@
   <main id="dexView" class="wrap dex-view"></main>
   <main id="godexView" class="wrap dex-view godex-view"></main>
   <main id="randomizerView" class="wrap randomizer-view"></main>
+  <main id="saveView" class="wrap save-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -306,6 +317,10 @@
   <script src="js/rand_gen3.js?v=1"></script>
   <script src="js/rand_nds.js?v=1"></script>
   <script src="js/randomizer.js?v=2"></script>
+  <script src="data/pk_text.js?v=1"></script>
+  <script src="data/pk_personal.js?v=1"></script>
+  <script src="js/savedit.js?v=1"></script>
+  <script src="js/saveui.js?v=1"></script>
   <script src="js/nuzcalc.js?v=86"></script>
   <script src="js/shiny_odds.js?v=86"></script>
   <script src="js/capture.js?v=86"></script>

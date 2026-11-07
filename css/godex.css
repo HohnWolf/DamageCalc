@@ -81,4 +81,4 @@
 .sc-key:empty { display: none; }
 
 /* Android-App: keine Kategorie Sonstiges */
-html.rl-android .cat-rest, html.rl-android .sg-rest, html.rl-android .card-shiny, html.rl-android .card-overlay, html.rl-android .card-randomizer, html.rl-android .card-catch { display: none !important; }
+html.rl-android .cat-rest, html.rl-android .sg-rest, html.rl-android .card-shiny, html.rl-android .card-overlay, html.rl-android .card-randomizer, html.rl-android .card-savedit, html.rl-android .card-catch { display: none !important; }
