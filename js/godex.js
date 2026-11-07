@@ -43,38 +43,86 @@
   }
   function fmtNum(n) { return n >= 1000 ? String(n) : ('00' + n).slice(-3); }
 
-  var FORM_DE = { Alola: 'Alola', Galarian: 'Galar', Hisuian: 'Hisui', Paldea: 'Paldea', Paldea_aqua: 'Paldea (Aqua)', Paldea_blaze: 'Paldea (Flamme)', Paldea_combat: 'Paldea (Kampf)',
-    Attack: 'Angriff', Defense: 'Verteidigung', Speed: 'Initiative', Plant: 'Pflanze', Sandy: 'Sand', Trash: 'Abfall', Sunny: 'Sonne', Rainy: 'Regen', Snowy: 'Schnee',
-    Fan: 'Wirbel', Frost: 'Frost', Heat: 'Hitze', Mow: 'Schneid', Wash: 'Wasch', Origin: 'Ur-Form', Altered: 'Wandel', Land: 'Land', Sky: 'Himmel', Incarnate: 'Inkarnation', Therian: 'Tiergeist',
-    Black: 'Schwarz', White: 'Weiß', Aria: 'Gesang', Pirouette: 'Tanz', Blade: 'Klingen', Shield: 'Schild', Average: 'Mittel', Large: 'Groß', Small: 'Klein', Super: 'Riesig',
-    Complete: 'Perfekt', Confined: 'Gebannt', Unbound: 'Entfesselt', Ordinary: 'Normal', Resolute: 'Entschlossen', Standard: 'Standard', Zen: 'Trance',
-    Galarian_standard: 'Galar', Galarian_zen: 'Galar (Trance)', Complete_fifty_percent: 'Perfekt (50%)', Complete_ten_percent: 'Perfekt (10%)', Fifty_percent: '50%', Ten_percent: '10%',
-    Baile: 'Flamenco', Pau: 'Hula', Pompom: 'Cheerleading', Sensu: 'Buyo', Dusk: 'Dämmerung', Midday: 'Tag', Midnight: 'Nacht', Dawn_wings: 'Morgenschwingen', Dusk_mane: 'Abendmähne',
-    Ultra: 'Ultra', Female: 'Weiblich', Male: 'Männlich', Hero: 'Heldenform', Crowned_sword: 'König (Schwert)', Crowned_shield: 'König (Schild)', Eternamax: 'Unendlich-Dynamax',
-    Rapid_strike: 'Fließend', Single_strike: 'Kraft', Family_of_four: 'Vierer-Familie', Family_of_three: 'Dreier-Familie', Curly: 'Gekrümmt', Droopy: 'Hängend', Stretchy: 'Gestreckt', Three: 'Dreier', Two: 'Zweier',
-    Origin2: 'Ur-Form', Mega: 'Mega', 'Mega X': 'Mega X', 'Mega Y': 'Mega Y', 'Mega Primal Kyogre': 'Proto', 'Mega Primal Groudon': 'Proto' };
-  var FORM_EN = { Alola: 'Alolan', Galarian: 'Galarian', Hisuian: 'Hisuian', Paldea: 'Paldean', Mega: 'Mega', 'Mega X': 'Mega X', 'Mega Y': 'Mega Y', 'Mega Primal Kyogre': 'Primal', 'Mega Primal Groudon': 'Primal' };
+  var FORM_DE = { Alola: 'Alola-Form', Galar: 'Galar-Form', Galarian: 'Galar-Form', Hisui: 'Hisui-Form', Hisuian: 'Hisui-Form', Paldea: 'Paldea-Form',
+    'Paldea-Aqua': 'Paldea ( Flut)', 'Paldea-Blaze': 'Paldea (Glut)', 'Paldea-Combat': 'Paldea (Gefecht)',
+    Attack: 'Angriffsform', Defense: 'Verteidigungsform', Speed: 'Initiativeform', Plant: 'Pflanzenumhang', Sandy: 'Sandumhang', Trash: 'Lumpenumhang',
+    Sunny: 'Sonnenform', Rainy: 'Regenform', Snowy: 'Schneeform', Sunshine: 'Sonnenform',
+    Fan: 'Wirbel-Rotom', Frost: 'Frost-Rotom', Heat: 'Hitze-Rotom', Mow: 'Schneid-Rotom', Wash: 'Wasch-Rotom',
+    Origin: 'Urform', Altered: 'Wandelform', Land: 'Landform', Sky: 'Zenitform', Incarnate: 'Inkarnationsform', Therian: 'Tiergeistform',
+    Black: 'Schwarzes Kyurem', White: 'Weißes Kyurem', Aria: 'Gesangsform', Pirouette: 'Tanzform', Blade: 'Klingenform', Shield: 'Schildform',
+    Average: 'Mittel', Large: 'Groß', Small: 'Klein', Super: 'Riesig',
+    Complete: 'Optimumform', '10%': '10%-Form', Confined: 'Gebannt', Unbound: 'Entfesselt', Ordinary: 'Standardform', Resolute: 'Resolutform',
+    Standard: 'Standard', Zen: 'Trance-Modus', 'Galar-Zen': 'Galar (Trance)',
+    Baile: 'Flamenco-Stil', "Pa'u": 'Hula-Stil', 'Pom-Pom': 'Cheerleading-Stil', Sensu: 'Buyo-Stil',
+    Dusk: 'Zwielichtform', Midday: 'Tagform', Midnight: 'Nachtform', 'Dawn-Wings': 'Morgenschwingen', 'Dusk-Mane': 'Abendmähne',
+    Ultra: 'Ultra-Form', F: 'Weiblich ♀', Female: 'Weiblich ♀', Male: 'Männlich ♂', Hero: 'Heldenform', Crowned: 'König des Schwertes/Schildes',
+    Eternamax: 'Unendynamax', 'Rapid-Strike': 'Fließender Stil', 'Single-Strike': 'Fokussierter Stil',
+    Four: 'Viererfamilie', Curly: 'Gekrümmt', Droopy: 'Hängend', Stretchy: 'Gestreckt', 'Three-Segment': 'Dreisegmentform',
+    Ice: 'Schimmelreiter', Shadow: 'Rappenreiter', Bloodmoon: 'Blutmond-Form',
+    Wellspring: 'Brunnenmaske', Hearthflame: 'Ofenmaske', Cornerstone: 'Fundamentmaske', Terastal: 'Terakristall-Form', Stellar: 'Stellar-Form',
+    Mega: 'Mega', 'Mega-X': 'Mega X', 'Mega-Y': 'Mega Y', 'Mega-Z': 'Mega Z', Primal: 'Protomorphose' };
+  var FORM_EN = { Alola: 'Alolan', Galar: 'Galarian', Galarian: 'Galarian', Hisui: 'Hisuian', Hisuian: 'Hisuian', Paldea: 'Paldean',
+    Mega: 'Mega', 'Mega-X': 'Mega X', 'Mega-Y': 'Mega Y', 'Mega-Z': 'Mega Z', Primal: 'Primal' };
+
+  function dexFormOf(num, l) {
+    var d = window.DEX_ALL && window.DEX_ALL[num];
+    if (!d || !d.forms) return null;
+    for (var i = 0; i < d.forms.length; i++) {
+      if (d.forms[i].forme === l) return d.forms[i];
+    }
+    return null;
+  }
+
   function formLabel(l, num) {
     if (!l) return 'Normal';
     if (l === 'A' && num === 150) return de ? 'Rüstung' : 'Armored';
-    var t = (de ? FORM_DE[l] : FORM_EN[l]) || String(l).replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    if (l === 'S' && (num === 249 || num === 250)) return 'Apex';
+    var df = dexFormOf(num, l);
+    if (df) return de ? (df.labelDe || df.labelEn || l) : (df.labelEn || df.labelDe || l);
+    var t = (de ? FORM_DE[l] : FORM_EN[l]) || String(l).replace(/[_-]/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
     return t;
   }
 
   // Sprite-ID bei Showdown für die Form
   function spriteIdFor(s, f) {
     var l = f.label;
-    if (!l) return s.sid;
-    var x = { Alola: 'alola', Galarian: 'galar', Hisuian: 'hisui', Mega: 'mega', 'Mega X': 'megax', 'Mega Y': 'megay', 'Mega Primal Kyogre': 'primal', 'Mega Primal Groudon': 'primal' }[l];
-    if (!x) x = A.idOf(l.replace(/^Paldea_/, 'paldea').replace(/^Galarian_/, 'galar'));
-    return s.sid + x;
+    if (!l || (l === 'A' && s.num === 150) || (l === 'S' && (s.num === 249 || s.num === 250))) return s.sid;
+    var df = dexFormOf(s.num, l);
+    if (df && df.spriteId) return df.spriteId;
+    var x = { Alola: 'alola', Galar: 'galar', Galarian: 'galar', Hisui: 'hisui', Hisuian: 'hisui', Mega: 'mega', 'Mega-X': 'megax', 'Mega-Y': 'megay', 'Mega-Z': 'megaz', 'Mega X': 'megax', 'Mega Y': 'megay', 'Mega Z': 'megaz', Primal: 'primal', 'Mega Primal Kyogre': 'primal', 'Mega Primal Groudon': 'primal' }[l];
+    if (!x) x = A.idOf(l.replace(/^Paldea[_-]/, 'paldea').replace(/^Galar(ian)?[_-]/, 'galar'));
+    return s.sid + '-' + x;
   }
   function spriteImg(s, f, cls) {
     var base = 'https://play.pokemonshowdown.com/sprites/', id = spriteIdFor(s, f);
-    var chain = [base + 'ani/' + id + '.gif', base + 'home-centered/' + id + '.png', base + 'gen5/' + id + '.png', base + 'ani/' + s.sid + '.gif', base + 'home-centered/' + s.sid + '.png', base + 'gen5/' + s.sid + '.png'];
+    var mode = (A.setting && A.setting('model')) || '3d';
+    function urlsFor(spId) {
+      var ani = base + 'ani/' + spId + '.gif';
+      var home = base + 'home-centered/' + spId + '.png';
+      var dex = base + 'dex/' + spId + '.png';
+      var px = base + 'gen5/' + spId + '.png';
+      if (mode === 'home') return [home, dex, ani, px];
+      if (mode === 'sprite') return [px, dex, home, ani];
+      return [ani, home, dex, px];
+    }
+    var chain = urlsFor(id).concat(id !== s.sid ? urlsFor(s.sid) : []);
     var i = 0;
-    var img = el('img', { class: cls || '', alt: de ? s.nameDe : s.nameEn, src: chain[0] });
-    img.onerror = function () { i++; if (i < chain.length) img.src = chain[i]; else img.onerror = null; };
+    var img = el('img', { class: cls || '', alt: de ? s.nameDe : s.nameEn });
+    function syncCls(u) {
+      img.classList.toggle('is-pixel', u.indexOf('/gen5/') !== -1);
+      img.classList.toggle('is-home', u.indexOf('/home-centered/') !== -1 || u.indexOf('/dex/') !== -1);
+    }
+    img.onerror = function () {
+      i++;
+      if (i < chain.length) {
+        syncCls(chain[i]);
+        img.src = chain[i];
+      } else {
+        img.onerror = null;
+      }
+    };
+    syncCls(chain[0]);
+    img.src = chain[0];
     return img;
   }
   function nm(s) { return de ? s.nameDe : s.nameEn; }
@@ -86,9 +134,10 @@
   if (!st.sort) st.sort = 'num';
   if (!st.typeFilter) st.typeFilter = '';
   if (!st.genFilter) st.genFilter = '';
+  if (st.onlyForms == null) st.onlyForms = false;
   if (!st.search) st.search = '';
   if (st.formIdx >= byNum[st.num].forms.length) st.formIdx = 0;
-  function saveState() { A.save('cc_godex', { num: st.num, formIdx: st.formIdx, sort: st.sort, typeFilter: st.typeFilter, genFilter: st.genFilter }); }
+  function saveState() { A.save('cc_godex', { num: st.num, formIdx: st.formIdx, sort: st.sort, typeFilter: st.typeFilter, genFilter: st.genFilter, onlyForms: st.onlyForms }); }
 
   var root = null;
   var SORTS = [['num', de ? 'Dex-Nr.' : 'Dex #'], ['name', 'A–Z'], ['cp', de ? 'WP (Lv 50)' : 'CP (Lv 50)'], ['atk', de ? 'Angriff' : 'Attack'], ['def', de ? 'Verteidigung' : 'Defense'], ['sta', de ? 'Ausdauer' : 'Stamina']];
@@ -103,10 +152,14 @@
     var q = st.search.trim().toLowerCase().replace(/^#/, '');
     var list = species.filter(function (s) {
       if (st.genFilter && genOf(s.num) !== Number(st.genFilter)) return false;
+      if (st.onlyForms && s.forms.length <= 1) return false;
       if (st.typeFilter && !s.forms.some(function (f) { return f.types.indexOf(st.typeFilter) !== -1; })) return false;
       if (q) {
         if (/^\d+$/.test(q)) return String(s.num).indexOf(q) === 0 || fmtNum(s.num).indexOf(q) === 0;
-        return s.nameDe.toLowerCase().indexOf(q) !== -1 || s.nameEn.toLowerCase().indexOf(q) !== -1;
+        if (s.nameDe.toLowerCase().indexOf(q) !== -1 || s.nameEn.toLowerCase().indexOf(q) !== -1) return true;
+        return s.forms.some(function (f) {
+          return f.label && (f.label.toLowerCase().indexOf(q) !== -1 || formLabel(f.label, s.num).toLowerCase().indexOf(q) !== -1);
+        });
       }
       return true;
     });
@@ -129,9 +182,10 @@
         '<aside class="panel dex-sidebar">' +
           '<h2 class="field-head"><span>' + 'Pokémon GO' + '</span><span class="dex-count-badge" id="gdCount"></span></h2>' +
           '<div class="dex-filters">' +
-            '<input type="text" id="gdSearch" class="dex-search" value="' + esc(st.search) + '" placeholder="' + (de ? 'Suchen: Name oder #Nr. …' : 'Search: name or # …') + '" autocomplete="off">' +
+            '<input type="text" id="gdSearch" class="dex-search" value="' + esc(st.search) + '" placeholder="' + (de ? 'Suchen: Name, Form (z. B. Mega) oder #Nr. …' : 'Search: name, form (e.g. Mega) or # …') + '" autocomplete="off">' +
             '<div class="dex-gen-bar" id="gdGenBar">' + genPills + '</div>' +
-            '<div class="dex-filter-row"><select id="gdType" class="dex-type-sel">' + typeOpts + '</select><select id="gdSort" class="dex-type-sel" title="' + (de ? 'Sortierung' : 'Sort') + '">' + sortOpts + '</select></div>' +
+            '<div class="dex-filter-row"><select id="gdType" class="dex-type-sel">' + typeOpts + '</select><select id="gdSort" class="dex-type-sel" title="' + (de ? 'Sortierung' : 'Sort') + '">' + sortOpts + '</select>' +
+            '<button type="button" id="gdOnlyForms" class="tbtn dex-form-filter' + (st.onlyForms ? ' on' : '') + '" title="' + (de ? 'Nur Pokémon mit Mega-/Regional-/Spezialformen' : 'Only Pokémon with Mega/regional/special forms') + '">' + (de ? '★ Formen' : '★ Forms') + '</button></div>' +
           '</div>' +
           '<div class="dex-list" id="gdList"></div>' +
         '</aside>' +
@@ -144,6 +198,13 @@
     });
     document.getElementById('gdType').addEventListener('change', function (e) { st.typeFilter = e.target.value; saveState(); renderList(); });
     document.getElementById('gdSort').addEventListener('change', function (e) { st.sort = e.target.value; saveState(); renderList(); });
+    var ofBtn = document.getElementById('gdOnlyForms');
+    ofBtn.addEventListener('click', function () {
+      st.onlyForms = !st.onlyForms;
+      ofBtn.classList.toggle('on', st.onlyForms);
+      saveState();
+      renderList();
+    });
     var bar = document.getElementById('gdGenBar');
     bar.querySelectorAll('.dex-gen-pill').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -171,6 +232,7 @@
     var box = document.getElementById('gdList');
     if (!box) return;
     var list = filtered();
+    var q = st.search.trim().toLowerCase().replace(/^#/, '');
     document.getElementById('gdCount').textContent = list.length + ' / ' + species.length;
     if (!list.length) { box.innerHTML = '<div class="dex-empty">' + (de ? 'Kein Pokémon gefunden' : 'No Pokémon found') + '</div>'; return; }
     var frag = document.createDocumentFragment();
@@ -185,6 +247,9 @@
       var info = el('div', { class: 'dex-row-info' });
       var top = el('div', { class: 'dex-row-top' });
       top.appendChild(el('span', { class: 'dex-row-name', text: nm(s) }));
+      if (s.forms.length > 1) {
+        top.appendChild(el('span', { class: 'dex-row-forms', text: s.forms.length + (de ? ' Formen' : ' forms') }));
+      }
       info.appendChild(top);
       var tys = el('div', { class: 'dex-row-types' });
       f0.types.forEach(function (t) { tys.appendChild(A.typeBadge(t)); });
@@ -193,7 +258,20 @@
       var key = st.sort === 'num' || st.sort === 'name' || st.sort === 'cp' ? 'cp' : st.sort;
       var bf = bestForm(s, key);
       row.appendChild(el('span', { class: 'gd-row-val', title: de ? 'WP bei 100% IV, Level 50' : 'CP at 100% IV, level 50', text: key === 'cp' ? String(bf.cp[50]) : String(bf[key]) }));
-      row.addEventListener('click', function () { select(s.num, 0); if (window.RL_ANDROID) { var d = document.getElementById('gdMain'); if (d) d.scrollIntoView({ block: 'start' }); } });
+      row.addEventListener('click', function () {
+        var targetForm = 0;
+        if (q && s.nameDe.toLowerCase().indexOf(q) === -1 && s.nameEn.toLowerCase().indexOf(q) === -1) {
+          s.forms.some(function (f, idx) {
+            if (f.label && (f.label.toLowerCase().indexOf(q) !== -1 || formLabel(f.label, s.num).toLowerCase().indexOf(q) !== -1)) {
+              targetForm = idx;
+              return true;
+            }
+            return false;
+          });
+        }
+        select(s.num, targetForm);
+        if (window.RL_ANDROID) { var d = document.getElementById('gdMain'); if (d) d.scrollIntoView({ block: 'start' }); }
+      });
       frag.appendChild(row);
     });
     box.innerHTML = '';
@@ -245,7 +323,7 @@
     return box;
   }
 
-  var STAT_MAX = { atk: 345, def: 396, sta: 496 };
+  var STAT_MAX = { atk: 426, def: 396, sta: 496 };
   function statRow(label, key, f) {
     var v = f[key];
     var row = el('div', { class: 'gd-stat' });
@@ -283,6 +361,24 @@
     tb.appendChild(el('span', { class: 'dex-num-pill', text: '#' + fmtNum(s.num) }));
     tb.appendChild(el('h1', { class: 'dex-mon-title', text: nm(s) + (f.label ? ' · ' + formLabel(f.label, s.num) : '') }));
     top.appendChild(tb);
+    var curMode = (A.setting && A.setting('model')) || '3d';
+    var artCtrl = el('div', { class: 'dex-art-controls' });
+    var bossBtn = el('button', { type: 'button', class: 'tbtn gd-boss-btn', title: de ? 'Beste Konter gegen dieses Pokémon als Raid-Boss berechnen' : 'Calculate best counters against this Pokémon as a raid boss', text: de ? '⚔ Top Counter' : '⚔ Top Counters' });
+    bossBtn.addEventListener('click', function () {
+      if (window.CCGoCounter && window.CCGoCounter.openBoss) window.CCGoCounter.openBoss(s.num, f.label);
+    });
+    artCtrl.appendChild(bossBtn);
+    var artGrp = el('div', { class: 'btn-group' });
+    [['3d', '3D'], ['home', 'HOME'], ['sprite', 'Pixel']].forEach(function (o) {
+      var ab = el('button', { type: 'button', class: curMode === o[0] ? 'on' : '', 'data-art': o[0], text: o[1] });
+      ab.addEventListener('click', function () {
+        if (A.setSetting) A.setSetting('model', o[0]);
+        renderDetail();
+      });
+      artGrp.appendChild(ab);
+    });
+    artCtrl.appendChild(artGrp);
+    top.appendChild(artCtrl);
     head.appendChild(top);
     if (s.forms.length > 1) {
       var fb = el('div', { class: 'dex-form-bar' });
@@ -348,5 +444,18 @@
     main.appendChild(grid);
   }
 
-  window.CCGoDex = { render: render };
+  function openMon(num, flabel) {
+    var s = byNum[num];
+    if (!s) return;
+    var idx = 0;
+    if (flabel) {
+      s.forms.some(function (f, i) { if (f.label === flabel) { idx = i; return true; } return false; });
+    }
+    st.num = num;
+    st.formIdx = idx;
+    saveState();
+    A.showView('godex');
+  }
+
+  window.CCGoDex = { render: render, openMon: openMon, spriteImg: spriteImg, formLabel: formLabel };
 })();

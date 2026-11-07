@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="css/overlay.css?v=91">
   <link rel="stylesheet" href="css/catch.css?v=86">
   <link rel="stylesheet" href="css/pokedex.css?v=86">
-  <link rel="stylesheet" href="css/godex.css?v=2">
+  <link rel="stylesheet" href="css/godex.css?v=3">
   <link rel="stylesheet" href="css/randomizer.css?v=1">
   <link rel="stylesheet" href="css/savedit.css?v=1">
   <link rel="stylesheet" href="css/pro.css?v=16">
@@ -86,22 +86,27 @@
       <div class="start-cards">
         <button class="start-card cat-card cat-fight" data-cat="fight">
           <span class="sc-art sc-art-cat" id="catArt_fight"></span>
-          <span class="sc-head"><span class="sc-title" data-t="catFight"></span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="catFight"></span></span>
           <span class="sc-text" data-t="catFightText"></span>
         </button>
         <button class="start-card cat-card cat-runs" data-cat="runs">
           <span class="sc-art sc-art-cat" id="catArt_runs"></span>
-          <span class="sc-head"><span class="sc-title" data-t="catRuns"></span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="catRuns"></span></span>
           <span class="sc-text" data-t="catRunsText"></span>
         </button>
         <button class="start-card cat-card cat-dex" data-cat="dex">
           <span class="sc-art sc-art-cat" id="catArt_dex"></span>
-          <span class="sc-head"><span class="sc-title" data-t="catDex"></span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="catDex"></span></span>
           <span class="sc-text" data-t="catDexText"></span>
+        </button>
+        <button class="start-card cat-card cat-go" data-cat="go">
+          <span class="sc-art sc-art-cat" id="catArt_go"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catGo"></span></span>
+          <span class="sc-text" data-t="catGoText"></span>
         </button>
         <button class="start-card cat-card cat-rest" data-cat="rest">
           <span class="sc-art sc-art-cat" id="catArt_rest"></span>
-          <span class="sc-head"><span class="sc-title" data-t="catRest"></span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="catRest"></span></span>
           <span class="sc-text" data-t="catRestText"></span>
         </button>
         <div class="start-group sg-fight"  data-cat="fight">
@@ -113,12 +118,12 @@
             <span class="sc-bar"><span style="width:88%"></span></span>
             <span class="sc-ko" data-t="startCalcKo">43,8 % Chance auf OHKO</span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navCalc">Damage Calculator</span><span class="sc-key">1</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navCalc">Damage Calculator</span></span>
           <span class="sc-text" data-t="startCalcText"></span>
         </button>
         <button class="start-card card-builder" data-go="builder">
           <span class="sc-art sc-art-builder" id="startTeam"></span>
-          <span class="sc-head"><span class="sc-title" data-t="navBuilder">Teambuilder</span><span class="sc-key">2</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navBuilder">Teambuilder</span></span>
           <span class="sc-text" data-t="startBuilderText"></span>
         </button>
         <button class="start-card card-match" data-go="match">
@@ -127,7 +132,7 @@
             <span class="sc-bar"><span style="width:67%"></span></span>
             <span class="sc-ko">Bo3 · Leads · Matchups</span>
           </span>
-          <span class="sc-head"><span class="sc-title">Team-Analyse</span><span class="sc-key">6</span></span>
+          <span class="sc-head"><span class="sc-title">Team-Analyse</span></span>
           <span class="sc-text" data-t="startMatchText"></span>
         </button>
           </div>
@@ -137,7 +142,7 @@
           <div class="sg-cards">
         <button class="start-card card-sl" data-go="soullink">
           <span class="sc-art sc-art-nuz" id="startSL"></span>
-          <span class="sc-head"><span class="sc-title" data-t="navSL">Soul Link</span><span class="sc-key">3</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navSL">Soul Link</span></span>
           <span class="sc-text" data-t="startSLText"></span>
         </button>
         <button class="start-card card-nuz" data-go="nuz">
@@ -146,7 +151,7 @@
             <span class="sc-bar"><span style="width:62%"></span></span>
             <span class="sc-ko" data-t="startNuzKo">Gen 3 · Trainer, Box, Schaden</span>
           </span>
-          <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge">ALPHA</span></span><span class="sc-key">4</span></span>
+          <span class="sc-head"><span class="sc-title"><span data-t="navNuz">Nuzlocke</span><span class="alpha-badge">ALPHA</span></span></span>
           <span class="sc-text" data-t="startNuzText"></span>
         </button>
         <button class="start-card card-randomizer" data-go="randomizer">
@@ -155,7 +160,7 @@
             <span class="sc-bar"><span style="width:100%"></span></span>
             <span class="sc-ko" data-t="startRandomizerKo">Gen 3 · Wild · Trainer · Starter</span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navRandomizer">Randomizer</span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navRandomizer">Randomizer</span></span>
           <span class="sc-text" data-t="startRandomizerText"></span>
         </button>
         <button class="start-card card-savedit" data-go="savedit">
@@ -164,7 +169,7 @@
             <span class="sc-bar"><span style="width:100%"></span></span>
             <span class="sc-ko" data-t="startSaveKo">Team · Boxen · Pokémon</span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navSave">Save File Editor</span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navSave">Save File Editor</span></span>
           <span class="sc-text" data-t="startSaveText"></span>
         </button>
           </div>
@@ -178,17 +183,31 @@
             <span class="sc-bar"><span style="width:100%"></span></span>
             <span class="sc-ko">3D · Formen · Werte · Entwicklung</span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span><span class="sc-key">9</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navDex">Pokédex</span></span>
           <span class="sc-text" data-t="startDexText"></span>
         </button>
+          </div>
+        </div>
+        <div class="start-group sg-go" data-cat="go">
+          <div class="sg-label" data-t="catGo"></div>
+          <div class="sg-cards">
         <button class="start-card card-godex" data-go="godex">
           <span class="sc-art sc-art-godex">
             <span class="sc-dmg">CP 4724 <small>Lv 50 · 100 %</small></span>
             <span class="sc-bar"><span style="width:100%"></span></span>
             <span class="sc-ko">Lv 15 · 20 · 25 · 50</span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navGoDex">Pokémon GO Pokédex</span><span class="sc-key"></span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navGoDex">Pokémon GO Pokédex</span></span>
           <span class="sc-text" data-t="startGoDexText"></span>
+        </button>
+        <button class="start-card card-gocounter" data-go="gocounter">
+          <span class="sc-art sc-art-gocounter">
+            <span class="sc-dmg">eDPS 36,4 <small>Tier SSS</small></span>
+            <span class="sc-bar"><span style="width:94%"></span></span>
+            <span class="sc-ko" data-t="startGoCounterKo">eDPS · TDO · Tiers · Raid-Bosse</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navGoCounter">Top Counter</span></span>
+          <span class="sc-text" data-t="startGoCounterText"></span>
         </button>
           </div>
         </div>
@@ -197,7 +216,7 @@
           <div class="sg-cards">
         <button class="start-card card-shiny" data-go="shiny">
           <span class="sc-art sc-art-shiny" id="startShiny"></span>
-          <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span><span class="sc-key">5</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navShiny">Shiny-Zähler</span></span>
           <span class="sc-text" data-t="startShinyText"></span>
         </button>
         <button class="start-card card-overlay" data-go="overlay">
@@ -206,7 +225,7 @@
             <span class="sc-ov-vs">VS</span>
             <span class="sc-ov-col opp"><span></span><span></span><span></span><span></span></span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navOverlay">Match-Overlay</span><span class="sc-key">7</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navOverlay">Match-Overlay</span></span>
           <span class="sc-text" data-t="startOverlayText"></span>
         </button>
         <button class="start-card card-catch" data-go="catch">
@@ -215,7 +234,7 @@
             <span class="sc-bar"><span style="width:42%"></span></span>
             <span class="sc-ko">Gen 1–9 · Alle Bälle · IV-Spanne</span>
           </span>
-          <span class="sc-head"><span class="sc-title" data-t="navCatch">Fangrechner</span><span class="sc-key">8</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navCatch">Fangrechner</span></span>
           <span class="sc-text" data-t="startCatchText"></span>
         </button>
           </div>
@@ -234,6 +253,7 @@
   <main id="catchView" class="wrap catch-view"></main>
   <main id="dexView" class="wrap dex-view"></main>
   <main id="godexView" class="wrap dex-view godex-view"></main>
+  <main id="gocounterView" class="wrap dex-view gocounter-view"></main>
   <main id="randomizerView" class="wrap randomizer-view"></main>
   <main id="saveView" class="wrap save-view"></main>
 
@@ -343,8 +363,9 @@
   <script src="js/overlay.js?v=91"></script>
   <script src="js/catch_calc.js?v=86"></script>
   <script src="data/dex_gen1.js?v=86"></script>
-  <script src="js/pokedex.js?v=86"></script>
-  <script src="data/godex.js?v=1"></script>
-  <script src="js/godex.js?v=1"></script>
+  <script src="js/pokedex.js?v=87"></script>
+  <script src="data/godex.js?v=2"></script>
+  <script src="js/godex.js?v=3"></script>
+  <script src="js/gocounter.js?v=1"></script>
 </body>
 </html>

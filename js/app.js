@@ -153,7 +153,7 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Pokédex & Pokémon GO Pokédex', catRestText: 'Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', homeTitle: 'Zum Startbildschirm',
+      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter (DialgaDex)', catRestText: 'Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (DialgaDex-Formel: eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Showdown-Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
@@ -166,7 +166,7 @@
       startCalcText: 'Schaden, K.O.-Chancen und Zugreihenfolge im Einzel- und Doppelkampf, mit Wetter, Terrain und allen Feldeffekten.',
       startBuilderText: 'Teams aus bis zu sechs Pokémon zusammenstellen, Sets und Stat Points einstellen, Schwächen prüfen und ins Damage Calc übernehmen.',
       startSub: 'Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions',
-      startFoot: 'Tasten 1–8 zum Öffnen · Zurück zum Start über das Logo oben links',
+      startFoot: 'Zurück zum Start über das Logo oben links',
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Showdown-Format)', tbMetaTest: 'Gegen Meta testen',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
@@ -185,8 +185,8 @@
       pkAllTypes: 'Alle Typen', pkClearFilter: 'Filter zurücksetzen', pkSortT: 'Sortieren nach {0}',
       pkGroupFit: 'Passt zu diesem Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Beeren', pkGroupStones: 'Mega-Steine', tbPP: 'AP {0}',
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
-      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon im Teambuilder', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
-      setModelHint: 'Wie das große Bild im Pokémon-Editor angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
+      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon-Darstellung', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
+      setModelHint: 'Wie das große Pokémon-Bild im Teambuilder und in beiden Pokédexen angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
       setOled: 'Dunkel', setPoke: 'Poké-Rot', setRattata: 'Rattata-Lila', setOcean: 'Ozean', setEmerald: 'Smaragd', setGold: 'HeartGold', setCyber: 'Cyber-Neon', setSakura: 'Sakura (Hell)', setSunset: 'Abendrot', setArctic: 'Arktis-Eis', setSystem: 'System',
       setUiStyle: 'Oberflächen-Stil', setUiStyleHint: 'Aufbau und Aussehen der gesamten App: Seitenleiste (Pro) oder obere Leiste (Studio).', uiClassic: 'Klassisch (Flach)', uiModern: 'Modern (Weich)', uiGlass: 'Glas (Transluzent)', uiRetro: 'Retro (Pixel)', uiCompact: 'Kompakt (Turnier)',
@@ -198,7 +198,7 @@
       tbSpShowFoe: 'Gegner-Team (Damage Calc)', tbSpShowBench: 'Meta-Benchmarks (VGC)', tbSpTrickRoom: 'Trick Room (langsamste zuerst)',
       tbSpColMon: 'Pokémon', tbSpColBase: 'Basis', tbSpColSpread: 'SP / Wesen', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Schal ×1,5', tbSpColTW: 'Rückenw. ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0,5',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
-      setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm, in der oberen Leiste und bei den Tastenkürzeln ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
+      setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm und in der oberen Leiste ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
       setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: alle Tools der aktuellen Kategorie. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
       setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
@@ -266,7 +266,7 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'Pokédex & Pokémon GO Pokédex', catRestText: 'Shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter (DialgaDex)', catRestText: 'Shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (DialgaDex formula: eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: Showdown replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
@@ -279,7 +279,7 @@
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
       startSub: 'Damage Calculator, Teambuilder, Shiny counter, Catch Calculator and Team-Analyse for Pokémon Champions',
-      startFoot: 'Press 1–8 to open · Back to the start via the logo in the top left',
+      startFoot: 'Back to the start via the logo in the top left',
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (Showdown format)', tbMetaTest: 'Test vs Meta',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
@@ -298,8 +298,8 @@
       pkAllTypes: 'All types', pkClearFilter: 'Reset filters', pkSortT: 'Sort by {0}',
       pkGroupFit: 'Fits this Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Berries', pkGroupStones: 'Mega Stones', tbPP: 'PP {0}',
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
-      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon in the teambuilder', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
-      setModelHint: 'How the big picture in the Pokémon editor is shown', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
+      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon artwork', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
+      setModelHint: 'How the big Pokémon picture is shown in the Teambuilder and both Pokédexes', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setThemeHint: 'Applies to the whole app right away and stays saved.',
       setOled: 'Dark', setPoke: 'Poké red', setRattata: 'Rattata purple', setOcean: 'Ocean', setEmerald: 'Emerald', setGold: 'HeartGold', setCyber: 'Cyber Neon', setSakura: 'Sakura (Light)', setSunset: 'Sunset', setArctic: 'Arctic Ice', setSystem: 'System',
       setUiStyle: 'Interface style', setUiStyleHint: 'Layout and look of the whole app: sidebar (Pro) or top bar (Studio).', uiClassic: 'Classic (Flat)', uiModern: 'Modern (Rounded)', uiGlass: 'Glass (Translucent)', uiRetro: 'Retro (Pixel)', uiCompact: 'Compact (Esports)',
@@ -311,7 +311,7 @@
       tbSpShowFoe: 'Opponent team (damage calc)', tbSpShowBench: 'Meta benchmarks (VGC)', tbSpTrickRoom: 'Trick Room (slowest first)',
       tbSpColMon: 'Pokémon', tbSpColBase: 'Base', tbSpColSpread: 'SP / Nature', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Scarf ×1.5', tbSpColTW: 'Tailwind ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0.5',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
-      setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen, in the top bar and from keyboard shortcuts. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
+      setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen and in the top bar. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
       setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: every tool of the current category. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
       setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
@@ -2096,7 +2096,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.16.2') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.0') + (s.portable ? ' · Portable' : '') }));
     info.appendChild(titleRow);
     info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
     var msg = updMessage(s);
@@ -2177,7 +2177,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.16.2';
+      var ver = (updStatus && updStatus.current) || '1.17.0';
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
       side.appendChild(sideFoot);
       shell.appendChild(side);
@@ -2269,6 +2269,9 @@
         row(gLook, T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]], setting('model'), function (v) {
           setSetting('model', v);
           if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
+          if (window.CCDex && document.body.dataset.view === 'dex') window.CCDex.render();
+          if (window.CCGoDex && document.body.dataset.view === 'godex') window.CCGoDex.render();
+          if (window.CCGoCounter && document.body.dataset.view === 'gocounter') window.CCGoCounter.render();
         });
 
         var gScale = makeGroup(de ? 'Anzeige & Sprache' : 'Display & language');
@@ -2337,7 +2340,7 @@
       } else if (settingsTab === 'data') {
         var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
         (function () {
-          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex'];
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter'];
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2346,7 +2349,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: '1.16.2', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: '1.17.0', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2434,10 +2437,10 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'randomizer', 'savedit'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave'], ['godex', 'navGoDex']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'randomizer', 'savedit'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', true], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['dex', ['dex', 'godex']], ['rest', ['shiny', 'overlay', 'catch']]];
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['dex', ['dex']], ['go', ['godex', 'gocounter']], ['rest', ['shiny', 'overlay', 'catch']]];
   // Android-App (Capacitor, mobile/): ohne die Werkzeuge der Kategorie 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner), sie brauchen den Desktop
   if (window.RL_ANDROID) {
     var REST = ['shiny', 'overlay', 'catch', 'randomizer', 'savedit']; // der Randomizer braucht ROM-Dateien vom PC
@@ -2476,7 +2479,7 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
@@ -2514,28 +2517,19 @@
       if (g) g.hidden = !t.length || (flat ? false : (!startCat || startCat !== c[0]));
       if (cc) cc.hidden = flat || !t.length || !!startCat;
     });
-    var n = 0;
-    startItems().forEach(function (it) {
-      var el2 = it.cat ? grid.querySelector('.cat-card[data-cat="' + it.cat + '"]') : grid.querySelector('.start-card[data-go="' + it.tool + '"]');
-      var k = el2 && el2.querySelector('.sc-key');
-      n++;
-      if (k) k.textContent = n <= 9 ? String(n) : '';
-    });
+    var n = startItems().length;
     grid.style.setProperty('--cards', String(Math.max(1, n)));
     grid.style.setProperty('--start-cols', String(n <= 4 ? Math.max(1, n) : Math.ceil(n / 2)));
     renderCatArt();
     var foot = document.querySelector('#startView .start-foot');
     if (foot) {
-      var keyHelp = (LANG === 'de')
-        ? (n === 1 ? 'Taste 1 zum Öffnen' : 'Tasten 1–' + n + ' zum Öffnen')
-        : (n === 1 ? 'Press 1 to open' : 'Press 1–' + n + ' to open');
       var toggleLabel = flat
         ? (LANG === 'de' ? 'Zu Kategorien wechseln' : 'Switch to categories')
         : (LANG === 'de' ? 'Alle Tools anzeigen (Vorherige Ansicht)' : 'Show all tools (Previous view)');
       var backHelp = (LANG === 'de')
         ? 'Zurück zum Start über das Logo oben links'
         : 'Back to the start via the logo in the top left';
-      foot.innerHTML = keyHelp + ' · <button type="button" class="start-toggle-link" id="btnToggleStartLayout">' + toggleLabel + '</button> · ' + backHelp;
+      foot.innerHTML = '<button type="button" class="start-toggle-link" id="btnToggleStartLayout">' + toggleLabel + '</button> · ' + backHelp;
       var btnToggle = document.getElementById('btnToggleStartLayout');
       if (btnToggle) {
         btnToggle.addEventListener('click', function () {
@@ -2579,6 +2573,7 @@
     if (v === 'catch' && window.CCCatchCalc) window.CCCatchCalc.render();
     if (v === 'dex' && window.CCDex) window.CCDex.render();
     if (v === 'godex' && window.CCGoDex) window.CCGoDex.render();
+    if (v === 'gocounter' && window.CCGoCounter) window.CCGoCounter.render();
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2589,14 +2584,14 @@
   }
 
   // ======================= Pro shell: sidebar + status bar =======================
-  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', rest: 'catRest' };
+  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', rest: 'catRest' };
   function modeLabel(id) {
     if (id === 'start') return T('proOverview');
     var m = MODES.filter(function (x) { return x[0] === id; })[0];
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', rest: 'shiny' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', rest: 'shiny' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }
@@ -2667,7 +2662,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.16.2';
+    var ver = (updStatus && updStatus.current) || '1.17.0';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -2762,37 +2757,6 @@
       }, { passive: false });
     }
     syncDisabledTools();
-    document.addEventListener('keydown', function (ev) {
-      if (ev.altKey && !ev.ctrlKey && !ev.metaKey && ev.key === '0') {
-        ev.preventDefault();
-        showView('start');
-        return;
-      }
-      var n = parseInt(ev.key, 10);
-      if (!(n >= 1 && n <= 9)) return;
-      if (document.body.dataset.view === 'start' && !ev.altKey && !ev.ctrlKey && !ev.metaKey) {
-        var it = startItems()[n - 1];
-        if (!it) return;
-        if (it.tool) {
-          showView(it.tool);
-        } else if (it.cat) {
-          var c = CATS.filter(function (x) { return x[0] === it.cat; })[0];
-          if (c && c[1].length === 1) showView(c[1][0]);
-          else { startCat = it.cat; showView('start', true); }
-        }
-        return;
-      }
-      var act = enabledModes();
-      var target = act[n - 1] && act[n - 1][0];
-      if (!target) return;
-      if (ev.altKey && !ev.ctrlKey && !ev.metaKey) {
-        ev.preventDefault();
-        showView(target);
-        return;
-      }
-      if (document.body.dataset.view !== 'start' || ev.ctrlKey || ev.altKey || ev.metaKey) return;
-      showView(target);
-    });
     var sub = document.getElementById('startSub');
     if (sub) sub.textContent = T('startSub') + ' · VGC 2026 · ' + REG_NAME;
     // desktop app (Electron): the top bar is the title bar, with own window buttons
@@ -2842,6 +2806,7 @@
     else if (location.hash === '#catch') v = 'catch';
     else if (location.hash === '#dex') v = 'dex';
     else if (location.hash === '#godex') v = 'godex';
+    else if (location.hash === '#gocounter') v = 'gocounter';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }
@@ -2872,7 +2837,7 @@
     el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
     parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
-    setting: setting, openSettings: openSettings, saveCustomSet: saveCustomSet
+    setting: setting, setSetting: setSetting, openSettings: openSettings, saveCustomSet: saveCustomSet
   };
   // expose for debugging
   window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES };
