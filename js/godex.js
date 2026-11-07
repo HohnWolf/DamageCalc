@@ -193,7 +193,7 @@
       var key = st.sort === 'num' || st.sort === 'name' || st.sort === 'cp' ? 'cp' : st.sort;
       var bf = bestForm(s, key);
       row.appendChild(el('span', { class: 'gd-row-val', title: de ? 'WP bei 100% IV, Level 50' : 'CP at 100% IV, level 50', text: key === 'cp' ? String(bf.cp[50]) : String(bf[key]) }));
-      row.addEventListener('click', function () { select(s.num, 0); });
+      row.addEventListener('click', function () { select(s.num, 0); if (window.RL_ANDROID) { var d = document.getElementById('gdMain'); if (d) d.scrollIntoView({ block: 'start' }); } });
       frag.appendChild(row);
     });
     box.innerHTML = '';

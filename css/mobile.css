@@ -39,3 +39,8 @@ html.rl-android table { display: block; overflow-x: auto; max-width: 100%; }
 html.rl-android .wrap > *, html.rl-android .panel, html.rl-android .dex-layout > * { min-width: 0; max-width: 100%; }
 html.rl-android .dex-layout { height: auto !important; }
 html.rl-android .dex-layout > * { height: auto !important; max-height: none !important; }
+
+/* Pokédex: Liste hat in der einspaltigen Ansicht sonst Höhe 0 (flex:1 in auto-hohem Container) */
+html.rl-android .dex-sidebar, html.rl-android .gd-sidebar { overflow: visible !important; height: auto !important; }
+html.rl-android .dex-list, html.rl-android .gd-list { flex: none !important; height: 55vh; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+html.rl-android .dex-row { flex: none; min-height: 48px; }

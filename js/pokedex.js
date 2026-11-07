@@ -341,6 +341,7 @@
 
       row.addEventListener('click', function () {
         selectMon(m.num, 0);
+        if (window.RL_ANDROID) { var d = document.querySelector('#dexView .dex-main'); if (d) d.scrollIntoView({ block: 'start' }); }
       });
       frag.appendChild(row);
     });
