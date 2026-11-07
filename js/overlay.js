@@ -46,13 +46,13 @@
     scoreL: 'Spielstand links', scoreR: 'Spielstand rechts', logoL: 'Teamlogo links (PNG, JPG, WEBP, GIF, SVG, max. 5 MB)', logoR: 'Teamlogo rechts',
     logoDel: 'Entfernen', league: 'Liga-Name (oben auf der Startseite)', leaguePh: 'z. B. Pokémon Champions Liga', week: 'Mitte: Woche / Titel (Zeilenumbruch erlaubt)',
     swap: 'Seiten tauschen', reset: 'Stand 0:0', matchPrev: 'Vorschau Matchup-Banner (transparent, hier Schachbrett-Muster).',
-    start: 'Startseite „Wer gegen wen“', logoErr: { type: 'Nur PNG, JPG, WEBP, GIF oder SVG', size: 'Datei größer als 5 MB', empty: 'Leere Datei' },
+    start: 'Start Screen', logoErr: { type: 'Nur PNG, JPG, WEBP, GIF oder SVG', size: 'Datei größer als 5 MB', empty: 'Leere Datei' },
     teamMe: 'Team 1 links', teamOpp: 'Team 2 rechts', toT1: 'In Team 1', toT2: 'In Team 2',
     pickTitle: 'Match-Overlay wählen', pickSub: 'Wähle aus, ob du dein eigenes Match live begleitest oder ein Match für Aufnahme / Stream einrichtest.',
     modeOwn: 'Eigenes Match', modeOwnBadge: 'Team-Overlay',
     modeOwnDesc: 'Dein Team und das Gegner-Team als OBS-Spalten im Kampf: KP in %, K.O., Mitgebracht-Auswahl sowie Turnier- und Ladder-Modus.',
     modeRec: 'Aufnahme Match', modeRecBadge: 'Teampreview · Matchup & Start',
-    modeRecDesc: 'Teampreview, Matchup-Banner und „Wer gegen wen“-Startseite vereint auf einer Seite: Spielernamen, Teams, Standings, Spielstand und Teamlogos.',
+    modeRecDesc: 'Teampreview, Matchup-Banner und Start Screen vereint auf einer Seite: Spielernamen, Teams, Standings, Spielstand und Teamlogos.',
     backPick: '← Auswahl'
   } : {
     title: 'Match overlay', sub: 'OBS overlays for matches: team overlay (both teams as a column) and team preview with matchup banner and start screen. Each one can be switched on and off.',
@@ -80,13 +80,13 @@
     scoreL: 'Score left', scoreR: 'Score right', logoL: 'Team logo left (PNG, JPG, WEBP, GIF, SVG, max. 5 MB)', logoR: 'Team logo right',
     logoDel: 'Remove', league: 'League name (top of the start screen)', leaguePh: 'e.g. Pokémon Champions League', week: 'Center: week / title (line breaks allowed)',
     swap: 'Swap sides', reset: 'Score 0:0', matchPrev: 'Preview matchup banner (transparent, checkerboard here).',
-    start: 'Start screen "who vs. who"', logoErr: { type: 'Only PNG, JPG, WEBP, GIF or SVG', size: 'File larger than 5 MB', empty: 'Empty file' },
+    start: 'Start Screen', logoErr: { type: 'Only PNG, JPG, WEBP, GIF or SVG', size: 'File larger than 5 MB', empty: 'Empty file' },
     teamMe: 'Team 1 left', teamOpp: 'Team 2 right', toT1: 'To team 1', toT2: 'To team 2',
     pickTitle: 'Choose Match Overlay', pickSub: 'Choose whether to track your own live match or set up a match for recording / streaming.',
     modeOwn: 'Own Match', modeOwnBadge: 'Team Overlay',
     modeOwnDesc: 'Your team and the opponent as OBS columns during the match: HP %, fainted status, brought selection, tournament and ladder mode.',
     modeRec: 'Recording Match', modeRecBadge: 'Team Preview · Matchup & Start',
-    modeRecDesc: 'Team preview, matchup banner and "who vs. who" start screen combined on one page: player names, teams, standings, score and team logos.',
+    modeRecDesc: 'Team preview, matchup banner and Start Screen combined on one page: player names, teams, standings, score and team logos.',
     backPick: '← Selection'
   };
   function t(k) {
@@ -956,12 +956,15 @@
 
     // 3. Right pane: OBS URLs + Live Previews (Matchup-Banner & Teampreview)
     var rightPane = el('div', { class: 'panel mo-card mo-rec-right' });
+    var sExtra = el('span', { class: 'mo-inline' });
     var sopen = el('a', { href: '#', class: 'hint', text: t('open') });
     sopen.addEventListener('click', function (e) { e.preventDefault(); if (base) window.open(base + '/match/start', '_blank'); });
+    sExtra.appendChild(sopen);
+    if (D) sExtra.appendChild(pngButton('start'));
     var urls = el('div', { class: 'mo-urls-stack' });
     urls.appendChild(urlRow('/match/preview', 1920, 1080, el('b', { class: 'mo-tag', text: t('ovPreview') })));
     urls.appendChild(urlRow('/match/matchup', 1920, 200, el('b', { class: 'mo-tag', text: t('ovMatch') })));
-    urls.appendChild(urlRow('/match/start', 1920, 1080, el('b', { class: 'mo-tag', text: t('start') }), sopen));
+    urls.appendChild(urlRow('/match/start', 1920, 1080, el('b', { class: 'mo-tag', text: t('start') }), sExtra));
     rightPane.appendChild(urls);
 
     if (D) {

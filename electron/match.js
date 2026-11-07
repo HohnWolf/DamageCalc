@@ -212,7 +212,8 @@ function handle(req, res, url) {
 // Die Seite wird in einem unsichtbaren Fenster mit durchsichtigem Hintergrund genau so gezeichnet wie in OBS und als PNG gespeichert.
 const EXPORTS = {
   matchup: { path: '/match/matchup', w: 1920, h: 200, label: 'Matchup-Banner' },
-  preview: { path: '/match/preview', w: 1920, h: 1080, label: 'Teampreview' }
+  preview: { path: '/match/preview', w: 1920, h: 1080, label: 'Teampreview' },
+  start: { path: '/match/start', w: 1920, h: 1080, label: 'Start-Screen' }
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function renderPng(kind, base) {
@@ -263,7 +264,7 @@ function init(shiny) {
     try {
       const png = await renderPng(kind, 'http://127.0.0.1:' + port);
       const m = state.match || {}, p = state.preview || {};
-      const a = fileSafe(kind === 'matchup' ? (m.nameL || p.p1) : p.p1), b = fileSafe(kind === 'matchup' ? (m.nameR || p.p2) : p.p2);
+      const a = fileSafe(kind !== 'preview' ? (m.nameL || p.p1) : p.p1), b = fileSafe(kind !== 'preview' ? (m.nameR || p.p2) : p.p2);
       const name = spec.label + (a || b ? ' ' + (a || '?') + ' vs ' + (b || '?') : '') + '.png';
       const owner = BrowserWindow.fromWebContents(e.sender);
       const r = await dialog.showSaveDialog(owner, { title: spec.label, defaultPath: path.join(app.getPath('pictures'), name), filters: [{ name: 'PNG', extensions: ['png'] }] });

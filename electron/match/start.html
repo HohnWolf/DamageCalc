@@ -38,6 +38,7 @@ html,body{margin:0;height:100%;background:#1a0b33;overflow:hidden}
 </div></div>
 <script>
 const $=id=>document.getElementById(id);
+if(/[?&]export=1/.test(location.search)){const xs=document.createElement('style');xs.textContent='*,*::before,*::after{animation:none!important;transition:none!important}';document.head.appendChild(xs);}
 let last='',boot=null,play=null;
 function replay(){const s=$('stage');s.classList.remove('anim');void s.offsetWidth;s.classList.add('anim');}
 function fitAll(){document.querySelectorAll('.nm').forEach(e=>{e.style.fontSize='';let s=parseFloat(getComputedStyle(e).fontSize);
@@ -60,7 +61,7 @@ async function poll(){try{const d=await (await fetch('/match/state',{cache:'no-s
   if(boot&&d.v!==boot){location.reload();return;}boot=d.v;
   if(play!==null&&d.play!==play)replay();play=d.play;
   const m=Object.assign({},d.match||{},{logoL:d.logoL,logoR:d.logoR});
-  const j=JSON.stringify(m);if(j===last)return;last=j;render(m);}catch(e){}}
+  const j=JSON.stringify(m);if(j===last){window.__ready=true;return;}last=j;render(m);window.__ready=true;}catch(e){}}
 window.addEventListener('resize',fitStage);
 fitStage();poll();setInterval(poll,1000);
 if(new URLSearchParams(location.search).get('auto'))replay();
