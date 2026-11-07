@@ -1135,10 +1135,29 @@
     return v.toFixed(d).replace('.', de ? ',' : '.');
   }
   function fmtNum(n) { return n >= 1000 ? String(n) : ('00' + n).slice(-3); }
+  function monBaseName(c) { return de ? c.nameDe : c.nameEn; }
+  function monFormText(c) {
+    if (!c.label || c.label === 'Normal') return '';
+    return window.CCGoDex && window.CCGoDex.formLabel ? window.CCGoDex.formLabel(c.label, c.num) : c.label;
+  }
   function monName(c) {
-    var base = de ? c.nameDe : c.nameEn;
-    var fl = c.label && window.CCGoDex && window.CCGoDex.formLabel ? window.CCGoDex.formLabel(c.label, c.num) : c.label;
-    return base + (fl && fl !== 'Normal' ? ' (' + fl + ')' : '');
+    var base = monBaseName(c);
+    var fl = monFormText(c);
+    return base + (fl ? ' (' + fl + ')' : '');
+  }
+  function monSpriteImg(c, cls) {
+    if (window.CCGoDex && window.CCGoDex.spriteImg) {
+      var img = window.CCGoDex.spriteImg(
+        { num: c.num, sid: c.sid, nameDe: c.nameDe, nameEn: c.nameEn },
+        { label: c.label || '' },
+        cls || 'gc-mon-img'
+      );
+      img.loading = 'lazy';
+      return img;
+    }
+    var fb = A.spriteById(c.sid, cls || 'gc-mon-img', false, monBaseName(c));
+    fb.loading = 'lazy';
+    return fb;
   }
   function moveName(name) {
     if (!name) return '';
@@ -1146,6 +1165,8 @@
       var t = name.slice('Hidden Power '.length);
       return A.nMove('Hidden Power') + ' (' + A.nType(t) + ')';
     }
+    var wb = /^(Weather Ball|Techno Blast) (\w+)$/.exec(name);
+    if (wb) return A.nMove(wb[1]) + ' (' + A.nType({ Shock: 'Electric', Burn: 'Fire', Chill: 'Ice' }[wb[2]] || wb[2]) + ')';
     if (name === 'Aeroblast Plus') return A.nMove('Aeroblast') + '+';
     if (name === 'Aeroblast Plus Plus') return A.nMove('Aeroblast') + '++';
     if (name === 'Sacred Fire Plus') return A.nMove('Sacred Fire') + '+';
@@ -1210,45 +1231,57 @@
       // Typ-Auswahl (Any, Each, 18 Typen)
       var secType = el('div', { class: 'gc-sec' });
       secType.appendChild(el('div', { class: 'gc-sec-title', text: de ? 'Typ / Szenario' : 'Type / Scenario' }));
-      var specialRow = el('div', { class: 'gc-special-types' });
+      var specialRow = el('div', { class: 'gc-seg gc-special-seg' });
       [
         ['Any', de ? 'Alle Typen (Allgemein)' : 'All Types (Overall)'],
-        ['Each', de ? 'Bester pro Typ (18)' : 'Best per Type (18)']
+        ['Each', de ? 'Bester je Typ (18)' : 'Best per Type (18)']
       ].forEach(function (sp) {
-        var btn = el('button', { type: 'button', class: 'tbtn gc-sp-btn' + (st.type === sp[0] ? ' on' : ''), text: sp[1] });
+        var btn = el('button', { type: 'button', class: st.type === sp[0] ? 'on' : '', text: sp[1] });
         btn.addEventListener('click', function () {
           st.type = sp[0];
           saveState();
-          updateView();
+          render();
         });
         specialRow.appendChild(btn);
       });
       secType.appendChild(specialRow);
 
-      var typeGrid = el('div', { class: 'gc-type-grid' });
+      var hasSpecificType = st.type !== 'Any' && st.type !== 'Each';
+      var typeGrid = el('div', { class: 'gc-type-grid' + (hasSpecificType ? ' has-sel' : '') });
       POKEMON_TYPES.forEach(function (t) {
-        var tb = el('button', { type: 'button', class: 'gc-type-btn' + (st.type === t ? ' on' : ''), 'data-type': t });
-        tb.appendChild(A.typeBadge(t));
+        var isOn = st.type === t;
+        var tb = el('button', {
+          type: 'button',
+          class: 'gc-type-pill' + (isOn ? ' on' : ''),
+          'data-type': t,
+          text: A.nType(t)
+        });
+        var bg = (A.TYPE_COLORS && A.TYPE_COLORS[t]) || '#666';
+        var dark = A.DARK_TEXT_TYPES && A.DARK_TEXT_TYPES[t];
+        tb.style.setProperty('--tc', bg);
+        tb.style.background = bg;
+        tb.style.color = dark ? '#16181a' : '#fff';
         tb.addEventListener('click', function () {
-          st.type = t;
+          st.type = (st.type === t) ? 'Any' : t;
           saveState();
-          updateView();
+          render();
         });
         typeGrid.appendChild(tb);
       });
       secType.appendChild(typeGrid);
 
-      if (st.type !== 'Any' && st.type !== 'Each') {
-        var vsRow = el('div', { class: 'gc-vs-switch' });
+      if (hasSpecificType) {
+        var vsRow = el('div', { class: 'gc-seg gc-vs-seg' });
         [
-          [false, de ? 'Beste ' + A.nType(st.type) + '-Angreifer' : 'Top ' + A.nType(st.type) + ' Attackers'],
-          [true, de ? 'Beste Konter gegen ' + A.nType(st.type) : 'Top Counters vs ' + A.nType(st.type)]
+          [false, de ? '⚔ ' + A.nType(st.type) + '-Angreifer' : '⚔ ' + A.nType(st.type) + ' Attackers'],
+          [true, de ? '🛡 Konter vs ' + A.nType(st.type) : '🛡 Counters vs ' + A.nType(st.type)]
         ].forEach(function (o) {
-          var b = el('button', { type: 'button', class: 'tbtn' + (st.versus === o[0] ? ' on' : ''), text: o[1] });
+          var b = el('button', { type: 'button', class: st.versus === o[0] ? 'on' : '', text: o[1] });
           b.addEventListener('click', function () {
             st.versus = o[0];
             saveState();
             updateView();
+            vsRow.querySelectorAll('button').forEach(function (x, idx) { x.classList.toggle('on', idx === (o[0] ? 1 : 0)); });
           });
           vsRow.appendChild(b);
         });
@@ -1262,7 +1295,7 @@
 
       var bossSearch = el('input', {
         type: 'text',
-        class: 'dex-search',
+        class: 'dex-search gc-boss-search',
         placeholder: de ? 'Boss suchen (z. B. Mewtu, Rayquaza, #384)…' : 'Search boss (e.g. Mewtwo, Rayquaza, #384)…',
         autocomplete: 'off'
       });
@@ -1284,16 +1317,16 @@
               matches.push(p);
             }
           }
-          if (matches.length >= 40) break;
+          if (matches.length >= 45) break;
         }
         matches.forEach(function (p) {
           var isSel = p.num === st.bossNum && p.label === st.bossForm;
           var item = el('button', { type: 'button', class: 'gc-boss-item' + (isSel ? ' on' : '') });
-          var sp = A.spriteById(p.sid, p.label || '', false, de ? p.nameDe : p.nameEn);
-          sp.loading = 'lazy';
-          item.appendChild(sp);
-          var txt = el('span', { class: 'gc-boss-item-name', text: monName(p) });
-          item.appendChild(txt);
+          var spBox = el('span', { class: 'gc-boss-item-sp' });
+          spBox.appendChild(monSpriteImg(p, 'gc-boss-item-img'));
+          item.appendChild(spBox);
+          item.appendChild(el('span', { class: 'gc-boss-item-num', text: '#' + fmtNum(p.num) }));
+          item.appendChild(el('span', { class: 'gc-boss-item-name', text: monName(p) }));
           item.addEventListener('click', function () {
             st.bossNum = p.num;
             st.bossForm = p.label;
@@ -1320,13 +1353,13 @@
       var tierSel = el('select', { class: 'dex-type-sel' });
       var autoT = defaultRaidTier(bossEntry);
       [
-        [0, (de ? 'Auto (Tier ' : 'Auto (Tier ') + autoT + ')'],
-        [1, 'Tier 1 (600 KP)'],
-        [3, 'Tier 3 (3.600 KP)'],
-        [4, 'Tier 4 / Mega (9.000 KP)'],
-        [5, 'Tier 5 Legendär (15.000 KP)'],
-        [6, 'Tier 6 Mega-Legendär (22.500 KP)'],
-        [8, 'Super-Mega / Proto (25.000 KP)']
+        [0, 'Auto (Tier ' + autoT + ')'],
+        [1, de ? 'Tier 1 (600 KP)' : 'Tier 1 (600 HP)'],
+        [3, de ? 'Tier 3 (3.600 KP)' : 'Tier 3 (3,600 HP)'],
+        [4, de ? 'Tier 4 / Mega (9.000 KP)' : 'Tier 4 / Mega (9,000 HP)'],
+        [5, de ? 'Tier 5 Legendär (15.000 KP)' : 'Tier 5 Legendary (15,000 HP)'],
+        [6, de ? 'Tier 6 Mega-Leg. (22.500 KP)' : 'Tier 6 Mega Leg. (22,500 HP)'],
+        [8, de ? 'Super-Mega / Proto (25.000 KP)' : 'Super Mega / Primal (25,000 HP)']
       ].forEach(function (o) {
         var opt = el('option', { value: String(o[0]), text: o[1] });
         if (Number(st.bossTier) === o[0]) opt.selected = true;
@@ -1342,7 +1375,7 @@
 
       if (bMoves.length === 6) {
         var fmRow = el('div', { class: 'gc-opt-row' });
-        fmRow.appendChild(el('label', { text: de ? 'Boss-Sofort-Attacke' : 'Boss Fast Move' }));
+        fmRow.appendChild(el('label', { text: de ? 'Sofort-Attacke' : 'Fast Move' }));
         var fmSel = el('select', { class: 'dex-type-sel' });
         fmSel.appendChild(el('option', { value: '', text: de ? 'Ø Alle Sofort-Attacken' : 'Ø All Fast Moves' }));
         bMoves[0].concat(bMoves[2]).forEach(function (m) {
@@ -1359,7 +1392,7 @@
         secBoss.appendChild(fmRow);
 
         var cmRow = el('div', { class: 'gc-opt-row' });
-        cmRow.appendChild(el('label', { text: de ? 'Boss-Lade-Attacke' : 'Boss Charged Move' }));
+        cmRow.appendChild(el('label', { text: de ? 'Lade-Attacke' : 'Charged Move' }));
         var cmSel = el('select', { class: 'dex-type-sel' });
         cmSel.appendChild(el('option', { value: '', text: de ? 'Ø Alle Lade-Attacken' : 'Ø All Charged Moves' }));
         bMoves[1].concat(bMoves[3]).forEach(function (m) {
@@ -1383,10 +1416,10 @@
     var secCalc = el('div', { class: 'gc-sec' });
     secCalc.appendChild(el('div', { class: 'gc-sec-title', text: de ? 'Berechnung (DialgaDex)' : 'Calculation (DialgaDex)' }));
 
-    function pillGroup(label, key, options) {
+    function segGroup(label, key, options) {
       var r = el('div', { class: 'gc-opt-block' });
       r.appendChild(el('div', { class: 'gc-opt-lbl', text: label }));
-      var grp = el('div', { class: 'btn-group gc-btn-grp' });
+      var grp = el('div', { class: 'gc-seg' });
       options.forEach(function (o) {
         var b = el('button', { type: 'button', class: String(st[key]) === String(o[0]) ? 'on' : '', text: o[1], title: o[2] || '' });
         b.addEventListener('click', function () {
@@ -1400,7 +1433,7 @@
       secCalc.appendChild(r);
     }
 
-    pillGroup(de ? 'Metrik' : 'Metric', 'metric', [
+    segGroup(de ? 'Metrik' : 'Metric', 'metric', [
       ['eDPS', 'eDPS', de ? 'Effektiver DPS inkl. Relobby-Pause (DialgaDex-Standard)' : 'Effective DPS incl. relobby penalty (DialgaDex default)'],
       ['DPS', 'DPS', de ? 'Reiner Schaden pro Sekunde' : 'Damage per second'],
       ['TDO', 'TDO', de ? 'Gesamtschaden bis zum K.O.' : 'Total damage output'],
@@ -1408,46 +1441,68 @@
       ['ER', 'ER', 'DPS^0.75 × TDO^0.25']
     ]);
 
-    pillGroup(de ? 'Pokémon-Level' : 'Pokémon Level', 'levelMode', [
+    segGroup(de ? 'Pokémon-Level' : 'Pokémon Level', 'levelMode', [
       ['30', 'Lv 30', 'Level 30'],
       ['40', 'Lv 40', 'Level 40 (DialgaDex-Standard)'],
       ['50', 'Lv 50', 'Level 50 (Max)'],
       ['xl', 'XL-Budget', de ? 'Normale Pokémon Lv 50, Legendäre/Mysteriöse Lv 40' : 'Regular Pokémon Lv 50, Legendaries/Mythicals Lv 40']
     ]);
 
-    pillGroup(de ? 'Team-Power (Party Power)' : 'Party Power', 'partySize', [
+    segGroup(de ? 'Team-Power (Party Power)' : 'Party Power', 'partySize', [
       [1, 'Solo (1)', de ? 'Ohne Team-Power' : 'No Party Power'],
       [2, 'Duo (2)', de ? '2 Spieler im Team (18 Sofort-Attacken pro Aufladung)' : 'Party of 2 (18 fast moves per charge)'],
       [3, 'Trio (3)', de ? '3 Spieler im Team (9 Sofort-Attacken pro Aufladung)' : 'Party of 3 (9 fast moves per charge)'],
-      [4, '4+ Spieler', de ? '4 Spieler im Team (6 Sofort-Attacken pro Aufladung)' : 'Party of 4 (6 fast moves per charge)']
+      [4, de ? '4+ Spieler' : '4+ Players', de ? '4 Spieler im Team (6 Sofort-Attacken pro Aufladung)' : 'Party of 4 (6 fast moves per charge)']
     ]);
 
     if (st.metric === 'eDPS') {
-      pillGroup(de ? 'Raid-Team & Relobby' : 'Raid Team & Relobby', 'teamMode', [
-        ['6', '6er Team', de ? '6 Pokémon pro Team vor Relobby' : '6 Pokémon per team before relobby'],
+      segGroup(de ? 'Raid-Team & Relobby' : 'Raid Team & Relobby', 'teamMode', [
+        ['6', de ? '6er Team' : 'Team of 6', de ? '6 Pokémon pro Team vor Relobby' : '6 Pokémon per team before relobby'],
         ['m1', '1 Mega / 6', de ? 'Mega wird nach 1 Tod wiederbelebt, normale nach 6' : 'Mega relobbies after 1 death, regular after 6'],
         ['1', 'Solo-Mon (1)', de ? 'Sofortiger Relobby nach 1 Tod' : 'Relobby after every single death']
       ]);
     }
 
-    pillGroup(de ? 'Vergleichs-Basis (100 %)' : 'Comparison Baseline (100%)', 'compare', [
-      ['budget', de ? 'Budget' : 'Budget', de ? 'Bestes Nicht-Legendäres, Nicht-Crypto, Nicht-Mega Pokémon = 100 %' : 'Best non-legendary, non-shadow, non-mega = 100%'],
-      ['top', de ? 'Top #1' : 'Top #1', de ? 'Platz 1 = 100 %' : 'Rank #1 = 100%'],
-      ['ESpace', 'ESpace', de ? 'Elastic_Space-Benchmark' : 'Elastic_Space benchmark']
-    ]);
+    var benchGrid = el('div', { class: 'gc-bench-grid' });
+    (function () {
+      var b1 = el('div', { class: 'gc-opt-block' });
+      b1.appendChild(el('div', { class: 'gc-opt-lbl', text: de ? 'Basis (100 %)' : 'Baseline (100%)' }));
+      var g1 = el('div', { class: 'gc-seg' });
+      [
+        ['budget', 'Budget', de ? 'Bestes Nicht-Legendäres, Nicht-Crypto, Nicht-Mega = 100 %' : 'Best non-legendary, non-shadow, non-mega = 100%'],
+        ['top', 'Top #1', de ? 'Platz 1 = 100 %' : 'Rank #1 = 100%'],
+        ['ESpace', 'ESpace', 'Elastic_Space Benchmark']
+      ].forEach(function (o) {
+        var b = el('button', { type: 'button', class: st.compare === o[0] ? 'on' : '', text: o[1], title: o[2] });
+        b.addEventListener('click', function () { st.compare = o[0]; saveState(); render(); });
+        g1.appendChild(b);
+      });
+      b1.appendChild(g1);
+      benchGrid.appendChild(b1);
 
-    pillGroup(de ? 'Tier-Berechnung' : 'Tier Method', 'tierMethod', [
-      ['jenks', 'Jenks', de ? 'Jenks Natural Breaks (DialgaDex-Standard)' : 'Jenks Natural Breaks (DialgaDex default)'],
-      ['broad', de ? 'Relativ' : 'Broad', de ? 'Feste Prozent-Stufen relativ zur Basis' : 'Fixed percentage steps relative to baseline'],
-      ['ESpace', 'ESpace', 'Elastic_Space Tiers'],
-      ['absolute', de ? 'Absolut' : 'Absolute', de ? 'Feste eDPS/DPS/TDO-Schwellenwerte' : 'Fixed eDPS/DPS/TDO thresholds']
-    ]);
+      var b2 = el('div', { class: 'gc-opt-block' });
+      b2.appendChild(el('div', { class: 'gc-opt-lbl', text: de ? 'Tier-Stufen' : 'Tier Method' }));
+      var g2 = el('div', { class: 'gc-seg' });
+      [
+        ['jenks', 'Jenks', 'Jenks Natural Breaks'],
+        ['broad', de ? 'Rel.' : 'Broad', de ? 'Feste Prozent-Stufen' : 'Fixed % steps'],
+        ['ESpace', 'ES', 'Elastic_Space Tiers'],
+        ['absolute', 'Abs.', de ? 'Feste Schwellenwerte' : 'Fixed thresholds']
+      ].forEach(function (o) {
+        var b = el('button', { type: 'button', class: st.tierMethod === o[0] ? 'on' : '', text: o[1], title: o[2] });
+        b.addEventListener('click', function () { st.tierMethod = o[0]; saveState(); render(); });
+        g2.appendChild(b);
+      });
+      b2.appendChild(g2);
+      benchGrid.appendChild(b2);
+    })();
+    secCalc.appendChild(benchGrid);
 
     sideBody.appendChild(secCalc);
 
     // ---- Filter-Schalter ----
     var secFilt = el('div', { class: 'gc-sec' });
-    secFilt.appendChild(el('div', { class: 'gc-sec-title', text: de ? 'Filter' : 'Filters' }));
+    secFilt.appendChild(el('div', { class: 'gc-sec-title', text: de ? 'Filter & Optionen' : 'Filters & Options' }));
     var fGrid = el('div', { class: 'gc-filter-grid' });
     [
       ['mega', de ? 'Mega / Proto' : 'Mega / Primal'],
@@ -1466,11 +1521,14 @@
       var disabled = (k === 'grouped' && !st.suboptimal) || (k === 'offtype' && !st.mixed);
       var btn = el('button', {
         type: 'button',
-        class: 'tbtn gc-flt-btn' + (st[k] ? ' on' : ''),
-        disabled: disabled ? 'disabled' : null,
-        text: (st[k] ? '✓ ' : '') + flt[1]
+        class: 'gc-flt-chip' + (st[k] ? ' on' : ''),
+        'aria-pressed': st[k] ? 'true' : 'false'
       });
+      if (disabled) btn.disabled = true;
+      btn.appendChild(el('span', { class: 'gc-flt-check', text: st[k] ? '✓' : '' }));
+      btn.appendChild(el('span', { class: 'gc-flt-txt', text: flt[1] }));
       btn.addEventListener('click', function () {
+        if (disabled) return;
         st[k] = !st[k];
         saveState();
         render();
@@ -1488,8 +1546,11 @@
 
     var head = el('div', { class: 'panel dex-head-panel gc-head-panel' });
     var headTop = el('div', { class: 'dex-head-top gc-head-top' });
-    var titleBlock = el('div', { class: 'dex-title-block' });
-    titleBlock.appendChild(el('h1', { class: 'dex-mon-title', id: 'gcTitle', text: 'Top Counter' }));
+    var titleBlock = el('div', { class: 'gc-title-stack' });
+    var titleLine = el('div', { class: 'gc-title-line' });
+    titleLine.appendChild(el('h1', { class: 'dex-mon-title', id: 'gcTitle', text: 'Top Counter' }));
+    titleLine.appendChild(el('div', { class: 'gc-meta-pills', id: 'gcMetaPills' }));
+    titleBlock.appendChild(titleLine);
     titleBlock.appendChild(el('span', { class: 'gc-subtitle', id: 'gcSubtitle', text: '' }));
     headTop.appendChild(titleBlock);
 
@@ -1499,7 +1560,7 @@
       id: 'gcTableSearch',
       class: 'dex-search gc-table-search',
       value: st.search || '',
-      placeholder: de ? 'In Tabelle filtern (Pokémon / Attacke)…' : 'Filter table (Pokémon / move)…',
+      placeholder: de ? 'Tabelle filtern (Pokémon / Attacke / Tier)…' : 'Filter table (Pokémon / move / tier)…',
       autocomplete: 'off'
     });
     searchInp.addEventListener('input', function () {
@@ -1511,7 +1572,7 @@
     var btnSearchStr = el('button', {
       type: 'button',
       class: 'tbtn gc-action-btn',
-      title: de ? 'Pokémon-GO-Suchstring für die angezeigten Top-Counter kopieren' : 'Copy Pokémon GO search string for displayed top counters',
+      title: de ? 'Pokémon-GO-Suchstring für die angezeigten Top-25-Counter kopieren' : 'Copy Pokémon GO search string for displayed top 25 counters',
       text: de ? '🔍 GO-Suchstring' : '🔍 GO Search String'
     });
     btnSearchStr.addEventListener('click', function () {
@@ -1522,7 +1583,7 @@
     });
     headActions.appendChild(btnSearchStr);
 
-    var artGrp = el('div', { class: 'btn-group' });
+    var artGrp = el('div', { class: 'gc-seg gc-art-seg' });
     [['3d', '3D'], ['home', 'HOME'], ['sprite', 'Pixel']].forEach(function (o) {
       var ab = el('button', { type: 'button', class: curMode === o[0] ? 'on' : '', 'data-art': o[0], text: o[1] });
       ab.addEventListener('click', function () {
@@ -1552,12 +1613,22 @@
 
     var titleEl = document.getElementById('gcTitle');
     var subEl = document.getElementById('gcSubtitle');
+    var metaEl = document.getElementById('gcMetaPills');
     var bannerEl = document.getElementById('gcBossBanner');
+
+    if (metaEl) {
+      metaEl.innerHTML = '';
+      var lvText = st.levelMode === 'xl' ? 'XL-Budget' : ('Lv ' + st.levelMode);
+      var ppText = st.partySize === 1 ? 'Solo' : st.partySize === 2 ? 'Party ×2' : st.partySize === 3 ? 'Party ×3' : 'Party ×4';
+      metaEl.appendChild(el('span', { class: 'gc-meta-chip accent', text: st.metric }));
+      metaEl.appendChild(el('span', { class: 'gc-meta-chip', text: lvText }));
+      metaEl.appendChild(el('span', { class: 'gc-meta-chip', text: ppText }));
+    }
 
     if (titleEl && subEl) {
       if (st.mode === 'boss' && res.boss) {
         titleEl.textContent = (de ? 'Top Konter gegen ' : 'Top Counters vs ') + monName(res.boss);
-        subEl.textContent = 'Tier ' + res.bossStats.tier + ' · ' + res.bossStats.hp.toLocaleString(de ? 'de-DE' : 'en-US') + ' KP · ' +
+        subEl.textContent = 'Tier ' + res.bossStats.tier + ' · ' + res.bossStats.hp.toLocaleString(de ? 'de-DE' : 'en-US') + (de ? ' KP · ' : ' HP · ') +
           (st.bossFm ? moveName(st.bossFm) : (de ? 'Ø Sofort' : 'Ø Fast')) + ' / ' +
           (st.bossCm ? moveName(st.bossCm) : (de ? 'Ø Lade' : 'Ø Charged'));
       } else if (st.type === 'Any') {
@@ -1567,14 +1638,14 @@
           : (de ? 'Neutrale Effektivität (Def 180)' : 'Neutral effectiveness (Def 180)');
       } else if (st.type === 'Each') {
         titleEl.textContent = de ? 'Bester Angreifer pro Typ (alle 18 Typen)' : 'Top Attacker of Each Type (all 18 types)';
-        subEl.textContent = de ? 'Jeweils #1 Angreifer für jeden einzelnen Typ' : '#1 attacker for each individual Pokémon type';
+        subEl.textContent = de ? 'Jeweils #1 Angreifer für jeden einzelnen Pokémon-Typ' : '#1 attacker for each individual Pokémon type';
       } else if (st.versus) {
         titleEl.textContent = (de ? 'Top Konter gegen Typ ' : 'Top Counters vs ') + A.nType(st.type);
         subEl.textContent = st.typeAffinity
           ? (de ? 'Berechnet gegen den Durchschnitt aller ' + A.nType(st.type) + '-Raid-Bosse' : 'Calculated against average of all ' + A.nType(st.type) + ' raid bosses')
           : (de ? 'Sehr effektiver Schaden gegen Monotyp ' + A.nType(st.type) : 'Super-effective damage vs solo-' + A.nType(st.type));
       } else {
-        titleEl.textContent = (de ? 'Top ' : 'Top ') + A.nType(st.type) + (de ? '-Angreifer' : ' Attackers');
+        titleEl.textContent = 'Top ' + A.nType(st.type) + (de ? '-Angreifer' : ' Attackers');
         subEl.textContent = st.typeAffinity
           ? (de ? 'Berechnet gegen Raid-Bosse mit Schwäche gegen ' + A.nType(st.type) : 'Calculated against raid bosses weak to ' + A.nType(st.type))
           : (de ? '1,6× Schaden für ' + A.nType(st.type) + '-Attacken, 1,0× für andere' : '1.6× damage for ' + A.nType(st.type) + ' moves, 1.0× for others');
@@ -1586,10 +1657,7 @@
       if (st.mode === 'boss' && res.boss) {
         var bCard = el('div', { class: 'panel gc-boss-card' });
         var bStage = el('div', { class: 'gc-boss-stage' });
-        var sp = speciesByNum[res.boss.num];
-        if (window.CCGoDex && window.CCGoDex.spriteImg && sp) {
-          bStage.appendChild(window.CCGoDex.spriteImg(sp, { label: res.boss.label }, 'gd-img gc-boss-img'));
-        }
+        bStage.appendChild(monSpriteImg(res.boss, 'gd-img gc-boss-img'));
         bCard.appendChild(bStage);
 
         var bInfo = el('div', { class: 'gc-boss-info' });
@@ -1650,7 +1718,7 @@
     var q = (st.search || '').trim().toLowerCase();
     var rows = lastResult.list.filter(function (r) {
       if (!q) return true;
-      var n = (r.nameDe + ' ' + r.nameEn + ' ' + (r.label || '')).toLowerCase();
+      var n = (r.nameDe + ' ' + r.nameEn + ' ' + (r.label || '') + ' ' + monFormText(r)).toLowerCase();
       var fm = (moveName(r.fm) + ' ' + r.fm).toLowerCase();
       var cm = (moveName(r.cm) + ' ' + r.cm).toLowerCase();
       return n.indexOf(q) !== -1 || fm.indexOf(q) !== -1 || cm.indexOf(q) !== -1 || (r.tier && r.tier.toLowerCase() === q);
@@ -1669,18 +1737,19 @@
     var tbl = el('table', { class: 'gc-table' });
     var thead = el('thead');
     var trH = el('tr');
-    [
-      lastResult.isEach ? (de ? 'Typ' : 'Type') : 'Tier',
-      '#',
-      'Pokémon',
-      de ? 'Sofort-Attacke' : 'Fast Move',
-      de ? 'Lade-Attacke' : 'Charged Move',
-      'eDPS',
-      'DPS',
-      'TDO',
-      st.metric + ' %'
-    ].forEach(function (h, i) {
-      trH.appendChild(el('th', { class: i >= 5 ? 'num' : '', text: h }));
+    var cols = [
+      { label: lastResult.isEach ? (de ? 'Typ' : 'Type') : 'Tier', cls: 'gc-th-tier' },
+      { label: '#', cls: 'num gc-th-rank' },
+      { label: 'Pokémon', cls: 'gc-th-mon' },
+      { label: de ? 'Sofort-Attacke' : 'Fast Move', cls: 'gc-th-move' },
+      { label: de ? 'Lade-Attacke' : 'Charged Move', cls: 'gc-th-move' },
+      { label: 'eDPS', cls: 'num gc-th-num' + (st.metric === 'eDPS' ? ' gc-col-active' : '') },
+      { label: 'DPS', cls: 'num gc-th-num' + (st.metric === 'DPS' ? ' gc-col-active' : '') },
+      { label: 'TDO', cls: 'num gc-th-num' + (st.metric === 'TDO' ? ' gc-col-active' : '') },
+      { label: st.metric + ' %', cls: 'num gc-th-pct' }
+    ];
+    cols.forEach(function (c) {
+      trH.appendChild(el('th', { class: c.cls, text: c.label }));
     });
     thead.appendChild(trH);
     tbl.appendChild(thead);
@@ -1701,27 +1770,37 @@
       tr.appendChild(tdTier);
 
       // Spalte 2: Rang
-      tr.appendChild(el('td', { class: 'gc-td-rank num', text: String(r.rank) }));
+      tr.appendChild(el('td', { class: 'gc-td-rank num' + (r.rank <= 3 ? ' is-top3' : ''), text: String(r.rank) }));
 
-      // Spalte 3: Pokémon (Sprite + Name + Crypto/XL/Lv-Badges)
+      // Spalte 3: Pokémon (Form-Sprite + Name + Form/Crypto/XL-Badges + Typen)
       var tdMon = el('td', { class: 'gc-td-mon' });
       var monCell = el('div', { class: 'gc-mon-cell' });
-      var sp = A.spriteById(r.sid, r.label || '', false, de ? r.nameDe : r.nameEn);
-      sp.loading = 'lazy';
-      monCell.appendChild(sp);
+      var spBox = el('div', { class: 'gc-mon-sp' + (r.shadow ? ' is-shadow' : '') + (r.isMega ? ' is-mega' : '') });
+      spBox.appendChild(monSpriteImg(r, 'gc-mon-img'));
+      monCell.appendChild(spBox);
 
       var nameWrap = el('div', { class: 'gc-mon-names' });
       var nameLine = el('div', { class: 'gc-mon-line' });
       if (r.shadow) {
         nameLine.appendChild(el('span', { class: 'gc-shadow-badge', title: de ? 'Crypto-Pokémon (+20% Angriff, −16,7% Vert.)' : 'Shadow Pokémon (+20% Atk, −16.7% Def)', text: de ? 'Crypto' : 'Shadow' }));
       }
-      nameLine.appendChild(el('span', { class: 'gc-mon-name', text: monName(r) }));
+      nameLine.appendChild(el('span', { class: 'gc-mon-name', text: monBaseName(r) }));
+      var flText = monFormText(r);
+      if (flText) {
+        nameLine.appendChild(el('span', { class: 'gc-form-badge' + (r.isMega ? ' is-mega' : ''), text: flText }));
+      }
       if (r.level >= 50 && st.levelMode === 'xl') {
         nameLine.appendChild(el('span', { class: 'gc-lv-badge', text: 'XL' }));
       } else if (r.level > 40 && r.level % 10 === 2) {
         nameLine.appendChild(el('span', { class: 'gc-lv-badge', text: '+' + (r.level - (st.levelMode === '50' ? 50 : 40)) }));
       }
       nameWrap.appendChild(nameLine);
+
+      var subLine = el('div', { class: 'gc-mon-sub' });
+      subLine.appendChild(el('span', { class: 'gc-mon-num', text: '#' + fmtNum(r.num) }));
+      (r.types || []).forEach(function (t) { subLine.appendChild(A.typeBadge(t)); });
+      nameWrap.appendChild(subLine);
+
       monCell.appendChild(nameWrap);
       tdMon.appendChild(monCell);
       tdMon.addEventListener('click', function () {
@@ -1733,7 +1812,10 @@
       var tdFm = el('td', { class: 'gc-td-move' });
       var fmBox = el('div', { class: 'gc-mv-cell' });
       if (r.fm_type && r.fm_type !== 'None') fmBox.appendChild(A.typeBadge(r.fm_type));
-      fmBox.appendChild(el('span', { class: 'gc-mv-txt' + (r.fm_is_elite ? ' is-elite' : ''), text: moveName(r.fm) + (r.fm_is_elite ? ' *' : '') }));
+      fmBox.appendChild(el('span', { class: 'gc-mv-txt' + (r.fm_is_elite ? ' is-elite' : ''), text: moveName(r.fm) }));
+      if (r.fm_is_elite) {
+        fmBox.appendChild(el('span', { class: 'gd-tag gd-elite', title: de ? 'Elite-TM / Spezial-Attacke' : 'Elite TM / special move', text: 'Elite' }));
+      }
       tdFm.appendChild(fmBox);
       tr.appendChild(tdFm);
 
@@ -1741,14 +1823,17 @@
       var tdCm = el('td', { class: 'gc-td-move' });
       var cmBox = el('div', { class: 'gc-mv-cell' });
       if (r.cm_type) cmBox.appendChild(A.typeBadge(r.cm_type));
-      cmBox.appendChild(el('span', { class: 'gc-mv-txt' + (r.cm_is_elite ? ' is-elite' : ''), text: moveName(r.cm) + (r.cm_is_elite ? ' *' : '') }));
+      cmBox.appendChild(el('span', { class: 'gc-mv-txt' + (r.cm_is_elite ? ' is-elite' : ''), text: moveName(r.cm) }));
+      if (r.cm_is_elite) {
+        cmBox.appendChild(el('span', { class: 'gd-tag gd-elite', title: de ? 'Elite-TM / Spezial-Attacke' : 'Elite TM / special move', text: 'Elite' }));
+      }
       tdCm.appendChild(cmBox);
       tr.appendChild(tdCm);
 
       // Spalte 6..8: eDPS, DPS, TDO
-      tr.appendChild(el('td', { class: 'num' + (st.metric === 'eDPS' ? ' gc-col-active' : ''), text: fmtDec(r.edps, 2) }));
-      tr.appendChild(el('td', { class: 'num' + (st.metric === 'DPS' ? ' gc-col-active' : ''), text: fmtDec(r.dps, 2) }));
-      tr.appendChild(el('td', { class: 'num' + (st.metric === 'TDO' ? ' gc-col-active' : ''), text: fmtDec(r.tdo, 0) }));
+      tr.appendChild(el('td', { class: 'num gc-td-num' + (st.metric === 'eDPS' ? ' gc-col-active' : ''), text: fmtDec(r.edps, 2) }));
+      tr.appendChild(el('td', { class: 'num gc-td-num' + (st.metric === 'DPS' ? ' gc-col-active' : ''), text: fmtDec(r.dps, 2) }));
+      tr.appendChild(el('td', { class: 'num gc-td-num' + (st.metric === 'TDO' ? ' gc-col-active' : ''), text: fmtDec(r.tdo, 0) }));
 
       // Spalte 9: Prozentbalken
       var tdPct = el('td', { class: 'gc-td-pct' });
@@ -1773,7 +1858,7 @@
     var foot = el('div', { class: 'gc-table-foot' });
     foot.appendChild(el('span', {
       text: (de ? 'Zeige ' : 'Showing ') + visible.length + (de ? ' von ' : ' of ') + rows.length +
-            (de ? ' Einträgen · * = Elite-TM / Spezial-Attacke · Klick auf ein Pokémon öffnet den GO-Pokédex' : ' entries · * = Elite TM / special move · Click any Pokémon to open GO Pokédex')
+            (de ? ' Einträgen · Klick auf ein Pokémon öffnet den GO-Pokédex' : ' entries · Click any Pokémon to open GO Pokédex')
     }));
     if (rows.length > visible.length) {
       var moreBtn = el('button', { type: 'button', class: 'tbtn', text: de ? '+ 100 weitere anzeigen' : 'Show +100 more' });

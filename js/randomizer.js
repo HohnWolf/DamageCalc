@@ -32,12 +32,7 @@
   var st = { eng: null, ext: 'gba', rom: null, buf: null, name: '', info: null, opts: JSON.parse(JSON.stringify(R.DEFAULTS)), msg: '', err: '', log: '', busy: false };
   var root;
 
-  function download(name, bytes, mime) {
-    var blob = new Blob([bytes], { type: mime || 'application/octet-stream' });
-    var a = el('a', { href: URL.createObjectURL(blob), download: name });
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
-  }
+  function download(name, bytes, mime) { A.saveFile(name, bytes, mime); }
   function setup(eng, rom, info, ext, name, extra) {
     st.eng = eng; st.ext = ext; st.opts = JSON.parse(JSON.stringify(eng.DEFAULTS));
     st.rom = rom; st.name = name; st.info = info; st.kind = extra && extra.kind || 'buf';
@@ -116,7 +111,7 @@
     var body = el('div', { class: 'rd-body' });
     body.appendChild(el('p', { class: 'hint', text: S.sub }));
     body.appendChild(el('p', { class: 'hint', text: S.gens }));
-    var inp = el('input', { type: 'file', accept: '.gba,.gb,.gbc,.nds,.3ds,.cxi', style: 'display:none' });
+    var inp = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : '.gba,.gb,.gbc,.nds,.3ds,.cxi', style: 'display:none' });
     inp.onchange = function () { if (inp.files[0]) load(inp.files[0]); };
     var pick = el('button', { class: 'primary-btn rd-pick', text: S.pick }); pick.onclick = function () { inp.click(); };
     var dz = el('div', { class: 'rd-drop' }); dz.appendChild(pick); dz.appendChild(el('span', { class: 'hint', text: S.drop })); dz.appendChild(inp);

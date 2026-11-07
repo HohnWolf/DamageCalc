@@ -88,6 +88,32 @@
   // ======================= storage =======================
   function load(key, def) { try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? def : v; } catch (e) { return def; } }
   function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); return true; } catch (e) { return false; } }
+  // Datei speichern: am Desktop/Browser als Download, in der Android-App (Capacitor) über Filesystem + Teilen-Dialog
+  function saveFile(name, data, mime) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: mime || 'application/octet-stream' });
+    var cap = window.Capacitor, P = cap && cap.Plugins;
+    if (window.RL_ANDROID && P && P.Filesystem && P.Share) {
+      var safe = String(name).replace(/[\/:*?"<>|]+/g, '_');
+      return new Promise(function (res, rej) {
+        var fr = new FileReader();
+        fr.onload = function () { res(String(fr.result).split(',')[1] || ''); };
+        fr.onerror = rej;
+        fr.readAsDataURL(blob);
+      }).then(function (b64) {
+        return P.Filesystem.writeFile({ path: safe, data: b64, directory: 'CACHE' });
+      }).then(function (w) {
+        return P.Share.share({ title: safe, files: [w.uri], dialogTitle: safe });
+      }).catch(function (e) {
+        if (e && /cancel/i.test(String(e.message || e))) return;
+        if (typeof toast === 'function') toast((LANG === 'de' ? 'Speichern fehlgeschlagen: ' : 'Saving failed: ') + (e && e.message || e));
+      });
+    }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+    return Promise.resolve();
+  }
 
   // ======================= i18n (Deutsch / English) =======================
   var LANG = load('cc_lang', 'de');
@@ -2096,7 +2122,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.1') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.2') + (s.portable ? ' · Portable' : '') }));
     info.appendChild(titleRow);
     info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
     var msg = updMessage(s);
@@ -2177,7 +2203,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.17.1';
+      var ver = (updStatus && updStatus.current) || '1.17.2';
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
       side.appendChild(sideFoot);
       shell.appendChild(side);
@@ -2349,14 +2375,11 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: '1.17.1', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: '1.17.2', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
-            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            var a = el('a', { href: URL.createObjectURL(blob), download: 'rattata-lab-backup-' + data.date + '.json' });
-            document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+            saveFile('rattata-lab-backup-' + data.date + '.json', JSON.stringify(data, null, 2), 'application/json');
             toast(T('backupSaved'));
           });
           var bLoad = el('button', { type: 'button', class: 'set-btn', text: T('setBackupLoad') });
@@ -2443,7 +2466,7 @@
   var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['dex', ['dex']], ['go', ['godex', 'gocounter']], ['rest', ['shiny', 'overlay', 'catch']]];
   // Android-App (Capacitor, mobile/): ohne die Werkzeuge der Kategorie 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner), sie brauchen den Desktop
   if (window.RL_ANDROID) {
-    var REST = ['shiny', 'overlay', 'catch', 'randomizer', 'savedit']; // der Randomizer braucht ROM-Dateien vom PC
+    var REST = ['shiny', 'overlay', 'catch']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
     CATS = CATS.filter(function (c) { return c[0] !== 'rest'; }).map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; });
@@ -2662,7 +2685,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.17.1';
+    var ver = (updStatus && updStatus.current) || '1.17.2';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -2837,7 +2860,7 @@
     el: el, esc: esc, opt: opt, toast: toast, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
     parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
-    setting: setting, setSetting: setSetting, openSettings: openSettings, saveCustomSet: saveCustomSet
+    setting: setting, setSetting: setSetting, saveFile: saveFile, openSettings: openSettings, saveCustomSet: saveCustomSet
   };
   // expose for debugging
   window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES };

@@ -26,10 +26,7 @@
   var st = { sv: null, name: '', orig: null, base: 0, err: '', msg: '', box: 0, sel: null, mon: null, dirty: false };
   var root;
 
-  function download(name, bytes) {
-    var a = el('a', { href: URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' })), download: name });
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
-  }
+  function download(name, bytes) { A.saveFile(name, bytes); }
   function nm(list, i) { return (list && list[i]) || ''; }
   function speciesName(nat) { return nm(T.species, nat); }
   function itemList() { return T[st.sv.items]; }

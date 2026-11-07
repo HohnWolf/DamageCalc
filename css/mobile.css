@@ -50,3 +50,22 @@ html.rl-android .dex-layout > * { height: auto !important; max-height: none !imp
 html.rl-android .dex-sidebar, html.rl-android .gd-sidebar { overflow: visible !important; height: auto !important; }
 html.rl-android .dex-list, html.rl-android .gd-list { flex: none !important; height: 55vh; max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
 html.rl-android .dex-row { flex: none; min-height: 48px; }
+
+/* Top Counter (GO): einspaltig, Seitenleiste ohne eigene Scrollbox, Tabelle horizontal scrollbar */
+html.rl-android .gc-layout { grid-template-columns: minmax(0, 1fr) !important; }
+html.rl-android .gc-main, html.rl-android .gc-sidebar { min-width: 0; max-width: 100%; }
+html.rl-android .gc-sidebar, html.rl-android .gc-side-body { overflow: visible !important; height: auto !important; }
+html.rl-android .gc-mode-tab { min-height: 44px; font-size: 13.5px; }
+html.rl-android .gc-seg > button { min-height: 36px; font-size: 12.5px; }
+html.rl-android .gc-type-pill { min-height: 34px; font-size: 12px; }
+html.rl-android .gc-flt-chip { min-height: 40px; font-size: 12.5px; }
+html.rl-android .gc-boss-Quicklist { max-height: 40vh; }
+html.rl-android .gc-boss-item { min-height: 40px; }
+html.rl-android .gc-head-top { flex-direction: column; align-items: stretch; }
+html.rl-android .gc-head-actions { margin-left: 0; }
+html.rl-android .gc-table-search { flex: 1 1 100%; width: 100%; }
+html.rl-android .gc-table-panel { overflow: visible !important; }
+html.rl-android .gc-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; max-height: none; }
+html.rl-android .gc-table { min-width: 760px; }
+html.rl-android .gc-table thead th { position: static; }
+html.rl-android #gcBossBanner .gc-boss-card { flex-wrap: wrap; }

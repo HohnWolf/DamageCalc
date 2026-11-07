@@ -90,6 +90,17 @@
     else chain.push(ani, home, dex, px);
     if (shiny) chain.push(home.replace('-shiny/', '/'), pxNormal);
 
+    var baseId = spriteId.replace(/-.*$/, '');
+    if (baseId && baseId !== spriteId) {
+      var bAni = base + (shiny ? 'ani-shiny/' : 'ani/') + baseId + '.gif';
+      var bHome = base + (shiny ? 'home-centered-shiny/' : 'home-centered/') + baseId + '.png';
+      var bDex = base + (shiny ? 'dex-shiny/' : 'dex/') + baseId + '.png';
+      var bPx = base + (shiny ? 'gen5-shiny/' : 'gen5/') + baseId + '.png';
+      if (mode === 'home') chain.push(bHome, bDex, bAni, bPx);
+      else if (mode === 'sprite') chain.push(bPx, bDex, bHome, bAni);
+      else chain.push(bAni, bHome, bDex, bPx);
+    }
+
     var i = 0;
     function syncCls(u) {
       img.classList.toggle('is-pixel', u.indexOf('/gen5') !== -1);

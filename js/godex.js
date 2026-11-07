@@ -77,6 +77,8 @@
     if (!l) return 'Normal';
     if (l === 'A' && num === 150) return de ? 'Rüstung' : 'Armored';
     if (l === 'S' && (num === 249 || num === 250)) return 'Apex';
+    if (l === 'Crowned' && num === 888) return de ? 'König des Schwertes' : 'Crowned Sword';
+    if (l === 'Crowned' && num === 889) return de ? 'König des Schildes' : 'Crowned Shield';
     var df = dexFormOf(num, l);
     if (df) return de ? (df.labelDe || df.labelEn || l) : (df.labelEn || df.labelDe || l);
     var t = (de ? FORM_DE[l] : FORM_EN[l]) || String(l).replace(/[_-]/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
@@ -457,5 +459,5 @@
     A.showView('godex');
   }
 
-  window.CCGoDex = { render: render, openMon: openMon, spriteImg: spriteImg, formLabel: formLabel };
+  window.CCGoDex = { render: render, openMon: openMon, spriteImg: spriteImg, spriteIdFor: spriteIdFor, formLabel: formLabel };
 })();
