@@ -491,7 +491,8 @@
 
   function open(buf) {
     var u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
-    return open3(u8) || open4(u8) || open5(u8) || null;
+    var gb = window.CCSaveGB;
+    return open3(u8) || open4(u8) || open5(u8) || (window.CCSave3DS && window.CCSave3DS.open(u8)) || (gb && (gb.open2(u8) || gb.open1(u8))) || null;
   }
 
   window.CCSave = { PK5: PK5, open: open, expFor: expFor, levelFor: levelFor, calcStats: calcStats, NAT_MOD: NAT_MOD, PK3: PK3, PK4: PK4 };

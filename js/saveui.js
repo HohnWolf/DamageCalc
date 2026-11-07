@@ -7,20 +7,20 @@
   var el = A.el, esc = A.esc, de = A.LANG === 'de', T = de ? T0.de : T0.en;
   var L = de ? {
     title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 3, 4 und 5 (.sav, .dsv).',
-    pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 3 (GBA), 4 und 5 (DS).',
+    pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 1 und 2 (Game Boy), 3 (GBA), 4 und 5 (DS) sowie 6 und 7 (3DS, die "main"-Datei).',
     game: 'Erkannt:', save: 'Spielstand speichern', saved: 'Gespeichert. Mach vorher immer eine Sicherungskopie deines echten Spielstands.', trainer: 'Trainer', party: 'Team', box: 'Box',
     name: 'Name', money: 'Geld', gender: 'Geschlecht', male: 'Männlich', female: 'Weiblich', time: 'Spielzeit (Std : Min)', empty: 'Leer', apply: 'Übernehmen', remove: 'Entfernen', create: 'Neues Pokémon',
     species: 'Pokémon', nick: 'Spitzname', level: 'Level', exp: 'Erfahrung', item: 'Item', none: '–', nature: 'Wesen', shiny: 'Shiny', friendship: 'Freundschaft', egg: 'Ei', ability: 'Fähigkeit',
     slot2: 'Zweite Fähigkeit', moves: 'Attacken', pp: 'AP', ppups: 'AP-Ups', ev: 'EP', iv: 'IP', stats: 'Werte', ot: 'Ursprungstrainer', stat: ['KP', 'Angr', 'Vert', 'Init', 'SpA', 'SpV'],
-    edit: 'Pokémon bearbeiten', ok: 'Pokémon übernommen (noch nicht gespeichert).', evsum: 'EP-Summe', delconfirm: 'Dieses Pokémon entfernen?', all: 'Maximal', self: 'Eigenes Team'
+    dv: 'DVs', statexp: 'Erfahrungswerte (EP)', gbstat: ['KP', 'Angr', 'Vert', 'Init', 'Spezial'], edit: 'Pokémon bearbeiten', ok: 'Pokémon übernommen (noch nicht gespeichert).', evsum: 'EP-Summe', delconfirm: 'Dieses Pokémon entfernen?', all: 'Maximal', self: 'Eigenes Team'
   } : {
     title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generation 3, 4 and 5 (.sav, .dsv).',
-    pick: 'Choose save file …', drop: 'or drag a .sav / .dsv file here', bad: 'This file is not recognized. Generation 3 (GBA), 4 and 5 (DS) saves are supported.',
+    pick: 'Choose save file …', drop: 'or drag a .sav / .dsv file here', bad: 'This file is not recognized. Generation 1 and 2 (Game Boy), 3 (GBA), 4 and 5 (DS) and 6 and 7 (3DS, the "main" file) saves are supported.',
     game: 'Detected:', save: 'Save file', saved: 'Saved. Always keep a backup of your real save first.', trainer: 'Trainer', party: 'Party', box: 'Box',
     name: 'Name', money: 'Money', gender: 'Gender', male: 'Male', female: 'Female', time: 'Play time (h : min)', empty: 'Empty', apply: 'Apply', remove: 'Remove', create: 'New Pokémon',
     species: 'Pokémon', nick: 'Nickname', level: 'Level', exp: 'Experience', item: 'Item', none: '–', nature: 'Nature', shiny: 'Shiny', friendship: 'Friendship', egg: 'Egg', ability: 'Ability',
     slot2: 'Second ability', moves: 'Moves', pp: 'PP', ppups: 'PP Ups', ev: 'EVs', iv: 'IVs', stats: 'Stats', ot: 'Original trainer', stat: ['HP', 'Atk', 'Def', 'Spe', 'SpA', 'SpD'],
-    edit: 'Edit Pokémon', ok: 'Pokémon applied (not saved yet).', evsum: 'EV total', delconfirm: 'Remove this Pokémon?', all: 'Max', self: 'Own party'
+    dv: 'DVs', statexp: 'Stat experience', gbstat: ['HP', 'Atk', 'Def', 'Spe', 'Special'], edit: 'Edit Pokémon', ok: 'Pokémon applied (not saved yet).', evsum: 'EV total', delconfirm: 'Remove this Pokémon?', all: 'Max', self: 'Own party'
   };
 
   var st = { sv: null, name: '', orig: null, base: 0, err: '', msg: '', box: 0, sel: null, mon: null, dirty: false };
@@ -37,7 +37,7 @@
   function maxItem() { return st.sv.maxItem; }
   function maxAbility() { return st.sv.maxAbility; }
   function pers(species) { var e = P['g' + st.sv.gen][st.sv.natOf(species)]; return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0]; }
-  function isShiny(d) { var F = st.sv.fmt, p = F.get(d, 'pid'); return ((F.get(d, 'tid') ^ F.get(d, 'sid') ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < 8; }
+  function isShiny(d) { var F = st.sv.fmt; if (F.gb) return F.shiny(d);  p = F.get(d, 'pid'); return ((F.get(d, 'tid') ^ F.get(d, 'sid') ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8); }
   function genderOf(d, species) { var r = pers(species)[7], pid = st.sv.fmt.get(d, 'pid'); return r === 255 ? 2 : r === 254 ? 1 : r === 0 ? 0 : ((pid & 0xFF) < r ? 1 : 0); }
   // neue PID mit gewünschtem Wesen / Shiny-Status (Geschlecht und Fähigkeits-Slot bleiben erhalten)
   function newPid(d, nature, shiny) {
@@ -46,7 +46,7 @@
       var p = ((Math.random() * 0x10000) << 16 | (Math.random() * 0x10000)) >>> 0;
       p = ((p & 0xFFFFFF00) | low) >>> 0;
       if (F.natureIsPid && p % 25 !== nature) continue;
-      var sh = ((tid ^ sid ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < 8;
+      var sh = ((tid ^ sid ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8);
       if (sh !== shiny) continue;
       if (st.sv.gen === 3 && ((p & 1) !== bit) && false) continue;
       return p;
@@ -68,6 +68,11 @@
     if (hpFull) F.set(d, 'hp', r.stats[0]);
   }
   function blank(species, party) {
+    if (st.sv.blank) {
+      var nd = st.sv.blank(species, st.sv.getTrainer()); st.sv.fmt.set(nd, 'nick', speciesName(species));
+      if (party) refreshParty(nd);
+      return nd;
+    }
     var sv = st.sv, F = sv.fmt, d = new Uint8Array(party ? F.partySize : F.size), t = sv.getTrainer(), lang = de ? (sv.gen === 3 ? 5 : 5) : 2;
     F.set(d, 'pid', ((Math.random() * 0x10000) << 16 | (Math.random() * 0x10000)) >>> 0);
     F.set(d, 'tid', t.tid); F.set(d, 'sid', t.sid);
@@ -132,11 +137,91 @@
   }
   function select2(html, on) { var s = el('select', { class: 'sv-sel' }, html); s.onchange = function () { on(+s.value); }; return s; }
 
+  // ---------- Generation 1/2 (DVs statt IP, Erfahrungswerte statt EP, kein Wesen / keine Fähigkeit) ----------
+  function gbBlank(party) {
+    var sv = st.sv, F = sv.fmt, t = sv.getTrainer(), d = F.blank(1, t.tid, t.name, 5);
+    F.set(d, 'nick', speciesName(1).toUpperCase());
+    gbRefresh(d, party); return d;
+  }
+  function gbRecalc(d) {
+    var sv = st.sv, F = sv.fmt, sp = F.get(d, 'species'), g = sv.growthOf(sp), lv = S.levelFor(g, F.get(d, 'exp')), dv = [], se = [], i;
+    for (i = 0; i < 4; i++) dv.push(F.get(d, 'dv', i));
+    for (i = 0; i < 5; i++) se.push(F.get(d, 'ev', i));
+    return { level: lv, stats: window.CCSaveGB.calc(sv.baseOf(sp), lv, dv, se) };
+  }
+  function gbRefresh(d) {
+    var F = st.sv.fmt, r = gbRecalc(d);
+    F.set(d, 'level', r.level);
+    var oldMax = F.stats(d)[0] || 0, full = !oldMax || F.get(d, 'hp') >= oldMax;
+    F.setStats(d, r.stats);
+    if (full || F.get(d, 'hp') > r.stats[0]) F.set(d, 'hp', r.stats[0]);
+  }
+  function gbEditor(box, d, party) {
+    var sv = st.sv, F = sv.fmt;
+    function changed() { render(); }
+    var sp = F.get(d, 'species'), g = sv.growthOf(sp);
+    var natOpts = ''; for (var n = 1; n <= sv.maxSpecies; n++) natOpts += '<option value="' + n + '"' + (n === sp ? ' selected' : '') + '>#' + n + ' ' + esc(speciesName(n)) + '</option>';
+    box.appendChild(field(L.species, select2(natOpts, function (v) {
+      if (F.get(d, 'nick') === speciesName(sp).toUpperCase()) F.set(d, 'nick', speciesName(v).toUpperCase());
+      F.set(d, 'species', v); gbRefresh(d); changed();
+    })));
+    var nk = el('input', { type: 'text', class: 'sv-txt', maxlength: 10 }); nk.value = F.get(d, 'nick'); nk.onchange = function () { F.set(d, 'nick', nk.value.toUpperCase()); };
+    box.appendChild(field(L.nick, nk));
+    var row = el('div', { class: 'sv-row' }), lvl = S.levelFor(g, F.get(d, 'exp'));
+    row.appendChild(field(L.level, num(lvl, 1, 100, function (v) { F.set(d, 'exp', S.expFor(g, v)); gbRefresh(d); changed(); }), 'sm'));
+    row.appendChild(field(L.exp, num(F.get(d, 'exp'), 0, 1640000, function (v) { F.set(d, 'exp', v); gbRefresh(d); changed(); }), 'sm'));
+    if (sv.gen === 2) row.appendChild(field(L.friendship, num(F.get(d, 'friendship'), 0, 255, function (v) { F.set(d, 'friendship', v); }), 'sm'));
+    box.appendChild(row);
+    if (sv.gen === 2) {
+      box.appendChild(field(L.item, select2(opts(itemList(), maxItem(), F.get(d, 'item'), L.none), function (v) { F.set(d, 'item', v); })));
+      var row2 = el('div', { class: 'sv-row' });
+      var sh = el('input', { type: 'checkbox' }); sh.checked = F.shiny(d); sh.onchange = function () { F.setShiny(d, sh.checked); changed(); };
+      var shl = el('label', { class: 'sv-check' }); shl.appendChild(sh); shl.appendChild(el('span', { text: L.shiny })); row2.appendChild(shl);
+      var eg = el('input', { type: 'checkbox' }); eg.checked = !!F.get(d, 'egg'); eg.onchange = function () { F.set(d, 'egg', eg.checked ? 1 : 0); };
+      var egl = el('label', { class: 'sv-check' }); egl.appendChild(eg); egl.appendChild(el('span', { text: L.egg })); row2.appendChild(egl);
+      box.appendChild(row2);
+    }
+    var mt = el('div', { class: 'sv-moves' });
+    for (var m = 0; m < 4; m++) (function (m) {
+      var r = el('div', { class: 'sv-mrow' });
+      r.appendChild(select2(opts(T.moves, maxMove(), F.get(d, 'move', m), L.none), function (v) { F.set(d, 'move', v, m); if (v && !F.get(d, 'pp', m)) F.set(d, 'pp', 10, m); changed(); }));
+      r.appendChild(num(F.get(d, 'pp', m), 0, 63, function (v) { F.set(d, 'pp', v, m); }));
+      r.appendChild(num(F.get(d, 'ppups', m), 0, 3, function (v) { F.set(d, 'ppups', v, m); }));
+      mt.appendChild(r);
+    })(m);
+    var mh = el('div', { class: 'sv-mrow sv-mhead' }); mh.appendChild(el('span', { text: L.moves })); mh.appendChild(el('span', { text: L.pp })); mh.appendChild(el('span', { text: L.ppups }));
+    box.appendChild(mh); box.appendChild(mt);
+    var r = gbRecalc(d);
+    var tbl = el('table', { class: 'sv-stats' });
+    tbl.innerHTML = '<tr><th></th>' + L.gbstat.map(function (x) { return '<th>' + esc(x) + '</th>'; }).join('') + '</tr>';
+    var rEv = el('tr'), rDv = el('tr'), rSt = el('tr'); rEv.appendChild(el('th', { text: L.statexp })); rDv.appendChild(el('th', { text: L.dv })); rSt.appendChild(el('th', { text: L.stats }));
+    for (var s = 0; s < 5; s++) (function (s) {
+      var e = el('td'); e.appendChild(num(F.get(d, 'ev', s), 0, 65535, function (v) { F.set(d, 'ev', v, s); gbRefresh(d); changed(); })); rEv.appendChild(e);
+      var dc = el('td');
+      if (s === 0) dc.appendChild(el('span', { text: String(((F.get(d, 'dv', 0) & 1) << 3) | ((F.get(d, 'dv', 1) & 1) << 2) | ((F.get(d, 'dv', 2) & 1) << 1) | (F.get(d, 'dv', 3) & 1)) }));
+      else dc.appendChild(num(F.get(d, 'dv', s - 1), 0, 15, function (v) { F.set(d, 'dv', v, s - 1); gbRefresh(d); changed(); }));
+      rDv.appendChild(dc);
+      rSt.appendChild(el('td', { text: String(r.stats[s]) }));
+    })(s);
+    tbl.appendChild(rEv); tbl.appendChild(rDv); tbl.appendChild(rSt); box.appendChild(tbl);
+    var ot = el('input', { type: 'text', class: 'sv-txt', maxlength: 7 }); ot.value = F.get(d, 'ot'); ot.onchange = function () { F.set(d, 'ot', ot.value.toUpperCase()); };
+    var row3 = el('div', { class: 'sv-row' });
+    row3.appendChild(field(L.ot, ot));
+    row3.appendChild(field('TID', num(F.get(d, 'tid'), 0, 65535, function (v) { F.set(d, 'tid', v); }), 'sm'));
+    box.appendChild(row3);
+    var bar = el('div', { class: 'sv-bar' });
+    var ap = el('button', { class: 'primary-btn', text: L.apply }); ap.onclick = apply; bar.appendChild(ap);
+    var rm = el('button', { class: 'sv-del', text: L.remove }); rm.onclick = remove; bar.appendChild(rm);
+    box.appendChild(bar);
+    return box;
+  }
+
   function monEditor() {
     var sv = st.sv, F = sv.fmt, d = st.mon, box = el('div', { class: 'sv-ed' }), party = st.sel.kind === 'party';
     box.appendChild(el('h3', { text: L.edit }));
+    if (d && sv.gb) return gbEditor(box, d, party);
     if (!d) {
-      var c = el('button', { class: 'primary-btn', text: L.create }); c.onclick = function () { st.mon = blank(sv.speciesFromNat(1), party); render(); };
+      var c = el('button', { class: 'primary-btn', text: L.create }); c.onclick = function () { st.mon = sv.gb ? gbBlank(party) : blank(sv.speciesFromNat(1), party); render(); };
       box.appendChild(c); return box;
     }
     function changed() { render(); }
@@ -145,14 +230,15 @@
     var natOpts = ''; for (var n = 1; n <= sv.maxSpecies; n++) natOpts += '<option value="' + n + '"' + (n === nat ? ' selected' : '') + '>#' + n + ' ' + esc(speciesName(n)) + '</option>';
     var selSp = select2(natOpts, function (v) {
       var old = pers(sp); F.set(d, 'species', sv.speciesFromNat(v));
-      if (!F.get(d, 'nicknamed') && sv.gen === 4) F.set(d, 'nick', speciesName(v));
+      if (!F.get(d, 'nicknamed') && sv.gen >= 4) F.set(d, 'nick', speciesName(v));
       if (sv.gen === 3 && F.get(d, 'nick') === speciesName(nat).toUpperCase()) F.set(d, 'nick', speciesName(v).toUpperCase());
       if (sv.gen === 4) F.set(d, 'ability', pers(F.get(d, 'species'))[8 + (F.get(d, 'pid') & 1)] || 0);
+      if (sv.gen >= 6) { F.set(d, 'ability', pers(F.get(d, 'species'))[8] || 0); F.set(d, 'abilityNum', 1); }
       if (party) refreshParty(d); changed();
     });
     box.appendChild(field(L.species, selSp));
-    var nk = el('input', { type: 'text', class: 'sv-txt', maxlength: sv.gen === 3 ? 10 : 10 }); nk.value = F.get(d, 'nick');
-    nk.onchange = function () { F.set(d, 'nick', nk.value); if (sv.gen === 4) F.set(d, 'nicknamed', 1); };
+    var nk = el('input', { type: 'text', class: 'sv-txt', maxlength: sv.gen >= 6 ? 12 : 10 }); nk.value = F.get(d, 'nick');
+    nk.onchange = function () { F.set(d, 'nick', nk.value); if (sv.gen >= 4) F.set(d, 'nicknamed', 1); };
     box.appendChild(field(L.nick, nk));
     var lvl = S.levelFor(g[6], F.get(d, 'exp'));
     var row = el('div', { class: 'sv-row' });
@@ -236,17 +322,17 @@
   function trainerPanel() {
     var sv = st.sv, t = sv.getTrainer(), box = el('div', { class: 'sv-tr' });
     box.appendChild(el('h3', { text: L.trainer }));
-    var name = el('input', { type: 'text', class: 'sv-txt', maxlength: 7 }); name.value = t.name;
+    var name = el('input', { type: 'text', class: 'sv-txt', maxlength: sv.gen >= 6 ? 12 : 7 }); name.value = t.name;
     function save() { sv.setTrainer(t); st.dirty = true; }
     name.onchange = function () { t.name = name.value; save(); };
     box.appendChild(field(L.name, name));
     var row = el('div', { class: 'sv-row' });
     row.appendChild(field('TID', num(t.tid, 0, 65535, function (v) { t.tid = v; save(); }), 'sm'));
-    row.appendChild(field('SID', num(t.sid, 0, 65535, function (v) { t.sid = v; save(); }), 'sm'));
+    if (!t.noSid) row.appendChild(field('SID', num(t.sid, 0, 65535, function (v) { t.sid = v; save(); }), 'sm'));
     row.appendChild(field(L.money, num(t.money, 0, 999999, function (v) { t.money = v; save(); }), 'sm'));
     box.appendChild(row);
     var gs = select2('<option value="0"' + (!t.gender ? ' selected' : '') + '>' + esc(L.male) + '</option><option value="1"' + (t.gender ? ' selected' : '') + '>' + esc(L.female) + '</option>', function (v) { t.gender = v; save(); });
-    box.appendChild(field(L.gender, gs));
+    if (!t.noGender) box.appendChild(field(L.gender, gs));
     return box;
   }
 
@@ -257,7 +343,7 @@
     box.appendChild(el('h2', { text: L.title }));
     var body = el('div', { class: 'rd-body' });
     body.appendChild(el('p', { class: 'hint', text: L.sub }));
-    var inp = el('input', { type: 'file', accept: '.sav,.dsv,.srm,.bin', style: 'display:none' });
+    var inp = el('input', { type: 'file', style: 'display:none' });
     inp.onchange = function () { if (inp.files[0]) load(inp.files[0]); };
     var pick = el('button', { class: 'primary-btn rd-pick', text: L.pick }); pick.onclick = function () { inp.click(); };
     var dz = el('div', { class: 'rd-drop' }); dz.appendChild(pick); dz.appendChild(el('span', { class: 'hint', text: L.drop })); dz.appendChild(inp);
@@ -271,8 +357,8 @@
       body.appendChild(el('div', { class: 'rd-game', html: '<b>' + esc(L.game) + '</b> ' + esc((de ? sv.gameName : sv.gameNameEn)) + ' (Gen ' + sv.gen + ') – ' + esc(st.name) }));
       var sb = el('button', { class: 'primary-btn rd-go', text: L.save }); sb.onclick = function () {
         var out = new Uint8Array(st.orig); out.set(sv.finish(), st.base);
-        var base = st.name.replace(/\.[^.]*$/, ''), ext = (st.name.split('.').pop() || 'sav');
-        download(base + ' (edited).' + ext, out); st.msg = L.saved; st.dirty = false; render();
+        var hasExt = st.name.indexOf('.') > 0, base = st.name.replace(/\.[^.]*$/, ''), ext = (st.name.split('.').pop() || 'sav');
+        download(hasExt ? base + ' (edited).' + ext : st.name + ' (edited)', out); st.msg = L.saved; st.dirty = false; render();
       };
       body.appendChild(sb);
       if (st.msg) body.appendChild(el('div', { class: 'rd-ok', text: st.msg }));
