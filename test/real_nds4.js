@@ -1,0 +1,22 @@
+// Prüft den Gen-4-Randomizer an echten ROMs (Pfade als Argumente): node test/real_nds4.js <rom.nds>
+global.window = {}; global.document = {};
+const r = __dirname + '/../';
+require(r + 'js/nds.js'); require(r + 'js/gen3.js'); require(r + 'js/rand_gen3.js'); require(r + 'js/rand_nds.js'); require(r + 'data/natdex.js');
+const fs = require('fs'), assert = require('assert');
+const u8 = new Uint8Array(fs.readFileSync(process.argv[2]));
+const rom = window.NDS.parseRom(u8);
+const R = window.CCRandNds;
+console.log(rom.code, rom.game, R.scan(rom, u8));
+const opts = { seed: 'x', wild: 'similar', trainers: 'random', evo: 'random', stats: 'random', types: 'random', abilities: 'random', moves: 'random', trainerLevel: 10, noLegend: true };
+const a = R.run(u8, rom, opts), b = R.run(u8, rom, opts);
+assert.equal(a.log, b.log); assert.ok(Buffer.compare(Buffer.from(a.data), Buffer.from(b.data)) === 0);
+assert.equal(a.data.length, u8.length);
+const rom2 = window.NDS.parseRom(a.data);
+let bad = 0;
+rom2.trainers.forEach(t => t.party.forEach(p => { if (!R.validSpecies(rom2, p.species)) bad++; }));
+assert.equal(bad, 0);
+R.wildSlots(rom2).forEach(s => { const v = s.size === 2 ? s.file[s.off] | s.file[s.off + 1] << 8 : s.file[s.off] | s.file[s.off + 1] << 8 | s.file[s.off + 2] << 16; assert.ok(v >= 1 && v <= 493); });
+let diff = 0; for (let i = 0; i < u8.length; i++) if (u8[i] !== a.data[i]) diff++;
+console.log('geänderte Bytes', diff, 'Log-Zeilen', a.log.split('\n').length);
+console.log(a.log.split('\n').filter(l => /^Karte|^Starter|→/.test(l)).slice(0, 8).join('\n'));
+console.log('OK');

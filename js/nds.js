@@ -180,13 +180,13 @@
   var LANGS = { D: 'DE', E: 'EN', O: 'EN', P: 'EN', F: 'FR', I: 'IT', S: 'ES', J: 'JP', K: 'KO' };
   // archives and text banks (trainer names, trainer classes, moves, abilities, items) per game type and region
   var FILES = {
-    DP: { personal: 'poketool/personal/personal.narc', moves: 'poketool/waza/waza_tbl.narc', learn: 'poketool/personal/wotbl.narc',
+    DP: { evo: 'poketool/personal/evo.narc', wild: 'fielddata/encountdata/d_enc_data.narc', wildP: 'fielddata/encountdata/p_enc_data.narc', personal: 'poketool/personal/personal.narc', moves: 'poketool/waza/waza_tbl.narc', learn: 'poketool/personal/wotbl.narc',
       trdata: 'poketool/trainer/trdata.narc', trpoke: 'poketool/trainer/trpoke.narc', text: 'msgdata/msg.narc',
       bank: { U: [559, 560, 588, 552, 344], J: [550, 551, 575, 544, 341], K: [552, 553, 577, 546, 342] } },
-    Pt: { personal: 'poketool/personal/pl_personal.narc', moves: 'poketool/waza/pl_waza_tbl.narc', learn: 'poketool/personal/wotbl.narc',
+    Pt: { evo: 'poketool/personal/evo.narc', wild: 'fielddata/encountdata/pl_enc_data.narc', personal: 'poketool/personal/pl_personal.narc', moves: 'poketool/waza/pl_waza_tbl.narc', learn: 'poketool/personal/wotbl.narc',
       trdata: 'poketool/trainer/trdata.narc', trpoke: 'poketool/trainer/trpoke.narc', text: 'msgdata/pl_msg.narc',
       bank: { U: [618, 619, 647, 610, 392], J: [611, 612, 636, 604, 390], K: [612, 613, 637, 605, 390] } },
-    HGSS: { personal: 'a/0/0/2', moves: 'a/0/1/1', learn: 'a/0/3/3', trdata: 'a/0/5/5', trpoke: 'a/0/5/6', text: 'a/0/2/7',
+    HGSS: { evo: 'a/0/3/4', wild: 'a/0/3/7', personal: 'a/0/0/2', moves: 'a/0/1/1', learn: 'a/0/3/3', trdata: 'a/0/5/5', trpoke: 'a/0/5/6', text: 'a/0/2/7',
       bank: { U: [729, 730, 750, 720, 222], J: [719, 720, 739, 711, 219], K: [723, 724, 743, 715, 220] } },
     BW: { personal: 'a/0/1/6', moves: 'a/0/2/1', learn: 'a/0/1/8', trdata: 'a/0/9/2', trpoke: 'a/0/9/3', text: 'a/0/0/2',
       bank: { U: [190, 191, 203, 182, 54], J: [190, 191, 204, 182, 54] } },
@@ -213,7 +213,7 @@
     var region = code.charAt(3) === 'J' ? 'J' : code.charAt(3) === 'K' ? 'K' : 'U';
     var rom = { gen: gen, code: code, title: title, game: info[0], gameEn: info[1], lang: LANGS[code.charAt(3)] || '', type: type, warnings: [],
       species: [], moves: [], learnsets: [], trainers: [], classNames: [], items: [], names: { moves: [], abilities: [] } };
-    function arc(path) { var f = nitroFile(u8, path); return f ? narc(f) : null; }
+    function arc(path) { if (!path) return null; var f = nitroFile(u8, path); return f ? narc(f) : null; }
     var personal = arc(code.slice(0, 3) === 'APA' ? 'poketool/personal_pearl/personal.narc' : F.personal) || arc(F.personal);
     var moves = arc(F.moves), learn = arc(F.learn), trdata = arc(F.trdata), trpoke = arc(F.trpoke), text = arc(F.text);
     if (!personal || !moves) throw new Error('rom:ndsdata:' + code);
@@ -317,7 +317,7 @@
         if (gen === 4 && (size - extra - head === 0 || size - extra - head === 2)) tail = size - extra - head;
         var rec = head + extra + tail, party = [];
         for (var n = 0; n < cnt2 && (n + 1) * rec <= pk.length; n++) {
-          var o = n * rec, pm = { iv: pk[o], level: u16(pk, o + 2) & 0xFF };
+          var o = n * rec, pm = { idx: n, iv: pk[o], level: u16(pk, o + 2) & 0xFF };
           if (gen === 4) { var sv = u16(pk, o + 4); pm.species = sv & 0x3FF; pm.form = sv >> 10; if (type === 'HGSS') pm.genderAbility = pk[o + 1]; }
           else { pm.species = u16(pk, o + 4); pm.form = u16(pk, o + 6); pm.genderAbility = pk[o + 1]; }
           var p2 = o + head;
@@ -330,9 +330,10 @@
         }
         if (!party.length) continue;
         var dbl = gen === 4 ? u32(h, 16) !== 0 : h[2] !== 0;
-        rom.trainers.push({ id: t, cls: h[1], name: names[t] || '', double: dbl, items: items, custom: hasMoves, party: party });
+        rom.trainers.push({ id: t, cls: h[1], name: names[t] || '', double: dbl, items: items, custom: hasMoves, party: party, pk: pk, rec: rec, head: head, hasItem: hasItem });
       }
     }
+    rom.files = { personal: personal, learn: learn, trpoke: trpoke, trdata: trdata, evo: arc(F.evo), wild: arc(code.slice(0, 3) === 'APA' ? F.wildP : F.wild) };
     if (!rom.trainers.length) rom.warnings.push('trainers');
     return rom;
   }
