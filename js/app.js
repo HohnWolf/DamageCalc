@@ -2096,7 +2096,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.0') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.1') + (s.portable ? ' · Portable' : '') }));
     info.appendChild(titleRow);
     info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
     var msg = updMessage(s);
@@ -2177,7 +2177,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.17.0';
+      var ver = (updStatus && updStatus.current) || '1.17.1';
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
       side.appendChild(sideFoot);
       shell.appendChild(side);
@@ -2349,7 +2349,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: '1.17.0', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: '1.17.1', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2662,7 +2662,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.17.0';
+    var ver = (updStatus && updStatus.current) || '1.17.1';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
