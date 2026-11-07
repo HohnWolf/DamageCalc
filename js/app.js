@@ -2280,7 +2280,7 @@
         var g = el('div', { class: 'btn-group set-opts' });
         var bSave = el('button', { text: T('setBackupSave') });
         bSave.addEventListener('click', function () {
-          var data = { app: 'RattataLab', version: '1.13.1', date: new Date().toISOString().slice(0, 10), storage: {} };
+          var data = { app: 'RattataLab', version: '1.13.2', date: new Date().toISOString().slice(0, 10), storage: {} };
           BACKUP_KEYS.forEach(function (k) {
             try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
           });
@@ -2554,6 +2554,10 @@
     var head = el('div', { class: 'sb-head' });
     head.appendChild(el('img', { class: 'sb-logo', src: 'img/home.png', alt: '' }));
     head.appendChild(el('span', { class: 'sb-title', text: 'Rattata Labs' }));
+    head.style.cursor = 'pointer';
+    head.title = T('proOverview');
+    head.setAttribute('role', 'button');
+    head.addEventListener('click', function () { showView('start'); });
     sb.appendChild(head);
     var list = el('nav', { class: 'sb-list' });
     function item(id, label, ic, alpha, onClick) {
@@ -2569,7 +2573,6 @@
       var m = MODES.filter(function (x) { return x[0] === id; })[0];
       return item(id, T(m[1]), id, m[2]);
     }
-    list.appendChild(item('start', T('proOverview'), 'home', false, function () { showView('start'); }));
     if (studio) {
       list.appendChild(el('div', { class: 'sb-group' }));
       if (catNow) catTools(catNow).forEach(function (id) { list.appendChild(toolItem(id)); });
@@ -2604,7 +2607,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.13.1';
+    var ver = (updStatus && updStatus.current) || '1.13.2';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));

@@ -40,7 +40,7 @@ const out = [];
 const releasedIds = new Set(Object.keys(released).map(Number));
 const REGIONAL = /^(Alola|Galarian|Hisuian|Paldea)$/;
 const byId = {};
-stats.forEach((s) => { if (releasedIds.has(s.pokemon_id)) (byId[s.pokemon_id] = byId[s.pokemon_id] || []).push(s); });
+stats.forEach((s) => { (byId[s.pokemon_id] = byId[s.pokemon_id] || []).push(s); });
 for (const id of Object.keys(byId)) {
   const list = byId[id].sort((x, y) => (x.form === 'Normal' ? -1 : y.form === 'Normal' ? 1 : 0));
   const sigs = new Set();
@@ -61,7 +61,7 @@ for (const id of Object.keys(byId)) {
 }
 // Mega-Entwicklungen
 for (const m of mega) {
-  if (!releasedIds.has(m.pokemon_id)) continue;
+
   const base = moveBy[m.pokemon_id + '|Normal'] || {};
   const nm = m.mega_name.replace(/^Mega /, '').replace(new RegExp('^' + m.pokemon_name + ' ?'), '').trim(); // "X", "Y" oder ""
   out.push([m.pokemon_id, m.pokemon_name, 'Mega' + (nm ? ' ' + nm : ''), m.type, m.stats.base_attack, m.stats.base_defense, m.stats.base_stamina,
