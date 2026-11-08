@@ -81,92 +81,151 @@
     }
     return null;
   }
-  // Ein PCM-Päckchen aus einem AudioBuffer. sound aus → null (nichts schicken).
-  function pcmMessage(input, opts, now) {
-    if (!input || !opts || opts.sound === false) return null;
-    var n = input.length | 0;
-    if (n < 1 || !input.getChannelData) return null;
-    var F = root.Float32Array;
-    var a = new F(n), b = new F(n);
-    a.set(input.getChannelData(0));
-    if (input.numberOfChannels > 1) b.set(input.getChannelData(1));
-    else b.set(a);
-    return { kind: 'pcm', rate: opts.rate || 48000, t: now || 0, a: a, b: b };
+  function nowMs() { return root.performance && root.performance.now ? root.performance.now() : Date.now(); }
+
+  // Ein Frame der Videoquelle, ohne JPEG und ohne den Vorschau-Canvas (dort liegt der gelbe Rahmen).
+  function grabFrame(video, sz) {
+    var CIB = root.createImageBitmap;
+    if (!CIB) return Promise.reject(new Error('kein createImageBitmap'));
+    var opts = { resizeWidth: sz.w, resizeHeight: sz.h, resizeQuality: 'high' };
+    return CIB.call(root, video, opts).catch(function () { return CIB.call(root, video); });
   }
 
   function startMirror(getVideo, port, getFps) {
-    var canvas = root.document.createElement('canvas');
-    var ctx = canvas.getContext('2d', { alpha: false });
-    var state = { encoding: false, last: 0, frameId: null };
+    var canvas = null, ctx = null;
+    var state = { encoding: false, last: 0, frameId: null, since: 0 };
     var dead = false;
-    function tick(ts) {
-      if (dead) return;
-      root.requestAnimationFrame(tick);
-      if (!port) return;
+    function release() { state.encoding = false; state.since = 0; }
+    function jpeg(v, sz, t) {
+      if (!canvas) {
+        canvas = root.document.createElement('canvas');
+        canvas.setAttribute('aria-hidden', 'true');
+        canvas.style.cssText = 'position:fixed;left:0;top:0;width:8px;height:8px;opacity:0;pointer-events:none';
+        if (root.document.body) root.document.body.appendChild(canvas);
+        ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+      }
+      if (canvas.width !== sz.w || canvas.height !== sz.h) { canvas.width = sz.w; canvas.height = sz.h; }
+      if (!drawRaw(ctx, v, sz.w, sz.h)) { release(); return; }
+      var done = false;
+      var timer = root.setTimeout(function () {
+        if (done || dead) return;
+        done = true;
+        console.error('Projektor: Bildkodierung ohne Antwort');
+        release();
+      }, 400);
+      canvas.toBlob(function (blob) {
+        if (done) return;
+        done = true;
+        root.clearTimeout(timer);
+        if (!blob || dead) { release(); return; }
+        blob.arrayBuffer().then(function (buf) {
+          release();
+          if (dead) return;
+          try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, t: t, buf: buf }, [buf]); }
+          catch (e) { dead = true; console.error('Projektor: Bildübertragung', e); }
+        }, function (err) { release(); console.error('Projektor: Bildpuffer', err); });
+      }, 'image/jpeg', JPEG_Q);
+    }
+    function tick() {
+      if (dead || !port) return;
+      var t = nowMs();
+      if (state.encoding) {
+        if (state.since && t - state.since > 500) { console.error('Projektor: Bild hängt, nächster Frame'); release(); }
+        else return;
+      }
       var v = typeof getVideo === 'function' ? getVideo() : getVideo;
       var cap = typeof getFps === 'function' ? getFps() : getFps;
       var fid = isRawVideo(v) ? sourceFrameId(v) : null;
-      if (!shouldSend(ts, state, cap, fid)) return;
+      if (!shouldSend(t, state, cap, fid)) return;
       if (!isRawVideo(v) || v.readyState < 2 || !v.videoWidth) return;
       var sz = fitSize(v.videoWidth, v.videoHeight);
       if (!sz) return;
-      if (canvas.width !== sz.w || canvas.height !== sz.h) { canvas.width = sz.w; canvas.height = sz.h; }
-      if (!drawRaw(ctx, v, sz.w, sz.h)) return;
-      state.encoding = true; state.last = ts; state.frameId = fid;
-      canvas.toBlob(function (blob) {
-        if (!blob || dead) { state.encoding = false; return; }
-        blob.arrayBuffer().then(function (buf) {
-          state.encoding = false;
-          if (dead) return;
-          try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, t: root.performance ? root.performance.now() : 0, buf: buf }, [buf]); }
-          catch (e) { dead = true; console.error('Projektor: Bildübertragung', e); }
-        }, function () { state.encoding = false; });
-      }, 'image/jpeg', JPEG_Q);
+      state.encoding = true; state.since = t; state.last = t; state.frameId = fid;
+      grabFrame(v, sz).then(function (bmp) {
+        if (dead) { try { bmp.close(); } catch (e) { /* schon zu */ } release(); return; }
+        try { port.postMessage({ kind: 'bmp', w: bmp.width || sz.w, h: bmp.height || sz.h, t: t, bmp: bmp }, [bmp]); release(); }
+        catch (e) {
+          console.error('Projektor: Bitmap', e);
+          try { bmp.close(); } catch (e2) { /* schon übertragen */ }
+          jpeg(v, sz, t);
+        }
+      }, function (err) {
+        console.error('Projektor: Frame', err);
+        jpeg(v, sz, t);
+      });
     }
-    root.requestAnimationFrame(tick);
-    return function stop() { dead = true; };
+    // setInterval, nicht requestAnimationFrame: das Hauptfenster verliert den Fokus, sobald der Projektor aufgeht.
+    var handle = root.setInterval(tick, 15);
+    tick();
+    return function stop() {
+      dead = true;
+      root.clearInterval(handle);
+      if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    };
   }
 
-  // Dieselbe Tonspur der schon offenen Aufnahme. Das Gerät wird hier nicht noch einmal geöffnet.
-  // Im Hauptfenster nur mit Verstärkung 0 anfassen (sonst spielt der Prozessor nicht), hörbar wird es im Projektor.
-  function startAudio(video, stream, port, getOpts) {
+  // Dieselbe Tonspur, direkt auf die Ausgabe. Kein zweites Gerät, kein PCM, die stumme Vorschau spielt nicht mit.
+  function startAudio(video, stream, getOpts) {
     silencePreview(video);
     var track = liveAudioTrack(stream);
+    var stats = root.__projectorAudioMain = { underruns: 0, peak: 0, playing: false };
     if (!track) return { ok: false, reason: 'no-track', stop: function () {} };
     var AC = root.AudioContext || root.webkitAudioContext;
     if (!AC) { console.error('Projektor: kein AudioContext'); return { ok: false, reason: 'no-api', stop: function () {} }; }
-    var ctx, srcNode, mute, proc, dead = false;
+    var ctx, srcNode, gain, analyser, poll, applyTimer, ready = false, stopping = false;
     try {
       try { ctx = new AC({ latencyHint: 'interactive' }); } catch (e) { ctx = new AC(); }
       srcNode = ctx.createMediaStreamSource(new MediaStream([track]));
-      mute = ctx.createGain();
-      mute.gain.value = 0;
-      try { proc = ctx.createScriptProcessor(1024, 2, 2); }
-      catch (e) { proc = ctx.createScriptProcessor(1024, 1, 1); }
-      srcNode.connect(proc);
-      proc.connect(mute);
-      mute.connect(ctx.destination);
-      if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+      gain = ctx.createGain();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      srcNode.connect(gain);
+      gain.connect(ctx.destination);
+      gain.connect(analyser);
+      if (ctx.state === 'running') ready = true;
+      ctx.onstatechange = function () {
+        if (stopping) return;
+        if (!ready) { if (ctx.state === 'running') ready = true; return; }
+        if (ctx.state === 'interrupted' || ctx.state === 'suspended') {
+          stats.underruns++;
+          console.error('Projektor: Ton unterbrochen', ctx.state);
+          if (ctx.resume) ctx.resume();
+        }
+      };
+      if (ctx.resume) ctx.resume();
     } catch (e) {
       console.error('Projektor: Ton konnte nicht verbunden werden', e);
       try { if (ctx) ctx.close(); } catch (e2) { /* schon zu */ }
       return { ok: false, reason: 'graph', stop: function () {} };
     }
-    proc.onaudioprocess = function (ev) {
-      if (dead || !port) return;
-      silencePreview(video);
+    function level() {
       var o = {};
       try { o = (typeof getOpts === 'function' ? getOpts() : getOpts) || {}; } catch (err) { o = {}; }
-      var msg = pcmMessage(ev.inputBuffer, { sound: o.sound !== false, volume: o.volume, rate: ctx.sampleRate }, root.performance ? root.performance.now() : 0);
-      if (!msg) return;
-      try { port.postMessage(msg, [msg.a.buffer, msg.b.buffer]); }
-      catch (err) { dead = true; console.error('Projektor: Tonübertragung', err); }
-    };
+      var on = !o || o.sound !== false;
+      var vol = clampVolume(o && o.volume) / 100;
+      gain.gain.value = on ? vol : 0;
+      stats.playing = on && ctx.state === 'running';
+    }
+    var wave = new root.Uint8Array(analyser.fftSize);
+    function measure() {
+      silencePreview(video);
+      level();
+      analyser.getByteTimeDomainData(wave);
+      var peak = 0;
+      for (var i = 0; i < wave.length; i += 8) { var d = wave[i] - 128; if (d < 0) d = -d; if (d > peak) peak = d; }
+      stats.peak = peak;
+    }
+    level();
+    applyTimer = root.setInterval(level, 100);
+    poll = root.setInterval(measure, 80);
+    measure();
     return {
       ok: true,
       stop: function () {
-        dead = true;
-        try { proc.onaudioprocess = null; proc.disconnect(); srcNode.disconnect(); mute.disconnect(); } catch (e) { /* schon getrennt */ }
+        stopping = true;
+        root.clearInterval(applyTimer); root.clearInterval(poll);
+        stats.playing = false;
+        try { srcNode.disconnect(); gain.disconnect(); analyser.disconnect(); } catch (e) { /* schon getrennt */ }
         try { ctx.close(); } catch (e) { /* schon zu */ }
       }
     };
@@ -217,7 +276,7 @@
     stopMirror = startMirror(getV, port, function () { return api && api.opts ? api.opts().fps : FPS; });
     var v = getV();
     var stream = v && v.srcObject;
-    var audio = startAudio(v, stream, port, soundOpts);
+    var audio = startAudio(v, stream, soundOpts);
     stopAudio = audio.stop;
     if (!audio.ok) warnNoAudio();
     else audioWarned = false;
@@ -311,7 +370,7 @@
   root.CCProjectorMirror = {
     fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror, startAudio: startAudio,
     clampFps: clampFps, shouldSend: shouldSend, sourceFrameId: sourceFrameId, setPortHandler: setPortHandler,
-    clampVolume: clampVolume, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, pcmMessage: pcmMessage,
+    clampVolume: clampVolume, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
   root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, isOpen: isOpen };

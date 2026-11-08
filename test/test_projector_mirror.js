@@ -93,12 +93,8 @@ var preview = { muted: false, volume: 1 };
 M.silencePreview(preview);
 if (!preview.muted || preview.volume !== 0) fail('Vorschau wird nicht stumm geschaltet');
 else ok('Vorschau stumm, Projektor übernimmt den Ton');
-var buf = { length: 4, numberOfChannels: 1, getChannelData: function () { return new Float32Array([0, 0.5, -0.25, 1]); } };
-var pcm = M.pcmMessage(buf, { sound: true, volume: 40, rate: 48000 }, 10);
-if (!pcm || pcm.kind !== 'pcm' || pcm.a.length !== 4 || pcm.a[1] !== 0.5 || pcm.b[3] !== 1 || pcm.rate !== 48000) fail('PCM wird nicht aus der bestehenden Spur gebaut');
-else ok('PCM aus der bestehenden Spur');
-if (M.pcmMessage(buf, { sound: false }, 10) !== null) fail('ausgeschalteter Ton schickt weiter Pakete');
-else ok('Ton aus schickt nichts');
+if (typeof M.grabFrame !== 'function') fail('Frame wird nicht von der Videoquelle geholt');
+else ok('Frame kommt von der Videoquelle');
 
 const src = fs.readFileSync(path.join(ROOT, 'js/shiny_projector.js'), 'utf8');
 const page = fs.readFileSync(path.join(ROOT, 'electron/projector.html'), 'utf8');
@@ -124,12 +120,18 @@ if (!app.includes("CCProjector.toggle") || !app.includes('act_projector')) fail(
 else ok('Knopf und Hotkey');
 if (/desktop\.projector\.(open|close)/.test(src)) fail('Knopf ruft desktop.projector.open auf');
 else ok('Knopf benutzt die Projektor-Brücke direkt');
-if (!src.includes('desktop.open(') || !src.includes("kind: 'pcm'")) fail('Öffnen oder Ton fehlt');
-else ok('Öffnen und PCM-Ton');
+if (!src.includes('desktop.open(') || !src.includes('createMediaStreamSource')) fail('Öffnen oder Ton fehlt');
+else ok('Öffnen und direkter Ton');
+if (/createScriptProcessor|kind:\s*'pcm'/.test(src)) fail('Ton läuft noch als PCM über den Hauptthread');
+else ok('kein PCM und kein ScriptProcessor');
+if (!src.includes("kind: 'bmp'") || !src.includes('setInterval(tick')) fail('Bilder hängen noch am Animationsframe oder am JPEG');
+else ok('Bilder als Bitmap, auch ohne Fokus');
 if (!app.includes('sound: p.sound') || !app.includes('volume:')) fail('Ton wird nicht gespeichert');
 else ok('Ton und Lautstärke in den Projektor-Einstellungen');
-if (!app.includes('Diese Quelle liefert keinen Ton')) fail('Hinweis ohne Ton fehlt');
-else ok('Hinweis, wenn die Quelle keinen Ton hat');
+if (!app.includes('Diese Quelle liefert keinen Ton') || !app.includes('This source has no audio')) fail('Hinweis ohne Ton fehlt');
+else ok('Hinweis ohne Ton, deutsch und englisch');
+if (!app.includes('Connect a capture first')) fail('englischer Hinweis ohne Aufnahme fehlt');
+else ok('englischer Hinweis ohne Aufnahme');
 const cap = fs.readFileSync(path.join(ROOT, 'js/capture.js'), 'utf8');
 if (!cap.includes('groupId') || !cap.includes('audio: true')) fail('Aufnahme fordert den Ton nicht mit an');
 else ok('Bild und Ton in einem Aufruf');
@@ -138,8 +140,8 @@ else ok('Bildrate liegt in den Projektor-Einstellungen');
 if (!det.includes('detFpsRange') || !det.includes('type: \'range\'') || !det.includes('type: \'number\'')) fail('Regler oder Zahleneingabe fehlt');
 else ok('Regler und Zahl 10–60');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-if (pkg.version !== '1.17.10') fail('Version ist ' + pkg.version);
-else ok('Version 1.17.10');
+if (pkg.version !== '1.17.11') fail('Version ist ' + pkg.version);
+else ok('Version 1.17.11');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Projektor-Spiegel-Test OK');

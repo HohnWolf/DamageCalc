@@ -8,7 +8,7 @@ if (!electron || typeof electron !== 'string' || !fs.existsSync(electron)) {
   process.exit(0);
 }
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rl-click-'));
-const child = cp.spawn('xvfb-run', ['-a', '-s', '-screen 0 1600x900x24', electron, '.', '--projector-click-test', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'], {
+const child = cp.spawn('xvfb-run', ['-a', '-s', '-screen 0 1600x900x24', electron, '.', '--projector-click-test', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'], {
   cwd: ROOT,
   env: Object.assign({}, process.env, { RL_SHOT_DIR: dir, ELECTRON_DISABLE_SECURITY_WARNINGS: '1' }),
   stdio: ['ignore', 'pipe', 'pipe']
@@ -29,7 +29,10 @@ child.on('exit', (code) => {
   function need(cond, msg) { if (!cond) { console.log('FAIL ' + msg); process.exitCode = 1; } else console.log('ok   ' + msg); }
   need(/Aufnahme/.test(result.noVideoToast || ''), 'ohne Aufnahme ein deutscher Hinweis');
   need(result.click && result.click.visible, 'Klick öffnet ein sichtbares Projektor-Fenster');
-  need(result.click && result.click.page && result.click.page.audio && result.click.page.audio.packets > 0 && result.click.page.audio.maxAbs > 0.01, 'Projektor spielt den Ton der Aufnahme');
+  var center = result.click && result.click.sample && result.click.sample.center;
+  need(center && center.r > 170 && center.b > 170 && center.g < 90, 'Projektor zeigt das Rohbild (nicht schwarz)');
+  need(result.bare && result.bare.yellow === 0 && result.bare.blue > 0, 'Gelber Erkennungsrahmen bleibt draußen');
+  need(result.click && result.click.audio && result.click.audio.playing && result.click.audio.peak > 8 && result.click.audio.underruns === 0, 'Ton läuft durch, ohne Aussetzer');
   need(result.previewMuted, 'Vorschau im Hauptfenster bleibt stumm');
   need(result.menu && !result.menu.hidden && /Ton/.test(result.menu.text) && result.menu.hasRange, 'Rechtsklick: Ton und Lautstärke');
   need(result.saved && result.saved.sound === false && result.saved.volume === 35, 'Ton und Lautstärke liegen in cc_shiny.projector');

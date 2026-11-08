@@ -57,8 +57,7 @@
   var ahint = document.getElementById('ahint');
   var D = window.desktop && window.desktop.projector;
   var lastFrame = 0, pending = null, drawing = false, bmpW = 0, bmpH = 0;
-  var audioCtx = null, audioGain = null, nextAt = 0, videoLag = 0.08;
-  window.__projectorAudio = { packets: 0, samples: 0, maxAbs: 0 };
+  window.__projectorFrames = { bmp: 0, jpeg: 0 };
 
   function t(k) {
     var s = (S[lang] || S.de)[k] || k, a = arguments;
@@ -82,6 +81,23 @@
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bmp, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
   }
+  function paintBitmap(bmp, w, h) {
+    if (!bmp) return;
+    layout();
+    var cw = canvas.width, ch = canvas.height, bw = (bmp.width > 1 ? bmp.width : w) || 2, bh = (bmp.height > 1 ? bmp.height : h) || 2;
+    var s = Math.min(cw / bw, ch / bh);
+    var dw = bw * s, dh = bh * s;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bmp, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    try { bmp.close(); } catch (e) { /* schon geschlossen */ }
+    bmpW = bw; bmpH = bh;
+    lastFrame = Date.now();
+    empty.hidden = true;
+    window.__projectorFrames.bmp++;
+  }
   function pump() {
     if (drawing || !pending) return;
     drawing = true;
@@ -91,55 +107,10 @@
       paint(bmp); bmp.close();
       lastFrame = Date.now();
       empty.hidden = true;
-      if (typeof msg.t === 'number' && window.performance) {
-        var lag = (performance.now() - msg.t) / 1000;
-        if (lag > 0.02 && lag < 0.45) videoLag = videoLag * 0.65 + lag * 0.35;
-      }
-    }, function () {}).then(function () {
+    }, function (err) { console.error('Projektor: JPEG', err); }).then(function () {
       drawing = false;
       if (pending) pump();
     });
-  }
-  function ensureAudio() {
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    if (!audioCtx) {
-      try { audioCtx = new AC({ latencyHint: 'interactive' }); } catch (e) { audioCtx = new AC(); }
-      audioGain = audioCtx.createGain();
-      audioGain.connect(audioCtx.destination);
-    }
-    if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume();
-    return audioCtx;
-  }
-  function setGain() {
-    if (!audioGain) return;
-    var vol = opts.volume == null ? 80 : opts.volume;
-    audioGain.gain.value = opts.sound === false ? 0 : Math.max(0, Math.min(1, vol / 100));
-  }
-  function playPcm(msg) {
-    if (!msg || !msg.a || opts.sound === false) return;
-    var actx = ensureAudio();
-    if (!actx) return;
-    setGain();
-    var a = msg.a instanceof Float32Array ? msg.a : new Float32Array(msg.a);
-    var b = msg.b ? (msg.b instanceof Float32Array ? msg.b : new Float32Array(msg.b)) : a;
-    var rate = msg.rate || actx.sampleRate || 48000;
-    var buf;
-    try { buf = actx.createBuffer(2, a.length, rate); buf.copyToChannel(a, 0); buf.copyToChannel(b.length === a.length ? b : a, 1); }
-    catch (e) { console.error('Projektor: Tonpuffer', e); return; }
-    var node = actx.createBufferSource();
-    node.buffer = buf;
-    node.connect(audioGain);
-    var now = actx.currentTime;
-    var lag = Math.max(0.04, Math.min(0.28, videoLag));
-    if (nextAt < now + 0.01) nextAt = now + lag;
-    if (nextAt > now + 0.35) nextAt = now + lag;
-    try { node.start(nextAt); } catch (e) { console.error('Projektor: Wiedergabe', e); return; }
-    nextAt += buf.duration;
-    var stat = window.__projectorAudio;
-    stat.packets++; stat.samples += a.length;
-    for (var i = 0; i < a.length; i += 16) { var x = a[i] < 0 ? -a[i] : a[i]; if (x > stat.maxAbs) stat.maxAbs = x; }
-    ahint.hidden = true;
   }
   function onPort(p) {
     if (!p) return;
@@ -147,9 +118,10 @@
     p.onmessage = function (ev) {
       var d = ev.data || {};
       if (d.kind === 'audio-status' && d.ok === false) { ahint.hidden = false; ahint.textContent = t('noAudio'); return; }
-      if (d.kind === 'pcm') { playPcm(d); return; }
+      if (d.kind === 'bmp' && d.bmp) { paintBitmap(d.bmp, d.w, d.h); return; }
       // Nur das JPEG aus dem rohen Video. Kein Canvas mit Rahmen.
       if (d.kind !== 'jpeg' || !d.buf) return;
+      window.__projectorFrames.jpeg++;
       pending = d;
       pump();
     };
@@ -179,7 +151,6 @@
     document.body.classList.toggle('no-cursor', !!o.hideCursor);
     empty.textContent = t('empty');
     if (ahint) ahint.textContent = t('noAudio');
-    setGain();
     if (o.overlay && o.overlayUrl) {
       if (frame.getAttribute('src') !== o.overlayUrl) frame.src = o.overlayUrl;
       frame.hidden = false;
@@ -219,7 +190,7 @@
       range.type = 'range'; range.min = '0'; range.max = '100'; range.step = '1';
       range.value = String(opts.volume == null ? 80 : opts.volume);
       range.setAttribute('aria-label', t('volume'));
-      range.addEventListener('input', function () { opts.volume = +range.value; opts.sound = true; setGain(); D.set({ volume: +range.value, sound: true }); });
+      range.addEventListener('input', function () { opts.volume = +range.value; opts.sound = true; D.set({ volume: +range.value, sound: true }); });
       range.addEventListener('click', function (ev) { ev.stopPropagation(); });
       vol.appendChild(cap); vol.appendChild(range);
       menu.appendChild(vol);

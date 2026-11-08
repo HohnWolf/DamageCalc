@@ -40,6 +40,8 @@
     var ctx = canvas.getContext('2d');
     function paint() { ctx.fillStyle = '#ff00ff'; ctx.fillRect(0, 0, 320, 180); ctx.fillStyle = '#0000ff'; ctx.fillRect(0, 0, 40, 40); }
     paint();
+    setInterval(paint, 50);
+    h.detect = { region: { x: 0.2, y: 0.2, w: 0.5, h: 0.5 }, refs: [], mode: 'image', thr: 0.85 };
     var vstream = canvas.captureStream(15);
     var actx = new (window.AudioContext || window.webkitAudioContext)();
     var osc = actx.createOscillator();
@@ -56,16 +58,36 @@
     step('knopf=' + (btn ? btn.textContent : 'fehlt') + ' video=' + !!(vid && vid.videoWidth) + ' audio=' + stream.getAudioTracks().length);
     if (!btn) return fail('Knopf fehlt trotz Aufnahme');
     btn.click();
-    var info = null;
+    var info = null, heard = null;
     for (var t = 0; t < 50; t++) {
-      info = await D.testInfo();
-      if (info && info.visible && info.page && info.page.audio && info.page.audio.packets > 2 && info.page.audio.maxAbs > 0.01) break;
+      info = await D.testInfo({ sample: true });
+      heard = window.__projectorAudioMain;
+      var c = info && info.sample && info.sample.center;
+      var picture = c && c.r > 170 && c.b > 170 && c.g < 90;
+      if (info && info.visible && picture && heard && heard.playing && heard.peak > 8 && heard.underruns === 0) break;
       await sleep(100);
     }
-    out.click = info;
-    step('klick sichtbar=' + !!(info && info.visible) + ' pakete=' + (info && info.page && info.page.audio && info.page.audio.packets));
+    await sleep(400);
+    heard = window.__projectorAudioMain;
+    info = await D.testInfo({ sample: true });
+    out.click = { visible: !!(info && info.visible), sample: info && info.sample, frames: info && info.page, audio: heard ? { underruns: heard.underruns, peak: heard.peak, playing: heard.playing } : null };
+    var center = info && info.sample && info.sample.center;
+    step('klick sichtbar=' + !!(info && info.visible) + ' mitte=' + JSON.stringify(center) + ' gelb=' + (info && info.sample && info.sample.yellow) + ' ton=' + JSON.stringify(heard));
     if (!info || !info.visible) return fail('Klick öffnet kein sichtbares Fenster');
-    if (!info.page || !info.page.audio || info.page.audio.packets < 1 || info.page.audio.maxAbs < 0.01) return fail('kein Ton im Projektor');
+    if (!center || center.r < 170 || center.b < 170 || center.g > 90) return fail('Projektor zeigt das Bild nicht');
+    D.set({ overlay: false });
+    var bare = null;
+    for (var y = 0; y < 15; y++) {
+      bare = await D.testInfo({ sample: true });
+      if (bare && bare.sample && bare.sample.yellow === 0 && bare.sample.center && bare.sample.center.r > 170) break;
+      await sleep(80);
+    }
+    out.bare = bare && bare.sample;
+    if (!bare || !bare.sample || bare.sample.yellow !== 0) return fail('Gelber Erkennungsrahmen im Projektor');
+    if (!bare.sample.blue) return fail('Markierung des Rohbilds fehlt');
+    D.set({ overlay: true });
+    if (!heard || !heard.playing || heard.peak < 8) return fail('Ton der Aufnahme ist nicht zu hören');
+    if (heard.underruns !== 0) return fail('Ton reißt ab (' + heard.underruns + ')');
     out.previewMuted = !!(vid && vid.muted && vid.volume === 0);
 
     var menuInfo = await D.testInfo({ menu: true });
