@@ -104,7 +104,7 @@ function init(mainWindow) {
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
     desktopCapturer.getSources({ types: ['screen', 'window'] }).then((list) => {
       const src = list.find((s) => s.id === chosenSource) || list[0];
-      // Clips mit Ton: Systemton (Loopback) nur, wenn die Seite Audio verlangt; die Erkennung fragt ohne Audio
+      // Systemton (Loopback) nur unter Windows und nur, wenn die Seite Audio mitverlangt (Erkennung und Clips).
       callback(src ? (request.audioRequested && process.platform === 'win32' ? { video: src, audio: 'loopback' } : { video: src }) : {});
     }).catch(() => callback({}));
   });

@@ -217,6 +217,16 @@
       wrap.appendChild(el('span', { id: 'detFpsHint', class: 'hint', text: api.fpsHint || '' }));
       return wrap;
     }
+    function projectorButton() {
+      if (!api.projector) return null;
+      var pb = el('button', { type: 'button', class: 'tbtn' + (api.projectorOn && api.projectorOn() ? ' on' : ''), text: api.projectorLabel ? api.projectorLabel() : 'Projektor', title: api.projectorTitle || '' });
+      pb.setAttribute('data-projector', '1');
+      pb.addEventListener('click', function () {
+        try { api.projector(); }
+        catch (e) { console.error('Projektor', e); A.toast(de ? 'Das Projektor-Fenster konnte nicht geöffnet werden.' : 'The projector window could not be opened.'); }
+      });
+      return pb;
+    }
     if (!s) {
       var row = el('div', { class: 'det-row' });
       var sb = el('button', { class: 'tbtn', text: t('screen') });
@@ -240,6 +250,8 @@
         rc.addEventListener('click', function () { go(c.source); });
         row.appendChild(rc);
       }
+      var pb0 = projectorButton();
+      if (pb0) row.appendChild(pb0);
       var fps0 = fpsControl();
       if (fps0) row.appendChild(fps0);
       box.appendChild(row);
@@ -325,12 +337,8 @@
     var dc = el('button', { class: 'tbtn', text: t('disconnect') });
     dc.addEventListener('click', function () { stop(h.id); api.persist(); panel(box, h, api); });
     tools.appendChild(dc);
-    if (api.projector) {
-      var pb = el('button', { class: 'tbtn' + (api.projectorOn && api.projectorOn() ? ' on' : ''), text: api.projectorLabel ? api.projectorLabel() : 'Projektor', title: api.projectorTitle || '' });
-      pb.setAttribute('data-projector', '1');
-      pb.addEventListener('click', function () { api.projector(); });
-      tools.appendChild(pb);
-    }
+    var pb = projectorButton();
+    if (pb) tools.appendChild(pb);
     var fps1 = fpsControl();
     if (fps1) tools.appendChild(fps1);
     box.appendChild(tools);

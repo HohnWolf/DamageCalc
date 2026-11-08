@@ -17,15 +17,42 @@
   };
   function t(k) { return S[k] != null ? S[k] : k; }
 
+  // Ton derselben Quelle, in demselben Aufruf. Schlägt das fehl, bleibt das Bild und der Aufrufer sagt Bescheid.
+  function rawAudio(deviceId) {
+    var a = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+    if (deviceId) a.deviceId = { exact: deviceId };
+    return a;
+  }
+  function audioDeviceFor(videoId) {
+    if (!videoId || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return Promise.resolve('');
+    return navigator.mediaDevices.enumerateDevices().then(function (list) {
+      var cam = null, i;
+      for (i = 0; i < list.length; i++) if (list[i].kind === 'videoinput' && list[i].deviceId === videoId) cam = list[i];
+      if (!cam || !cam.groupId) return '';
+      for (i = 0; i < list.length; i++) if (list[i].kind === 'audioinput' && list[i].groupId === cam.groupId) return list[i].deviceId;
+      return '';
+    }, function () { return ''; });
+  }
   function openStream(src) {
     if (src.kind === 'camera') {
       // without a size Chromium opens cameras and capture cards at 640x480; ask for Full HD (the device's best below that otherwise)
       var v = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
       if (src.id) v.deviceId = { exact: src.id };
-      return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
+      return audioDeviceFor(src.id).then(function (aid) {
+        if (!aid) return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
+        return navigator.mediaDevices.getUserMedia({ video: v, audio: rawAudio(aid) }).catch(function (err) {
+          console.error('Aufnahme: Ton der Capture-Karte nicht verfügbar, nur Bild', err);
+          return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
+        });
+      });
     }
     if (D && src.id) D.chooseSource(src.id);
-    return navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: 20 }, audio: false });
+    var video = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: 20 };
+    // Eine Abfrage: Bild und Systemton. Unter Windows legt der Hauptprozess Loopback dazu (electron/shiny.js).
+    return navigator.mediaDevices.getDisplayMedia({ video: video, audio: true }).catch(function (err) {
+      console.error('Aufnahme: Systemton nicht verfügbar, nur Bild', err);
+      return navigator.mediaDevices.getDisplayMedia({ video: video, audio: false });
+    });
   }
 
   function chooseScreen(cb) {
