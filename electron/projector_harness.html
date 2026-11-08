@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Projektor-Test</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+  /* Vorschau wie im Zähler: Magenta plus gelber Rahmen. Das Projektorfenster darf den Rahmen nicht zeigen. */
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="annotated" width="960" height="540"></canvas>
+<script src="../js/shiny_projector.js"></script>
+<script>
+(function () {
+  var annotated = document.getElementById('annotated');
+  var actx = annotated.getContext('2d');
+  var clean = document.createElement('canvas');
+  clean.width = 640; clean.height = 360;
+  var cctx = clean.getContext('2d');
+  function paintAnnotated() {
+    var w = annotated.width, h = annotated.height;
+    actx.fillStyle = '#ff00ff';
+    actx.fillRect(0, 0, w, h);
+    actx.strokeStyle = '#f2c94c';
+    actx.lineWidth = 10;
+    actx.strokeRect(w / 2 - 140, h / 2 - 60, 280, 120);
+  }
+  function paintClean() {
+    cctx.fillStyle = '#ff00ff';
+    cctx.fillRect(0, 0, clean.width, clean.height);
+    cctx.fillStyle = '#0000ff';
+    cctx.fillRect(0, 0, 48, 48);
+  }
+  function loop() { paintAnnotated(); paintClean(); requestAnimationFrame(loop); }
+  loop();
+  var video = document.createElement('video');
+  video.muted = true; video.playsInline = true;
+  video.srcObject = clean.captureStream(15);
+  var D = window.desktop && window.desktop.projector;
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function fail(msg) {
+    if (D) D.testDone({ ok: false, error: String(msg) });
+  }
+  var gotPort = false;
+  CCProjectorMirror.setPortHandler(function (port) {
+    gotPort = true;
+    CCProjectorMirror.startMirror(function () { return video; }, port);
+  });
+  video.play().then(function () {
+    return D.open({
+      onTop: false, hideCursor: false, overlay: false, fullscreen: false, displayId: null,
+      bounds: { x: 40, y: 40, width: 960, height: 540 },
+      theme: 'oled', lang: 'de', overlayUrl: ''
+    });
+  }).then(function () {
+    var tries = 0;
+    function poll() {
+      tries++;
+      D.testSample().then(function (s) {
+        var p = s && s.projector;
+        var mag = p && p.center && p.center.r > 170 && p.center.b > 170 && p.center.g < 90;
+        if (mag && p.blue > 0) return shots(s);
+        if (tries > 40) return fail('Projektor zeigt das Rohbild nicht: ' + JSON.stringify(s && s.projector) + ' video=' + video.videoWidth + 'x' + video.readyState + ' port=' + gotPort);
+        setTimeout(poll, 250);
+      }, function (e) { fail(e && e.message || e); });
+    }
+    setTimeout(poll, 400);
+  }, function (e) { fail(e && e.message || e); });
+
+  function shots() {
+    D.testShot({ which: 'main', file: 'projector-main-with-box.png' }).then(function (main) {
+      return D.testShot({ which: 'projector', file: 'projector-without-box.png' }).then(function (proj) {
+        return { main: main, projector: proj };
+      });
+    }).then(function (both) {
+      D.set({ overlay: true });
+      D.testMenu();
+      return sleep(400).then(function () {
+        return D.testShot({ which: 'projector', file: 'projector-context-menu.png' }).then(function (menu) {
+          var m = both.main && both.main.sample, p = both.projector && both.projector.sample, u = menu && menu.sample;
+          // Der Rahmen ist eine Kontur: die Mitte bleibt das Bild, die gelben Pixel sind die Linie.
+          var mainYellow = m && m.yellow > 30;
+          var projMagenta = p && p.center && p.center.r > 170 && p.center.b > 170 && p.center.g < 90;
+          var projNoYellow = p && p.yellow === 0;
+          var projBlue = p && p.blue > 0 && p.corner && p.corner.b > 140 && p.corner.r < 80;
+          var menuDark = u && u.spot && u.spot.r < 90 && u.spot.g < 90 && u.spot.b < 110;
+          var ok = !!(mainYellow && projMagenta && projNoYellow && projBlue && menuDark && both.main.file && both.projector.file && menu.file);
+          D.testDone({
+            ok: ok,
+            mainYellow: !!mainYellow, projMagenta: !!projMagenta, projNoYellow: !!projNoYellow,
+            projBlue: !!projBlue, menuDark: !!menuDark,
+            main: m, projector: p, menu: u,
+            files: { main: both.main.file, projector: both.projector.file, menu: menu.file }
+          });
+        });
+      });
+    }).catch(function (e) { fail(e && e.message || e); });
+  }
+})();
+</script>
+</body>
+</html>

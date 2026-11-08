@@ -90,6 +90,7 @@
     clearInterval(s.loop);
     try { s.stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) { /* already stopped */ }
     delete sessions[id];
+    if (window.CCProjector) window.CCProjector.sourceStopped(id);
   }
   function chooseScreen(cb) { Cap.chooseScreen(cb); }
 
@@ -261,6 +262,7 @@
         if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(v, 0, 0, W, H);
+        // Gelber Rahmen nur auf diesem Vorschau-Canvas. Der Projektor liest ausschließlich s.video.
         var r = drag ? { x: Math.min(drag.a.x, drag.b.x), y: Math.min(drag.a.y, drag.b.y), w: Math.abs(drag.a.x - drag.b.x), h: Math.abs(drag.a.y - drag.b.y) } : c.region;
         if (r) {
           ctx.lineWidth = Math.max(2, Math.round(W / 400));
@@ -289,6 +291,12 @@
     var dc = el('button', { class: 'tbtn', text: t('disconnect') });
     dc.addEventListener('click', function () { stop(h.id); api.persist(); panel(box, h, api); });
     tools.appendChild(dc);
+    if (api.projector) {
+      var pb = el('button', { class: 'tbtn' + (api.projectorOn && api.projectorOn() ? ' on' : ''), text: api.projectorLabel ? api.projectorLabel() : 'Projektor', title: api.projectorTitle || '' });
+      pb.setAttribute('data-projector', '1');
+      pb.addEventListener('click', function () { api.projector(); });
+      tools.appendChild(pb);
+    }
     box.appendChild(tools);
 
     // text mode: what to look for (empty = name of the hunt)
@@ -397,6 +405,8 @@
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
     // connected source of a hunt (the clips can record the same picture)
     stream: function (id) { return sessions[id] ? sessions[id].stream : null; },
+    // Rohes Video der Aufnahme (ohne Erkennungsrahmen). Der Projektor spiegelt nur dieses Element.
+    video: function (id) { return sessions[id] ? sessions[id].video : null; },
     _similarity: similarity, _sessions: sessions, _textScore: textScore,
     // for tests: use any MediaStream (e.g. canvas.captureStream()) as the source
     _attach: function (h, stream, api) {

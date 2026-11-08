@@ -41,7 +41,9 @@
     setBtn: '✎ Festlegen', setT: 'Begegnungen und Zeit von Hand festlegen (auch per Doppelklick auf Zahl oder Zeit)', setTitle: 'Zähler und Zeit festlegen',
     setCount: 'Begegnungen (diese Phase)', setTotal: 'Gesamt (alle Phasen)', setTotalT: 'Leer lassen: ändert sich um denselben Betrag wie die Begegnungen', setTime: 'Zeit (Stunden : Minuten : Sekunden)',
     setHint: 'Zum Übernehmen eines Hunts aus einem anderen Zähler oder zum Korrigieren. „Heute“ bleibt unverändert.', act_clip: 'Clip speichern', clipPlay: 'Clip abspielen',
-    openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.'
+    openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.',
+    act_projector: 'Projektor', projector: 'Projektor', projectorT: 'Öffnet die Aufnahme in einem eigenen Fenster, mit Zähler, Quote und Timer darüber. Der gelbe Erkennungsrahmen bleibt nur in diesem Fenster.',
+    projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
     tabHunts: 'Hunts', tabDex: 'Collection', tabSetup: 'Hotkeys & OBS', newHunt: '+ New hunt', huntsActive: 'Active', huntsDone: 'Found',
@@ -73,7 +75,9 @@
     setBtn: '✎ Set', setT: 'Set encounters and time by hand (also by double-clicking the number or the time)', setTitle: 'Set counter and time',
     setCount: 'Encounters (this phase)', setTotal: 'Total (all phases)', setTotalT: 'Leave empty: changes by the same amount as the encounters', setTime: 'Time (hours : minutes : seconds)',
     setHint: 'To take over a hunt from another counter or to correct it. "Today" stays as it is.', act_clip: 'Save clip', clipPlay: 'Play clip',
-    openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.'
+    openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.',
+    act_projector: 'Projector', projector: 'Projector', projectorT: 'Opens the capture in its own window, with counter, odds and timer on top. The yellow detection box stays in this window only.',
+    projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
   function fmt(n) { return Math.round(n).toLocaleString(de ? 'de-DE' : 'en-US'); }
@@ -175,6 +179,32 @@
   });
   store.tab = store.tab || 'hunts';
   if (store.hotkeys.clip == null) store.hotkeys.clip = '';
+  if (store.hotkeys.projector == null) store.hotkeys.projector = 'CommandOrControl+Alt+P';
+  function cleanProjector(p) {
+    p = p && typeof p === 'object' ? p : {};
+    var b = p.bounds && typeof p.bounds === 'object' ? p.bounds : null;
+    var id = p.displayId == null || p.displayId === '' ? null : p.displayId;
+    return {
+      onTop: !!p.onTop, hideCursor: !!p.hideCursor, overlay: p.overlay !== false,
+      fullscreen: !!p.fullscreen, displayId: id,
+      bounds: b ? { x: Math.round(+b.x) || 0, y: Math.round(+b.y) || 0, width: Math.max(480, Math.round(+b.width) || 960), height: Math.max(270, Math.round(+b.height) || 540) } : null
+    };
+  }
+  store.projector = cleanProjector(store.projector);
+  function overlayHref(base, edit) {
+    if (!base) return '';
+    var o = store.overlay, q = [];
+    if (o.hunt) q.push('hunt=' + encodeURIComponent(o.hunt));
+    if (o.layout !== 'row') q.push('layout=' + o.layout);
+    ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) { if (!o[k]) q.push(k + '=0'); });
+    if (o.color && o.color !== '#ffffff') q.push('color=' + o.color.slice(1));
+    if (o.accent && o.accent !== '#f2c94c') q.push('accent=' + o.accent.slice(1));
+    if (o.bg) q.push('bg=' + o.bg.slice(1));
+    if (+o.size !== 1 && o.layout !== 'free') q.push('size=' + o.size);
+    var u = base + (q.length ? '?' + q.join('&') : '');
+    if (edit) u += (u.indexOf('?') >= 0 ? '&' : '?') + 'edit=1';
+    return u;
+  }
   var Clip = window.CCShinyClip || null;
   if (Clip) store.clip = Clip.init(store.clip, function () { persist(); });
   store.dexGen = store.dexGen || 0;
@@ -291,6 +321,7 @@
   // global hotkeys and the window keys
   function hotkeyAction(action) {
     if (action === 'clip') { if (Clip) Clip.trigger('manual', sel() ? huntName(sel()) : '', sel() ? sel().id : ''); return; }
+    if (action === 'projector') { if (window.CCProjector) window.CCProjector.toggle(sel() ? sel().id : null); return; }
     if (action === 'phase') autoClip(sel(), 'phase');
     var list = store.hunts.filter(function (h) { return h.hotkey && h.status !== 'found'; });
     if (!list.length && sel()) list = [sel()];
@@ -570,7 +601,11 @@
       var dp = el('div', { class: 'sh-detect panel' });
       grid.appendChild(dp);
       window.CCShinyDetect.panel(dp, h, { count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
-        name: function () { return h.species ? monName(h.species) : ''; } });
+        name: function () { return h.species ? monName(h.species) : ''; },
+        projector: D && window.CCProjector ? function () { window.CCProjector.toggle(h.id); } : null,
+        projectorOn: function () { return !!(window.CCProjector && window.CCProjector.isOpen()); },
+        projectorLabel: function () { return t('projector'); },
+        projectorTitle: t('projectorT') });
     }
     if (Clip) {
       var cp = el('div', { class: 'sh-detect sh-clip panel' });
@@ -856,7 +891,7 @@
     var hp = el('div', { class: 'panel sh-card' });
     hp.appendChild(el('h3', { text: t('hkTitle') }));
     hp.appendChild(el('div', { class: 'hint', text: D ? t('hkHint') : t('hkDesktop') }));
-    ['inc', 'dec', 'phase', 'timer', 'clip'].forEach(function (a) {
+    ['inc', 'dec', 'phase', 'timer', 'clip', 'projector'].forEach(function (a) {
       var r = el('div', { class: 'sh-hk-row' });
       r.appendChild(el('span', { class: 'sh-hk-name', text: t('act_' + a) }));
       var key = el('span', { class: 'sh-hk-key', text: accelLabel(store.hotkeys[a]) });
@@ -962,22 +997,13 @@
       frameWrap.style.height = Math.ceil(o.free.h * k) + 2 + 'px';
       if (obsSize) obsSize.textContent = t('freeObs', o.free.w, o.free.h);
     }
-    function url() {
-      var q = [];
-      if (o.hunt) q.push('hunt=' + encodeURIComponent(o.hunt));
-      if (o.layout !== 'row') q.push('layout=' + o.layout);
-      ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) { if (!o[k]) q.push(k + '=0'); });
-      if (o.color && o.color !== '#ffffff') q.push('color=' + o.color.slice(1));
-      if (o.accent && o.accent !== '#f2c94c') q.push('accent=' + o.accent.slice(1));
-      if (o.bg) q.push('bg=' + o.bg.slice(1));
-      if (+o.size !== 1 && o.layout !== 'free') q.push('size=' + o.size);
-      return baseUrl + (q.length ? '?' + q.join('&') : '');
-    }
+    function url() { return overlayHref(baseUrl, false); }
     function update() {
       if (!baseUrl) return;
       var u = url();
       urlIn.value = u;
-      frame.src = isFree ? u + (u.indexOf('?') >= 0 ? '&' : '?') + 'edit=1' : u;
+      frame.src = overlayHref(baseUrl, isFree);
+      if (window.CCProjector) window.CCProjector.syncOverlay(u);
       fitFrame();
     }
     wrap.appendChild(op);
@@ -1008,7 +1034,22 @@
     box.appendChild(el('span', { class: 'sc-shiny-count', text: h ? fmt(h.count) + ' · ' + oddsText(h) : '1/4096' }));
   }
 
-  window.CCShiny = { render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction };
+  if (window.CCProjector) window.CCProjector.bind({
+    video: function (id) { return window.CCShinyDetect && window.CCShinyDetect.video ? window.CCShinyDetect.video(id) : null; },
+    overlayUrl: function () { return baseOverlay ? overlayHref(baseOverlay, false) : ''; },
+    opts: function () { return store.projector; },
+    save: function (patch) { store.projector = cleanProjector(Object.assign({}, store.projector, patch || {})); persist(); },
+    theme: function () { return document.documentElement.getAttribute('data-theme') || 'oled'; },
+    lang: de ? 'de' : 'en',
+    toast: function (m) { A.toast(m); },
+    noDesktop: t('projectorDesktop'), noVideo: t('projectorNoVideo')
+  });
+  var baseOverlay = '';
+  if (D) D.overlayInfo().then(function (info) {
+    baseOverlay = (info && info.url) || '';
+    if (window.CCProjector && window.CCProjector.isOpen()) window.CCProjector.syncOverlay(overlayHref(baseOverlay, false));
+  });
+  window.CCShiny = { render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref };
   function boot() { renderStartArt(); applyHotkeys(); pushState(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

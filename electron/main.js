@@ -33,6 +33,11 @@ process.on('unhandledRejection', (err) => {
 });
 
 const ROOT = path.join(__dirname, '..');
+const projector = require('./projector');
+// Test des Projektors: eigene Nutzerdaten, damit die laufende App nicht blockiert wird
+if (process.argv.includes('--projector-test')) {
+  app.setPath('userData', path.join(require('os').tmpdir(), 'rl-projector-test-' + process.pid));
+}
 
 // Frühere Namen ("Champions Damage Calc" bis 1.1, "Rattata Lab" bis 1.11.1): Teams, Sets und Einstellungen beim ersten Start übernehmen
 try {
@@ -53,7 +58,22 @@ function saveBounds(win) {
 
 let win = null;
 
+function createTestWindow() {
+  win = new BrowserWindow({
+    x: 20, y: 20, width: 1000, height: 640,
+    show: true,
+    backgroundColor: '#111111',
+    title: 'Projektor-Test',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'projector_harness.html'));
+}
+
 function createWindow() {
+  if (process.argv.includes('--projector-test')) { createTestWindow(); return; }
   const isShiny = (Math.floor(Math.random() * 8192) === 0) || process.argv.includes('--shiny');
   const iconPath = (isShiny && fs.existsSync(path.join(ROOT, 'icon_shiny.ico')))
     ? path.join(ROOT, 'icon_shiny.ico')
@@ -134,6 +154,7 @@ if (!app.requestSingleInstanceLock()) {
     });
     createWindow();
     shiny.init(win);
+    projector.init(win);
     match.init(shiny);
     ocr.init();
     updater.init(win);
