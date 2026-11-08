@@ -2141,12 +2141,16 @@
       default: return '';
     }
   }
+  // Shiny-Logo (js/logo_egg.js): Markenzeichen in der Leiste und in den Updates
+  function brandLogoSrc() {
+    return window.RLLogoEgg ? window.RLLogoEgg.homeSrc(!!window.__IS_SHINY_LOGO) : 'img/home.png';
+  }
   function updCard(box) {
     var D = window.desktop, s = updStatus;
     var card = el('div', { class: 'set-upd-card' });
     var top = el('div', { class: 'set-upd-top' });
     var badge = el('div', { class: 'set-upd-badge' });
-    badge.appendChild(el('img', { src: 'img/home.png', alt: '' }));
+    badge.appendChild(el('img', { src: brandLogoSrc(), alt: '', 'data-rl-brand': '' }));
     top.appendChild(badge);
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
@@ -2662,7 +2666,7 @@
     if (catId !== sbLastCat) { sbLastCat = catId; sbOpen = {}; }
     sb.innerHTML = '';
     var head = el('div', { class: 'sb-head' });
-    head.appendChild(el('img', { class: 'sb-logo', src: 'img/home.png', alt: '' }));
+    head.appendChild(el('img', { class: 'sb-logo', src: brandLogoSrc(), alt: '', 'data-rl-brand': '' }));
     head.appendChild(el('span', { class: 'sb-title', text: 'Rattata Labs' }));
     head.style.cursor = 'pointer';
     head.title = T('proOverview');

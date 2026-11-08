@@ -44,7 +44,7 @@ npm run dist         # Installer + portable .exe nach dist/ bauen
   - „Ins Damage Calc: Du / Gegner“ legt das Team in die Team-Leiste der Seite; die ersten beiden werden Slot A und B.
   - Gespeichert in `localStorage` unter `cc_builder`. Beim ersten Öffnen wird das eigene Team aus dem Rechner übernommen.
 - In der Desktop-App hat das Fenster keinen Windows-Rahmen: Die Kopfzeile ist die Titelleiste (ziehen, Doppelklick maximiert), rechts sitzen eigene Knöpfe für Minimieren, Maximieren und Schließen (`electron/preload.js`). `F11` schaltet Vollbild.
-- Logo und Icon: Rattfratz (`img/logo.png`, `icon.ico`, erzeugt mit `python tools/make_icon.py icon.ico img/logo.png rattata`).
+- Logo und Icon: Rattfratz (`img/logo.png`, `icon.ico`, erzeugt mit `python tools/make_icon.py icon.ico img/logo.png rattata`). Easter Egg (seit 1.10.9, ab 1.17.8 auch in Pro, Studio und der Android-App): beim Start fällt mit der Quote 1:8192 ein Shiny-Rattfratz (`?shiny` in der Adresse oder `--shiny` in der Desktop-App erzwingen ihn). Dann sind das Startlogo, das Markenzeichen oben links, das Favicon und das Fenster-Icon shiny (`img/logo_shiny.png`, `img/home_shiny.png`, `icon_shiny.ico`). Der Klick auf das Markenzeichen führt weiter zum Start.
 
 ## Soul-Link-Planer und Nuzlocke-Rechner (Alpha)
 Zwei eigene Modi, unabhängig voneinander.
