@@ -66,6 +66,7 @@
   function curVersion(t) {
     return ensureVersions(t || team());
   }
+  var dragFrom = -1; // slot being dragged
   var sel = 0; // selected slot (0-5); equal to mons.length = "add a new Pokémon"
   var tab = 'edit'; // lower panel: 'edit' (Pokémon editor) or 'cover' (type coverage)
 
@@ -477,6 +478,22 @@
       tools.appendChild(del);
       card.appendChild(tools);
       card.addEventListener('click', function () { if (sel !== i) { sel = i; renderSlots(); renderEditor(); } });
+      card.draggable = true;
+      card.addEventListener('dragstart', function (ev) {
+        ev.dataTransfer.effectAllowed = 'move';
+        try { ev.dataTransfer.setData('text/plain', String(i)); } catch (e) { /* ignore */ }
+        dragFrom = i; card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', function () { dragFrom = -1; card.classList.remove('dragging'); R.slots.querySelectorAll('.drop-over').forEach(function (n) { n.classList.remove('drop-over'); }); });
+      card.addEventListener('dragover', function (ev) { if (dragFrom < 0) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; card.classList.add('drop-over'); });
+      card.addEventListener('dragleave', function () { card.classList.remove('drop-over'); });
+      card.addEventListener('drop', function (ev) {
+        ev.preventDefault();
+        var from = dragFrom; dragFrom = -1;
+        if (from < 0 || from === i) return;
+        var mv = tm.mons.splice(from, 1)[0]; tm.mons.splice(i, 0, mv);
+        sel = i; persist(); renderSlots(); renderList(); renderCover(); renderEditor();
+      });
       R.slots.appendChild(card);
     })(i);
   }
@@ -1414,5 +1431,14 @@
     setTimeout(function () { imp.querySelector('textarea').focus(); }, 30);
   }
 
-  window.CCBuilder = { render: render };
+  window.CCBuilder = {
+    render: render,
+    // move a Pokémon of the current team (start screen drag & drop)
+    move: function (from, to) {
+      var t = team();
+      if (!t || from === to || !t.mons[from] || to < 0 || to >= t.mons.length) return false;
+      var mv = t.mons.splice(from, 1)[0]; t.mons.splice(to, 0, mv);
+      persist(); return true;
+    }
+  };
 })();

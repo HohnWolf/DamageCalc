@@ -465,9 +465,10 @@
   function sameLoc(a, b) { return a && b && a.kind === b.kind && a.slot === b.slot && (a.kind === 'party' || a.box === b.box); }
   function dnd(btn, loc) {
     btn.draggable = true;
-    btn.ondragstart = function (e) { st.drag = loc; try { e.dataTransfer.setData('text/plain', 'slot'); e.dataTransfer.effectAllowed = 'copyMove'; } catch (x) { /* ignore */ } };
-    btn.ondragend = function () { st.drag = null; };
-    btn.ondragover = function (e) { if (st.drag) { e.preventDefault(); btn.classList.add('drop'); } };
+    Array.prototype.forEach.call(btn.querySelectorAll('img'), function (im) { im.draggable = false; });
+    btn.ondragstart = function (e) { if (!getAt(loc)) { e.preventDefault(); return; } st.drag = loc; btn.classList.add('dragging'); try { e.dataTransfer.setData('text/plain', 'slot'); e.dataTransfer.effectAllowed = 'copyMove'; } catch (x) { /* ignore */ } };
+    btn.ondragend = function () { st.drag = null; btn.classList.remove('dragging'); };
+    btn.ondragover = function (e) { if (st.drag) { e.preventDefault(); try { e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move'; } catch (x) { /* ignore */ } btn.classList.add('drop'); } };
     btn.ondragleave = function () { btn.classList.remove('drop'); };
     btn.ondrop = function (e) {
       btn.classList.remove('drop');

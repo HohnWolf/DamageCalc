@@ -85,3 +85,13 @@
 .sv-chk-list { margin: 6px 0 0; padding-left: 18px; font-size: 12px; }
 .sv-chk-list li.bad { color: #ff8a8e; }
 .sv-chk-list li.warn { color: var(--warn); }
+
+/* Layout: the panel grows with its content (the view scrolls) instead of clipping the box grid */
+.save-view > .sv-box { flex: none; height: auto; overflow: visible !important; margin-bottom: 16px; }
+.sv-cols { align-items: start; }
+.sv-boxgrid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.sv-slot { aspect-ratio: 1 / 0.9; min-height: 0; transition: border-color .12s, background .12s, transform .12s; }
+.sv-slot:not(.empty):hover { background: var(--accent-soft); }
+.sv-slot.dragging { opacity: .35; transform: scale(.95); }
+.sv-slot.drop { background: var(--accent-soft); transform: scale(1.04); }
+.sv-slot .sv-sprite { pointer-events: none; }

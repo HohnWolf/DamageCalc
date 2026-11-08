@@ -2778,8 +2778,27 @@
     for (var i = 0; i < 6; i++) {
       var c = el('span', { class: 'sc-mon' + (mons[i] ? '' : ' empty') });
       if (mons[i]) c.appendChild(spriteFit(mons[i]));
+      if (mons[i] && team && team.mons.length && window.CCBuilder && window.CCBuilder.move) wireTeamDrag(c, i);
       box.appendChild(c);
     }
+  }
+  var teamDragFrom = -1;
+  function wireTeamDrag(c, i) {
+    c.draggable = true;
+    c.classList.add('draggable');
+    c.addEventListener('dragstart', function (ev) {
+      teamDragFrom = i; c.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move';
+      try { ev.dataTransfer.setData('text/plain', String(i)); } catch (e) { /* ignore */ }
+    });
+    c.addEventListener('dragend', function () { teamDragFrom = -1; c.classList.remove('dragging'); });
+    c.addEventListener('dragover', function (ev) { if (teamDragFrom < 0) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; c.classList.add('drop-over'); });
+    c.addEventListener('dragleave', function () { c.classList.remove('drop-over'); });
+    c.addEventListener('drop', function (ev) {
+      ev.preventDefault(); ev.stopPropagation();
+      var from = teamDragFrom; teamDragFrom = -1;
+      if (from >= 0 && from !== i && window.CCBuilder.move(from, i)) renderStartTeam();
+    });
   }
   function initViews() {
     try { localStorage.removeItem('cc_battlelog'); } catch (e) { /* Speicher gesperrt */ }
