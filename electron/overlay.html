@@ -14,8 +14,20 @@
   verschieben, Mausrad = Größe, Pfeiltasten = genau verschieben; Änderungen gehen per postMessage an die App.
 -->
 <meta name="color-scheme" content="dark light">
+<script>
+/* Im Projektor (?transparent=1) darf die Seite keinen deckenden dunklen Hintergrund malen.
+   color-scheme: dark lässt Chromium sonst eine graue Fläche hinter das durchsichtige html legen
+   und verdeckt damit das Spielbild. In OBS bleibt das dunkle Schema, dort ist das Fenster selbst durchsichtig. */
+(function () {
+  if (!/[?&]transparent=1(?:&|$)/.test(location.search)) return;
+  var meta = document.querySelector('meta[name="color-scheme"]');
+  if (meta) meta.setAttribute('content', 'normal');
+  document.documentElement.classList.add('transparent');
+})();
+</script>
 <style>
   html, body { margin: 0; background: transparent; color-scheme: dark light; overflow: hidden; }
+  html.transparent, html.transparent body { background: transparent !important; background-color: transparent !important; color-scheme: normal !important; }
   body { font-family: var(--font, 'Segoe UI', system-ui, sans-serif); color: var(--color, #fff); }
   .ov { display: inline-flex; align-items: center; gap: calc(14px * var(--s)); padding: calc(12px * var(--s)) calc(18px * var(--s));
     background: var(--bg, transparent); border-radius: calc(10px * var(--s)); text-shadow: 0 2px 4px rgba(0,0,0,.6); }
