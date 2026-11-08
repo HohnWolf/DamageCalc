@@ -284,6 +284,10 @@ function init(win) {
       if (alive(proj)) {
         try { info.page = await race(proj.webContents.executeJavaScript('({ title: document.title, audio: window.__projectorAudio || null, hint: (document.getElementById("ahint") || {}).textContent || "", hintHidden: (document.getElementById("ahint") || {}).hidden !== false })', true), 1500); }
         catch (err) { info.pageError = String(err && err.message || err); }
+        if (spec.sample) {
+          try { info.sample = sampleImage(await proj.webContents.capturePage()); }
+          catch (err) { info.sampleError = String(err && err.message || err); }
+        }
         if (spec.menu) {
           try {
             info.menu = await race(proj.webContents.executeJavaScript(`new Promise(function (resolve) {
