@@ -41,14 +41,14 @@
   <link rel="stylesheet" href="css/godex.css?v=7">
   <link rel="stylesheet" href="css/randomizer.css?v=2">
   <link rel="stylesheet" href="css/savedit.css?v=8">
-  <link rel="stylesheet" href="css/pro.css?v=19">
-  <link rel="stylesheet" href="css/studio.css?v=16">
+  <link rel="stylesheet" href="css/pro.css?v=20">
+  <link rel="stylesheet" href="css/studio.css?v=17">
   </head>
 <body data-view="start">
   <aside id="sidebar" class="sidebar" aria-label="Navigation"></aside>
   <div id="appMain" class="app-main">
   <header class="topbar" id="topbar">
-    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=86" alt=""></button>
+    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img data-rl-brand src="img/home.png?v=86" alt=""></button>
     <nav class="view-nav" id="viewNav"></nav>
     <button id="btnUpdate" class="pill update-pill" hidden></button>
     <div class="top-actions">
@@ -65,23 +65,7 @@
     <div class="start-inner">
       <div class="pro-start-head"><h1 data-t="proStartTitle"></h1><p data-t="proStartSub"></p></div>
       <img class="start-logo" src="img/logo.png" alt="">
-      <script>
-        (function() {
-          try {
-            var params = new URLSearchParams(window.location.search);
-            var isShiny = (Math.floor(Math.random() * 8192) === 0) ||
-                          params.has('shiny') ||
-                          (window.location.hash && window.location.hash.indexOf('shiny') !== -1);
-            if (isShiny) {
-              window.__IS_SHINY_LOGO = true;
-              var logoEl = document.querySelector('.start-logo');
-              if (logoEl) logoEl.src = 'img/logo_shiny.png';
-              var iconEl = document.querySelector('link[rel="icon"]');
-              if (iconEl) iconEl.href = 'img/logo_shiny.png';
-            }
-          } catch (e) {}
-        })();
-      </script>
+      <script src="js/logo_egg.js?v=118"></script>
             <button id="catBack" class="cat-back" data-t="catBack" hidden></button>
       <div class="start-cards">
         <button class="start-card cat-card cat-fight" data-cat="fight">
