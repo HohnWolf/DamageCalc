@@ -1,6 +1,6 @@
 // Eigenes Fenster „Projektor“ für den Shiny-Zähler: Aufnahme vollflächig, OBS-Overlay darüber.
 // Das Fenster ist undurchsichtig (kein transparentes Fenster, das unter Windows flackert).
-// Bilder kommen als JPEG über einen MessagePort aus dem Hauptfenster, nie aus dem Erkennungs-Canvas.
+// Das Bild ist dasselbe MediaStream wie im Zähler (ein Prozess, kein JPEG). Der gelbe Rahmen bleibt auf dem Vorschau-Canvas.
 const { BrowserWindow, ipcMain, screen, MessageChannelMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -17,7 +17,7 @@ let saveTimer = null;
 let ready = false;
 
 function emptyOpts() {
-  return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null, sound: true, volume: 80 };
+  return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null, sound: true, volume: 80, counterX: 2, counterY: 2, counterScale: 100 };
 }
 function alive(w) { return !!(w && !w.isDestroyed()); }
 function safe(fn) { try { return fn(); } catch (e) { console.error('Projektor', e); return null; } }
@@ -25,6 +25,16 @@ function clampVolume(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 80;
   return Math.max(0, Math.min(100, Math.round(n)));
+}
+function clampScale(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 100;
+  return Math.max(50, Math.min(300, Math.round(n)));
+}
+function clampPct(v, def) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return def;
+  return Math.max(0, Math.min(100, Math.round(n * 10) / 10));
 }
 
 function cleanOpts(o) {
@@ -40,6 +50,9 @@ function cleanOpts(o) {
     displayId: displayId,
     sound: o.sound !== false,
     volume: clampVolume(o.volume == null ? 80 : o.volume),
+    counterX: clampPct(o.counterX, 2),
+    counterY: clampPct(o.counterY, 2),
+    counterScale: clampScale(o.counterScale),
     bounds: b ? {
       x: Math.round(+b.x) || 0,
       y: Math.round(+b.y) || 0,
@@ -72,7 +85,8 @@ function viewState() {
     fullscreen: opts.fullscreen, displayId: opts.displayId,
     overlayUrl: overlayUrl, theme: theme, lang: lang, open: alive(proj),
     visible: alive(proj) && proj.isVisible(),
-    sound: opts.sound !== false, volume: clampVolume(opts.volume)
+    sound: opts.sound !== false, volume: clampVolume(opts.volume),
+    counterX: clampPct(opts.counterX, 2), counterY: clampPct(opts.counterY, 2), counterScale: clampScale(opts.counterScale)
   };
 }
 function pushOpts() { const s = viewState(); sendProj('projector-opts', s); sendMain('projector-opts', s); }
@@ -132,21 +146,21 @@ function whenPort(cb, n) {
   setTimeout(() => whenPort(cb, (n || 0) + 1), 50);
 }
 
-function ensureWindow() {
-  if (alive(proj)) { safe(() => proj.focus()); applyWindow(); return; }
+function isProjectorUrl(url) {
+  return /(?:^|\/)projector\.html(?:$|\?|#)/.test(String(url || ''));
+}
+function popupOptions() {
   const b = opts.bounds;
-  const winOpts = {
+  const o = {
     width: b ? b.width : 960,
     height: b ? b.height : 540,
     minWidth: 480,
     minHeight: 270,
     show: false,
+    autoHideMenuBar: true,
     backgroundColor: '#000000',
     title: 'Rattata Labs – Projektor',
-    autoHideMenuBar: true,
-  };
-  if (b) { winOpts.x = b.x; winOpts.y = b.y; }
-  proj = new BrowserWindow(Object.assign(winOpts, {
+    // Dieselben Rechte wie das Elternfenster, damit Chromium im selben Prozess bleibt und das MediaStream teilbar ist.
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -154,41 +168,45 @@ function ensureWindow() {
       sandbox: true,
       backgroundThrottling: false
     }
-  }));
+  };
+  if (b && Number.isFinite(b.x) && Number.isFinite(b.y)) { o.x = b.x; o.y = b.y; }
+  return o;
+}
+function attach(child) {
+  proj = child;
   ready = false;
+  safe(() => child.webContents.setBackgroundThrottling(false));
   const showProj = () => { if (alive(proj) && !proj.isVisible()) safe(() => proj.show()); };
-  proj.once('ready-to-show', showProj);
-  proj.on('resize', rememberBounds);
-  proj.on('move', rememberBounds);
-  proj.on('closed', () => { proj = null; ready = false; sendMain('projector-closed', {}); });
-  proj.webContents.on('render-process-gone', () => { /* Renderer weg, kein Absturz */ });
-  proj.webContents.on('did-finish-load', () => { ready = true; showProj(); applyWindow(); linkPorts(); });
-  proj.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
+  child.once('ready-to-show', showProj);
+  child.on('resize', rememberBounds);
+  child.on('move', rememberBounds);
+  child.on('closed', () => { if (proj === child) { proj = null; ready = false; sendMain('projector-closed', {}); } });
+  child.webContents.on('did-finish-load', () => { ready = true; showProj(); applyWindow(); });
+  child.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
     if (isMainFrame === false) return;
     console.error('Projektor: Seite nicht geladen', code, desc, url);
     showProj();
     sendMain('projector-error', { message: 'Die Projektor-Seite konnte nicht geladen werden.' });
   });
-  proj.webContents.on('before-input-event', (e, input) => {
-    if (!alive(proj) || input.type !== 'keyDown') return;
-    if (input.key === 'Escape' && proj.isFullScreen()) {
+  child.webContents.on('before-input-event', (e, input) => {
+    if (!alive(child) || input.type !== 'keyDown') return;
+    if (input.key === 'Escape' && child.isFullScreen()) {
       opts.fullscreen = false;
       applyWindow();
       e.preventDefault();
     }
   });
-  const file = path.join(__dirname, 'projector.html');
-  whenPort((port) => {
-    if (!alive(proj)) return;
-    const viaHttp = port ? proj.loadURL('http://127.0.0.1:' + port + '/projector') : Promise.reject(new Error('server'));
-    Promise.resolve(viaHttp).catch((err) => {
-      console.error('Projektor: Laden über den lokalen Server fehlgeschlagen', err);
-      return proj.loadFile(file);
-    }).catch((err) => {
-      console.error('Projektor: loadFile fehlgeschlagen', err);
-      showProj();
-      sendMain('projector-error', { message: 'Die Projektor-Seite konnte nicht geladen werden.' });
-    });
+  console.info('Projektor: natives Fenster, gleicher Prozess', child.webContents.getOSProcessId());
+}
+function install(win) {
+  win.webContents.setWindowOpenHandler((details) => {
+    if (isProjectorUrl(details.url)) return { action: 'allow', overrideBrowserWindowOptions: popupOptions() };
+    if (/^https?:/.test(details.url || '')) { try { require('electron').shell.openExternal(details.url); } catch (e) { console.error(e); } }
+    return { action: 'deny' };
+  });
+  win.webContents.on('did-create-window', (child, details) => {
+    if (!isProjectorUrl(details.url)) return;
+    attach(child);
   });
 }
 
@@ -234,16 +252,14 @@ function sampleImage(image) {
 function init(win) {
   mainWin = win;
   shiny.addRoute(serve);
+  install(win);
   win.on('closed', () => { mainWin = null; closeProj(); });
-  // Nach einem Neuladen des Hauptfensters den Kanal neu verbinden
-  win.webContents.on('did-finish-load', () => { if (alive(proj)) linkPorts(); });
 
   ipcMain.handle('projector-open', (e, patch) => {
     try {
       mergeOpts(patch || {});
-      ensureWindow();
-      if (ready) applyWindow();
-      return { ok: true };
+      if (alive(proj)) { safe(() => proj.focus()); applyWindow(); return { ok: true, already: true }; }
+      return { ok: true, already: false };
     } catch (err) {
       console.error('Projektor: Öffnen fehlgeschlagen', err);
       return { ok: false, message: 'Das Projektor-Fenster konnte nicht geöffnet werden.' };
@@ -290,11 +306,26 @@ function init(win) {
           return {
             title: document.title,
             hint: (document.getElementById('ahint') || {}).textContent || '',
-            frames: { n: fr.n || 0, fps: fr.fps || 0, w: fr.w || 0, h: fr.h || 0, sw: fr.sw || 0, sh: fr.sh || 0 },
-            overlay: { src: f ? (f.src || '') : '', hidden: !f || f.hidden, real: !!(doc && doc.getElementById('count')) }
+            frames: { n: fr.n || 0, fps: fr.fps || 0, w: fr.w || 0, h: fr.h || 0, dropped: fr.dropped || 0 },
+            hear: window.__projectorHear || null,
+            overlay: { src: f ? (f.src || '') : '', hidden: !f || f.hidden, real: !!(doc && doc.getElementById && doc.getElementById('count')) }
           };
         })()`, true), 1500); }
         catch (err) { info.pageError = String(err && err.message || err); }
+        if (spec.counter) {
+          const act = spec.counter;
+          let code = '';
+          if (act === 'state') code = 'window.__projectorCounter.state()';
+          else if (act === 'toggle') code = 'window.__projectorCounter.toggle()';
+          else if (act === 'key') code = '(function(){ window.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true })); return true; })()';
+          else if (act === 'edit') code = 'window.__projectorCounter.edit(true)';
+          else if (act === 'reset') code = 'window.__projectorCounter.reset()';
+          else if (act && act.drag) code = 'window.__projectorCounter.drag(' + Number(act.dx) + ',' + Number(act.dy) + ')';
+          if (code) {
+            try { info.counter = await race(proj.webContents.executeJavaScript(code, true), 1500); }
+            catch (err) { info.counterError = String(err && err.message || err); }
+          }
+        }
         if (spec.sample) {
           try { info.sample = sampleImage(await proj.webContents.capturePage()); }
           catch (err) { info.sampleError = String(err && err.message || err); }

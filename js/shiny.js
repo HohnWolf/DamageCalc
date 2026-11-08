@@ -46,7 +46,8 @@
     projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).',
     projectorOpenFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
     projectorNoAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
-    projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Ziel für den Projektor. Höher als die Quelle wird nicht gezeichnet.'
+    projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Obergrenze für die Aufnahme, nur wenn „Quelle (nativ)“ aus ist.',
+    projectorNative: 'Quelle (nativ)', projectorNativeN: 'Bildrate der Aufnahme, ohne Extra-Kopie. Ohne Haken gilt die Zahl als Obergrenze.'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
     tabHunts: 'Hunts', tabDex: 'Collection', tabSetup: 'Hotkeys & OBS', newHunt: '+ New hunt', huntsActive: 'Active', huntsDone: 'Found',
@@ -83,7 +84,8 @@
     projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).',
     projectorOpenFail: 'The projector window could not be opened.',
     projectorNoAudio: 'This source has no audio. The picture is still shown.',
-    projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Target for the projector. It will not draw faster than the source.'
+    projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Cap for the capture, only when "Source (native)" is off.',
+    projectorNative: 'Source (native)', projectorNativeN: 'The capture frame rate, without an extra copy. Uncheck to use the number as a cap.'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
   function fmt(n) { return Math.round(n).toLocaleString(de ? 'de-DE' : 'en-US'); }
@@ -194,8 +196,12 @@
       onTop: !!p.onTop, hideCursor: !!p.hideCursor, overlay: p.overlay !== false,
       fullscreen: !!p.fullscreen, displayId: id,
       fps: window.CCProjectorMirror ? window.CCProjectorMirror.clampFps(p.fps) : 20,
+      native: p.native !== false,
       sound: p.sound !== false,
       volume: window.CCProjectorMirror ? window.CCProjectorMirror.clampVolume(p.volume) : 80,
+      counterX: window.CCProjectorMirror ? window.CCProjectorMirror.placeCounter(p.counterX, p.counterY, p.counterScale, 1, 1, 100, 100).x : 2,
+      counterY: window.CCProjectorMirror ? window.CCProjectorMirror.placeCounter(p.counterX, p.counterY, p.counterScale, 1, 1, 100, 100).y : 2,
+      counterScale: window.CCProjectorMirror ? window.CCProjectorMirror.clampScale(p.counterScale) : 100,
       bounds: b ? { x: Math.round(+b.x) || 0, y: Math.round(+b.y) || 0, width: Math.max(480, Math.round(+b.width) || 960), height: Math.max(270, Math.round(+b.height) || 540) } : null
     };
   }
@@ -616,8 +622,11 @@
         projectorLabel: function () { return t('projector'); },
         projectorTitle: t('projectorT'),
         getFps: function () { return store.projector.fps; },
-        setFps: function (n) { store.projector.fps = window.CCProjectorMirror.clampFps(n); persist(); },
-        fpsLabel: t('projectorFps'), fpsNumber: t('projectorFpsN'), fpsHint: t('projectorFpsHint') });
+        setFps: function (n) { store.projector.fps = window.CCProjectorMirror.clampFps(n); persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
+        getNative: function () { return store.projector.native !== false; },
+        setNative: function (on) { store.projector.native = !!on; persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
+        fpsLabel: t('projectorFps'), fpsNumber: t('projectorFpsN'), fpsHint: t('projectorFpsHint'),
+        nativeLabel: t('projectorNative'), nativeTitle: t('projectorNativeN') });
     }
     if (Clip) {
       var cp = el('div', { class: 'sh-detect sh-clip panel' });

@@ -32,6 +32,8 @@ process.on('unhandledRejection', (err) => {
   throw err;
 });
 
+// Der Projektor ist ein Kindfenster (window.open). Das darf auch ohne Browser-Geste aufgehen.
+app.commandLine.appendSwitch('disable-popup-blocking');
 const ROOT = path.join(__dirname, '..');
 const projector = require('./projector');
 // Test des Projektors: eigene Nutzerdaten, damit die laufende App nicht blockiert wird
@@ -103,11 +105,7 @@ function createWindow() {
   win.on('unmaximize', sendMax);
   win.webContents.on('did-finish-load', sendMax);
 
-  // Links (z. B. Credits) im normalen Browser öffnen, nicht in der App
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:/.test(url)) shell.openExternal(url);
-    return { action: 'deny' };
-  });
+  // HTTPS-Links und das Projektor-Fenster: electron/projector.js (install)
   win.webContents.on('will-navigate', (e, url) => {
     if (/^https?:/.test(url)) { e.preventDefault(); shell.openExternal(url); }
   });

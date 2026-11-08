@@ -58,6 +58,34 @@
   }
 
   // Lautstärke 0–100. Leer oder unlesbar wird 80.
+  function clampScale(v) {
+    if (v == null || v === '') return 100;
+    var n = Number(v);
+    if (!isFinite(n)) return 100;
+    n = Math.round(n);
+    if (n < 50) return 50;
+    if (n > 300) return 300;
+    return n;
+  }
+  // x/y in percent of the window. The scaled box stays inside.
+  function placeCounter(x, y, scale, boxW, boxH, winW, winH) {
+    scale = clampScale(scale);
+    if (x == null || x === '') x = 2;
+    if (y == null || y === '') y = 2;
+    x = Number(x); y = Number(y);
+    if (!isFinite(x)) x = 2;
+    if (!isFinite(y)) y = 2;
+    boxW = Math.max(1, Number(boxW) || 1);
+    boxH = Math.max(1, Number(boxH) || 1);
+    winW = Math.max(1, Number(winW) || 1);
+    winH = Math.max(1, Number(winH) || 1);
+    var sw = boxW * scale / 100, sh = boxH * scale / 100;
+    var maxX = Math.max(0, (winW - sw) / winW * 100);
+    var maxY = Math.max(0, (winH - sh) / winH * 100);
+    if (x < 0) x = 0; if (x > maxX) x = maxX;
+    if (y < 0) y = 0; if (y > maxY) y = maxY;
+    return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, scale: scale };
+  }
   function clampVolume(v) {
     if (v == null || v === '' || typeof v === 'boolean') return 80;
     var n = Number(v);
@@ -268,18 +296,52 @@
     if (api && api.toast) api.toast(api.noAudio);
     try { if (port) port.postMessage({ kind: 'audio-status', ok: false }); } catch (e) { console.error('Projektor: Hinweis', e); }
   }
+  // Bildrate der Aufnahme: nativ bis 60, oder eine Obergrenze. Kein zweites Gerät.
+  function limitCapture(video, native, fps) {
+    var list = video && video.srcObject && video.srcObject.getVideoTracks ? video.srcObject.getVideoTracks() : [];
+    var rate = native ? { ideal: 60, max: 60 } : { ideal: clampFps(fps), max: clampFps(fps) };
+    list.forEach(function (tr) {
+      if (!tr.applyConstraints) return;
+      tr.applyConstraints({ frameRate: rate }).catch(function (e) { console.error('Projektor: Bildrate', e); });
+    });
+  }
+  function easeCapture(video) {
+    var list = video && video.srcObject && video.srcObject.getVideoTracks ? video.srcObject.getVideoTracks() : [];
+    list.forEach(function (tr) {
+      if (!tr.applyConstraints) return;
+      tr.applyConstraints({ frameRate: { ideal: 30, max: 60 } }).catch(function () {});
+    });
+  }
+  function feed() {
+    var v = api && api.video(huntId);
+    var o = soundOpts();
+    return { stream: v && v.srcObject || null, sound: o.sound, volume: o.volume };
+  }
+  function popupUrl() {
+    var path = (root.location && root.location.pathname) || '';
+    if (/projector_harness\.html$/.test(path)) return 'projector.html';
+    return 'electron/projector.html';
+  }
+  function openPopup() {
+    root.__rlProjectorFeed = feed;
+    var child = root.open(popupUrl(), 'rl-projector', 'popup=yes,width=960,height=540');
+    if (!child) { console.error('Projektor: Fenster blockiert'); if (api) api.toast(api.openFail); return false; }
+    return true;
+  }
+  function syncLimit() {
+    var v = api && api.video(huntId);
+    if (!v) return;
+    var o = api.opts();
+    limitCapture(v, o.native !== false, o.fps);
+  }
   function restart() {
-    if (stopMirror) { stopMirror(); stopMirror = null; }
-    if (stopAudio) { stopAudio(); stopAudio = null; }
-    if (!port || huntId == null) return;
-    var getV = function () { return api && api.video(huntId); };
-    stopMirror = startMirror(getV, port, function () { return api && api.opts ? api.opts().fps : FPS; });
-    var v = getV();
-    var stream = v && v.srcObject;
-    var audio = startAudio(v, stream, soundOpts);
-    stopAudio = audio.stop;
-    if (!audio.ok) warnNoAudio();
+    var v = api && api.video(huntId);
+    if (!v || !v.srcObject) { warnNoAudio(); return; }
+    silencePreview(v);
+    var tracks = v.srcObject.getAudioTracks ? v.srcObject.getAudioTracks() : [];
+    if (!tracks.length) warnNoAudio();
     else audioWarned = false;
+    syncLimit();
   }
   function payload() {
     var o = api.opts();
@@ -287,6 +349,7 @@
       onTop: !!o.onTop, hideCursor: !!o.hideCursor, overlay: o.overlay !== false,
       fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
       sound: o.sound !== false, volume: clampVolume(o.volume),
+      counterX: o.counterX, counterY: o.counterY, counterScale: o.counterScale,
       theme: api.theme(), lang: api.lang, overlayUrl: api.overlayUrl()
     };
   }
@@ -299,7 +362,7 @@
         api.toast(api.noDesktop);
         return;
       }
-      if (opened && huntId === id) { desktop.close(); return; }
+      if (opened && huntId === id) { easeCapture(api.video(id)); desktop.close(); return; }
       var v = api.video(id);
       if (!v || !v.srcObject) {
         console.error('Projektor: keine laufende Aufnahme');
@@ -308,14 +371,17 @@
       }
       huntId = id;
       var pending = desktop.open(payload());
-      if (!pending || typeof pending.then !== 'function') { opened = true; restart(); paint(); return; }
+      if (!pending || typeof pending.then !== 'function') { opened = true; if (openPopup()) { restart(); paint(); } return; }
       pending.then(function (r) {
         if (r && r.ok === false) {
           console.error('Projektor', r);
           api.toast(r.message || api.openFail);
           return;
         }
-        opened = true; restart(); paint();
+        opened = true;
+        if (!openPopup()) return;
+        restart();
+        paint();
       }, function (err) {
         console.error('Projektor: Öffnen fehlgeschlagen', err);
         api.toast(api.openFail);
@@ -335,6 +401,8 @@
     if (!desktop) return;
     setPortHandler(function (p) { port = p; restart(); });
     desktop.onClosed(function () {
+      var v = api && api.video(huntId);
+      easeCapture(v);
       opened = false; huntId = null; audioWarned = false;
       if (stopMirror) { stopMirror(); stopMirror = null; }
       if (stopAudio) { stopAudio(); stopAudio = null; }
@@ -346,8 +414,10 @@
       api.save({
         onTop: !!o.onTop, hideCursor: !!o.hideCursor, overlay: o.overlay !== false,
         fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId,
-        sound: o.sound !== false, volume: clampVolume(o.volume)
+        sound: o.sound !== false, volume: clampVolume(o.volume),
+        counterX: o.counterX, counterY: o.counterY, counterScale: o.counterScale
       });
+      if (opened) syncLimit();
     });
     if (desktop.onError) desktop.onError(function (o) {
       console.error('Projektor', o && o.message || o);
@@ -370,8 +440,8 @@
   root.CCProjectorMirror = {
     fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror, startAudio: startAudio,
     clampFps: clampFps, shouldSend: shouldSend, sourceFrameId: sourceFrameId, setPortHandler: setPortHandler,
-    clampVolume: clampVolume, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
+    clampVolume: clampVolume, clampScale: clampScale, placeCounter: placeCounter, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
-  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, isOpen: isOpen };
+  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, isOpen: isOpen };
 })(typeof window !== 'undefined' ? window : globalThis);

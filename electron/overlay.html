@@ -179,16 +179,22 @@
         return;
       }
       setSprite(h.sprite, true);
-      document.getElementById('name').textContent = h.name;
+      function put(id, text) { var e = document.getElementById(id); if (e.textContent !== text) e.textContent = text; }
+      put('name', h.name);
       var c = document.getElementById('count');
       if (last !== null && h.count !== last) { c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
       last = h.count;
-      c.textContent = h.count.toLocaleString('de-DE');
-      document.getElementById('odds').textContent = h.oddsText + (h.chanceText ? ' · ' + h.chanceText : '');
+      var countText = h.count.toLocaleString('de-DE');
+      if (c.textContent !== countText) c.textContent = countText;
+      put('odds', h.oddsText + (h.chanceText ? ' · ' + h.chanceText : ''));
       // in the editor, empty parts get a sample text so they can be grabbed
-      document.getElementById('phase').textContent = h.phaseText || (edit ? 'Phase 2 · 1.234 gesamt' : '');
-      document.getElementById('timer').textContent = h.timeText || (edit ? '0:00:00' : '');
+      put('phase', h.phaseText || (edit ? 'Phase 2 · 1.234 gesamt' : ''));
+      put('timer', h.timeText || (edit ? '0:00:00' : ''));
       ov.classList.toggle('found', !!h.found);
+      if (document.documentElement.classList.contains('transparent')) {
+        var box = ov.getBoundingClientRect();
+        parent.postMessage({ type: 'rl-ov-box', w: Math.ceil(box.width), h: Math.ceil(box.height) }, '*');
+      }
     }).catch(function () { /* app closed */ });
   }
   tick();
