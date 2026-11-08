@@ -25,7 +25,7 @@
       return navigator.mediaDevices.getUserMedia({ video: v, audio: false });
     }
     if (D && src.id) D.chooseSource(src.id);
-    return navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 20 }, audio: false });
+    return navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: 20 }, audio: false });
   }
 
   function chooseScreen(cb) {

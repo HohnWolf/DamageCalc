@@ -255,12 +255,15 @@
       if (!document.contains(cv)) return;
       var v = s.video;
       if (v.videoWidth) {
-        var W = cv.clientWidth || 480, H = Math.round(W * v.videoHeight / v.videoWidth);
+        // draw at device-pixel resolution (never above the source) so the preview stays sharp on HiDPI screens
+        var dpr = window.devicePixelRatio || 1;
+        var W = Math.min(v.videoWidth, Math.round((cv.clientWidth || 480) * dpr)), H = Math.round(W * v.videoHeight / v.videoWidth);
         if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(v, 0, 0, W, H);
         var r = drag ? { x: Math.min(drag.a.x, drag.b.x), y: Math.min(drag.a.y, drag.b.y), w: Math.abs(drag.a.x - drag.b.x), h: Math.abs(drag.a.y - drag.b.y) } : c.region;
         if (r) {
-          ctx.lineWidth = 2;
+          ctx.lineWidth = Math.max(2, Math.round(W / 400));
           ctx.strokeStyle = s.state === 'latched' ? '#3fae6a' : '#f2c94c';
           ctx.strokeRect(r.x * W, r.y * H, r.w * W, r.h * H);
         }

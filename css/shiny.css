@@ -147,7 +147,7 @@
 .det-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .det-row select { height: 28px; }
 .det-row input[type=number] { width: 64px; height: 28px; }
-.det-preview { width: 100%; max-width: 560px; border: 1px solid var(--line); border-radius: var(--radius); background: #000; cursor: crosshair; display: block; }
+.det-preview { width: 100%; max-width: 760px; border: 1px solid var(--line); border-radius: var(--radius); background: #000; cursor: crosshair; display: block; }
 .det-refs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .det-ref { height: 40px; width: auto; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 3px; cursor: pointer; }
 .det-ref:hover { border-color: var(--bad); }
@@ -162,6 +162,17 @@
 .det-src { height: auto; display: flex; flex-direction: column; gap: 4px; padding: 6px; text-align: left; }
 .det-src img { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; border-radius: 3px; }
 .det-src span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* no wobble: live texts keep a fixed line height, single line, equal-width digits */
+.sh-detect { font-variant-numeric: tabular-nums; overflow-anchor: none; }
+.det-head { min-height: 24px; flex-wrap: nowrap; }
+.det-head .sl-title { flex: none; }
+.det-state { flex: 1; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-detect .hint { min-height: 1.4em; line-height: 1.4; }
+.sh-detect .det-meter + .hint { height: 1.4em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clip-state.on::before { display: inline-block; width: 1em; }
+.det-row { min-height: 30px; }
+.clip-row { min-height: 32px; }
 
 /* clips (js/shiny_clip.js) and setting counter/time by hand */
 .sh-clip { border-top: 3px solid var(--bad); }
