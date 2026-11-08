@@ -44,6 +44,8 @@
     openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.',
     act_projector: 'Projektor', projector: 'Projektor', projectorT: 'Öffnet die Aufnahme in einem eigenen Fenster, mit Zähler, Quote und Timer darüber. Der gelbe Erkennungsrahmen bleibt nur in diesem Fenster.',
     projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).',
+    projectorOpenFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
+    projectorNoAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
     projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Ziel für den Projektor. Höher als die Quelle wird nicht gezeichnet.'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
@@ -79,6 +81,8 @@
     openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.',
     act_projector: 'Projector', projector: 'Projector', projectorT: 'Opens the capture in its own window, with counter, odds and timer on top. The yellow detection box stays in this window only.',
     projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).',
+    projectorOpenFail: 'The projector window could not be opened.',
+    projectorNoAudio: 'This source has no audio. The picture is still shown.',
     projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Target for the projector. It will not draw faster than the source.'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
@@ -190,6 +194,8 @@
       onTop: !!p.onTop, hideCursor: !!p.hideCursor, overlay: p.overlay !== false,
       fullscreen: !!p.fullscreen, displayId: id,
       fps: window.CCProjectorMirror ? window.CCProjectorMirror.clampFps(p.fps) : 20,
+      sound: p.sound !== false,
+      volume: window.CCProjectorMirror ? window.CCProjectorMirror.clampVolume(p.volume) : 80,
       bounds: b ? { x: Math.round(+b.x) || 0, y: Math.round(+b.y) || 0, width: Math.max(480, Math.round(+b.width) || 960), height: Math.max(270, Math.round(+b.height) || 540) } : null
     };
   }
@@ -1048,7 +1054,8 @@
     theme: function () { return document.documentElement.getAttribute('data-theme') || 'oled'; },
     lang: de ? 'de' : 'en',
     toast: function (m) { A.toast(m); },
-    noDesktop: t('projectorDesktop'), noVideo: t('projectorNoVideo')
+    noDesktop: t('projectorDesktop'), noVideo: t('projectorNoVideo'),
+    openFail: t('projectorOpenFail'), noAudio: t('projectorNoAudio')
   });
   var baseOverlay = '';
   if (D) D.overlayInfo().then(function (info) {

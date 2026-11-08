@@ -5,7 +5,7 @@ let bad = 0;
 function fail(m) { console.log('FAIL ' + m); bad++; }
 function ok(m) { console.log('ok   ' + m); }
 
-const ctx = { console, globalThis: null, document: { createElement: function () { return {}; } } };
+const ctx = { console, Float32Array: Float32Array, globalThis: null, document: { createElement: function () { return {}; } } };
 ctx.globalThis = ctx;
 ctx.window = ctx;
 vm.createContext(ctx);
@@ -79,6 +79,26 @@ else if (!M.shouldSend(1050, live, 60, 'q2')) fail('60 Bilder/s blockt dieselben
 else ok('neue Bildrate gilt ohne Neustart');
 if (M.startMirror.length < 3) fail('startMirror liest die Bildrate nicht bei jedem Bild');
 else ok('startMirror bekommt die aktuelle Bildrate');
+if (M.clampVolume(0) !== 0 || M.clampVolume(100) !== 100 || M.clampVolume(35.4) !== 35) fail('Lautstärke 0–100');
+else ok('Lautstärke 0–100');
+if (M.clampVolume(null) !== 80 || M.clampVolume('x') !== 80 || M.clampVolume(140) !== 100 || M.clampVolume(-4) !== 0) fail('Lautstärke außerhalb');
+else ok('Lautstärke außerhalb wird begrenzt');
+var track = { readyState: 'live' }, ended = { readyState: 'ended' };
+var fakeStream = { getAudioTracks: function () { return [ended, track]; } };
+if (M.liveAudioTrack(fakeStream) !== track || M.liveAudioTrack({ getAudioTracks: function () { return []; } }) !== null) fail('Tonspur der bestehenden Aufnahme');
+else ok('Tonspur der bestehenden Aufnahme');
+if (M.liveAudioTrack(null) !== null) fail('fehlende Quelle hat eine Tonspur');
+else ok('ohne Stream keine Tonspur');
+var preview = { muted: false, volume: 1 };
+M.silencePreview(preview);
+if (!preview.muted || preview.volume !== 0) fail('Vorschau wird nicht stumm geschaltet');
+else ok('Vorschau stumm, Projektor übernimmt den Ton');
+var buf = { length: 4, numberOfChannels: 1, getChannelData: function () { return new Float32Array([0, 0.5, -0.25, 1]); } };
+var pcm = M.pcmMessage(buf, { sound: true, volume: 40, rate: 48000 }, 10);
+if (!pcm || pcm.kind !== 'pcm' || pcm.a.length !== 4 || pcm.a[1] !== 0.5 || pcm.b[3] !== 1 || pcm.rate !== 48000) fail('PCM wird nicht aus der bestehenden Spur gebaut');
+else ok('PCM aus der bestehenden Spur');
+if (M.pcmMessage(buf, { sound: false }, 10) !== null) fail('ausgeschalteter Ton schickt weiter Pakete');
+else ok('Ton aus schickt nichts');
 
 const src = fs.readFileSync(path.join(ROOT, 'js/shiny_projector.js'), 'utf8');
 const page = fs.readFileSync(path.join(ROOT, 'electron/projector.html'), 'utf8');
@@ -102,13 +122,24 @@ if (!html.includes('js/shiny_projector.js')) fail('index.html lädt den Projekto
 else ok('index.html verdrahtet');
 if (!app.includes("CCProjector.toggle") || !app.includes('act_projector')) fail('Knopf oder Hotkey fehlt');
 else ok('Knopf und Hotkey');
+if (/desktop\.projector\.(open|close)/.test(src)) fail('Knopf ruft desktop.projector.open auf');
+else ok('Knopf benutzt die Projektor-Brücke direkt');
+if (!src.includes('desktop.open(') || !src.includes("kind: 'pcm'")) fail('Öffnen oder Ton fehlt');
+else ok('Öffnen und PCM-Ton');
+if (!app.includes('sound: p.sound') || !app.includes('volume:')) fail('Ton wird nicht gespeichert');
+else ok('Ton und Lautstärke in den Projektor-Einstellungen');
+if (!app.includes('Diese Quelle liefert keinen Ton')) fail('Hinweis ohne Ton fehlt');
+else ok('Hinweis, wenn die Quelle keinen Ton hat');
+const cap = fs.readFileSync(path.join(ROOT, 'js/capture.js'), 'utf8');
+if (!cap.includes('groupId') || !cap.includes('audio: true')) fail('Aufnahme fordert den Ton nicht mit an');
+else ok('Bild und Ton in einem Aufruf');
 if (!app.includes('clampFps(p.fps)') || !app.includes('setFps')) fail('Bildrate wird nicht gespeichert');
 else ok('Bildrate liegt in den Projektor-Einstellungen');
 if (!det.includes('detFpsRange') || !det.includes('type: \'range\'') || !det.includes('type: \'number\'')) fail('Regler oder Zahleneingabe fehlt');
 else ok('Regler und Zahl 10–60');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-if (pkg.version !== '1.17.9') fail('Version ist ' + pkg.version);
-else ok('Version 1.17.9');
+if (pkg.version !== '1.17.10') fail('Version ist ' + pkg.version);
+else ok('Version 1.17.10');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Projektor-Spiegel-Test OK');

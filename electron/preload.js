@@ -4,7 +4,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // MessagePort vom Hauptprozess ins Fenster (isolierte Welt → Seite)
 ipcRenderer.on('projector-port', (event) => {
-  try { window.postMessage({ type: 'rl-projector-port' }, '*', event.ports); } catch (e) { /* Port schon zu */ }
+  try { window.postMessage({ type: 'rl-projector-port' }, '*', event.ports); }
+  catch (e) { console.error('Projektor: Port', e); }
 });
 
 contextBridge.exposeInMainWorld('desktop', {
@@ -42,10 +43,12 @@ contextBridge.exposeInMainWorld('desktop', {
     onClosed: (cb) => ipcRenderer.on('projector-closed', () => cb()),
     onBounds: (cb) => ipcRenderer.on('projector-bounds', (e, b) => cb(b)),
     onShowMenu: (cb) => ipcRenderer.on('projector-show-menu', (e, pos) => cb(pos || {})),
+    onError: (cb) => ipcRenderer.on('projector-error', (e, o) => cb(o || {})),
     testSample: () => ipcRenderer.invoke('projector-test-sample'),
     testShot: (spec) => ipcRenderer.invoke('projector-test-shot', spec || {}),
     testMenu: () => ipcRenderer.send('projector-test-menu'),
     testDone: (result) => ipcRenderer.send('projector-test-done', result || {}),
+    testInfo: (spec) => ipcRenderer.invoke('projector-test-info', spec || {}),
   },
   // Match-Overlays für OBS (electron/match.js): Stand schicken, Adresse, Teamlogos, Start-Screen abspielen
   match: {

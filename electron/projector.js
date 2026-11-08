@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
 
-const TEST = process.argv.includes('--projector-test');
+const TEST = process.argv.includes('--projector-test') || process.argv.includes('--projector-click-test');
 let mainWin = null;
 let proj = null;
 let opts = emptyOpts();
@@ -17,10 +17,15 @@ let saveTimer = null;
 let ready = false;
 
 function emptyOpts() {
-  return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null };
+  return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null, sound: true, volume: 80 };
 }
 function alive(w) { return !!(w && !w.isDestroyed()); }
-function safe(fn) { try { return fn(); } catch (e) { return null; } }
+function safe(fn) { try { return fn(); } catch (e) { console.error('Projektor', e); return null; } }
+function clampVolume(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 80;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
 
 function cleanOpts(o) {
   o = o && typeof o === 'object' ? o : {};
@@ -33,6 +38,8 @@ function cleanOpts(o) {
     overlay: o.overlay !== false,
     fullscreen: !!o.fullscreen,
     displayId: displayId,
+    sound: o.sound !== false,
+    volume: clampVolume(o.volume == null ? 80 : o.volume),
     bounds: b ? {
       x: Math.round(+b.x) || 0,
       y: Math.round(+b.y) || 0,
@@ -63,7 +70,9 @@ function viewState() {
   return {
     onTop: opts.onTop, hideCursor: opts.hideCursor, overlay: opts.overlay,
     fullscreen: opts.fullscreen, displayId: opts.displayId,
-    overlayUrl: overlayUrl, theme: theme, lang: lang, open: alive(proj)
+    overlayUrl: overlayUrl, theme: theme, lang: lang, open: alive(proj),
+    visible: alive(proj) && proj.isVisible(),
+    sound: opts.sound !== false, volume: clampVolume(opts.volume)
   };
 }
 function pushOpts() { const s = viewState(); sendProj('projector-opts', s); sendMain('projector-opts', s); }
@@ -113,7 +122,7 @@ function linkPorts() {
     const { port1, port2 } = new MessageChannelMain();
     mainWin.webContents.postMessage('projector-port', { type: 'rl-projector-port' }, [port1]);
     proj.webContents.postMessage('projector-port', { type: 'rl-projector-port' }, [port2]);
-  } catch (e) { /* eines der Fenster schließt gerade */ }
+  } catch (e) { console.error('Projektor: MessagePort', e); }
 }
 
 function whenPort(cb, n) {
@@ -147,12 +156,19 @@ function ensureWindow() {
     }
   }));
   ready = false;
-  proj.once('ready-to-show', () => { if (alive(proj)) safe(() => proj.show()); });
+  const showProj = () => { if (alive(proj) && !proj.isVisible()) safe(() => proj.show()); };
+  proj.once('ready-to-show', showProj);
   proj.on('resize', rememberBounds);
   proj.on('move', rememberBounds);
   proj.on('closed', () => { proj = null; ready = false; sendMain('projector-closed', {}); });
   proj.webContents.on('render-process-gone', () => { /* Renderer weg, kein Absturz */ });
-  proj.webContents.on('did-finish-load', () => { ready = true; applyWindow(); linkPorts(); });
+  proj.webContents.on('did-finish-load', () => { ready = true; showProj(); applyWindow(); linkPorts(); });
+  proj.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
+    if (isMainFrame === false) return;
+    console.error('Projektor: Seite nicht geladen', code, desc, url);
+    showProj();
+    sendMain('projector-error', { message: 'Die Projektor-Seite konnte nicht geladen werden.' });
+  });
   proj.webContents.on('before-input-event', (e, input) => {
     if (!alive(proj) || input.type !== 'keyDown') return;
     if (input.key === 'Escape' && proj.isFullScreen()) {
@@ -161,10 +177,18 @@ function ensureWindow() {
       e.preventDefault();
     }
   });
+  const file = path.join(__dirname, 'projector.html');
   whenPort((port) => {
     if (!alive(proj)) return;
-    if (!port) { safe(() => proj.close()); return; }
-    safe(() => proj.loadURL('http://127.0.0.1:' + port + '/projector'));
+    const viaHttp = port ? proj.loadURL('http://127.0.0.1:' + port + '/projector') : Promise.reject(new Error('server'));
+    Promise.resolve(viaHttp).catch((err) => {
+      console.error('Projektor: Laden über den lokalen Server fehlgeschlagen', err);
+      return proj.loadFile(file);
+    }).catch((err) => {
+      console.error('Projektor: loadFile fehlgeschlagen', err);
+      showProj();
+      sendMain('projector-error', { message: 'Die Projektor-Seite konnte nicht geladen werden.' });
+    });
   });
 }
 
@@ -177,7 +201,7 @@ function closeProj() {
 function serve(req, res, url) {
   if (url.pathname !== '/projector') return false;
   fs.readFile(path.join(__dirname, 'projector.html'), (err, html) => {
-    if (err) { res.writeHead(500); res.end(); return; }
+    if (err) { console.error('Projektor: projector.html fehlt', err); res.writeHead(500); res.end(); return; }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(html);
   });
@@ -215,10 +239,15 @@ function init(win) {
   win.webContents.on('did-finish-load', () => { if (alive(proj)) linkPorts(); });
 
   ipcMain.handle('projector-open', (e, patch) => {
-    mergeOpts(patch || {});
-    ensureWindow();
-    if (ready) applyWindow();
-    return { ok: true };
+    try {
+      mergeOpts(patch || {});
+      ensureWindow();
+      if (ready) applyWindow();
+      return { ok: true };
+    } catch (err) {
+      console.error('Projektor: Öffnen fehlgeschlagen', err);
+      return { ok: false, message: 'Das Projektor-Fenster konnte nicht geöffnet werden.' };
+    }
   });
   ipcMain.on('projector-close', () => closeProj());
   ipcMain.on('projector-set', (e, patch) => { mergeOpts(patch || {}); applyWindow(); });
@@ -248,6 +277,29 @@ function init(win) {
       return { ok: true, file: file, sample: sampleImage(image) };
     });
     ipcMain.on('projector-test-menu', () => sendProj('projector-show-menu', { x: 28, y: 28 }));
+    const race = (p, ms) => Promise.race([p, new Promise((resolve) => setTimeout(() => resolve({ timeout: true }), ms))]);
+    ipcMain.handle('projector-test-info', async (e, spec) => {
+      spec = spec || {};
+      const info = { open: alive(proj), visible: alive(proj) && !!safe(() => proj.isVisible()) };
+      if (alive(proj)) {
+        try { info.page = await race(proj.webContents.executeJavaScript('({ title: document.title, audio: window.__projectorAudio || null, hint: (document.getElementById("ahint") || {}).textContent || "", hintHidden: (document.getElementById("ahint") || {}).hidden !== false })', true), 1500); }
+        catch (err) { info.pageError = String(err && err.message || err); }
+        if (spec.menu) {
+          try {
+            info.menu = await race(proj.webContents.executeJavaScript(`new Promise(function (resolve) {
+              document.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 40, clientY: 40 }));
+              setTimeout(function () {
+                var menu = document.getElementById('menu');
+                var range = menu && menu.querySelector('input[type=range]');
+                resolve({ hidden: !menu || menu.hidden, text: menu ? menu.innerText : '', hasRange: !!range, vol: range ? range.value : '' });
+              }, 250);
+            })`, true), 2000);
+          } catch (err) { info.menuError = String(err && err.message || err); }
+        }
+      }
+      try { info.hotkey = require('electron').globalShortcut.isRegistered('CommandOrControl+Alt+P'); } catch (err) { info.hotkey = false; }
+      return info;
+    });
     ipcMain.on('projector-test-done', (e, result) => {
       const dir = process.env.RL_SHOT_DIR;
       if (dir) {

@@ -35,7 +35,7 @@ process.on('unhandledRejection', (err) => {
 const ROOT = path.join(__dirname, '..');
 const projector = require('./projector');
 // Test des Projektors: eigene Nutzerdaten, damit die laufende App nicht blockiert wird
-if (process.argv.includes('--projector-test')) {
+if (process.argv.includes('--projector-test') || process.argv.includes('--projector-click-test')) {
   app.setPath('userData', path.join(require('os').tmpdir(), 'rl-projector-test-' + process.pid));
 }
 
@@ -122,6 +122,19 @@ function createWindow() {
 
   win.on('close', () => saveBounds(win));
   win.loadFile(path.join(ROOT, 'index.html'), isShiny ? { query: { shiny: '1' } } : undefined);
+  if (process.argv.includes('--projector-click-test')) {
+    const driver = fs.readFileSync(path.join(__dirname, 'projector_click.js'), 'utf8');
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.executeJavaScript(driver, true).catch((err) => {
+        console.error('Projektor-Klick-Test', err);
+        try { fs.mkdirSync(process.env.RL_SHOT_DIR || require('os').tmpdir(), { recursive: true }); } catch (e) { /* */ }
+        try {
+          fs.writeFileSync(path.join(process.env.RL_SHOT_DIR || require('os').tmpdir(), 'result.json'), JSON.stringify({ ok: false, error: String(err && err.message || err) }));
+        } catch (e) { /* */ }
+        setTimeout(() => { try { app.exit(1); } catch (e) { process.exit(1); } }, 50);
+      });
+    });
+  }
 }
 
 ipcMain.on('win', (e, what) => {

@@ -57,6 +57,43 @@
     return true;
   }
 
+  // Lautstärke 0–100. Leer oder unlesbar wird 80.
+  function clampVolume(v) {
+    if (v == null || v === '' || typeof v === 'boolean') return 80;
+    var n = Number(v);
+    if (!isFinite(n)) return 80;
+    n = Math.round(n);
+    if (n < 0) return 0;
+    if (n > 100) return 100;
+    return n;
+  }
+  // Die Vorschau im Hauptfenster bleibt stumm. Ton gibt es nur im Projektor, nie doppelt.
+  function silencePreview(video) {
+    if (!video) return;
+    try { video.muted = true; } catch (e) { /* schon weg */ }
+    try { video.volume = 0; } catch (e) { /* kein Lautstärkeregler */ }
+  }
+  function liveAudioTrack(stream) {
+    var list = stream && stream.getAudioTracks ? stream.getAudioTracks() : [];
+    for (var i = 0; i < list.length; i++) {
+      var tr = list[i];
+      if (tr && tr.readyState !== 'ended') return tr;
+    }
+    return null;
+  }
+  // Ein PCM-Päckchen aus einem AudioBuffer. sound aus → null (nichts schicken).
+  function pcmMessage(input, opts, now) {
+    if (!input || !opts || opts.sound === false) return null;
+    var n = input.length | 0;
+    if (n < 1 || !input.getChannelData) return null;
+    var F = root.Float32Array;
+    var a = new F(n), b = new F(n);
+    a.set(input.getChannelData(0));
+    if (input.numberOfChannels > 1) b.set(input.getChannelData(1));
+    else b.set(a);
+    return { kind: 'pcm', rate: opts.rate || 48000, t: now || 0, a: a, b: b };
+  }
+
   function startMirror(getVideo, port, getFps) {
     var canvas = root.document.createElement('canvas');
     var ctx = canvas.getContext('2d', { alpha: false });
@@ -81,13 +118,58 @@
         blob.arrayBuffer().then(function (buf) {
           state.encoding = false;
           if (dead) return;
-          try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, buf: buf }, [buf]); }
-          catch (e) { dead = true; }
+          try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, t: root.performance ? root.performance.now() : 0, buf: buf }, [buf]); }
+          catch (e) { dead = true; console.error('Projektor: Bildübertragung', e); }
         }, function () { state.encoding = false; });
       }, 'image/jpeg', JPEG_Q);
     }
     root.requestAnimationFrame(tick);
     return function stop() { dead = true; };
+  }
+
+  // Dieselbe Tonspur der schon offenen Aufnahme. Das Gerät wird hier nicht noch einmal geöffnet.
+  // Im Hauptfenster nur mit Verstärkung 0 anfassen (sonst spielt der Prozessor nicht), hörbar wird es im Projektor.
+  function startAudio(video, stream, port, getOpts) {
+    silencePreview(video);
+    var track = liveAudioTrack(stream);
+    if (!track) return { ok: false, reason: 'no-track', stop: function () {} };
+    var AC = root.AudioContext || root.webkitAudioContext;
+    if (!AC) { console.error('Projektor: kein AudioContext'); return { ok: false, reason: 'no-api', stop: function () {} }; }
+    var ctx, srcNode, mute, proc, dead = false;
+    try {
+      try { ctx = new AC({ latencyHint: 'interactive' }); } catch (e) { ctx = new AC(); }
+      srcNode = ctx.createMediaStreamSource(new MediaStream([track]));
+      mute = ctx.createGain();
+      mute.gain.value = 0;
+      try { proc = ctx.createScriptProcessor(1024, 2, 2); }
+      catch (e) { proc = ctx.createScriptProcessor(1024, 1, 1); }
+      srcNode.connect(proc);
+      proc.connect(mute);
+      mute.connect(ctx.destination);
+      if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    } catch (e) {
+      console.error('Projektor: Ton konnte nicht verbunden werden', e);
+      try { if (ctx) ctx.close(); } catch (e2) { /* schon zu */ }
+      return { ok: false, reason: 'graph', stop: function () {} };
+    }
+    proc.onaudioprocess = function (ev) {
+      if (dead || !port) return;
+      silencePreview(video);
+      var o = {};
+      try { o = (typeof getOpts === 'function' ? getOpts() : getOpts) || {}; } catch (err) { o = {}; }
+      var msg = pcmMessage(ev.inputBuffer, { sound: o.sound !== false, volume: o.volume, rate: ctx.sampleRate }, root.performance ? root.performance.now() : 0);
+      if (!msg) return;
+      try { port.postMessage(msg, [msg.a.buffer, msg.b.buffer]); }
+      catch (err) { dead = true; console.error('Projektor: Tonübertragung', err); }
+    };
+    return {
+      ok: true,
+      stop: function () {
+        dead = true;
+        try { proc.onaudioprocess = null; proc.disconnect(); srcNode.disconnect(); mute.disconnect(); } catch (e) { /* schon getrennt */ }
+        try { ctx.close(); } catch (e) { /* schon zu */ }
+      }
+    };
   }
 
   function setPortHandler(fn) {
@@ -109,36 +191,84 @@
   }
 
   // Steuerung: Fenster auf/zu, Spiegel starten, Optionen merken. api kommt aus js/shiny.js.
-  var api = null, desktop = null, huntId = null, opened = false, stopMirror = null, port = null;
+  var api = null, desktop = null, huntId = null, opened = false, stopMirror = null, stopAudio = null, port = null, audioWarned = false;
   function paint() {
     if (!root.document) return;
     var on = opened;
     root.document.querySelectorAll('[data-projector]').forEach(function (b) { b.classList.toggle('on', on); });
   }
+  function soundOpts() {
+    var o = api && api.opts ? api.opts() : {};
+    return { sound: !o || o.sound !== false, volume: clampVolume(o && o.volume) };
+  }
+  function warnNoAudio() {
+    var o = soundOpts();
+    if (!o.sound || audioWarned) return;
+    audioWarned = true;
+    console.error('Projektor: Quelle ohne Tonspur');
+    if (api && api.toast) api.toast(api.noAudio);
+    try { if (port) port.postMessage({ kind: 'audio-status', ok: false }); } catch (e) { console.error('Projektor: Hinweis', e); }
+  }
   function restart() {
     if (stopMirror) { stopMirror(); stopMirror = null; }
+    if (stopAudio) { stopAudio(); stopAudio = null; }
     if (!port || huntId == null) return;
-    stopMirror = startMirror(function () { return api && api.video(huntId); }, port, function () { return api && api.opts ? api.opts().fps : FPS; });
+    var getV = function () { return api && api.video(huntId); };
+    stopMirror = startMirror(getV, port, function () { return api && api.opts ? api.opts().fps : FPS; });
+    var v = getV();
+    var stream = v && v.srcObject;
+    var audio = startAudio(v, stream, port, soundOpts);
+    stopAudio = audio.stop;
+    if (!audio.ok) warnNoAudio();
+    else audioWarned = false;
   }
   function payload() {
     var o = api.opts();
     return {
       onTop: !!o.onTop, hideCursor: !!o.hideCursor, overlay: o.overlay !== false,
       fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
+      sound: o.sound !== false, volume: clampVolume(o.volume),
       theme: api.theme(), lang: api.lang, overlayUrl: api.overlayUrl()
     };
   }
   function toggle(id) {
-    if (!desktop) { if (api) api.toast(api.noDesktop); return; }
-    if (opened && huntId === id) { desktop.projector.close(); return; }
-    var v = api.video(id);
-    if (!v) { api.toast(api.noVideo); return; }
-    huntId = id;
-    desktop.projector.open(payload()).then(function () { opened = true; restart(); paint(); }, function () { api.toast(api.noDesktop); });
+    try {
+      if (!api) { console.error('Projektor: nicht bereit'); return; }
+      // desktop ist schon die Projektor-Brücke (window.desktop.projector), nicht noch einmal .projector.
+      if (!desktop || typeof desktop.open !== 'function') {
+        console.error('Projektor: Desktop-Brücke fehlt');
+        api.toast(api.noDesktop);
+        return;
+      }
+      if (opened && huntId === id) { desktop.close(); return; }
+      var v = api.video(id);
+      if (!v || !v.srcObject) {
+        console.error('Projektor: keine laufende Aufnahme');
+        api.toast(api.noVideo);
+        return;
+      }
+      huntId = id;
+      var pending = desktop.open(payload());
+      if (!pending || typeof pending.then !== 'function') { opened = true; restart(); paint(); return; }
+      pending.then(function (r) {
+        if (r && r.ok === false) {
+          console.error('Projektor', r);
+          api.toast(r.message || api.openFail);
+          return;
+        }
+        opened = true; restart(); paint();
+      }, function (err) {
+        console.error('Projektor: Öffnen fehlgeschlagen', err);
+        api.toast(api.openFail);
+      });
+    } catch (e) {
+      console.error('Projektor: Öffnen fehlgeschlagen', e);
+      if (api && api.toast) api.toast(api.openFail);
+    }
   }
   function sourceStopped(id) {
     if (id != null && id !== huntId) return;
-    if (desktop) desktop.projector.close();
+    if (desktop && desktop.close) desktop.close();
   }
   function bind(next) {
     api = next;
@@ -146,8 +276,9 @@
     if (!desktop) return;
     setPortHandler(function (p) { port = p; restart(); });
     desktop.onClosed(function () {
-      opened = false; huntId = null;
+      opened = false; huntId = null; audioWarned = false;
       if (stopMirror) { stopMirror(); stopMirror = null; }
+      if (stopAudio) { stopAudio(); stopAudio = null; }
       paint();
     });
     desktop.onBounds(function (b) { if (b && api) api.save({ bounds: b }); });
@@ -155,8 +286,13 @@
       if (!o || !api) return;
       api.save({
         onTop: !!o.onTop, hideCursor: !!o.hideCursor, overlay: o.overlay !== false,
-        fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId
+        fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId,
+        sound: o.sound !== false, volume: clampVolume(o.volume)
       });
+    });
+    if (desktop.onError) desktop.onError(function (o) {
+      console.error('Projektor', o && o.message || o);
+      if (api && api.toast) api.toast((o && o.message) || api.openFail);
     });
     if (root.MutationObserver && root.document) {
       new root.MutationObserver(function () {
@@ -173,8 +309,9 @@
   function isOpen() { return opened; }
 
   root.CCProjectorMirror = {
-    fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror,
+    fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror, startAudio: startAudio,
     clampFps: clampFps, shouldSend: shouldSend, sourceFrameId: sourceFrameId, setPortHandler: setPortHandler,
+    clampVolume: clampVolume, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, pcmMessage: pcmMessage,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
   root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, isOpen: isOpen };
