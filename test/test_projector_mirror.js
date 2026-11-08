@@ -33,6 +33,53 @@ drawn = null;
 if (M.drawRaw(ctx2d, { tagName: 'CANVAS' }, 320, 180) || drawn) fail('Canvas (Erkennungsrahmen) wurde gezeichnet');
 else ok('Canvas wird abgelehnt');
 
+function expectFps(raw, want, label) {
+  var got = M.clampFps(raw);
+  if (got !== want) fail(label + ': ' + JSON.stringify(raw) + ' → ' + got + ' statt ' + want);
+  else ok(label);
+}
+expectFps(10, 10, 'Untergrenze 10');
+expectFps(60, 60, 'Obergrenze 60');
+expectFps(20, 20, 'Standardwert 20');
+expectFps(35, 35, 'jede ganze Zahl dazwischen');
+for (var i = 10; i <= 60; i++) if (M.clampFps(i) !== i) { fail('Lücke bei ' + i); break; }
+else if (i === 60) ok('10 bis 60 lückenlos');
+expectFps(9, 10, 'unter 10 wird 10');
+expectFps(61, 60, 'über 60 wird 60');
+expectFps(10.4, 10, '10,4 wird 10');
+expectFps(59.6, 60, '59,6 wird 60');
+expectFps('60', 60, 'Text 60');
+expectFps(' 15 ', 15, 'Text mit Leerzeichen');
+expectFps('', 20, 'leer bleibt 20');
+expectFps(null, 20, 'null bleibt 20');
+expectFps(undefined, 20, 'fehlend bleibt 20');
+expectFps('abc', 20, 'Müll bleibt 20');
+expectFps(false, 20, 'false bleibt 20');
+expectFps(Infinity, 20, 'Infinity bleibt 20');
+var stored = JSON.parse(JSON.stringify({ fps: M.clampFps(99) }));
+if (M.clampFps(stored.fps) !== 60) fail('gespeicherte 99 bleibt nicht 60');
+else ok('gespeicherter Wert wird erneut begrenzt');
+var gate = { encoding: false, last: 1000, frameId: 'q1' };
+if (M.shouldSend(1050, gate, 10, 'q2')) fail('10 Bilder/s lässt 50 ms zu früh durch');
+else ok('10 Bilder/s hält den Abstand');
+if (!M.shouldSend(1100, gate, 10, 'q2')) fail('10 Bilder/s blockt nach 100 ms');
+else ok('10 Bilder/s nach 100 ms');
+if (!M.shouldSend(1017, gate, 60, 'q2')) fail('60 Bilder/s blockt nach 17 ms');
+else ok('60 Bilder/s nach 17 ms');
+if (M.shouldSend(1016, gate, 60, 'q2')) fail('60 Bilder/s lässt 16 ms durch');
+else ok('60 Bilder/s hält 16 ms zurück');
+if (M.shouldSend(2000, gate, 60, 'q1')) fail('gleicher Quellframe wird nochmal kodiert');
+else ok('kein zweites Bild vom selben Frame');
+gate.encoding = true;
+if (M.shouldSend(5000, gate, 60, 'q9')) fail('während der Kodierung entsteht eine Warteschlange');
+else ok('eine Kodierung blockt die nächste');
+var live = { encoding: false, last: 1000, frameId: 'q1' };
+if (M.shouldSend(1050, live, 10, 'q2')) fail('10 Bilder/s lässt 50 ms durch');
+else if (!M.shouldSend(1050, live, 60, 'q2')) fail('60 Bilder/s blockt dieselben 50 ms');
+else ok('neue Bildrate gilt ohne Neustart');
+if (M.startMirror.length < 3) fail('startMirror liest die Bildrate nicht bei jedem Bild');
+else ok('startMirror bekommt die aktuelle Bildrate');
+
 const src = fs.readFileSync(path.join(ROOT, 'js/shiny_projector.js'), 'utf8');
 const page = fs.readFileSync(path.join(ROOT, 'electron/projector.html'), 'utf8');
 const main = fs.readFileSync(path.join(ROOT, 'electron/projector.js'), 'utf8');
@@ -55,6 +102,10 @@ if (!html.includes('js/shiny_projector.js')) fail('index.html lädt den Projekto
 else ok('index.html verdrahtet');
 if (!app.includes("CCProjector.toggle") || !app.includes('act_projector')) fail('Knopf oder Hotkey fehlt');
 else ok('Knopf und Hotkey');
+if (!app.includes('clampFps(p.fps)') || !app.includes('setFps')) fail('Bildrate wird nicht gespeichert');
+else ok('Bildrate liegt in den Projektor-Einstellungen');
+if (!det.includes('detFpsRange') || !det.includes('type: \'range\'') || !det.includes('type: \'number\'')) fail('Regler oder Zahleneingabe fehlt');
+else ok('Regler und Zahl 10–60');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 if (pkg.version !== '1.17.9') fail('Version ist ' + pkg.version);
 else ok('Version 1.17.9');

@@ -185,6 +185,38 @@
     head.appendChild(stEl);
     box.appendChild(head);
     box.appendChild(el('div', { class: 'det-alpha', text: t('alphaNote') }));
+    function fpsControl() {
+      if (!api.setFps || !window.CCProjectorMirror) return null;
+      var cur = window.CCProjectorMirror.clampFps(api.getFps ? api.getFps() : 20);
+      var wrap = el('div', { class: 'det-fps', role: 'group', 'aria-labelledby': 'detFpsLabel' });
+      wrap.appendChild(el('span', { id: 'detFpsLabel', text: api.fpsLabel || 'FPS' }));
+      var range = el('input', { type: 'range', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsRange', 'aria-valuemin': '10', 'aria-valuemax': '60', 'aria-valuenow': String(cur), 'aria-describedby': 'detFpsHint' });
+      var num = el('input', { type: 'number', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsNum', inputmode: 'numeric', 'aria-label': api.fpsNumber || api.fpsLabel || 'FPS' });
+      function show(n) {
+        range.value = String(n);
+        range.setAttribute('aria-valuenow', String(n));
+        if (document.activeElement !== num) num.value = String(n);
+      }
+      function commit(raw) {
+        var n = window.CCProjectorMirror.clampFps(raw);
+        show(n);
+        num.value = String(n);
+        api.setFps(n);
+      }
+      range.addEventListener('input', function () { num.value = range.value; commit(range.value); });
+      num.addEventListener('input', function () {
+        var raw = String(num.value).trim();
+        if (/^\d{2}$/.test(raw)) {
+          var n = +raw;
+          if (n >= 10 && n <= 60) { range.value = String(n); range.setAttribute('aria-valuenow', String(n)); api.setFps(n); }
+        }
+      });
+      num.addEventListener('change', function () { commit(num.value); });
+      wrap.appendChild(range);
+      wrap.appendChild(num);
+      wrap.appendChild(el('span', { id: 'detFpsHint', class: 'hint', text: api.fpsHint || '' }));
+      return wrap;
+    }
     if (!s) {
       var row = el('div', { class: 'det-row' });
       var sb = el('button', { class: 'tbtn', text: t('screen') });
@@ -208,6 +240,8 @@
         rc.addEventListener('click', function () { go(c.source); });
         row.appendChild(rc);
       }
+      var fps0 = fpsControl();
+      if (fps0) row.appendChild(fps0);
       box.appendChild(row);
       stEl.textContent = t('noSource');
       return;
@@ -297,6 +331,8 @@
       pb.addEventListener('click', function () { api.projector(); });
       tools.appendChild(pb);
     }
+    var fps1 = fpsControl();
+    if (fps1) tools.appendChild(fps1);
     box.appendChild(tools);
 
     // text mode: what to look for (empty = name of the hunt)

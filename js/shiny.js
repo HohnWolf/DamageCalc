@@ -43,7 +43,8 @@
     setHint: 'Zum Übernehmen eines Hunts aus einem anderen Zähler oder zum Korrigieren. „Heute“ bleibt unverändert.', act_clip: 'Clip speichern', clipPlay: 'Clip abspielen',
     openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.',
     act_projector: 'Projektor', projector: 'Projektor', projectorT: 'Öffnet die Aufnahme in einem eigenen Fenster, mit Zähler, Quote und Timer darüber. Der gelbe Erkennungsrahmen bleibt nur in diesem Fenster.',
-    projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).'
+    projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).',
+    projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Ziel für den Projektor. Höher als die Quelle wird nicht gezeichnet.'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
     tabHunts: 'Hunts', tabDex: 'Collection', tabSetup: 'Hotkeys & OBS', newHunt: '+ New hunt', huntsActive: 'Active', huntsDone: 'Found',
@@ -77,7 +78,8 @@
     setHint: 'To take over a hunt from another counter or to correct it. "Today" stays as it is.', act_clip: 'Save clip', clipPlay: 'Play clip',
     openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.',
     act_projector: 'Projector', projector: 'Projector', projectorT: 'Opens the capture in its own window, with counter, odds and timer on top. The yellow detection box stays in this window only.',
-    projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).'
+    projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).',
+    projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Target for the projector. It will not draw faster than the source.'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
   function fmt(n) { return Math.round(n).toLocaleString(de ? 'de-DE' : 'en-US'); }
@@ -187,6 +189,7 @@
     return {
       onTop: !!p.onTop, hideCursor: !!p.hideCursor, overlay: p.overlay !== false,
       fullscreen: !!p.fullscreen, displayId: id,
+      fps: window.CCProjectorMirror ? window.CCProjectorMirror.clampFps(p.fps) : 20,
       bounds: b ? { x: Math.round(+b.x) || 0, y: Math.round(+b.y) || 0, width: Math.max(480, Math.round(+b.width) || 960), height: Math.max(270, Math.round(+b.height) || 540) } : null
     };
   }
@@ -605,7 +608,10 @@
         projector: D && window.CCProjector ? function () { window.CCProjector.toggle(h.id); } : null,
         projectorOn: function () { return !!(window.CCProjector && window.CCProjector.isOpen()); },
         projectorLabel: function () { return t('projector'); },
-        projectorTitle: t('projectorT') });
+        projectorTitle: t('projectorT'),
+        getFps: function () { return store.projector.fps; },
+        setFps: function (n) { store.projector.fps = window.CCProjectorMirror.clampFps(n); persist(); },
+        fpsLabel: t('projectorFps'), fpsNumber: t('projectorFpsN'), fpsHint: t('projectorFpsHint') });
     }
     if (Clip) {
       var cp = el('div', { class: 'sh-detect sh-clip panel' });
@@ -1050,6 +1056,13 @@
     if (window.CCProjector && window.CCProjector.isOpen()) window.CCProjector.syncOverlay(overlayHref(baseOverlay, false));
   });
   window.CCShiny = { render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref };
-  function boot() { renderStartArt(); applyHotkeys(); pushState(); }
+  function boot() {
+    renderStartArt(); applyHotkeys(); pushState();
+    // Ungültige Bildrate aus dem Speicher sofort auf 10–60 zurückschreiben.
+    try {
+      var raw = JSON.parse(localStorage.getItem('cc_shiny') || '{}');
+      if (!raw.projector || raw.projector.fps !== store.projector.fps) A.save('cc_shiny', store);
+    } catch (e) { /* Speicher gesperrt */ }
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

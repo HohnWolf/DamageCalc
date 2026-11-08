@@ -3,7 +3,37 @@
    Der gelbe Erkennungsrahmen liegt nur auf dem Vorschau-Canvas der Erkennung und wird hier nie gelesen.
    Beide Quellen (Bildschirm und Capture-Karte) laufen über denselben Weg, die Karte wird nicht ein zweites Mal geöffnet. */
 (function (root) {
-  var MAX_W = 1920, MAX_H = 1080, FPS = 20, JPEG_Q = 0.8;
+  var MAX_W = 1920, MAX_H = 1080, FPS = 20, FPS_MIN = 10, FPS_MAX = 60, JPEG_Q = 0.8;
+
+  // Ziel-Bilder/s: ganze Zahl 10–60. Leer, unlesbar oder außerhalb wird auf die Grenzen bzw. 20 gesetzt.
+  function clampFps(v) {
+    if (v == null || typeof v === 'boolean') return FPS;
+    if (typeof v === 'string') { v = v.trim(); if (v === '') return FPS; }
+    var n = Number(v);
+    if (!isFinite(n)) return FPS;
+    n = Math.round(n);
+    if (n < FPS_MIN) return FPS_MIN;
+    if (n > FPS_MAX) return FPS_MAX;
+    return n;
+  }
+  // true = jetzt ein Bild schicken. encoding blockt (kein Stau), gleicher Quellframe wird nicht nochmal kodiert.
+  function shouldSend(now, state, fps, frameId) {
+    if (!state || state.encoding) return false;
+    var cap = clampFps(fps);
+    if (state.last > 0 && now - state.last < 1000 / cap) return false;
+    if (frameId != null && frameId === state.frameId) return false;
+    return true;
+  }
+  function sourceFrameId(v) {
+    if (!v) return null;
+    try {
+      var q = v.getVideoPlaybackQuality && v.getVideoPlaybackQuality();
+      if (q && typeof q.totalVideoFrames === 'number' && q.totalVideoFrames > 0) return 'q' + q.totalVideoFrames;
+    } catch (e) { /* manche Streams haben die API nicht */ }
+    if (typeof v.webkitDecodedFrameCount === 'number' && v.webkitDecodedFrameCount > 0) return 'w' + v.webkitDecodedFrameCount;
+    if (typeof v.currentTime === 'number' && v.currentTime > 0) return 't' + v.currentTime;
+    return null;
+  }
   var portHandler = null, earlyPort = null;
 
   function fitSize(vw, vh) {
@@ -27,29 +57,33 @@
     return true;
   }
 
-  function startMirror(getVideo, port) {
+  function startMirror(getVideo, port, getFps) {
     var canvas = root.document.createElement('canvas');
     var ctx = canvas.getContext('2d', { alpha: false });
-    var encoding = false, last = 0, dead = false;
+    var state = { encoding: false, last: 0, frameId: null };
+    var dead = false;
     function tick(ts) {
       if (dead) return;
       root.requestAnimationFrame(tick);
-      if (!port || encoding || ts - last < 1000 / FPS) return;
+      if (!port) return;
       var v = typeof getVideo === 'function' ? getVideo() : getVideo;
+      var cap = typeof getFps === 'function' ? getFps() : getFps;
+      var fid = isRawVideo(v) ? sourceFrameId(v) : null;
+      if (!shouldSend(ts, state, cap, fid)) return;
       if (!isRawVideo(v) || v.readyState < 2 || !v.videoWidth) return;
       var sz = fitSize(v.videoWidth, v.videoHeight);
       if (!sz) return;
       if (canvas.width !== sz.w || canvas.height !== sz.h) { canvas.width = sz.w; canvas.height = sz.h; }
       if (!drawRaw(ctx, v, sz.w, sz.h)) return;
-      encoding = true; last = ts;
+      state.encoding = true; state.last = ts; state.frameId = fid;
       canvas.toBlob(function (blob) {
-        if (!blob || dead) { encoding = false; return; }
+        if (!blob || dead) { state.encoding = false; return; }
         blob.arrayBuffer().then(function (buf) {
-          encoding = false;
+          state.encoding = false;
           if (dead) return;
           try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, buf: buf }, [buf]); }
           catch (e) { dead = true; }
-        }, function () { encoding = false; });
+        }, function () { state.encoding = false; });
       }, 'image/jpeg', JPEG_Q);
     }
     root.requestAnimationFrame(tick);
@@ -84,7 +118,7 @@
   function restart() {
     if (stopMirror) { stopMirror(); stopMirror = null; }
     if (!port || huntId == null) return;
-    stopMirror = startMirror(function () { return api && api.video(huntId); }, port);
+    stopMirror = startMirror(function () { return api && api.video(huntId); }, port, function () { return api && api.opts ? api.opts().fps : FPS; });
   }
   function payload() {
     var o = api.opts();
@@ -140,7 +174,8 @@
 
   root.CCProjectorMirror = {
     fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror,
-    setPortHandler: setPortHandler, MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS
+    clampFps: clampFps, shouldSend: shouldSend, sourceFrameId: sourceFrameId, setPortHandler: setPortHandler,
+    MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
   root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, isOpen: isOpen };
 })(typeof window !== 'undefined' ? window : globalThis);
