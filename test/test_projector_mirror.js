@@ -140,8 +140,13 @@ else ok('Bildrate liegt in den Projektor-Einstellungen');
 if (!det.includes('detFpsRange') || !det.includes('type: \'range\'') || !det.includes('type: \'number\'')) fail('Regler oder Zahleneingabe fehlt');
 else ok('Regler und Zahl 10–60');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-if (pkg.version !== '1.17.11') fail('Version ist ' + pkg.version);
-else ok('Version 1.17.11');
+if (!page.includes('transparent=1') || !page.includes('Diagnose')) fail('Diagnose oder durchsichtiges Overlay fehlt');
+else ok('Diagnose und durchsichtiges Overlay');
+const overlay = fs.readFileSync(path.join(ROOT, 'electron/overlay.html'), 'utf8');
+if (!overlay.includes('transparent=1') || !overlay.includes('color-scheme: normal')) fail('Overlay bleibt im Projektor deckend');
+else ok('Overlay ohne dunkles Schema, wenn es im Projektor liegt');
+if (pkg.version !== '1.17.12') fail('Version ist ' + pkg.version);
+else ok('Version 1.17.12');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Projektor-Spiegel-Test OK');

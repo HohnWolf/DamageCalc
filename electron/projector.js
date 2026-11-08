@@ -228,7 +228,7 @@ function sampleImage(image) {
       if (p.b > 170 && p.r < 80 && p.g < 80) blue++;
     }
   }
-  return { w: w, h: h, center: at(w / 2, h / 2), corner: at(12, 12), spot: at(100, 52), yellow: yellow, magenta: magenta, blue: blue, n: n };
+  return { w: w, h: h, center: at(w / 2, h / 2), corner: at(12, 12), spot: at(100, 52), left: at(w * 0.15, h * 0.75), right: at(w * 0.85, h * 0.75), yellow: yellow, magenta: magenta, blue: blue, n: n };
 }
 
 function init(win) {
@@ -282,7 +282,18 @@ function init(win) {
       spec = spec || {};
       const info = { open: alive(proj), visible: alive(proj) && !!safe(() => proj.isVisible()) };
       if (alive(proj)) {
-        try { info.page = await race(proj.webContents.executeJavaScript('({ title: document.title, audio: window.__projectorAudio || null, hint: (document.getElementById("ahint") || {}).textContent || "", hintHidden: (document.getElementById("ahint") || {}).hidden !== false })', true), 1500); }
+        try { info.page = await race(proj.webContents.executeJavaScript(`(function () {
+          var f = document.getElementById('ov');
+          var doc = null;
+          try { doc = f && f.contentDocument; } catch (e) { doc = null; }
+          var fr = window.__projectorFrames || {};
+          return {
+            title: document.title,
+            hint: (document.getElementById('ahint') || {}).textContent || '',
+            frames: { n: fr.n || 0, fps: fr.fps || 0, w: fr.w || 0, h: fr.h || 0, sw: fr.sw || 0, sh: fr.sh || 0 },
+            overlay: { src: f ? (f.src || '') : '', hidden: !f || f.hidden, real: !!(doc && doc.getElementById('count')) }
+          };
+        })()`, true), 1500); }
         catch (err) { info.pageError = String(err && err.message || err); }
         if (spec.sample) {
           try { info.sample = sampleImage(await proj.webContents.capturePage()); }

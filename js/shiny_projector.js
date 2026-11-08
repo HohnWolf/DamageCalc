@@ -121,7 +121,7 @@
         blob.arrayBuffer().then(function (buf) {
           release();
           if (dead) return;
-          try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, t: t, buf: buf }, [buf]); }
+          try { port.postMessage({ kind: 'jpeg', w: sz.w, h: sz.h, sw: v.videoWidth, sh: v.videoHeight, t: t, buf: buf }, [buf]); }
           catch (e) { dead = true; console.error('Projektor: Bildübertragung', e); }
         }, function (err) { release(); console.error('Projektor: Bildpuffer', err); });
       }, 'image/jpeg', JPEG_Q);
@@ -143,7 +143,7 @@
       state.encoding = true; state.since = t; state.last = t; state.frameId = fid;
       grabFrame(v, sz).then(function (bmp) {
         if (dead) { try { bmp.close(); } catch (e) { /* schon zu */ } release(); return; }
-        try { port.postMessage({ kind: 'bmp', w: bmp.width || sz.w, h: bmp.height || sz.h, t: t, bmp: bmp }, [bmp]); release(); }
+        try { port.postMessage({ kind: 'bmp', w: bmp.width || sz.w, h: bmp.height || sz.h, sw: v.videoWidth, sh: v.videoHeight, t: t, bmp: bmp }, [bmp]); release(); }
         catch (e) {
           console.error('Projektor: Bitmap', e);
           try { bmp.close(); } catch (e2) { /* schon übertragen */ }

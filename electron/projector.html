@@ -6,12 +6,12 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: #e8e9ec;
     font-family: "Segoe UI", system-ui, sans-serif; }
-  #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
+  #view { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
   #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #9aa0aa; font-size: 18px; pointer-events: none; }
   #empty[hidden] { display: none; }
   /* Overlay liegt über dem Bild, nimmt aber keine Klicks an (Rechtsklick öffnet das Menü der Seite). */
-  #ov { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; pointer-events: none; }
+  #ov { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; background-color: transparent; pointer-events: none; }
   #ov[hidden] { display: none; }
   body.no-cursor, body.no-cursor * { cursor: none !important; }
   body.menu-open, body.menu-open * { cursor: default !important; }
@@ -29,6 +29,10 @@
   #ahint { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 4; text-align: center;
     color: #f2c94c; font-size: 14px; text-shadow: 0 1px 2px #000; pointer-events: none; }
   #ahint[hidden] { display: none; }
+  #diag { position: absolute; z-index: 4; left: 8px; bottom: 8px; max-width: calc(100% - 16px);
+    padding: 6px 8px; background: rgba(0, 0, 0, .72); color: #fff; border-radius: 4px;
+    font: 12px/1.45 Consolas, ui-monospace, monospace; pointer-events: none; white-space: pre; }
+  #diag[hidden] { display: none; }
   #menu .mark { width: 1.1em; flex: none; text-align: center; }
   html[data-theme="light"] #menu { background: #fff; color: #1b1e23; border-color: #d5d8de; box-shadow: 0 10px 28px rgba(0, 0, 0, .18); }
   html[data-theme="light"] #menu button:hover, html[data-theme="light"] #menu button:focus { background: #e8eaee; }
@@ -38,7 +42,8 @@
 <body>
 <canvas id="view"></canvas>
 <div id="empty">Keine Aufnahme</div>
-<iframe id="ov" hidden title="Overlay"></iframe>
+<iframe id="ov" hidden title="Overlay" allowtransparency="true"></iframe>
+<div id="diag" hidden></div>
 <div id="ahint" hidden>Diese Quelle liefert keinen Ton.</div>
 <div id="menu" hidden role="menu"></div>
 <script>
@@ -46,18 +51,21 @@
   var S = {
     de: { empty: 'Keine Aufnahme', fs: 'Vollbild', win: 'Fenstermodus', onTop: 'Immer im Vordergrund',
       cursor: 'Mauszeiger ausblenden', overlay: 'Overlay', sound: 'Ton', volume: 'Lautstärke',
-      noAudio: 'Diese Quelle liefert keinen Ton.', close: 'Schließen', mon: 'Monitor {0} · {1}×{2}' },
+      noAudio: 'Diese Quelle liefert keinen Ton.', diag: 'Diagnose', close: 'Schließen', mon: 'Monitor {0} · {1}×{2}',
+      diagLine: '{0} Bilder/s\nBild {1}×{2}\nQuelle {3}×{4}' },
     en: { empty: 'No capture', fs: 'Fullscreen', win: 'Windowed', onTop: 'Always on top',
       cursor: 'Hide cursor', overlay: 'Overlay', sound: 'Sound', volume: 'Volume',
-      noAudio: 'This source has no audio.', close: 'Close', mon: 'Monitor {0} · {1}×{2}' }
+      noAudio: 'This source has no audio.', diag: 'Diagnostics', close: 'Close', mon: 'Monitor {0} · {1}×{2}',
+      diagLine: '{0} frames/s\nframe {1}×{2}\nsource {3}×{4}' }
   };
   var lang = 'de', opts = { overlay: true, hideCursor: false, onTop: false, fullscreen: false, displayId: null, theme: 'oled', sound: true, volume: 80 };
   var canvas = document.getElementById('view'), ctx = canvas.getContext('2d', { alpha: false });
   var empty = document.getElementById('empty'), frame = document.getElementById('ov'), menu = document.getElementById('menu');
   var ahint = document.getElementById('ahint');
   var D = window.desktop && window.desktop.projector;
-  var lastFrame = 0, pending = null, drawing = false, bmpW = 0, bmpH = 0;
-  window.__projectorFrames = { bmp: 0, jpeg: 0 };
+  var lastFrame = 0, pending = null, drawing = false, bmpW = 0, bmpH = 0, diagOn = false;
+  var stat = { n: 0, fps: 0, w: 0, h: 0, sw: 0, sh: 0, winT: Date.now(), winN: 0, logged: false };
+  window.__projectorFrames = stat;
 
   function t(k) {
     var s = (S[lang] || S.de)[k] || k, a = arguments;
@@ -81,7 +89,22 @@
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bmp, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
   }
-  function paintBitmap(bmp, w, h) {
+  function noteFrame(w, h, sw, sh) {
+    stat.n++; stat.winN++; stat.w = w || stat.w; stat.h = h || stat.h;
+    if (sw) stat.sw = sw; if (sh) stat.sh = sh;
+    var dt = Date.now() - stat.winT;
+    if (dt >= 500) { stat.fps = Math.round(stat.winN * 1000 / dt); stat.winT = Date.now(); stat.winN = 0; }
+    if (!stat.logged) { stat.logged = true; console.info('Projektor: erstes Bild', stat.w + '×' + stat.h, 'Quelle', stat.sw + '×' + stat.sh); }
+    paintDiag();
+  }
+  function diagText() { return t('diagLine', stat.fps, stat.w || 0, stat.h || 0, stat.sw || 0, stat.sh || 0); }
+  function paintDiag() {
+    var box = document.getElementById('diag');
+    if (!box) return;
+    box.hidden = !diagOn;
+    if (diagOn) box.textContent = diagText();
+  }
+  function paintBitmap(bmp, w, h, sw, sh) {
     if (!bmp) return;
     layout();
     var cw = canvas.width, ch = canvas.height, bw = (bmp.width > 1 ? bmp.width : w) || 2, bh = (bmp.height > 1 ? bmp.height : h) || 2;
@@ -96,7 +119,7 @@
     bmpW = bw; bmpH = bh;
     lastFrame = Date.now();
     empty.hidden = true;
-    window.__projectorFrames.bmp++;
+    noteFrame(bw, bh, sw, sh);
   }
   function pump() {
     if (drawing || !pending) return;
@@ -107,6 +130,7 @@
       paint(bmp); bmp.close();
       lastFrame = Date.now();
       empty.hidden = true;
+      noteFrame(bmpW, bmpH, msg.sw, msg.sh);
     }, function (err) { console.error('Projektor: JPEG', err); }).then(function () {
       drawing = false;
       if (pending) pump();
@@ -118,10 +142,9 @@
     p.onmessage = function (ev) {
       var d = ev.data || {};
       if (d.kind === 'audio-status' && d.ok === false) { ahint.hidden = false; ahint.textContent = t('noAudio'); return; }
-      if (d.kind === 'bmp' && d.bmp) { paintBitmap(d.bmp, d.w, d.h); return; }
+      if (d.kind === 'bmp' && d.bmp) { paintBitmap(d.bmp, d.w, d.h, d.sw, d.sh); return; }
       // Nur das JPEG aus dem rohen Video. Kein Canvas mit Rahmen.
       if (d.kind !== 'jpeg' || !d.buf) return;
-      window.__projectorFrames.jpeg++;
       pending = d;
       pump();
     };
@@ -133,6 +156,10 @@
   });
   window.addEventListener('resize', function () { layout(); });
   setInterval(function () {
+    if (diagOn) console.info('Projektor Diagnose', diagText().replace(/\n/g, ' · '));
+    else if (stat.n && (!lastFrame || Date.now() - lastFrame > 2000)) console.warn('Projektor: keine neuen Bilder', diagText().replace(/\n/g, ' · '));
+  }, 2000);
+  setInterval(function () {
     if (!lastFrame || Date.now() - lastFrame < 1500) return;
     lastFrame = 0;
     layout();
@@ -142,6 +169,11 @@
     empty.textContent = t('empty');
   }, 400);
 
+  function transparentOverlay(url) {
+    if (!url) return '';
+    if (/[?&]transparent=1(?:&|$)/.test(url)) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'transparent=1';
+  }
   function apply(o) {
     if (!o) return;
     opts = o;
@@ -152,7 +184,8 @@
     empty.textContent = t('empty');
     if (ahint) ahint.textContent = t('noAudio');
     if (o.overlay && o.overlayUrl) {
-      if (frame.getAttribute('src') !== o.overlayUrl) frame.src = o.overlayUrl;
+      var src = transparentOverlay(o.overlayUrl);
+      if (frame.getAttribute('src') !== src) frame.src = src;
       frame.hidden = false;
     } else frame.hidden = true;
   }
@@ -181,6 +214,11 @@
       item(t('onTop'), !!opts.onTop, function () { D.set({ onTop: !opts.onTop }); });
       item(t('cursor'), !!opts.hideCursor, function () { D.set({ hideCursor: !opts.hideCursor }); });
       item(t('overlay'), opts.overlay !== false, function () { D.set({ overlay: opts.overlay === false }); });
+      item(t('diag'), diagOn, function () {
+        diagOn = !diagOn;
+        paintDiag();
+        console.info('Projektor Diagnose', diagOn ? diagText().replace(/\n/g, ' · ') : 'aus');
+      });
       sep();
       item(t('sound'), opts.sound !== false, function () { D.set({ sound: opts.sound === false }); });
       var vol = document.createElement('label');

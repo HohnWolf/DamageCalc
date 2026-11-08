@@ -38,9 +38,16 @@
     var canvas = document.createElement('canvas');
     canvas.width = 320; canvas.height = 180;
     var ctx = canvas.getContext('2d');
-    function paint() { ctx.fillStyle = '#ff00ff'; ctx.fillRect(0, 0, 320, 180); ctx.fillStyle = '#0000ff'; ctx.fillRect(0, 0, 40, 40); }
+    var stepN = 0;
+    function paint() {
+      stepN++;
+      ctx.fillStyle = '#ff0000'; ctx.fillRect(0, 0, 160, 180);
+      ctx.fillStyle = '#00ff00'; ctx.fillRect(160, 0, 160, 180);
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect((stepN % 24) * 5, 6, 22, 22);
+    }
     paint();
-    setInterval(paint, 50);
+    setInterval(paint, 40);
     h.detect = { region: { x: 0.2, y: 0.2, w: 0.5, h: 0.5 }, refs: [], mode: 'image', thr: 0.85 };
     var vstream = canvas.captureStream(15);
     var actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -57,24 +64,39 @@
     var btn = document.querySelector('[data-projector]');
     step('knopf=' + (btn ? btn.textContent : 'fehlt') + ' video=' + !!(vid && vid.videoWidth) + ' audio=' + stream.getAudioTracks().length);
     if (!btn) return fail('Knopf fehlt trotz Aufnahme');
+    var ovUrl = '';
+    for (var oi = 0; oi < 40; oi++) {
+      var ov = await window.desktop.shiny.overlayInfo();
+      if (ov && /\/overlay/.test(ov.url || '')) { ovUrl = ov.url; break; }
+      await sleep(50);
+    }
+    if (!ovUrl) return fail('echte Overlay-Adresse fehlt');
     btn.click();
+    function red(p) { return p && p.r > 220 && p.g < 40 && p.b < 40; }
+    function green(p) { return p && p.g > 220 && p.r < 40 && p.b < 40; }
     var info = null, heard = null;
     for (var t = 0; t < 50; t++) {
       info = await D.testInfo({ sample: true });
       heard = window.__projectorAudioMain;
-      var c = info && info.sample && info.sample.center;
-      var picture = c && c.r > 170 && c.b > 170 && c.g < 90;
-      if (info && info.visible && picture && heard && heard.playing && heard.peak > 8 && heard.underruns === 0) break;
+      var page = info && info.page;
+      var colors = info && info.sample && red(info.sample.left) && green(info.sample.right);
+      var realOv = page && page.overlay && !page.overlay.hidden && /\/overlay/.test(page.overlay.src) && page.overlay.real;
+      var frames = page && page.frames && page.frames.n > 0 && page.frames.w > 0;
+      if (info && info.visible && colors && realOv && frames && heard && heard.playing && heard.peak > 8 && heard.underruns === 0) break;
       await sleep(100);
     }
     await sleep(400);
     heard = window.__projectorAudioMain;
     info = await D.testInfo({ sample: true });
     out.click = { visible: !!(info && info.visible), sample: info && info.sample, frames: info && info.page, audio: heard ? { underruns: heard.underruns, peak: heard.peak, playing: heard.playing } : null };
-    var center = info && info.sample && info.sample.center;
-    step('klick sichtbar=' + !!(info && info.visible) + ' mitte=' + JSON.stringify(center) + ' gelb=' + (info && info.sample && info.sample.yellow) + ' ton=' + JSON.stringify(heard));
+    var left = info && info.sample && info.sample.left, right = info && info.sample && info.sample.right;
+    var page = info && info.page;
+    step('klick sichtbar=' + !!(info && info.visible) + ' links=' + JSON.stringify(left) + ' rechts=' + JSON.stringify(right) + ' overlay=' + JSON.stringify(page && page.overlay) + ' frames=' + JSON.stringify(page && page.frames) + ' ton=' + JSON.stringify(heard));
     if (!info || !info.visible) return fail('Klick öffnet kein sichtbares Fenster');
-    if (!center || center.r < 170 || center.b < 170 || center.g > 90) return fail('Projektor zeigt das Bild nicht');
+    if (!page || !page.overlay || page.overlay.hidden || !/\/overlay/.test(page.overlay.src) || !page.overlay.real) return fail('echtes Overlay ist nicht geladen');
+    if (!/transparent=1/.test(page.overlay.src)) return fail('Overlay ist nicht durchsichtig eingebunden');
+    if (!page.frames || page.frames.n < 1 || page.frames.w < 2) return fail('kein Bild im Projektor angekommen');
+    if (!red(left) || !green(right)) return fail('Rot-Grün-Muster liegt unter dem Overlay');
     D.set({ overlay: false });
     var bare = null;
     for (var y = 0; y < 15; y++) {
@@ -84,7 +106,7 @@
     }
     out.bare = bare && bare.sample;
     if (!bare || !bare.sample || bare.sample.yellow !== 0) return fail('Gelber Erkennungsrahmen im Projektor');
-    if (!bare.sample.blue) return fail('Markierung des Rohbilds fehlt');
+    if (!red(bare.sample.left) || !green(bare.sample.right)) return fail('Bild verschwindet ohne Overlay');
     D.set({ overlay: true });
     if (!heard || !heard.playing || heard.peak < 8) return fail('Ton der Aufnahme ist nicht zu hören');
     if (heard.underruns !== 0) return fail('Ton reißt ab (' + heard.underruns + ')');
