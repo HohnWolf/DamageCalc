@@ -62,7 +62,7 @@
 
   // Pokémon (gen 3) im Klartext: 0–31 Kopf, 32 G, 44 A, 56 E, 68 M, 80+ Teamwerte (nur Team)
   var PK3 = {
-    size: 80, partySize: 100, gen: 3,
+    size: 80, partySize: 100, gen: 3, extras: true,
     decode: function (u8, off, party) {
       var len = party ? 100 : 80;
       if (off + len > u8.length) return null;
@@ -112,6 +112,10 @@
         case 'nick': return G3.decode(d, 8, 10);
         case 'ot': return G3.decode(d, 20, 7);
         case 'lang': return d[18];
+        case 'pokerus': return d[68];
+        case 'otGender': return (u16(d, 70) >> 15) & 1;
+        case 'metLoc': return d[69];
+        case 'contest': return d[62 + i];
         case 'level': return d.length >= 100 ? d[84] : 0;
         case 'hp': return d.length >= 100 ? u16(d, 86) : 0;
         case 'status': return d.length >= 100 ? u32(d, 80) : 0;
@@ -144,6 +148,12 @@
         case 'hp': w16(d, 86, v); break;
         case 'status': w32(d, 80, v); break;
         case 'ball': w16(d, 70, (u16(d, 70) & ~(15 << 11)) | (v << 11)); break;
+        case 'pokerus': d[68] = v; break;
+        case 'otGender': w16(d, 70, (u16(d, 70) & 0x7FFF) | ((v & 1) << 15)); break;
+        case 'metLevel': w16(d, 70, (u16(d, 70) & ~127) | (v & 127)); break;
+        case 'metLoc': d[69] = v; break;
+        case 'contest': d[62 + i] = v; break;
+        case 'lang': d[18] = v; break;
       }
     },
     setStats: function (d, st) { for (var i = 0; i < 6; i++) w16(d, 88 + i * 2, st[i]); w16(d, 86, st[0]); },
@@ -188,6 +198,7 @@
       FRLG: { party: 0x34, money: 0x290, key: 0xF20, name: 'Feuerrot/Blattgrün', nameEn: 'FireRed/LeafGreen' } }[game];
     var sv = { gen: 3, game: game, gameName: cfg.name, gameNameEn: cfg.nameEn, fmt: PK3, data: data, boxCount: 14, slotsPerBox: 30, ext: 'sav', partyMax: 6 };
     function key() { return cfg.key < 0 ? 0 : u32(data, s0 + cfg.key); }
+    sv.addr = rd; sv.s0 = s0; sv.key3 = key;
     sv.getTrainer = function () {
       return { name: G3.decode(data, s0, 7), tid: u16(data, s0 + 0xA), sid: u16(data, s0 + 0xC), gender: data[s0 + 8],
         hours: u16(data, s0 + 0xE), minutes: data[s0 + 0x10], seconds: data[s0 + 0x11], money: (u32(data, rd(1, cfg.money)) ^ key()) >>> 0 };
@@ -224,6 +235,7 @@
       if (d) PK3.encode(d, tmp, 0, false);
       writeBox(idx, tmp);
     };
+    sv.setBoxName = function (b, name) { var t = enc3(name, 8, 9); for (var k = 0; k < 9; k++) data[rd(2, 0x8344 + b * 9 + k)] = t[k]; };
     sv.getBoxName = function (b) { var o = rd(2, 0x8344 + b * 9), t = new Uint8Array(9); for (var k = 0; k < 9; k++) t[k] = data[rd(2, 0x8344 + b * 9 + k)]; return G3.decode(t, 0, 9); };
     sv.growthOf = function (species) { var nat = G3.defaultNat(species); var e = P.g3[nat]; return e ? e[6] : 0; };
     sv.baseOf = function (species) { var e = P.g3[G3.defaultNat(species)]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
@@ -253,7 +265,7 @@
   };
   // Pokémon (gen 4) im Klartext: 0–7 Kopf (PID, 0, Prüfsumme), 8 A, 40 B, 72 C, 104 D, 136+ Teamwerte
   var PK4 = {
-    size: 136, partySize: 236, gen: 4,
+    size: 136, partySize: 236, gen: 4, extras: true,
     decode: function (u8, off, party) {
       var len = party ? 236 : 136;
       if (off + len > u8.length) return null;
@@ -302,6 +314,18 @@
         case 'nicknamed': return (u32(d, 56) >>> 31) & 1;
         case 'form': return d[64] >> 3;
         case 'gender': return (d[64] >> 1) & 3;
+        case 'pokerus': return d[130];
+        case 'metLoc': return u16(d, 128);
+        case 'eggLoc': return u16(d, 126);
+        case 'contest': return d[30 + i];
+        case 'lang': return d[23];
+        case 'otGender': return d[132] >> 7;
+        case 'eggYear': return d[120];
+        case 'eggMonth': return d[121];
+        case 'eggDay': return d[122];
+        case 'metYear': return d[123];
+        case 'metMonth': return d[124];
+        case 'metDay': return d[125];
         case 'nick': return NDS.g4str(d, 72, 11);
         case 'ot': return NDS.g4str(d, 104, 8);
         case 'ball': return d[131];
@@ -331,6 +355,20 @@
         case 'egg': t = u32(d, 56); w32(d, 56, v ? (t | 0x40000000) >>> 0 : (t & ~0x40000000) >>> 0); break;
         case 'nicknamed': t = u32(d, 56); w32(d, 56, v ? (t | 0x80000000) >>> 0 : (t & 0x7FFFFFFF) >>> 0); break;
         case 'form': d[64] = (d[64] & 7) | (v << 3); break;
+        case 'gender': d[64] = (d[64] & ~6) | ((v & 3) << 1); break;
+        case 'pokerus': d[130] = v; break;
+        case 'metLoc': w16(d, 128, v); break;
+        case 'eggLoc': w16(d, 126, v); break;
+        case 'contest': d[30 + i] = v; break;
+        case 'lang': d[23] = v; break;
+        case 'otGender': d[132] = (d[132] & 0x7F) | ((v & 1) << 7); break;
+        case 'metLevel': d[132] = (d[132] & 0x80) | (v & 127); break;
+        case 'eggYear': d[120] = v; break;
+        case 'eggMonth': d[121] = v; break;
+        case 'eggDay': d[122] = v; break;
+        case 'metYear': d[123] = v; break;
+        case 'metMonth': d[124] = v; break;
+        case 'metDay': d[125] = v; break;
         case 'nick': d.set(enc4(v, 10, 11), 72); break;
         case 'ot': d.set(enc4(v, 7, 8), 104); break;
         case 'ball': d[131] = v; break;
@@ -377,6 +415,7 @@
     var gb = active(0, g.gSize), sb = active(g.sStart, g.sSize) + g.sStart;
     var hg = key === 'HGSS';
     var sv = { gen: 4, game: key, gameName: g.name, gameNameEn: g.nameEn, fmt: PK4, data: data, boxCount: 18, slotsPerBox: 30, ext: 'sav', partyMax: 6 };
+    sv.gbase = gb;
     if (hg) { var ver = data[gb + g.trainer + 0x1C]; if (ver === 7) sv.gameName = sv.gameNameEn = 'HeartGold'; if (ver === 8) sv.gameName = sv.gameNameEn = 'SoulSilver'; }
     var to = gb + g.trainer;
     sv.getTrainer = function () {
@@ -406,6 +445,7 @@
     sv.getBoxMon = function (b, s) { return PK4.decode(data, boxOff(b, s), false); };
     sv.setBoxMon = function (b, s, d) { var o = boxOff(b, s); if (d) PK4.encode(d, data, o, false); else data.fill(0, o, o + 136); };
     sv.getBoxName = function (b) { return NDS.g4str(data, sb + g.names + b * 0x28, 20); };
+    sv.setBoxName = function (b, name) { data.fill(0, sb + g.names + b * 0x28, sb + g.names + b * 0x28 + 0x28); data.set(enc4(name, 8, 20), sb + g.names + b * 0x28); };
     sv.growthOf = function (species) { var e = P.g4[species]; return e ? e[6] : 0; };
     sv.baseOf = function (species) { var e = P.g4[species]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
     sv.natOf = function (s) { return s; };
@@ -477,6 +517,7 @@
     sv.getBoxMon = function (b, s) { return PK5.decode(data, 0x400 + b * 0x1000 + s * 136, false); };
     sv.setBoxMon = function (b, s, d) { var o = 0x400 + b * 0x1000 + s * 136; if (d) PK5.encode(d, data, o, false); else data.fill(0, o, o + 136); };
     sv.getBoxName = function (b) { return NDS.g5str(data, 0x04 + 0x28 * b, 10); };
+    sv.setBoxName = function (b, name) { data.fill(0, 0x04 + 0x28 * b, 0x04 + 0x28 * b + 0x28); data.set(enc5(name, 8, 10), 0x04 + 0x28 * b); };
     sv.growthOf = function (sp) { var e = P.g5[sp]; return e ? e[6] : 0; };
     sv.baseOf = function (sp) { var e = P.g5[sp]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
     sv.natOf = function (n) { return n; }; sv.speciesFromNat = function (n) { return n; };

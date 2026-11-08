@@ -267,6 +267,7 @@
       boxes[bx] = l.filter(Boolean);
     };
     sv.getBoxName = function (bx) { return decStr(data, o.BoxNames + bx * 9, 9); };
+    sv.setBoxName = function (bx, name) { data.set(encStr(name, 8, 9), o.BoxNames + bx * 9); };
     sv.growthOf = function (sp) { var e = P.g2[sp]; return e ? e[6] : 0; };
     sv.baseOf = function (sp) { var e = P.g2[sp]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };
     sv.natOf = function (n) { return n; }; sv.speciesFromNat = function (n) { return n; };

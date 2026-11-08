@@ -1197,3 +1197,7 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .cc-dlg-actions button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 @keyframes cc-dlg-in { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .cc-dlg { animation: none; } }
+
+/* Kategorie „Other“: Werkzeug-Symbole statt Sprites */
+.sc-art-cat .sc-tool { flex: 0 1 54px; border-radius: 12px; color: #eab308; background: color-mix(in srgb, #eab308 12%, transparent); border: 1px solid color-mix(in srgb, #eab308 35%, transparent); }
+.sc-art-cat .sc-tool .ic { width: 28px; height: 28px; }

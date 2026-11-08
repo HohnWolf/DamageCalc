@@ -74,7 +74,7 @@
 
   // ---------------- Pokémon (PK6 / PK7, gleiche Felder) ----------------
   function mk(gen) {
-    var F = { gen: gen, size: 232, partySize: 260, natureIsPid: false, gen67: true };
+    var F = { gen: gen, size: 232, partySize: 260, natureIsPid: false, gen67: true, extras: true };
     F.decode = function (u8, off, party) {
       var d = decode(u8, off, party); if (!d) return null;
       var sp = u16(d, 8); if (!sp || sp > (gen === 6 ? 721 : 807)) return null;
@@ -83,6 +83,18 @@
     F.encode = encode;
     F.get = function (d, k, i) {
       switch (k) {
+        case 'pokerus': return d[0x2B];
+        case 'otGender': return d[0xDD] >> 7;
+        case 'eggYear': return d[0xD1];
+        case 'eggMonth': return d[0xD2];
+        case 'eggDay': return d[0xD3];
+        case 'metYear': return d[0xD4];
+        case 'metMonth': return d[0xD5];
+        case 'metDay': return d[0xD6];
+        case 'contest': return d[0x24 + i];
+        case 'metLoc': return u16(d, 0xDA);
+        case 'eggLoc': return u16(d, 0xD8);
+        case 'lang': return d[0xE3];
         case 'pid': return u32(d, 0x18);
         case 'ec': return u32(d, 0);
         case 'species': return u16(d, 8);
@@ -116,6 +128,19 @@
     F.set = function (d, k, v, i) {
       var t;
       switch (k) {
+        case 'pokerus': d[0x2B] = v; break;
+        case 'otGender': d[0xDD] = (d[0xDD] & 0x7F) | ((v & 1) << 7); break;
+        case 'metLevel': d[0xDD] = (d[0xDD] & 0x80) | (v & 127); break;
+        case 'eggYear': d[0xD1] = v; break;
+        case 'eggMonth': d[0xD2] = v; break;
+        case 'eggDay': d[0xD3] = v; break;
+        case 'metYear': d[0xD4] = v; break;
+        case 'metMonth': d[0xD5] = v; break;
+        case 'metDay': d[0xD6] = v; break;
+        case 'contest': d[0x24 + i] = v; break;
+        case 'metLoc': w16(d, 0xDA, v); break;
+        case 'eggLoc': w16(d, 0xD8, v); break;
+        case 'lang': d[0xE3] = v; break;
         case 'pid': w32(d, 0x18, v); break;
         case 'ec': w32(d, 0, v); break;
         case 'species': w16(d, 8, v); break;
@@ -168,6 +193,7 @@
     var g = GAMES[key], blocks = BL[key], meta = g.size - 0x200, data = new Uint8Array(u8), F = g.gen === 6 ? PK6 : PK7;
     var tr = blocks[g.trainer][0], misc = blocks[g.misc][0], party = blocks[g.party][0], box = blocks[g.box][0], bl = blocks[g.boxLayout][0];
     var sv = { gen: g.gen, game: key, gameName: g.name, gameNameEn: g.nameEn, fmt: F, data: data, boxCount: g.boxes, slotsPerBox: 30, ext: 'sav', partyMax: 6, gb: false };
+    sv.blocks = blocks;
     sv.getTrainer = function () { return { name: dec(data, tr + g.otOff, 12), tid: u16(data, tr), sid: u16(data, tr + 2), gender: data[tr + 5], money: u32(data, misc + g.moneyOff), hours: 0, minutes: 0, seconds: 0 }; };
     sv.setTrainer = function (t) {
       data.set(enc(t.name, 12, 0x1A), tr + g.otOff); w16(data, tr, t.tid); w16(data, tr + 2, t.sid); data[tr + 5] = t.gender ? 1 : 0;
@@ -187,6 +213,7 @@
     sv.getBoxMon = function (b, s) { return F.decode(data, off(b, s), false); };
     sv.setBoxMon = function (b, s, d) { var o = off(b, s); if (d) F.encode(d, data, o, false); else data.fill(0, o, o + 232); };
     sv.getBoxName = function (b) { return dec(data, bl + b * 0x22, 16); };
+    sv.setBoxName = function (b, name) { data.fill(0, bl + b * 0x22, bl + b * 0x22 + 0x22); data.set(enc(name, 14, 0x20), bl + b * 0x22); };
     var tab = P['g' + g.gen];
     sv.growthOf = function (sp) { var e = tab[sp]; return e ? e[6] : 0; };
     sv.baseOf = function (sp) { var e = tab[sp]; return e ? e.slice(0, 6) : [50, 50, 50, 50, 50, 50]; };

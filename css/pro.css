@@ -288,4 +288,4 @@ html[data-ui-style="pro"] .sb-cat::after { content: ""; width: 5px; height: 5px;
 html[data-ui-style="pro"] .sb-cat.open::after { transform: rotate(45deg); }
 html.sb-collapsedhtml[data-ui-style="pro"] .sb-cat { height: 1px; padding: 0; margin: 10px 8px; width: auto; }
 html.sb-collapsedhtml[data-ui-style="pro"] .sb-cat::after { display: none; }
-html[data-ui-style="pro"] .alpha-badge.is-beta { color: var(--accent); border-color: color-mix(in srgb, var(--accent), transparent 55%); }
+html[data-ui-style="pro"] .alpha-badge.is-beta { color: var(--warn); border-color: color-mix(in srgb, var(--warn), transparent 55%); }

@@ -1414,7 +1414,7 @@
 
     // ---- DialgaDex Berechnungs-Parameter ----
     var secCalc = el('div', { class: 'gc-sec' });
-    secCalc.appendChild(el('div', { class: 'gc-sec-title', text: de ? 'Berechnung (DialgaDex)' : 'Calculation (DialgaDex)' }));
+    secCalc.appendChild(el('div', { class: 'gc-sec-title', text: de ? 'Berechnung' : 'Calculation' }));
 
     function segGroup(label, key, options) {
       var r = el('div', { class: 'gc-opt-block' });
@@ -1434,7 +1434,7 @@
     }
 
     segGroup(de ? 'Metrik' : 'Metric', 'metric', [
-      ['eDPS', 'eDPS', de ? 'Effektiver DPS inkl. Relobby-Pause (DialgaDex-Standard)' : 'Effective DPS incl. relobby penalty (DialgaDex default)'],
+      ['eDPS', 'eDPS', de ? 'Effektiver DPS inkl. Relobby-Pause' : 'Effective DPS incl. relobby penalty'],
       ['DPS', 'DPS', de ? 'Reiner Schaden pro Sekunde' : 'Damage per second'],
       ['TDO', 'TDO', de ? 'Gesamtschaden bis zum K.O.' : 'Total damage output'],
       ['EER', 'EER', 'DPS^0.775 × TDO^0.225'],
@@ -1443,7 +1443,7 @@
 
     segGroup(de ? 'Pokémon-Level' : 'Pokémon Level', 'levelMode', [
       ['30', 'Lv 30', 'Level 30'],
-      ['40', 'Lv 40', 'Level 40 (DialgaDex-Standard)'],
+      ['40', 'Lv 40', 'Level 40 (Standard)'],
       ['50', 'Lv 50', 'Level 50 (Max)'],
       ['xl', 'XL-Budget', de ? 'Normale Pokémon Lv 50, Legendäre/Mysteriöse Lv 40' : 'Regular Pokémon Lv 50, Legendaries/Mythicals Lv 40']
     ]);

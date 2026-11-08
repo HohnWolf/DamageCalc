@@ -15,8 +15,8 @@ html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;ov
 #view.solid{background:linear-gradient(160deg,#2c1450,#150b25 70%)}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased;backface-visibility:hidden;font-family:"Bahnschrift","Arial Narrow","Segoe UI",system-ui,sans-serif;color:#fff}
 /* stage */
-.bar{position:absolute;left:64px;right:64px;top:22px;height:80px;display:flex;align-items:center;justify-content:space-between}
-.pn{font-size:46px;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:1px;max-width:780px;padding:6px 14px 6px 6px;white-space:nowrap;overflow:hidden;text-shadow:0 3px 8px rgba(0,0,0,.6)}
+.bar{position:absolute;left:64px;right:64px;top:22px;height:80px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:16px}
+.pn{font-size:46px;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:1px;min-width:0;padding:6px 14px 6px 6px;white-space:nowrap;overflow:hidden;text-shadow:0 3px 8px rgba(0,0,0,.6)}
 .pn.right{text-align:right}
 .vs{background:#8a4fd0;border:3px solid #d7b8ff;border-radius:50%;width:84px;height:84px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .team{position:absolute;top:122px;width:900px;display:grid;grid-template-columns:440px 440px;gap:15px 20px;align-content:start}

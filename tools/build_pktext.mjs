@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 const dir = process.argv[2];
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const rd = (p) => fs.readFileSync(path.join(dir, p), 'utf8').split(/\r?\n/);
+const rd = (p) => { const b = fs.readFileSync(path.join(dir, p)); return (b[0] === 0xFF && b[1] === 0xFE ? b.toString('utf16le') : b.toString('utf8')).replace(/^\uFEFF/, '').replace(/\u0000/g, '').split(/\r?\n/); };
 const out = {};
 for (const l of ['de', 'en']) {
   const o = out[l] = {};

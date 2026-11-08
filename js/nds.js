@@ -46,7 +46,7 @@
   function unpack9(codes) {
     var out = [], acc = 0, bits = 0;
     for (var i = 1; i < codes.length; i++) {
-      acc |= codes[i] << bits; bits += 16;
+      acc |= codes[i] << bits; bits += 15;
       while (bits >= 9) { var v = acc & 0x1FF; acc >>>= 9; bits -= 9; if (v === 0x1FF) return out; out.push(v); }
     }
     return out;
@@ -61,7 +61,7 @@
       if (c === 0xE000 || c === 0x25BC || c === 0x25BD) { s += ' '; continue; }
       s += g4char(c);
     }
-    return s.replace(/\s+/g, ' ').trim();
+    return s.replace(/⒆⒇/g, 'PKMN').replace(/\s+/g, ' ').trim();
   }
   function g5decode(codes) {
     if (codes[0] === 0xF100) codes = unpack9(codes);
