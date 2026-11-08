@@ -167,195 +167,249 @@
       trainers: rom.trainers.length, learnsets: rom.off && rom.off.learn.filter(function (x) { return x >= 0; }).length || 0 };
   }
 
-  // ---------------- Hauptfunktion ----------------
-  function run(buf, rom, userOpts) {
-    var o = {}; Object.keys(DEFAULTS).forEach(function (k) { o[k] = userOpts && userOpts[k] !== undefined ? userOpts[k] : DEFAULTS[k]; });
-    var u8 = new Uint8Array(buf); // Kopie
-    var seed = String(o.seed || '').trim() || String(Math.floor(Math.random() * 1e9));
-    var rng = makeRng(seed);
-    var log = [], summary = {};
-    function L(s) { log.push(s); }
-    var nsp = rom.species.length, pool = makePool(rom, o.noLegend);
-    var bst0 = []; for (var s0 = 0; s0 < nsp; s0++) bst0.push(validSpecies(rom, s0) ? bstOf(rom, s0) : 0);
-    var pick = makePicker(rom, pool, rng, bst0);
-    var mnOff = findMoveNames(u8);
-    function mName(m) { return mnOff >= 0 ? G.decode(u8, mnOff + m * 13, 13) : 'Attacke ' + m; }
-    var ls = rom.learnsets.map(function (l) { return l.map(function (e) { return e.slice(); }); }); // wird beim Attackenmischen angepasst
-    L('Rattata Labs Randomizer – ' + (rom.gameEn || rom.title) + ' (' + rom.code + ')');
-    L('Seed: ' + seed);
-    L('');
-
-    // --- Basiswerte, Typen, Fähigkeiten ---
-    var base = rom.off.bs, doBase = o.stats !== 'keep' || o.types !== 'keep' || o.abilities !== 'keep';
-    if (doBase) {
-      L('=== Pokémon-Werte ===');
-      var abilPool = []; for (var ab = 1; ab <= 76; ab++) if (BAN_ABILITY.indexOf(ab) === -1) abilPool.push(ab);
-      var typePool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17];
-      rom.species.map(function (_, i) { return i; }).filter(function (s) { return validSpecies(rom, s); }).forEach(function (s) {
-        var e = base + s * 28, sp = rom.species[s], parts = [];
-        if (o.stats !== 'keep' && sp.nat !== 292) {
-          var st = sp.bs.slice(), ns;
-          if (o.stats === 'shuffle') ns = rng.shuffle(st.slice());
-          else {
-            var total = st.reduce(function (a, b) { return a + b; }, 0), w = st.map(function () { return 0.4 + rng(); }), ws = w.reduce(function (a, b) { return a + b; }, 0);
-            ns = w.map(function (x) { return Math.max(10, Math.min(250, Math.round(total * x / ws))); });
-            var diff = total - ns.reduce(function (a, b) { return a + b; }, 0), guard = 0;
-            while (diff !== 0 && guard++ < 2000) { var ix = rng.int(6), step = diff > 0 ? 1 : -1; if (ns[ix] + step >= 10 && ns[ix] + step <= 250) { ns[ix] += step; diff -= step; } }
-          }
-          for (var i = 0; i < 6; i++) u8[e + i] = ns[i];
-          parts.push('Werte ' + st.join('/') + ' → ' + ns.join('/'));
-        }
-        if (o.types !== 'keep') {
-          var t0 = sp.types, mono = t0[0] === t0[1], a = rng.pick(typePool), b = mono ? a : rng.pick(typePool);
-          if (!mono && a === b) b = typePool[(typePool.indexOf(a) + 1 + rng.int(typePool.length - 1)) % typePool.length];
-          u8[e + 6] = a; u8[e + 7] = b;
-          parts.push('Typ ' + TN[t0[0]] + (mono ? '' : '/' + TN[t0[1]]) + ' → ' + TN[a] + (mono ? '' : '/' + TN[b]));
-        }
-        if (o.abilities !== 'keep') {
-          var a0 = sp.abilities, single = !a0[1] || a0[1] === a0[0], x = rng.pick(abilPool), y = 0;
-          if (!single) { y = rng.pick(abilPool); if (y === x) y = abilPool[(abilPool.indexOf(x) + 1) % abilPool.length]; }
-          u8[e + 22] = x; u8[e + 23] = y;
-          parts.push('Fähigkeit-ID ' + a0[0] + (single ? '' : '/' + a0[1]) + ' → ' + x + (single ? '' : '/' + y));
-        }
-        if (parts.length) L(nameOf(rom, s) + ': ' + parts.join(', '));
+  // ---------------- Modell für den gemeinsamen Kern (js/rand_core.js) ----------------
+  function buildModel(rom, u8) {
+    var species = [], learnsets = [], s, nsp = rom.species.length, base = rom.off.bs;
+    var abilityPool = []; for (var ab = 1; ab <= 76; ab++) if (BAN_ABILITY.indexOf(ab) === -1) abilityPool.push(ab);
+    var legends = [], shedinja = [];
+    for (s = 0; s < nsp; s++) {
+      learnsets[s] = rom.learnsets[s] ? rom.learnsets[s].map(function (l) { return l.slice(); }) : [];
+      if (!validSpecies(rom, s)) continue;
+      var e = rom.species[s];
+      species[s] = { bs: e.bs.slice(), types: e.types.slice(), abilities: e.abilities.slice(0, 2) };
+      if (LEGEND_NAT.indexOf(e.nat) !== -1) legends.push(s);
+      if (e.nat === 292) shedinja.push(s);
+    }
+    var mnOff = findMoveNames(u8), moveNames = [];
+    if (mnOff >= 0) for (var mi = 0; mi < rom.moves.length; mi++) moveNames.push(G.decode(u8, mnOff + mi * 13, 13));
+    var model = {
+      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: nsp - 1, species: species, typeNames: TN, typePool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17],
+      abilityPool: abilityPool, moveNames: moveNames, legends: legends, noStatsFor: shedinja, learnsets: learnsets, moves: rom.moves, maxMove: rom.moves.length - 1,
+      bannedMoves: BAN_MOVE, wild: [], trainers: [], evos: [], starters: [],
+      nameOf: function (id) { return nameOf(rom, id); }
+    };
+    model.commitSpecies = function () {
+      species.forEach(function (sp, n) {
+        if (!sp) return;
+        var o = base + n * 28;
+        for (var i = 0; i < 6; i++) u8[o + i] = sp.bs[i];
+        u8[o + 6] = sp.types[0]; u8[o + 7] = sp.types[1]; u8[o + 22] = sp.abilities[0] || 0; u8[o + 23] = sp.abilities[1] || 0;
       });
-      L('');
-    }
-
-    // --- Level-Attacken ---
-    if (o.moves === 'random') {
-      L('=== Attacken (Level-Aufstieg) ===');
-      var nMoves = rom.moves.length, damaging = [], byType = {}, all = [];
-      for (var m = 1; m < nMoves; m++) {
-        if (BAN_MOVE.indexOf(m) !== -1) continue;
-        all.push(m);
-        if (rom.moves[m].power > 0) { damaging.push(m); (byType[rom.moves[m].type] = byType[rom.moves[m].type] || []).push(m); }
-      }
-      var doneOff = {};
-      for (var s = 1; s < nsp; s++) {
-        var lp = rom.off.learn[s];
-        if (!validSpecies(rom, s) || lp < 0 || doneOff[lp]) continue;
-        doneOff[lp] = 1;
-        var tp = [u8[base + s * 28 + 6], u8[base + s * 28 + 7]], used = [], line = [];
-        for (var k = 0; k < 40; k++) {
-          var w = u16(u8, lp + k * 2);
-          if (w === 0xFFFF) break;
-          var mv, tries = 0;
-          do {
-            var r = rng();
-            if (r < 0.3 && byType[tp[rng.int(2)]]) mv = rng.pick(byType[tp[rng.int(2)]] || damaging);
-            else if (k < 2 || r < 0.65) mv = rng.pick(damaging);
-            else mv = rng.pick(all);
-          } while (used.indexOf(mv) !== -1 && ++tries < 30);
-          used.push(mv);
-          w16(u8, lp + k * 2, (w & 0xFE00) | mv);
-          if (ls[s][k]) ls[s][k][1] = mv;
-          line.push('Lv' + (w >> 9) + ' ' + mName(mv));
-        }
-        L(nameOf(rom, s) + ': ' + line.join(', '));
-      }
-      L('');
-    }
-
-    // --- Entwicklungen ---
-    if (o.evo !== 'keep') {
-      var evoOff = findEvo(u8);
-      if (evoOff < 0) L('Entwicklungen: Tabelle nicht gefunden, übersprungen.');
-      else {
-        L('=== Entwicklungen ===');
-        var pre = {}, order = rng.shuffle(pool.slice()), cnt = 0;
-        order.forEach(function (s) {
-          for (var k = 0; k < 5; k++) {
-            var eo = evoOff + s * 40 + k * 8, method = u16(u8, eo), target = u16(u8, eo + 4);
-            if (!method || !target || method === 14 || !validSpecies(rom, target)) continue;
-            var cands = pool.filter(function (t) {
-              if (t === s || pre[t]) return false;
-              for (var x = s; x; x = pre[x]) if (x === t) return false;
-              return true;
-            });
-            if (o.evo === 'similar') {
-              var tb = bst0[target], near = cands.filter(function (t) { return Math.abs(bst0[t] - tb) <= Math.max(40, tb * 0.15); });
-              if (near.length >= 3) cands = near;
-            }
-            if (!cands.length) continue;
-            var nt = rng.pick(cands);
-            pre[nt] = s;
-            w16(u8, eo + 4, nt); cnt++;
-            L(nameOf(rom, s) + ' → ' + nameOf(rom, nt) + ' (statt ' + nameOf(rom, target) + ')');
-          }
-        });
-        summary.evo = cnt; L('');
-      }
-    }
-
-    // --- Starter ---
-    if (o.starters !== 'keep') {
-      var so = findStarters(rom, u8);
-      if (so < 0) L('Starter: Tabelle nicht gefunden, übersprungen.\n');
-      else {
-        L('=== Starter ===');
-        var picks = [];
-        for (var q = 0; q < 3; q++) {
-          var old = u16(u8, so + q * 2), nw;
-          if (o.starters === 'custom' && validSpecies(rom, o.starterPick[q])) nw = o.starterPick[q];
-          else nw = pick(old, false, picks);
-          picks.push(nw); w16(u8, so + q * 2, nw);
-          L(nameOf(rom, old) + ' → ' + nameOf(rom, nw));
-        }
-        L('');
-      }
-    }
-
-    // --- Wilde Pokémon ---
-    if (o.wild !== 'keep') {
-      var wi = findWild(rom, u8);
-      if (!wi.arrays.length) L('Wilde Pokémon: Tabelle nicht gefunden, übersprungen.\n');
-      else {
-        L('=== Wilde Pokémon (' + wi.arrays.length + ' Gebiete) ===');
-        var map = {}, nWild = 0;
-        wi.arrays.forEach(function (a) {
-          var line = [];
-          for (var i = 0; i < a.n; i++) {
-            var eo = a.off + i * 4 + 2, old = u16(u8, eo), nw;
-            if (o.wildGlobal) { if (!map[old]) map[old] = pick(old, o.wild === 'similar'); nw = map[old]; }
-            else nw = pick(old, o.wild === 'similar');
-            w16(u8, eo, nw); nWild++;
-            line.push(nameOf(rom, nw) + ' Lv' + u8[a.off + i * 4] + (u8[a.off + i * 4] !== u8[a.off + i * 4 + 1] ? '-' + u8[a.off + i * 4 + 1] : ''));
-          }
-          L('Karte ' + a.map + ' (' + a.kind + '): ' + line.join(', '));
-        });
-        summary.wild = nWild; L('');
-      }
-    }
-
-    // --- Trainer ---
-    if (o.trainers !== 'keep' || +o.trainerLevel) {
-      L('=== Trainer ===');
-      var pct = +o.trainerLevel || 0, nTr = 0;
-      rom.trainers.forEach(function (tr) {
-        if (tr.partyOff < 0 || !tr.party.length) return;
-        var flags = u8[tr.off], hasItem = !!(flags & 2), custom = !!(flags & 1), line = [];
-        tr.party.forEach(function (pm, j) {
-          var mo = tr.partyOff + j * tr.partySize, sp = pm.species, lv = pm.level;
-          if (o.trainers !== 'keep') { sp = pick(pm.species, o.trainers === 'similar'); w16(u8, mo + 4, sp); }
-          if (pct) { lv = Math.max(1, Math.min(100, Math.round(pm.level * (1 + pct / 100)))); u8[mo + 2] = lv; }
-          if (custom && o.trainers !== 'keep') {
-            var mv = G.defaultMoves({ learnsets: ls }, sp, lv);
-            if (!mv.length && ls[sp] && ls[sp][0]) mv = [ls[sp][0][1]];
+    };
+    model.setLearnset = function (n, list) {
+      var lp = rom.off.learn[n]; if (lp < 0 || lp === undefined) return;
+      for (var k = 0; k < list.length; k++) w16(u8, lp + k * 2, ((list[k][0] & 0x7F) << 9) | list[k][1]);
+    };
+    // Attacken-Daten: 12 Byte je Attacke (Wirkung, Stärke, Typ, Genauigkeit, AP); die Art (physisch/speziell) hängt in Gen 3 am Typ
+    model.setMove = function (m, ch) {
+      var o = rom.off.mv + m * 12;
+      if (ch.power !== undefined) u8[o + 1] = Math.min(255, ch.power);
+      if (ch.type !== undefined) u8[o + 2] = ch.type;
+      if (ch.acc !== undefined) u8[o + 3] = ch.acc;
+      if (ch.pp !== undefined) u8[o + 4] = ch.pp;
+    };
+    rom.moves.forEach(function (m) { if (m) m.cat = undefined; });
+    // Wilde Pokémon
+    findWild(rom, u8).arrays.forEach(function (a) {
+      for (var i = 0; i < a.n; i++) (function (eo) {
+        model.wild.push({ key: 'Karte ' + a.map + ' (' + a.kind + ')', get: function () { return u16(u8, eo); }, set: function (n) { w16(u8, eo, n); },
+          scale: function (p) { var C = window.CCRandCore; u8[eo - 2] = C.scaleLv(u8[eo - 2], p); u8[eo - 1] = C.scaleLv(u8[eo - 1], p); } });
+      })(a.off + i * 4 + 2);
+    });
+    // Trainer
+    rom.trainers.forEach(function (tr) {
+      if (tr.partyOff < 0 || !tr.party.length) return;
+      var flags = u8[tr.off], hasItem = !!(flags & 2), custom = !!(flags & 1);
+      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [] };
+      tr.party.forEach(function (pm, j) {
+        var mo = tr.partyOff + j * tr.partySize;
+        tm.mons.push({
+          level: pm.level,
+          get: function () { return u16(u8, mo + 4); },
+          set: function (n) { w16(u8, mo + 4, n); },
+          setLevel: function (l) { u8[mo + 2] = l; },
+          hasItem: hasItem, setItem: function (it) { w16(u8, mo + 6, it); },
+          refresh: function (n, lv) {
+            if (!custom) return;
+            var mv = G.defaultMoves({ learnsets: learnsets }, n, lv);
+            if (!mv.length && learnsets[n] && learnsets[n][0]) mv = [learnsets[n][0][1]];
             var mOff = mo + (hasItem ? 8 : 6);
             for (var k = 0; k < 4; k++) w16(u8, mOff + k * 2, mv[k] || 0);
           }
-          line.push(nameOf(rom, sp) + ' Lv' + lv);
         });
-        nTr++;
-        L(((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name + ': ' + line.join(', '));
       });
-      summary.trainers = nTr; L('');
+      model.trainers.push(tm);
+    });
+    // Entwicklungen: 5 Einträge à 8 Byte je Art (Methode 14 = Nebenentwicklung Ninjask/Shedinja bleibt unberührt)
+    var evoOff = findEvo(u8);
+    if (evoOff >= 0) window.CCRandCore.makeEvoTable(model, function () { return u8; }, function (s, k) { return evoOff + s * 40 + k * 8; }, 5, nsp - 1, [14]);
+    model.evoInfo = { level: 4, stone: 7, trade: 5, tradeItem: 6, friendDay: 2, friendNight: 3, beauty: 15, levelMethods: [4, 8, 9, 10, 11, 12, 13, 14], items: { water: 97, sun: 93, moon: 94, leaf: 98, dawn: 0 } };
+    model.setGrowth = function (n, v) { u8[base + n * 28 + 19] = v; };
+    model.catchRate = { get: function (n) { return u8[base + n * 28 + 8]; }, set: function (n, v) { u8[base + n * 28 + 8] = v; } };
+    // Starter
+    var so = findStarters(rom, u8);
+    if (so >= 0) for (var q = 0; q < 3; q++) (function (o2) {
+      model.starters.push({ get: function () { return u16(u8, o2); }, set: function (n) { w16(u8, o2, n); } });
+    })(so + q * 2);
+    // TMs/HMs: 50 TMs + 8 HMs als u16-Liste (beginnt mit Gebirgsdurchbruch-Folge Fokusstoß, Drachenklaue, Aquaknarre, Chaosstrahl); die Kompatibilitätstabelle wird nicht angefasst
+    var tbl = window.GEN3_OFFS && window.GEN3_OFFS[rom.code + u8[0xBC]];
+    var moveOk = function (m) { return m >= 1 && m < rom.moves.length; };
+    var tmAt = -1, seq = [264, 337, 352, 347];
+    if (tbl && tbl.tm && tbl.tm + 116 <= u8.length && u16(u8, tbl.tm) === seq[0]) tmAt = tbl.tm;
+    for (var ti = 0; ti + 116 <= u8.length && tmAt < 0; ti += 2) {
+      if (u16(u8, ti) === seq[0] && u16(u8, ti + 2) === seq[1] && u16(u8, ti + 4) === seq[2] && u16(u8, ti + 6) === seq[3]) tmAt = ti;
     }
-
-    // Prüfsumme des GBA-Kopfes (0xBD) bleibt gültig: der Kopf wurde nicht verändert.
-    return { data: u8, log: log.join('\n'), seed: seed, summary: summary };
+    if (tmAt >= 0) {
+      var tms = [], hms = [], i2;
+      for (i2 = 0; i2 < 50; i2++) tms.push(u16(u8, tmAt + i2 * 2));
+      for (i2 = 0; i2 < 8; i2++) hms.push(u16(u8, tmAt + (50 + i2) * 2));
+      if (tms.concat(hms).every(moveOk)) {
+        model.tm = { tms: tms, hms: hms, setTMs: function (list) { list.forEach(function (m, i) { w16(u8, tmAt + i * 2, m); }); } };
+        // Kompatibilität: 8 Byte je Art (nach ROM-interner Nummer), Bit 0 = TM01 … Bit 49 = TM50, danach HM01–08
+        if (tbl && tbl.compat && tbl.compat + nsp * 8 <= u8.length) {
+          var cp = [];
+          for (s = 1; s < nsp; s++) {
+            if (!species[s]) continue;
+            var co = tbl.compat + s * 8, fl = [false];
+            for (var b = 0; b < 58; b++) fl.push(!!(u8[co + (b >> 3)] & (1 << (b & 7))));
+            cp.push({ key: s, nat: s, types: species[s].types, flags: fl, off: co });
+          }
+          model.tm.compat = cp; model.tm.earlyHM = [];
+          model.tm.commit = function () {
+            cp.forEach(function (c) {
+              for (var j = 0; j < 8; j++) u8[c.off + j] = 0;
+              for (var f = 1; f < c.flags.length; f++) if (c.flags[f]) { var bb = f - 1; u8[c.off + (bb >> 3)] |= 1 << (bb & 7); }
+            });
+          };
+        }
+      }
+    }
+    if (tbl) {
+      // Attacken-Lehrer (Smaragd, Feuerrot, Blattgrün): Attacken als u16-Liste, danach 1 Bit je Attacke und Art
+      if (tbl.tut && /^(BPEE|BPR|BPG)/.test(rom.code)) {
+        var tdata = tbl.tut[0], tcount = tbl.tut[1], tmoves = [];
+        for (var tq = 0; tq < tcount; tq++) tmoves.push(u16(u8, tdata + tq * 2));
+        if (tmoves.every(moveOk)) {
+          var tcomp = tdata + tcount * 2, tbytes = (tcount + 7) >> 3, tcp = [];
+          for (s = 1; s < nsp; s++) {
+            if (!species[s]) continue;
+            var to = tcomp + s * tbytes, tf = [false];
+            for (var tb = 0; tb < tcount; tb++) tf.push(!!(u8[to + (tb >> 3)] & (1 << (tb & 7))));
+            tcp.push({ key: s, nat: s, types: species[s].types, flags: tf, off: to });
+          }
+          model.tutor = {
+            moves: tmoves, compat: tcp, setMoves: function (list) { list.forEach(function (m, i) { w16(u8, tdata + i * 2, m); }); },
+            commit: function () {
+              tcp.forEach(function (c) {
+                for (var j = 0; j < tbytes; j++) u8[c.off + j] = 0;
+                for (var f = 1; f < c.flags.length; f++) if (c.flags[f]) { var bb = f - 1; u8[c.off + (bb >> 3)] |= 1 << (bb & 7); }
+              });
+            }
+          };
+        }
+      }
+      // Statische Begegnungen: Arten-Wort an allen Fundstellen, Level als Byte (ohne die Patches des UPR für Rivalenkampf/Geister-Knogga/Zugvögel)
+      model.statics = [];
+      (tbl.statics || []).forEach(function (st3, si) {
+        if (!st3[0].length || !species[u16(u8, st3[0][0])]) return;
+        model.statics.push({
+          isEgg: tbl.eggs.indexOf(si) !== -1, level: st3[1].length ? u8[st3[1][0]] : 0,
+          get: function () { return u16(u8, st3[0][0]); },
+          set: function (n) { st3[0].forEach(function (o3) { w16(u8, o3, n); }); },
+          setLevel: function (l) { st3[1].forEach(function (o3) { u8[o3] = l; }); }
+        });
+      });
+      // Ingame-Tausche: 60 Byte je Eintrag, Art, die man bekommt, bei +12; gewünschte Art bei +56
+      if (tbl.trade) {
+        model.trades = [];
+        for (var te = 0; te < tbl.trade[1]; te++) {
+          if (tbl.trade[2].indexOf(te) !== -1) continue;
+          (function (eo) {
+            if (!species[u16(u8, eo + 12)] || !species[u16(u8, eo + 56)]) return;
+            model.trades.push({
+              given: function () { return u16(u8, eo + 12); }, setGiven: function (n) { w16(u8, eo + 12, n); },
+              requested: function () { return u16(u8, eo + 56); }, setRequested: function (n) { w16(u8, eo + 56, n); }
+            });
+          })(tbl.trade[0] + te * 60);
+        }
+      }
+    }
+    // Items: Listen aus data/items_data.js; Feld-Items und versteckte Items liegen in den Karten-Ereignissen, Shops an festen Offsets
+    if (window.CC_ITEMS) {
+      var IT = window.CC_ITEMS[3];
+      model.itemData = { allowed: IT.allowed.items, tms: IT.allowed.tms, nonBad: (rom.frlg ? IT.nonBad2 : IT.nonBad).items, shop: IT.shop, op: IT.op };
+      model.itemNames = (rom.items || []).map(function (i) { return i.name; });
+    }
+    var ptr = function (o) { if (o < 0 || o + 4 > u8.length) return -1; var p2 = u32(u8, o); return p2 >= 0x08000000 && p2 < 0x08000000 + u8.length ? p2 - 0x08000000 : -1; };
+    var mapBase = -1, pat = [0x80, 0x18, 0x00, 0x68, 0x89, 0x0B, 0x09, 0x18, 0x08, 0x68, 0x70, 0x47];
+    for (var mi2 = 0; mi2 + 16 <= u8.length && mapBase < 0; mi2 += 2) {
+      if (u8[mi2] !== pat[0]) continue;
+      var hitm = true; for (var pj = 1; pj < pat.length; pj++) if (u8[mi2 + pj] !== pat[pj]) { hitm = false; break; }
+      if (hitm) mapBase = mi2;
+    }
+    model.field = [];
+    if (tbl && tbl.ball !== undefined && mapBase >= 0 && ptr(mapBase + 12) >= 0) {
+      var mapHeaders = ptr(mapBase + 12), banks = [], off2 = mapHeaders;
+      for (var guard = 0; guard < 200; guard++) {
+        var skipb = false; banks.forEach(function (mb) { if (mapHeaders < mb && off2 >= mb) skipb = true; });
+        if (skipb) break;
+        var nb = ptr(off2); if (nb < 0) break;
+        banks.push(nb); off2 += 4;
+      }
+      banks.forEach(function (bo) {
+        var cnt = 0, o3 = bo;
+        for (var g2 = 0; g2 < 600; g2++) {
+          var stop = false; banks.forEach(function (mb) { if (bo < mb && o3 >= mb) stop = true; });
+          if (stop || (bo < mapHeaders && o3 >= mapHeaders)) break;
+          var mh = ptr(o3); if (mh < 0) break;
+          cnt++; o3 += 4;
+          var ev = ptr(mh + 4);
+          if (ev < 0 || ev + 20 > u8.length) continue;
+          var pc = u8[ev], sc = u8[ev + 3], pe = ptr(ev + 4), sp2 = ptr(ev + 16);
+          if (pc > 0 && pe >= 0) for (var q = 0; q < pc; q++) {
+            var spr = u8[pe + q * 24 + 1], so2 = ptr(pe + q * 24 + 16);
+            if (spr === tbl.ball && so2 >= 0 && u8[so2] === 0x1A && u8[so2 + 1] === 0 && u8[so2 + 2] === 0x80 && u8[so2 + 5] === 0x1A && u8[so2 + 6] === 1 && u8[so2 + 7] === 0x80 && u8[so2 + 10] === 9 && (u8[so2 + 11] === 0 || u8[so2 + 11] === 1)) {
+              (function (io) { model.field.push({ get: function () { return u16(u8, io); }, set: function (n) { w16(u8, io, n); } }); })(so2 + 3);
+            }
+          }
+          if (sc > 0 && sp2 >= 0) for (var q2 = 0; q2 < sc; q2++) {
+            var ty = u8[sp2 + q2 * 12 + 5], io2 = sp2 + q2 * 12 + 8;
+            if (ty >= 5 && ty <= 7 && u16(u8, io2) !== 0) (function (io) { model.field.push({ get: function () { return u16(u8, io); }, set: function (n) { w16(u8, io, n); } }); })(io2);
+          }
+        }
+      });
+    }
+    if (tbl && tbl.pickup) {
+      var ploc = tbl.pickup[0], pbytes = [], pcnt = tbl.pickup[1], pstep = rom.code.slice(0, 3) === 'BPE' ? 2 : 4, pat3 = -1;
+      for (var ph = 0; ph < ploc.length; ph += 2) pbytes.push(parseInt(ploc.substr(ph, 2), 16));
+      for (var pa = 0; pa + pbytes.length <= u8.length && pat3 < 0; pa += 2) {
+        if (u8[pa] !== pbytes[0]) continue;
+        var pm = true; for (var pj = 1; pj < pbytes.length; pj++) if (u8[pa + pj] !== pbytes[pj]) { pm = false; break; }
+        if (pm) pat3 = pa;
+      }
+      if (pat3 >= 0 && pat3 + pcnt * pstep <= u8.length) {
+        model.pickup = []; model.pickupTMs = true;
+        for (var pi3 = 0; pi3 < pcnt; pi3++) (function (po) { model.pickup.push({ get: function () { return u16(u8, po); }, set: function (n) { w16(u8, po, n); } }); })(pat3 + pi3 * pstep);
+      }
+    }
+    if (tbl && tbl.shops) {
+      model.shops = [];
+      tbl.shops[0].forEach(function (so3, i) {
+        if (tbl.shops[1].indexOf(i) !== -1) return;
+        var list = [], o4 = so3, v;
+        while (o4 + 2 <= u8.length && (v = u16(u8, o4)) !== 0 && list.length < 64) { list.push(v); o4 += 2; }
+        if (!list.length) return;
+        model.shops.push({ name: 'Shop ' + i, isMain: tbl.shops[2].indexOf(i) !== -1, items: list, set: function (items) { items.forEach(function (it, k) { w16(u8, so3 + k * 2, it); }); } });
+      });
+    }
+    model.commit = function () { return u8; };
+    return model;
   }
 
-  window.CCRand3 = { DEFAULTS: DEFAULTS, scan: scan, run: run, makeRng: makeRng, findWild: findWild, findStarters: findStarters, findEvo: findEvo, validSpecies: validSpecies, makePool: makePool };
+  function run(buf, rom, userOpts) {
+    var u8 = new Uint8Array(buf); // Kopie
+    return window.CCRandCore.run(buildModel(rom, u8), userOpts);
+  }
+
+  window.CCRand3 = { CAPS: { moves: true, tm: true, extra: true, evoFix: true, items: true }, get DEFAULTS() { var d = JSON.parse(JSON.stringify(window.CCRandCore.DEFAULTS)); d.starters = 'random'; return d; }, buildModel: buildModel, scan: scan, run: run, makeRng: makeRng, findWild: findWild, findStarters: findStarters, findEvo: findEvo, validSpecies: validSpecies, makePool: makePool };
 })();

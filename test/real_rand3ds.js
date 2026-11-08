@@ -43,7 +43,7 @@ const R = require('../js/rand_3ds.js'), CTR = window.CTR;
   }
   console.log('Hash L3->L2 geprüft', checked, 'falsch', bad);
   // Kopf-Hash
-  const head = await vread(iv.rf, info2.romfsHashSize), hh = await vread(0x1C0, 32), hc = await CTR.sha256(head);
+  const head = await vread(iv.rf, info2.romfsHashSize), hh = await vread(0x1E0, 32), hc = await CTR.sha256(head);
   console.log('Superblock-Hash', Buffer.from(hh).equals(Buffer.from(hc)) ? 'OK' : 'FALSCH');
   // neu einlesen und Modell prüfen
   const ctx2 = { info: info2, source: vsrc, g: ctx.g, code: ctx.code };

@@ -1,7 +1,7 @@
 // Prüft den Gen-4-Randomizer an echten ROMs (Pfade als Argumente): node test/real_nds4.js <rom.nds>
 global.window = {}; global.document = {};
 const r = __dirname + '/../';
-require(r + 'js/nds.js'); require(r + 'js/gen3.js'); require(r + 'js/rand_gen3.js'); require(r + 'js/rand_nds.js'); require(r + 'data/natdex.js');
+require(r + 'js/nds.js'); require(r + 'js/gen3.js'); require(r + 'js/rand_gen3.js'); require(r + 'js/rand_core.js'); require(r + 'js/rand_nds.js'); require(r + 'data/natdex.js');
 const fs = require('fs'), assert = require('assert');
 const u8 = new Uint8Array(fs.readFileSync(process.argv[2]));
 const rom = window.NDS.parseRom(u8);

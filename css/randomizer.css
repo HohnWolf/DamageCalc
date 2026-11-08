@@ -17,3 +17,8 @@
 .rd-ok { color: var(--good, #3dd68c); font-weight: 600; }
 .rd-log { max-height: 320px; overflow: auto; margin: 0; padding: 8px 10px; font: 11.5px/1.4 Consolas, monospace; background: var(--input); border: 1px solid var(--line-soft); border-radius: var(--radius); white-space: pre-wrap; }
 .rd-logbtn { align-self: flex-start; height: 28px; padding: 0 12px; }
+
+.rd-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rd-code { max-width: 220px; }
+.rd-adv summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 4px 0; }
+.rd-advbody { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 4px; }

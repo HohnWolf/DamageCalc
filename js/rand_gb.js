@@ -42,7 +42,7 @@
       var p = calc(bankOf(tbl), rw(u8, tbl + (i - 1) * 2)), evos = [], learn = [];
       while (u8[p]) {
         var method = u8[p], stone = rom.gen === 1 ? method === 2 : method === 5, len = stone ? 4 : 3;
-        evos.push({ off: p + 2 + (stone ? 1 : 0), method: method });
+        evos.push({ off: p + 2 + (stone ? 1 : 0), method: method, long4: stone });
         p += len;
       }
       p++;
@@ -80,12 +80,26 @@
       learnsets[nat] = list;
     });
     var moves = [], mo = e.MoveDataOffset, msz = g1 ? 6 : 7, mc = g1 ? e.MoveCount : 251;
-    for (i = 1; i <= mc; i++) if (u8[mo + (i - 1) * msz + 2] !== undefined) moves[i] = { power: u8[mo + (i - 1) * msz + 2], type: TM[u8[mo + (i - 1) * msz + 3]] || 0 };
+    for (i = 1; i <= mc; i++) {
+      var mq = mo + (i - 1) * msz;
+      if (u8[mq + 2] !== undefined) moves[i] = { power: u8[mq + 2], type: TM[u8[mq + 3]] || 0, acc: Math.round(u8[mq + 4] * 100 / 255), pp: u8[mq + 5] };
+    }
     var model = {
       title: rom.gameEn + ' (' + rom.code + ')', maxNat: max, species: species, typeNames: TN, typePool: g1 ? [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17],
       specialShared: g1, legends: LEGEND, noStatsFor: [], learnsets: learnsets, moves: moves, maxMove: mc, bannedMoves: [165], moveNames: TX ? TX.moves : [],
       wild: [], trainers: [], evos: [], starters: [], wildAreas: 0
     };
+    // Attacken-Daten: 6 Byte (Gen 1) bzw. 7 Byte (Gen 2) je Attacke: Animation, Wirkung, Stärke, Typ, Genauigkeit (0–255), AP; die Art hängt am Typ
+    model.setMove = function (m, ch) {
+      var q = mo + (m - 1) * msz;
+      if (ch.power !== undefined) u8[q + 2] = Math.min(255, ch.power);
+      if (ch.type !== undefined && TI[ch.type] !== undefined) u8[q + 3] = TI[ch.type];
+      if (ch.acc !== undefined) u8[q + 4] = Math.min(255, Math.round(ch.acc * 255 / 100));
+      if (ch.pp !== undefined) u8[q + 5] = ch.pp;
+    };
+    // EP-Kurve: Byte 19 (Gen 1) bzw. 22 (Gen 2); "unregelmäßig/schwankend" gibt es dort nicht
+    model.catchRate = { get: function (n) { return u8[statOff(n) + (g1 ? 8 : 9)]; }, set: function (n, v) { u8[statOff(n) + (g1 ? 8 : 9)] = v; } };
+    model.setGrowth = function (n, v) { if (v === 1 || v === 2) return; u8[statOff(n) + (g1 ? 19 : 22)] = v; };
     model.commitSpecies = function () {
       for (var n = 1; n <= max; n++) {
         var sp = species[n], o2 = statOff(n);
@@ -98,18 +112,25 @@
       if (g1) { for (var q = 0; q < startMoves[nat]; q++) u8[so + 15 + q] = list[k++][1]; }
       s.learn.forEach(function (l) { if (list[k]) { u8[l.off + 1] = list[k][1]; k++; } });
     };
+    model.evoInfo = g1 ? { level: 1, trade: 3, stone: 2, levelMethods: [1], items: { water: 24, sun: 0, moon: 0, leaf: 0, dawn: 0 } }
+      : { level: 1, trade: 3, tradeItem: 99, stone: 2, levelMethods: [1], items: { water: 24, sun: 0, moon: 0, leaf: 0, dawn: 0 } };
     // Entwicklungen
     Object.keys(sets).forEach(function (k) {
       sets[k].evos.forEach(function (ev) {
         var tg = natOf(u8[ev.off]);
         if (!tg || !species[tg]) return;
-        model.evos.push({ from: +k, get: function () { return natOf(u8[ev.off]); }, set: function (n) { u8[ev.off] = internal(n); } });
+        var long4 = ev.long4, pm = ev.off - 2 - (long4 ? 1 : 0), from = +k;
+        model.evos.push({ from: from, get: function () { return natOf(u8[ev.off]); }, set: function (n) { u8[ev.off] = internal(n); },
+          // Gen 2: Methode 3 mit Item (nicht 0xFF) = Tausch mit Item, wird hier als Methode 99 gemeldet
+          method: function () { var m = u8[pm]; return !g1 && m === 3 && u8[pm + 1] !== 0xFF ? 99 : m; },
+          setMethod: function (m) { u8[pm] = m; }, param: function () { return u8[pm + 1]; }, setParam: function (v) { u8[pm + 1] = v; } });
       });
     });
     function addWild(key, table, off, lvOff) { // off = Position der Art, lvOff = Position des Levels
       var nat = natOf(g1 ? u8[off] : u8[off]);
       if (!nat || !species[nat]) return;
-      model.wild.push({ key: key, table: table, get: function () { return natOf(u8[off]); }, set: function (n) { u8[off] = internal(n); } });
+      model.wild.push({ key: key, table: table, get: function () { return natOf(u8[off]); }, set: function (n) { u8[off] = internal(n); },
+        scale: lvOff === undefined ? null : function (p) { u8[lvOff] = C.scaleLv(u8[lvOff], p); } });
     }
     var tp, tr, area;
     if (g1) {
@@ -226,6 +247,65 @@
         model.starters.push({ get: function () { return u8[offs[0]]; }, set: function (n) { offs.forEach(function (x) { u8[x] = n; }); } });
       })(e['StarterOffsets' + i]);
     }
+    // TMs/HMs: 50 TMs (je 1 Byte) + HMs (5 bzw. 7) ab TMMovesOffset; Kompatibilität in den Basiswerten (Gen 1 ab Byte 20, 7 Byte; Gen 2 ab Byte 24, 8 Byte)
+    if (e.TMMovesOffset && e.TMMovesOffset + 57 <= u8.length) {
+      var tmo = e.TMMovesOffset, nHm = g1 ? 5 : 7, tms = [], hms = [], q2;
+      for (q2 = 0; q2 < 50; q2++) tms.push(u8[tmo + q2]);
+      for (q2 = 0; q2 < nHm; q2++) hms.push(u8[tmo + 50 + q2]);
+      var plaus = tms.concat(hms).every(function (m) { return m >= 1 && m <= mc; });
+      if (plaus) {
+        var cOff = g1 ? 20 : 24, nBytes = g1 ? 7 : 8, cp = [];
+        for (i = 1; i <= max; i++) {
+          var so3 = statOff(i), fl = [false];
+          for (var b = 0; b < 50 + nHm; b++) fl.push(!!(u8[so3 + cOff + (b >> 3)] & (1 << (b & 7))));
+          cp.push({ key: i, nat: i, types: species[i].types, flags: fl, off: so3 + cOff });
+        }
+        model.tm = {
+          tms: tms, hms: hms, compat: cp, earlyHM: [],
+          setTMs: function (list) { list.forEach(function (m, k) { u8[tmo + k] = m; }); },
+          commit: function () {
+            cp.forEach(function (c) {
+              for (var j = 0; j < nBytes; j++) {
+                var v = 0;
+                for (var bit = 0; bit < 8; bit++) { var f = j * 8 + bit + 1; if (f < c.flags.length && c.flags[f]) v |= 1 << bit; }
+                if (!g1 && rom.crystal && j === 7) v = (v & 1) | (u8[c.off + j] & 0x0E); // Crystal: Bits 1–3 sind Attacken-Lehrer
+                u8[c.off + j] = v;
+              }
+            });
+          }
+        };
+      }
+    }
+    // Statische Begegnungen und Geschenke (feste Offsets aus data/gb_roms.js): Art als Byte (Gen 1: interne Nummer), Level als Byte
+    if (e.statics && e.statics.length) {
+      model.statics = [];
+      e.statics.forEach(function (st) {
+        if (!st.s.length || !species[natOf(u8[st.s[0]])]) return;
+        model.statics.push({
+          isEgg: !st.l.length, level: st.l.length ? u8[st.l[0]] : 0,
+          get: function () { return natOf(u8[st.s[0]]); },
+          set: function (n) { st.s.forEach(function (o) { u8[o] = internal(n); }); },
+          setLevel: function (l) { st.l.forEach(function (o) { u8[o] = l; }); }
+        });
+      });
+    }
+    // Ingame-Tausche: Gen 1 = verlangt, gegeben, Tauschpartner-Nr., Spitzname (Länge + 3 je Eintrag); Gen 2 = Nr., verlangt, gegeben, Spitzname, Werte, Item, ID, OT (auf gerade Länge)
+    if (e.TradeTableOffset && e.TradeTableSize) {
+      var tlen = g1 ? e.TradeNameLength + 3 : e.TradeNameLength + e.TradeOTLength + 9, unused = e.TradesUnused || [];
+      if (!g1 && tlen % 2) tlen++;
+      model.trades = [];
+      for (var te = 0; te < e.TradeTableSize; te++) {
+        if (unused.indexOf(te) !== -1) continue;
+        (function (eo) {
+          var ro = eo + (g1 ? 0 : 1), go = eo + (g1 ? 1 : 2);
+          if (eo + tlen > u8.length || !species[natOf(u8[ro])] || !species[natOf(u8[go])]) return;
+          model.trades.push({
+            given: function () { return natOf(u8[go]); }, setGiven: function (n) { u8[go] = internal(n); },
+            requested: function () { return natOf(u8[ro]); }, setRequested: function (n) { u8[ro] = internal(n); }
+          });
+        })(e.TradeTableOffset + te * tlen);
+      }
+    }
     model.commit = function () {
       // Globale Prüfsumme (Bytes 0x14E/0x14F) neu berechnen
       var sum = 0; for (var k = 0; k < u8.length; k++) if (k !== 0x14E && k !== 0x14F) sum = (sum + u8[k]) & 0xFFFF;
@@ -239,5 +319,5 @@
     var u8 = new Uint8Array(buf), rom = parseRom(u8);
     return C.run(buildModel(rom, u8), opts);
   }
-  window.CCRandGB = { DEFAULTS: C.DEFAULTS, parseRom: parseRom, scan: scan, run: run, buildModel: buildModel };
+  window.CCRandGB = { CAPS: { moves: true, tm: true, evoFix: true, extra: true, noTutor: true }, DEFAULTS: C.DEFAULTS, parseRom: parseRom, scan: scan, run: run, buildModel: buildModel };
 })();

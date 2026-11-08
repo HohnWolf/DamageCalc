@@ -130,6 +130,17 @@
     }
     return null;
   }
+  // Overlay (ARM9-Overlay-Tabelle ab Header 0x50, 32 Byte je Eintrag; Datei über die FAT). Komprimierte Overlays werden nicht unterstützt (null).
+  function overlay(u8, id) {
+    var tbl = u32(u8, 0x50), size = u32(u8, 0x54), fat = u32(u8, 0x48);
+    for (var o = tbl; o + 32 <= tbl + size && o + 32 <= u8.length; o += 32) {
+      if (u32(u8, o) !== id) continue;
+      if ((u32(u8, o + 28) >>> 24) & 1) return null;
+      var fid = u32(u8, o + 24), s = u32(u8, fat + fid * 8), e = u32(u8, fat + fid * 8 + 4);
+      return e > s && e <= u8.length ? u8.subarray(s, e) : null;
+    }
+    return null;
+  }
   // LZ10/LZ11 (some hacks compress archives)
   function lzDecompress(src) {
     var type = src[0], size = (src[1] | (src[2] << 8) | (src[3] << 16)) >>> 0, p = 4;
@@ -333,7 +344,7 @@
         rom.trainers.push({ id: t, cls: h[1], name: names[t] || '', double: dbl, items: items, custom: hasMoves, party: party, pk: pk, rec: rec, head: head, hasItem: hasItem });
       }
     }
-    rom.files = { personal: personal, learn: learn, trpoke: trpoke, trdata: trdata, evo: arc(F.evo), wild: arc(code.slice(0, 3) === 'APA' ? F.wildP : F.wild) };
+    rom.files = { moves: moves, personal: personal, learn: learn, trpoke: trpoke, trdata: trdata, evo: arc(F.evo), wild: arc(code.slice(0, 3) === 'APA' ? F.wildP : F.wild) };
     if (!rom.trainers.length) rom.warnings.push('trainers');
     return rom;
   }
@@ -499,5 +510,5 @@
   }
 
   window.NDS = { isNds: isNds, parseRom: parseRom, parseSave: parseSave, parseSav: parseSav, decodePk: decodePk, crypt: crypt, crc16: crc16,
-    g4str: g4str, g5str: g5str, g4char: g4char, g4texts: g4texts, g5texts: g5texts, narc: narc, nitroFile: nitroFile, lzDecompress: lzDecompress, BLOCK_POS: BLOCK_POS };
+    g4str: g4str, g5str: g5str, g4char: g4char, g4texts: g4texts, g5texts: g5texts, narc: narc, nitroFile: nitroFile, overlay: overlay, lzDecompress: lzDecompress, BLOCK_POS: BLOCK_POS };
 })();

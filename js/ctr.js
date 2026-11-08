@@ -190,9 +190,133 @@
     return { loc: f, data: await info.source.read(f.off, f.size) };
   }
 
+  // ---------------- BLZ (Bottom-LZ, ExeFS-.code) ----------------
+  // Aufbau nach BLZCoder des Universal Pokémon Randomizer ZX (cuecompressors, GPL-3.0): rückwärts gelesener LZSS-Strom mit 8-Byte-Fuß.
+  function blzDecode(data) {
+    var len = data.length, inc = u32(data, len - 4);
+    if (inc < 1) return data.slice();
+    var hdr = data[len - 5];
+    if (hdr < 8 || hdr > 0xB) throw new Error('ctr:blz:header');
+    var enc = u32(data, len - 8) & 0x00FFFFFF, dec = len - enc, pakLen = enc - hdr, rawLen = dec + enc + inc;
+    if (rawLen > 0x01400000 || pakLen <= 0 || dec < 0) throw new Error('ctr:blz:size');
+    var raw = new Uint8Array(rawLen); raw.set(data.subarray(0, dec));
+    var pak = data.slice(dec, dec + pakLen).reverse(), p = 0, r = dec, mask = 0, flags = 0;
+    while (r < rawLen) {
+      mask >>>= 1;
+      if (mask === 0) { if (p === pakLen) break; flags = pak[p++]; mask = 0x80; }
+      if ((flags & mask) === 0) { if (p === pakLen) break; raw[r++] = pak[p++]; }
+      else {
+        if (p + 1 >= pakLen) break;
+        var pos = (pak[p++] << 8) | pak[p++], l = (pos >>> 12) + 3;
+        if (r + l > rawLen) l = rawLen - r;
+        pos = (pos & 0xFFF) + 3;
+        while (l-- > 0) { raw[r] = raw[r - pos]; r++; }
+      }
+    }
+    raw.subarray(dec, rawLen).reverse();
+    return raw;
+  }
+  // "best" = LZ-CUE-Optimierung; gibt null zurück, wenn sich die Daten nicht verkleinern lassen
+  function blzEncode(rawIn) {
+    var N = 0x1002, F = 0x12, T = 2, rawLen = rawIn.length;
+    var rb = rawIn.slice().reverse(), head = new Int32Array(1 << 16).fill(-1), prev = new Int32Array(rawLen), inserted = 0;
+    function key(i) { return ((rb[i] << 8) ^ (rb[i + 1] << 4) ^ rb[i + 2] ^ (rb[i] << 11)) & 0xFFFF; }
+    function insertUpTo(q) { // alle Positionen < q in die Ketten aufnehmen
+      for (; inserted < q && inserted + 2 < rawLen; inserted++) { var k = key(inserted); prev[inserted] = head[k]; head[k] = inserted; }
+    }
+    var lastLen = 0, lastPos = 0;
+    function search(p0, raw, rawEnd) { // wie SEARCH im Original: kleinste Verschiebung unter den längsten Treffern
+      var l = T, p = p0, maxd = raw >= N ? N : raw;
+      if (raw + 2 < rawLen && maxd >= 3) {
+        insertUpTo(raw);
+        var j = head[key(raw)], guard = 0;
+        while (j >= 0 && guard++ < 4096) {
+          if (j >= raw) { j = prev[j]; continue; }
+          var pos = raw - j;
+          if (pos > maxd) break;
+          if (pos >= 3) {
+            var len = 0;
+            for (; len < F; len++) { if (raw + len === rawEnd || len >= pos) break; if (rb[raw + len] !== rb[raw + len - pos]) break; }
+            if (len > l) { p = pos; l = len; if (l === F) break; }
+          }
+          j = prev[j];
+        }
+      }
+      lastLen = l; lastPos = p;
+    }
+    var pakLenMax = rawLen + ((rawLen + 7) >> 3) + 11, pak = new Uint8Array(pakLenMax), pakN = 0, flg = 0, mask = 0;
+    var raw = 0, rawEnd = rawLen, posBest = 0, posNext = 0, posPost = 0, pakTmp = 0, rawTmp = rawLen, lenBest, lenNext, lenPost;
+    while (raw < rawEnd) {
+      mask >>>= 1;
+      if (mask === 0) { flg = pakN++; pak[flg] = 0; mask = 0x80; }
+      search(posBest, raw, rawEnd); lenBest = lastLen; posBest = lastPos;
+      if (lenBest > T && raw + lenBest < rawEnd) {
+        raw += lenBest; search(posNext, raw, rawEnd); lenNext = lastLen; posNext = lastPos;
+        raw -= lenBest - 1; search(posPost, raw, rawEnd); lenPost = lastLen; posPost = lastPos;
+        raw--;
+        if (lenNext <= T) lenNext = 1;
+        if (lenPost <= T) lenPost = 1;
+        if (lenBest + lenNext <= 1 + lenPost) lenBest = 1;
+      }
+      pak[flg] = (pak[flg] << 1) & 0xFF;
+      if (lenBest > T) {
+        raw += lenBest; pak[flg] |= 1;
+        pak[pakN++] = ((lenBest - (T + 1)) << 4) | ((posBest - 3) >>> 8);
+        pak[pakN++] = (posBest - 3) & 0xFF;
+      } else pak[pakN++] = rb[raw++];
+      if (pakN + rawLen - raw < pakTmp + rawTmp) { pakTmp = pakN; rawTmp = rawLen - raw; }
+    }
+    while (mask > 0 && mask !== 1) { mask >>>= 1; pak[flg] = (pak[flg] << 1) & 0xFF; }
+    var pakLen = pakN;
+    pak = pak.subarray(0, pakLen).reverse(); // Strom umkehren
+    if (pakTmp === 0 || rawLen + 4 < ((pakTmp + rawTmp + 3) & ~3) + 8) return null;
+    var out = new Uint8Array(rawTmp + pakTmp + 11), n = 0, i;
+    for (i = 0; i < rawTmp; i++) out[n++] = rawIn[i];
+    for (i = 0; i < pakTmp; i++) out[n++] = pak[i + pakLen - pakTmp];
+    var encLen = pakTmp, hdrLen = 8, incLen = rawLen - pakTmp - rawTmp;
+    while ((n & 3) > 0) { out[n++] = 0xFF; hdrLen++; }
+    w32(out, n, encLen + hdrLen); n += 3;
+    out[n++] = hdrLen;
+    w32(out, n, incLen - hdrLen); n += 4;
+    return out.subarray(0, n);
+  }
+
+  // ---------------- ExeFS ----------------
+  // Liest die .code-Datei (entpackt, wenn der Kopf es verlangt). Rückgabe { code, compressed, files, base } oder null.
+  async function readCode(info) {
+    if (!info.exefsOff) return null;
+    var base = info.base + info.exefsOff, hdr = await info.source.read(base, 0x200), files = [], i;
+    for (i = 0; i < 10; i++) { var nm = ascii(hdr, i * 16, 8); if (!nm) continue; files.push({ idx: i, name: nm, off: u32(hdr, i * 16 + 8), size: u32(hdr, i * 16 + 12) }); }
+    var cf = files.filter(function (f) { return f.name === '.code'; })[0];
+    if (!cf) return null;
+    var ex = await info.source.read(info.base + 0x200, 0x10), comp = !!(ex[0x0D] & 1), data = await info.source.read(base + 0x200 + cf.off, cf.size);
+    return { code: comp ? blzDecode(data) : data, compressed: comp, files: files, base: base, original: data };
+  }
+  // Neuer ExeFS (Kopf + Dateien auf 0x200 ausgerichtet + Hashes) mit geänderter .code; null, wenn sich .code nicht komprimieren lässt
+  async function buildExefs(info, ex, newCode) {
+    var data = ex.compressed ? blzEncode(newCode) : newCode;
+    if (!data) return null;
+    var datas = [];
+    for (var i = 0; i < ex.files.length; i++) {
+      var f = ex.files[i];
+      datas.push(f.name === '.code' ? data : await info.source.read(ex.base + 0x200 + f.off, f.size));
+    }
+    var total = 0x200, offs = [];
+    datas.forEach(function (d) { offs.push(total - 0x200); total += align(d.length, 0x200); });
+    var out = new Uint8Array(total);
+    for (i = 0; i < ex.files.length; i++) {
+      var f2 = ex.files[i], o = f2.idx * 16;
+      for (var k = 0; k < 8; k++) out[o + k] = f2.name.charCodeAt(k) || 0;
+      w32(out, o + 8, offs[i]); w32(out, o + 12, datas[i].length);
+      out.set(datas[i], 0x200 + offs[i]);
+      out.set(await sha256(datas[i]), 0x200 - (f2.idx + 1) * 0x20);
+    }
+    return out;
+  }
+
   // ---------------- Schreiben ----------------
   // patches: [{ off (absolut in der Quelldatei), bytes }]. Aktualisiert den IVFC-Hashbaum und den Kopf-Hash und gibt einen Blob zurück.
-  async function build(info, patches, source, BlobCtor) {
+  async function build(info, patches, source, BlobCtor, exefsNew) {
     var map = {}; // Blocknummer (Ebene 3) -> betroffen
     var iv = info.ivfc, B = 0x1000, extra = [];
     function applyTo(buf, start) { // Änderungen in einen gelesenen Abschnitt einarbeiten
@@ -234,19 +358,34 @@
       blk1.set(await patchedRead(bs1, len1));
       extra.push({ off: iv.rf + 0x60 + b1 * 32, bytes: await sha256(blk1) });
     }
-    // Kopf-Hash (Superblock) im NCCH-Kopf
+    // RomFS-Kopf-Hash (Superblock) im NCCH-Kopf
     var hsz = info.romfsHashSize || 0x200, head = await patchedRead(iv.rf, hsz);
-    extra.push({ off: info.base + 0x1C0, bytes: await sha256(head) });
+    extra.push({ off: info.base + 0x1E0, bytes: await sha256(head) }); // RomFS-Superblock-Hash liegt bei 0x1E0 (0x1C0 ist der ExeFS-Hash)
+    if (exefsNew) { // ExeFS ersetzen: Größen im Kopf anpassen, alles dahinter (RomFS, weitere Partitionen) rückt um delta
+      var delta = exefsNew.length - info.exefsSize, du = delta / 0x200, b0 = info.base, hd = info.header;
+      function u32b(v) { var t = new Uint8Array(4); w32(t, 0, v); return t; }
+      extra.push({ off: b0 + 0x1A4, bytes: u32b(exefsNew.length / 0x200) });
+      extra.push({ off: b0 + 0x1B0, bytes: u32b(u32(hd, 0x1B0) + du) });
+      extra.push({ off: b0 + 0x104, bytes: u32b(u32(hd, 0x104) + du) });
+      extra.push({ off: b0 + 0x1C0, bytes: await sha256(exefsNew.subarray(0, 0x200)) });
+      extra.push({ off: b0 + info.exefsOff, bytes: exefsNew, consume: info.exefsSize });
+      if (info.type === '3ds' && delta) { // NCSD: Größe der Partition 0 und Lage der folgenden Partitionen
+        var nh = await source.read(0, 0x200);
+        extra.push({ off: 0x104, bytes: u32b(u32(nh, 0x104) + du) });
+        extra.push({ off: 0x124, bytes: u32b(u32(nh, 0x124) + du) });
+        for (var pi = 1; pi < 8; pi++) if (u32(nh, 0x120 + pi * 8 + 4)) extra.push({ off: 0x120 + pi * 8, bytes: u32b(u32(nh, 0x120 + pi * 8) + du) });
+      }
+    }
     var all = patches.concat(extra).sort(function (a, b) { return a.off - b.off; }), parts = [], pos = 0;
     all.forEach(function (p) {
       if (p.off > pos) parts.push(source.slice(pos, p.off));
       else if (p.off < pos) throw new Error('ctr:overlap');
-      parts.push(p.bytes); pos = p.off + p.bytes.length;
+      parts.push(p.bytes); pos = p.off + (p.consume !== undefined ? p.consume : p.bytes.length);
     });
     if (pos < source.size) parts.push(source.slice(pos, source.size));
     return new (BlobCtor || Blob)(parts, { type: 'application/octet-stream' });
   }
 
-  window.CTR = { openGarc: openGarc, lz11Compress: lz11Compress, openNcch: openNcch, findFile: findFile, readFile: readFile, parseGarc: parseGarc, garcFile: garcFile, unpackMini: unpackMini, lz11: lz11, build: build, sha256: sha256, u16: u16, u32: u32 };
+  window.CTR = { openGarc: openGarc, lz11Compress: lz11Compress, openNcch: openNcch, findFile: findFile, readFile: readFile, parseGarc: parseGarc, garcFile: garcFile, unpackMini: unpackMini, lz11: lz11, build: build, blzDecode: blzDecode, blzEncode: blzEncode, readCode: readCode, buildExefs: buildExefs, sha256: sha256, u16: u16, u32: u32 };
   if (typeof module !== 'undefined') module.exports = window.CTR;
 })();

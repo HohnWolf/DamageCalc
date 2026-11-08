@@ -250,3 +250,22 @@ Genauigkeit der Attacken (`data/move_acc.js`, nur für die Anzeige im Teambuilde
 Formen, Geschlecht und Varianten (`data/forms_champ.js`): `https://play.pokemonshowdown.com/data/pokedex.json` herunterladen, dann `python tools/build_forms.py pokedex.json data/forms_champ.js`.
 
 Nuzlocke-Daten (`data/natdex.js` mit allen Pokémon, `data/gen3_names.js` mit Attacken und Fähigkeiten der 3. Generation, `data/nds_names.js` mit Attacken, Fähigkeiten und Items der 4./5. Generation): `pokedex.json` von Showdown sowie `pokemon_species_names.csv`, `move_names.csv`, `ability_names.csv`, `item_names.csv` und `item_game_indices.csv` aus `PokeAPI/pokeapi` (`data/v2/csv/`) in einen Ordner laden, dann `python tools/build_nuz.py <ordner> data`.
+
+## Randomizer – erweiterte Optionen
+Orientiert am [Universal Pokémon Randomizer ZX](https://github.com/Ajarmar/universal-pokemon-randomizer-zx) (GPL-3.0). Gen 1–7 laufen über den gemeinsamen Kern `js/rand_core.js`, jede Generation liefert nur einen Adapter (Modell). Unter „Erweiterte Optionen“ in der Oberfläche:
+
+| Option | Gen 1/2 | Gen 3 | Gen 4 | Gen 5 | Gen 6/7 |
+|---|---|---|---|---|---|
+| Typen/Fähigkeiten erben, Fähigkeiten sperren, Level-Attacken-Typanteil | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Entwicklungen (gleicher Typ, Ziel ändern, max. 3 Stufen) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Starter (2 Entwicklungen, gleicher Typ) | ✓ | ✓ | – | – | – |
+| Wild (Typ-Thema, 1:1 je Gebiet, Catch ’em all), Trainer (Typ-Thema, keine Doppelten) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Attacken-Daten (Stärke, Genauigkeit, AP, Typ, Art) | ✓ (ohne Art) | ✓ (ohne Art) | ✓ | ✓ | ✓ |
+| TM-Attacken, TM/HM-Kompatibilität | ✓ | ✓ | ✓ | ✓ | ✓ (Attacken in `code.bin`, neu BLZ-komprimiert; passt der Code nicht, bleibt er unverändert) |
+| Attacken-Lehrer (Attacken, Kompatibilität) | – | ✓ (Sm., FR/BG) | ✓ (Pt, HG/SS; nur unkomprimierte Overlays) | ✓ (Schwarz 2/Weiß 2) | – |
+| Unmögliche Entwicklungen ersetzen, Tag/Nacht-Entwicklungen, Entwicklungen erleichtern, EP-Kurve vereinheitlichen | eingeschränkt (Tausch → Level, Level senken, EP-Kurve) | ✓ | ✓ | ✓ | ✓ |
+| Mindest-Fangrate, Level der wilden Pokémon ändern | ✓ | ✓ | ✓ (Level: ohne Gras/Schwärme in HG/SS) | ✓ | ✓ |
+| Items auf dem Feld (inkl. versteckte), Shop-Inhalte, Pickup-Items, Trainer-Items | – | ✓ | ✓ | ✓ (Shops: alle außer, wenn das Overlay komprimiert ist) | – |
+| Statische Pokémon/Geschenke, Ingame-Tausche | ✓ | ✓ | ✓ | ✓ | Statics nur Gen 7 (Sonne/Mond/Ultra); Ingame-Tausche nur Gen 6 (`code.bin`) |
+
+Dazu Voreinstellungen und ein Einstellungscode (`RL1:…`) zum Teilen. Offsets je Spielversion stehen in `data/gen3_offsets.js`, `gen4_offsets.js`, `gen5_offsets.js` (erzeugt mit `tools/make_gen*_offsets.js` aus den ini-Dateien des UPR). Nicht enthalten: Start-Items der Starter, Freundschaftswert senken, zusätzliche Trainer-Pokémon, Starter in Gen 4/5, Roamer/Fossilien/Spezial-Statics, Anpassung von Texten (TM-Beschreibungen, Tausch-Spitznamen, Dialoge) und die UPR-Patches (z. B. Gehorsam von Mew/Deoxys).

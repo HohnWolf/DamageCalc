@@ -1,6 +1,6 @@
 // Prüft den Gen-3-Randomizer an einer künstlichen ROM (echte ROMs liegen nicht im Projekt)
 global.window = {};
-require('../js/gen3.js'); require('../js/rand_gen3.js');
+require('../js/gen3.js'); require('../js/rand_gen3.js'); require('../js/rand_core.js');
 const R = window.CCRand3, assert = require('assert');
 const N = 0x400000, u8 = new Uint8Array(N);
 const w16 = (o, v) => { u8[o] = v & 255; u8[o + 1] = v >> 8; };
@@ -40,7 +40,8 @@ const opts = { seed: 'abc', wild: 'similar', trainers: 'similar', trainerLevel: 
 
 const sc = R.scan(rom, u8); console.log(sc);
 assert.equal(sc.wildMaps, 40); assert.equal(sc.wildArrays, 80); assert.equal(sc.starterOff, 0xB0000); assert.equal(sc.evoOff, evo);
-const a = R.run(u8, rom, opts), b = R.run(u8, rom, opts), c = R.run(u8, rom, Object.assign({}, opts, { seed: 'xyz' }));
+(async () => {
+const a = await R.run(u8, rom, opts), b = await R.run(u8, rom, opts), c = await R.run(u8, rom, Object.assign({}, opts, { seed: 'xyz' }));
 assert.equal(a.log, b.log); assert.ok(Buffer.compare(Buffer.from(a.data), Buffer.from(b.data)) === 0); assert.notEqual(a.log, c.log);
 assert.ok(Buffer.compare(Buffer.from(a.data), Buffer.from(u8)) !== 0);
 // Originalbytes unverändert, Größe gleich
@@ -61,5 +62,51 @@ const t1 = trainers[1]; assert.ok(sp(t1.partyOff + 6) > 0);
 // Basiswerte: Summe bleibt beim Zufall
 for (let s = 1; s < 412; s++) { if (!R.validSpecies(rom, s)) continue; let sum = 0; for (let i = 0; i < 6; i++) sum += a.data[0x1000 + s * 28 + i]; assert.equal(sum, 290 + (s % 50) - 0 , 's' + s); }
 // Starter eigene Wahl
-const d = R.run(u8, rom, { seed: 1, wild: 'keep', trainers: 'keep', starters: 'custom', starterPick: [25, 133, 150] }); assert.deepEqual([0, 2, 4].map(k => d.data[0xB0000 + k] | (d.data[0xB0000 + k + 1] << 8)), [25, 133, 150]);
+const d = await R.run(u8, rom, { seed: 1, wild: 'keep', trainers: 'keep', starters: 'custom', starterPick: [25, 133, 150] }); assert.deepEqual([0, 2, 4].map(k => d.data[0xB0000 + k] | (d.data[0xB0000 + k + 1] << 8)), [25, 133, 150]);
+// TMs/HMs und Attacken-Daten
+[264, 337, 352, 347].concat(Array.from({ length: 54 }, (_, i) => 100 + i)).forEach((m, i) => w16(0xF0000 + i * 2, m));
+const mv0 = 0x60000; rom.off.mv = mv0; moves.forEach((m, i) => { u8[mv0 + i * 12 + 1] = m.power; u8[mv0 + i * 12 + 2] = m.type; u8[mv0 + i * 12 + 3] = 100; u8[mv0 + i * 12 + 4] = 20; });
+const tmr = await R.run(u8, rom, { seed: 'tm', wild: 'keep', trainers: 'keep', starters: 'keep', tmMoves: 'random', movePower: true, movePP: true });
+const tms = Array.from({ length: 50 }, (_, i) => tmr.data[0xF0000 + i * 2] | (tmr.data[0xF0000 + i * 2 + 1] << 8));
+assert.ok(new Set(tms).size === 50 && tms.every(m => m >= 1 && m < 355), 'TMs gueltig');
+assert.equal(tmr.data[0xF0000 + 50 * 2], 146, 'HMs unveraendert');
+assert.ok(/=== TMs/.test(tmr.log) && /Attacken-Daten/.test(tmr.log), 'Protokoll TMs');
+// Offsets-Tabelle: TM/Lehrer-Kompatibilitaet, Statics, Tausche
+const CO = 0x70000, TU = 0x71000, ST = 0x72000, TR = 0x73000;
+for (let sp2 = 1; sp2 < 412; sp2++) { u8[CO + sp2 * 8] = 0x0F; u8[CO + sp2 * 8 + 7] = 0x01; }
+for (let q = 0; q < 30; q++) w16(TU + q * 2, 100 + q);
+w16(ST, 25); u8[ST + 4] = 30; w16(ST + 8, 150); w16(TR + 12, 10); w16(TR + 56, 11);
+window.GEN3_OFFS = { BPEE0: { compat: CO, tm: 0xF0000, tut: [TU, 30], trade: [TR, 1, []], eggs: [], statics: [[[ST], [ST + 4]], [[ST + 8], []]] } };
+const ex = await R.run(u8, rom, { seed: 'x3', wild: 'keep', trainers: 'keep', starters: 'keep', tmMoves: 'random', tmCompat: 'type', tutorMoves: 'random', tutorCompat: 'random', statics: 'random', staticLevelPct: 10, trades: 'random', tradeRequested: true });
+assert.ok(/=== Statische/.test(ex.log) && /=== Ingame-Tausche/.test(ex.log) && /=== Attacken-Lehrer/.test(ex.log), 'Protokoll Extras');
+const g = (o) => ex.data[o] | (ex.data[o + 1] << 8);
+assert.ok(R.validSpecies(rom, g(ST)) && g(ST) !== 25 && ex.data[ST + 4] === 33, 'Static neu, Level +10 %');
+assert.ok(R.validSpecies(rom, g(TR + 12)) && R.validSpecies(rom, g(TR + 56)), 'Tausch gueltig');
+const tut = Array.from({ length: 30 }, (_, i) => g(TU + i * 2)); assert.ok(new Set(tut).size === 30 && tut.every(m => m >= 1 && m < 355), 'Lehrer-Attacken gueltig');
+let cb = 0; for (let i = 0; i < 8; i++) cb += ex.data[CO + 8 * 40 + i].toString(2).replace(/0/g, '').length; assert.ok(cb > 5 && cb < 58, 'Kompatibilitaet geschrieben ' + cb);
+// Items: Feld-Ball, verstecktes Item, Shop
+const B0 = 0x100000;
+[0x80, 0x18, 0x00, 0x68, 0x89, 0x0B, 0x09, 0x18, 0x08, 0x68, 0x70, 0x47].forEach((b, i) => u8[B0 + i] = b);
+w32(B0 + 12, P(B0 + 0x1000)); w32(B0 + 0x1000, P(B0 + 0x2000)); w32(B0 + 0x2000, P(B0 + 0x3000));
+w32(B0 + 0x3000 + 4, P(B0 + 0x4000));
+u8[B0 + 0x4000] = 1; u8[B0 + 0x4000 + 3] = 1; w32(B0 + 0x4000 + 4, P(B0 + 0x5000)); w32(B0 + 0x4000 + 16, P(B0 + 0x6000));
+u8[B0 + 0x5000 + 1] = 59; w32(B0 + 0x5000 + 16, P(B0 + 0x7000));
+[0x1A, 0, 0x80, 20, 0, 0x1A, 1, 0x80, 1, 0, 9, 0].forEach((b, i) => u8[B0 + 0x7000 + i] = b);
+u8[B0 + 0x6000 + 5] = 5; w16(B0 + 0x6000 + 8, 30);
+w16(B0 + 0x8000, 4); w16(B0 + 0x8002, 5); w16(B0 + 0x8004, 6);
+window.GEN3_OFFS.BPEE0.ball = 59; window.GEN3_OFFS.BPEE0.shops = [[B0 + 0x8000], [], [0]];
+const itemsAll = Array.from({ length: 60 }, (_, i) => i + 1);
+window.CC_ITEMS = { 3: { allowed: { items: itemsAll, tms: [40, 41] }, nonBad: { items: itemsAll.filter(i => i % 2) }, nonBad2: { items: itemsAll }, shop: [4, 5], op: [6] } };
+const PK = 0x110000; [0x0D, 0x00, 0x0E, 0x00, 0x16, 0x00].forEach((b, i) => u8[PK + i] = b);
+window.GEN3_OFFS.BPEE0.pickup = ['0D000E001600', 3];
+const it = await R.run(u8, rom, { seed: 'it', wild: 'keep', trainers: 'keep', starters: 'keep', fieldItems: 'random', shops: 'random', pickupItems: 'random', wildLevelPct: 100, shopBanRegular: true, itemsBanBad: false });
+assert.ok(it.data[0x80000] === 6 && it.data[0x80001] === 10, 'Wild-Level +100 %');
+assert.ok(/=== Pickup-Items \(3\)/.test(it.log), 'Pickup-Items im Protokoll');
+assert.ok([0, 2, 4].every(k => { const v = it.data[PK + k] | (it.data[PK + k + 1] << 8); return v >= 1 && v <= 60; }), 'Pickup-Items gueltig');
+assert.ok(/=== Items auf dem Feld \(2\)/.test(it.log) && /=== Shops/.test(it.log), 'Protokoll Items');
+const gi = (o) => it.data[o] | (it.data[o + 1] << 8);
+assert.ok(gi(B0 + 0x7003) >= 1 && gi(B0 + 0x6008) >= 1 && gi(B0 + 0x6008) <= 60, 'Feld-Item gesetzt');
+assert.ok([0x8000, 0x8002, 0x8004].every(o => gi(B0 + o) >= 1 && gi(B0 + o) <= 60 && gi(B0 + o) !== 4 && gi(B0 + o) !== 5), 'Shop: Items ohne Standard-Items');
+assert.equal(new Set([gi(B0 + 0x8000), gi(B0 + 0x8002), gi(B0 + 0x8004)]).size, 3, 'Shop-Items verschieden');
 console.log(a.log.split('\n').slice(0, 12).join('\n')); console.log('OK');
+})().catch(e => { console.log(e); process.exit(1); });

@@ -17,13 +17,17 @@ function mkGen1() {
   // Trainer: Klasse 1, ein Trainer, normaler Typ
   const to = e.TrainerDataTableOffset, tb = Math.floor(to / 0x4000), tp = 0x4000 + 0x300; for (let c = 1; c <= 47; c++) { u[to + (c - 1) * 2] = tp & 255; u[to + (c - 1) * 2 + 1] = tp >> 8; }
   const tr = tb * 0x4000 + 0x300; u[tr] = 20; u[tr + 1] = 0x54; u[tr + 2] = 0x99; u[tr + 3] = 0;
+  for (let q = 0; q < 55; q++) u[e.TMMovesOffset + q] = 10 + q; // 50 TMs + 5 HMs
+  u[0x49320] = 0x85; u[0x4931F] = 5; u[0x71B7B] = 0x70; u[0x71B7B + 1] = 0x71; // Magikarp (statisch) und ein Tausch
+  for (let n = 1; n <= 151; n++) { const o = n === 151 ? e.MewStatsOffset : e.PokemonStatsOffset + (n - 1) * 28; u[o + 20] = 0x0F; }
   return u;
 }
 {
   const u = mkGen1(), rom = RG.parseRom(u);
   ok(rom.gen === 1 && /Red/.test(rom.game), 'Gen 1: Rot (U) erkannt');
   const info = RG.scan(rom, u); ok(info.wildSlots >= 10 && info.evo && info.starters, 'Gen 1: Scan (' + JSON.stringify(info) + ')');
-  RG.run(u, rom, { seed: 'x', wild: 'random', trainers: 'random', trainerLevel: 10, evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random' }).then(res => {
+  RG.run(u, rom, { seed: 'x', wild: 'random', trainers: 'random', trainerLevel: 10, evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random', tmMoves: 'random', tmCompat: 'random', movePower: true, moveType: true, expCurve: 'fast', evoImpossible: true, statics: 'random', staticLevelPct: 100, trades: 'random', tradeRequested: true }).then(res => {
+    { const e1 = E.g1[0], d1 = res.data, t1 = Array.from({ length: 50 }, (_, i) => d1[e1.TMMovesOffset + i]); ok(new Set(t1).size === 50 && t1.every(m => m >= 1 && m <= 165), 'Gen 1: TMs gueltig'); ok(d1[e1.TMMovesOffset + 50] === 60, 'Gen 1: HMs unveraendert'); ok(d1[e1.PokemonStatsOffset + 19] === 4, 'Gen 1: EP-Kurve schnell'); ok(/=== Attacken-Daten/.test(res.log), 'Gen 1: Attacken-Daten'); const toNat = window.PKGB.toNat; ok(toNat[d1[0x49320]] && toNat[d1[0x49320]] !== 129 && d1[0x4931F] === 10, 'Gen 1: Static neu, Level +100 %'); ok(toNat[d1[0x71B7B]] && toNat[d1[0x71B7B + 1]] && /=== Ingame-Tausche/.test(res.log), 'Gen 1: Tausch gueltig'); }
     ok(res.log.indexOf('Wilde Pokémon') > 0 && res.data[0x14E] * 256 + res.data[0x14F] > 0, 'Gen 1: Lauf + Prüfsumme');
     const e = E.g1[0]; const wr = Math.floor(e.WildPokemonTableOffset / 0x4000) * 0x4000 + 0x200;
     const d = res.data; ok(d[wr + 2] !== 0x54 || d[wr + 4] !== 0x54, 'Gen 1: wilde Art geändert (' + d[wr + 2] + ')');

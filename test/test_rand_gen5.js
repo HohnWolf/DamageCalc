@@ -26,5 +26,11 @@ window.CCRandCore.run(model, { seed: 'abc', wild: 'random', trainers: 'random', 
   const ts = tr[4] | (tr[5] << 8); ok(ts >= 1 && ts <= 649 && tr[2] === 22, 'Trainer: neue Art ' + ts + ', Level +10 %');
   let sum0 = 0; for (let i = 0; i < 6; i++) sum0 += personal[1][i]; ok(sum0 > 0, 'Werte geschrieben');
   ok(personal[1][7] !== 9 && personal[1][7] <= 16, 'Typ ohne "???" (Gen-5-Nummer)');
-  window.CCRandCore.run(G5.buildModel(rom, u8), { seed: 'abc', wild: 'random', trainers: 'random' }).then(() => { console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0); });
+  const all = { seed: 'xyz', wild: 'random', trainers: 'random', evo: 'random', stats: 'random', types: 'random', abilities: 'random', moves: 'random', noLegend: true,
+    followEvoTypes: true, followEvoAbilities: true, banTrapping: true, banNegative: true, evoSameType: true, evoForceChange: true, evoLimit3: true,
+    wildAreaType: true, wildCatchAll: true, trainerTypeTheme: true, trainerNoDup: true, moveTypePct: 80 };
+  window.CCRandCore.run(G5.buildModel(rom, u8), all).then(r1 => {
+    ok(/wie Vorstufe/.test(r1.log) && /\[\w+\]: /.test(r1.log) && /mindestens einmal/.test(r1.log), 'Neue Optionen: Protokoll');
+    ok(r1.data && r1.seed === 'xyz', 'Neue Optionen: Lauf fertig');
+  }).then(() => window.CCRandCore.run(G5.buildModel(rom, u8), { seed: 'abc', wild: 'random', trainers: 'random' })).then(() => { console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0); }).catch(e => { console.log('Ausnahme', e); process.exit(1); });
 }).catch(e => { console.log('Ausnahme', e); process.exit(1); });

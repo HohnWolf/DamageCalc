@@ -102,183 +102,251 @@
     return m.slice(-4);
   }
 
-  function run(buf, rom0, userOpts) {
-    var o = {}; Object.keys(DEFAULTS).forEach(function (k) { o[k] = userOpts && userOpts[k] !== undefined ? userOpts[k] : DEFAULTS[k]; });
-    // Arbeitskopie: ROM neu einlesen, damit alle Archive in der Kopie liegen
-    var u8 = new Uint8Array(buf);
-    var rom = window.NDS.parseRom(u8);
-    var seed = String(o.seed || '').trim() || String(Math.floor(Math.random() * 1e9));
-    var rng = R3.makeRng(seed);
-    var log = [], summary = {};
-    function L(s) { log.push(s); }
-    var pool = makePool(rom, o.noLegend), bst0 = [0];
-    for (var s0 = 1; s0 <= MAXNAT; s0++) bst0.push(validSpecies(rom, s0) ? bstOf(rom, s0) : 0);
-    var pick = makePicker(rom, pool, rng, bst0);
-    var names = rom.names || {}, mvNames = names.moves || [], abNames = names.abilities || [];
-    function mName(m) { return mvNames[m] || ('Attacke ' + m); }
-    function aName(a) { return abNames[a] || ('Fähigkeit ' + a); }
-    var ls = rom.learnsets.map(function (l) { return l ? l.map(function (e) { return e.slice(); }) : l; });
-    L('Rattata Labs Randomizer – ' + (rom.gameEn || rom.title) + ' (' + rom.code + ')');
-    L('Seed: ' + seed); L('');
-    var F = rom.files;
-
-    // --- Basiswerte, Typen, Fähigkeiten ---
-    if ((o.stats !== 'keep' || o.types !== 'keep' || o.abilities !== 'keep') && F.personal) {
-      L('=== Pokémon-Werte ===');
-      var abilPool = []; for (var ab = 1; ab <= 123; ab++) if (BAN_ABILITY.indexOf(ab) === -1) abilPool.push(ab);
-      var typePool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17];
-      for (var s = 1; s <= MAXNAT; s++) {
-        var sp = rom.species[s], d = F.personal[s];
-        if (!sp || !d || d.length < 24) continue;
-        var parts = [];
-        if (o.stats !== 'keep' && s !== 292) {
-          var st = sp.bs.slice(), ns;
-          if (o.stats === 'shuffle') ns = rng.shuffle(st.slice());
-          else {
-            var total = st.reduce(function (a, b) { return a + b; }, 0), w = st.map(function () { return 0.4 + rng(); }), ws = w.reduce(function (a, b) { return a + b; }, 0);
-            ns = w.map(function (x) { return Math.max(10, Math.min(250, Math.round(total * x / ws))); });
-            var diff = total - ns.reduce(function (a, b) { return a + b; }, 0), guard = 0;
-            while (diff !== 0 && guard++ < 2000) { var ix = rng.int(6), stp = diff > 0 ? 1 : -1; if (ns[ix] + stp >= 10 && ns[ix] + stp <= 250) { ns[ix] += stp; diff -= stp; } }
-          }
-          for (var i = 0; i < 6; i++) d[i] = ns[i];
-          parts.push('Werte ' + st.join('/') + ' → ' + ns.join('/'));
-        }
-        if (o.types !== 'keep') {
-          var t0 = sp.types, mono = t0[0] === t0[1], a = rng.pick(typePool), b = mono ? a : rng.pick(typePool);
-          if (!mono && a === b) b = typePool[(typePool.indexOf(a) + 1 + rng.int(typePool.length - 1)) % typePool.length];
-          d[6] = a; d[7] = b;
-          parts.push('Typ ' + TN[t0[0]] + (mono ? '' : '/' + TN[t0[1]]) + ' → ' + TN[a] + (mono ? '' : '/' + TN[b]));
-        }
-        if (o.abilities !== 'keep') {
-          var a0 = sp.abilities, single = !a0[1] || a0[1] === a0[0], x = rng.pick(abilPool), y = 0;
-          if (!single) { y = rng.pick(abilPool); if (y === x) y = abilPool[(abilPool.indexOf(x) + 1) % abilPool.length]; }
-          d[22] = x; d[23] = y;
-          parts.push('Fähigkeit ' + aName(a0[0]) + (single ? '' : '/' + aName(a0[1])) + ' → ' + aName(x) + (single ? '' : '/' + aName(y)));
-        }
-        if (parts.length) L(nameOf(rom, s) + ': ' + parts.join(', '));
-      }
-      L('');
+  // ---------------- Modell für den gemeinsamen Kern (js/rand_core.js) ----------------
+  function buildModel(rom, u8) {
+    var F = rom.files, names = rom.names || {}, C = window.CCRandCore;
+    var typePool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17], abilityPool = [];
+    for (var ab = 1; ab <= 123; ab++) if (BAN_ABILITY.indexOf(ab) === -1) abilityPool.push(ab);
+    var species = [], s;
+    for (s = 1; s <= MAXNAT; s++) {
+      var e = rom.species[s], d = F.personal && F.personal[s];
+      if (!e || !d || d.length < 24) continue;
+      species[s] = { bs: e.bs.slice(), types: e.types.slice(), abilities: (e.abilities || [0, 0]).slice(0, 2) };
     }
-
-    // --- Level-Attacken ---
-    if (o.moves === 'random' && F.learn) {
-      L('=== Attacken (Level-Aufstieg) ===');
-      var damaging = [], byType = {}, all = [];
-      for (var m = 1; m < rom.moves.length; m++) {
-        if (!rom.moves[m] || m === 165) continue;
-        all.push(m);
-        if (rom.moves[m].power > 0) { damaging.push(m); (byType[rom.moves[m].type] = byType[rom.moves[m].type] || []).push(m); }
-      }
-      for (var s2 = 1; s2 <= MAXNAT; s2++) {
-        var ld = F.learn[s2], sp2 = rom.species[s2];
-        if (!ld || !sp2) continue;
-        var tp = [F.personal[s2][6], F.personal[s2][7]], used = [], line = [];
-        for (var k = 0; k * 2 + 1 < ld.length; k++) {
-          var wv = u16(ld, k * 2);
-          if (wv === 0xFFFF) break;
-          var mv, tries = 0;
-          do {
-            var r = rng();
-            if (r < 0.3 && byType[tp[rng.int(2)]]) mv = rng.pick(byType[tp[rng.int(2)]] || damaging);
-            else if (k < 2 || r < 0.65) mv = rng.pick(damaging);
-            else mv = rng.pick(all);
-          } while (used.indexOf(mv) !== -1 && ++tries < 30);
-          used.push(mv);
-          w16(ld, k * 2, (wv & 0xFE00) | mv);
-          if (ls[s2] && ls[s2][k]) ls[s2][k][1] = mv;
-          line.push('Lv' + (wv >> 9) + ' ' + mName(mv));
+    var learnsets = {}, ls = rom.learnsets;
+    for (s = 1; s <= MAXNAT; s++) if (ls[s] && species[s]) learnsets[s] = ls[s].map(function (x) { return x.slice(); });
+    var model = {
+      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: MAXNAT, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
+      abilityNames: names.abilities || [], moveNames: names.moves || [], legends: LEGEND_NAT, noStatsFor: [292], learnsets: learnsets, moves: rom.moves,
+      maxMove: rom.moves.length - 1, bannedMoves: [165], wild: [], trainers: [], evos: []
+    };
+    model.commitSpecies = function () {
+      species.forEach(function (sp, n) {
+        if (!sp) return;
+        var d = F.personal[n];
+        for (var i = 0; i < 6; i++) d[i] = sp.bs[i];
+        d[6] = sp.types[0]; d[7] = sp.types[1]; d[22] = sp.abilities[0] || 0; d[23] = sp.abilities[1] || 0;
+      });
+    };
+    model.setLearnset = function (n, list) {
+      var d = F.learn && F.learn[n]; if (!d) return;
+      for (var k = 0; k < list.length && k * 2 + 1 < d.length; k++) w16(d, k * 2, ((list[k][0] & 0x7F) << 9) | list[k][1]);
+    };
+    model.setMove = function (m, ch) {
+      var d = F.moves && F.moves[m]; if (!d || d.length < 12) return;
+      if (ch.cat !== undefined) d[2] = ch.cat;
+      if (ch.power !== undefined) d[3] = Math.min(255, ch.power);
+      if (ch.type !== undefined) d[4] = ch.type;
+      if (ch.acc !== undefined) d[5] = ch.acc;
+      if (ch.pp !== undefined) d[6] = ch.pp;
+    };
+    // Wilde Pokémon
+    wildSlots(rom).forEach(function (x) {
+      model.wild.push({
+        key: 'Karte ' + x.map + ' (' + x.kind + ')',
+        get: function () { return x.size === 2 ? u16(x.file, x.off) : u32(x.file, x.off); },
+        set: function (n) { if (x.size === 2) w16(x.file, x.off, n); else w32(x.file, x.off, n); },
+        // Level: DPPt Gras = u32 vor der Art; Wasser = Min/Max vor der Art; HGSS Wasser/Angeln = Min/Max vor der Art (Gras, Radio und Schwärme bleiben unverändert)
+        scale: function (p) {
+          var Cc = window.CCRandCore, b = x.file;
+          if (x.size === 4 && x.kind === 'Gras') b[x.off - 4] = Cc.scaleLv(b[x.off - 4], p);
+          else if (x.size === 4 && x.kind === 'Wasser') { b[x.off - 4] = Cc.scaleLv(b[x.off - 4], p); b[x.off - 3] = Cc.scaleLv(b[x.off - 3], p); }
+          else if (x.size === 2 && ['Surfen', 'Felsbrecher', 'Alte Angel', 'Profi-Angel', 'Super-Angel'].indexOf(x.kind) !== -1) { b[x.off - 2] = Cc.scaleLv(b[x.off - 2], p); b[x.off - 1] = Cc.scaleLv(b[x.off - 1], p); }
         }
-        L(nameOf(rom, s2) + ': ' + line.join(', '));
-      }
-      L('');
-    }
-
-    // --- Entwicklungen ---
-    if (o.evo !== 'keep') {
-      if (!evoOk(rom)) L('Entwicklungen: Archiv nicht gefunden oder komprimiert, übersprungen.\n');
-      else {
-        L('=== Entwicklungen ===');
-        var pre = {}, cnt = 0;
-        rng.shuffle(pool.slice()).forEach(function (sf) {
-          var e = F.evo[sf];
-          if (!e || e.length < 42) return;
-          for (var k = 0; k < 7; k++) {
-            var method = u16(e, k * 6), target = u16(e, k * 6 + 4);
-            if (!method || !target || !validSpecies(rom, target)) continue;
-            var cands = pool.filter(function (t) {
-              if (t === sf || pre[t]) return false;
-              for (var x = sf; x; x = pre[x]) if (x === t) return false;
-              return true;
-            });
-            if (o.evo === 'similar') {
-              var tb = bst0[target], near = cands.filter(function (t) { return Math.abs(bst0[t] - tb) <= Math.max(40, tb * 0.15); });
-              if (near.length >= 3) cands = near;
-            }
-            if (!cands.length) continue;
-            var nt = rng.pick(cands);
-            pre[nt] = sf; w16(e, k * 6 + 4, nt); cnt++;
-            L(nameOf(rom, sf) + ' → ' + nameOf(rom, nt) + ' (statt ' + nameOf(rom, target) + ')');
-          }
-        });
-        summary.evo = cnt; L('');
-      }
-    }
-
-    // --- Starter ---
-    if (o.starters !== 'keep') L('Starter: für Generation 4 noch nicht unterstützt, übersprungen.\n');
-
-    // --- Wilde Pokémon ---
-    if (o.wild !== 'keep') {
-      var slots = rom.files.wild ? wildSlots(rom) : [];
-      if (!slots.length) L('Wilde Pokémon: Archiv nicht gefunden oder komprimiert, übersprungen.\n');
-      else {
-        L('=== Wilde Pokémon (' + slots.length + ' Plätze) ===');
-        var map = {}, lastKey = null, line = [];
-        slots.forEach(function (sl) {
-          var old = sl.size === 2 ? u16(sl.file, sl.off) : u32(sl.file, sl.off), nw;
-          if (o.wildGlobal) { if (!map[old]) map[old] = pick(old, o.wild === 'similar'); nw = map[old]; }
-          else nw = pick(old, o.wild === 'similar');
-          if (sl.size === 2) w16(sl.file, sl.off, nw); else w32(sl.file, sl.off, nw);
-          var key = sl.map + ' ' + sl.kind;
-          if (key !== lastKey) { if (line.length) L(line.join(', ')); line = ['Karte ' + sl.map + ' (' + sl.kind + '): ']; lastKey = key; line = [line[0] + nameOf(rom, nw)]; }
-          else line.push(nameOf(rom, nw));
-        });
-        if (line.length) L(line.join(', '));
-        summary.wild = slots.length; L('');
-      }
-    }
-
-    // --- Trainer ---
-    if (o.trainers !== 'keep' || +o.trainerLevel) {
-      L('=== Trainer ===');
-      var pct = +o.trainerLevel || 0, nTr = 0;
-      rom.trainers.forEach(function (tr) {
-        if (!tr.pk) return;
-        var line = [];
-        tr.party.forEach(function (pm, j) {
-          var po = pm.idx * tr.rec, sp = pm.species, lv = pm.level;
-          if (o.trainers !== 'keep') {
-            sp = pick(pm.species, o.trainers === 'similar');
-            w16(tr.pk, po + 4, sp);                       // Art (Bit 0–9), Form (Bit 10–15) = 0
-            if (rom.type === 'HGSS') tr.pk[po + 1] &= 0xF0; // Geschlecht = Standard, Fähigkeit bleibt
-          }
-          if (pct) { lv = Math.max(1, Math.min(100, Math.round(pm.level * (1 + pct / 100)))); w16(tr.pk, po + 2, lv); }
-          if (tr.custom && o.trainers !== 'keep') {
-            var mv = defaultMoves(ls[sp], lv);
-            if (!mv.length && ls[sp] && ls[sp][0]) mv = [ls[sp][0][1]];
+      });
+    });
+    // Trainer
+    rom.trainers.forEach(function (tr) {
+      if (!tr.pk) return;
+      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [] };
+      tr.party.forEach(function (pm) {
+        var po = pm.idx * tr.rec;
+        tm.mons.push({
+          level: pm.level,
+          get: function () { return pm.species; },
+          set: function (n) { pm.species = n; w16(tr.pk, po + 4, n); if (rom.type === 'HGSS') tr.pk[po + 1] &= 0xF0; },
+          setLevel: function (l) { w16(tr.pk, po + 2, l); },
+          hasItem: !!tr.hasItem, setItem: function (it) { w16(tr.pk, po + tr.head, it); },
+          refresh: function (n, lv, lsn) {
+            if (!tr.custom) return;
+            var mv = defaultMoves(lsn, lv);
+            if (!mv.length && lsn && lsn[0]) mv = [lsn[0][1]];
             var mo = po + tr.head + (tr.hasItem ? 2 : 0);
             for (var k = 0; k < 4; k++) w16(tr.pk, mo + k * 2, mv[k] || 0);
           }
-          line.push(nameOf(rom, sp) + ' Lv' + lv);
         });
-        nTr++;
-        L(((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name + ': ' + line.join(', '));
       });
-      summary.trainers = nTr; L('');
+      model.trainers.push(tm);
+    });
+    // Entwicklungen: 7 Einträge à 6 Byte je Art
+    if (evoOk(rom)) window.CCRandCore.makeEvoTable(model, function (n) { var e = F.evo[n]; return e && e.length >= 42 ? e : null; }, function (n, k) { return k * 6; }, 7, MAXNAT);
+    model.evoInfo = { level: 4, stone: 7, trade: 5, tradeItem: 6, friendDay: 2, friendNight: 3, beauty: 15, electrified: 24, moss: 25, icy: 26, withMove: 20, withOther: 21, itemDay: 18, itemNight: 19,
+      levelMethods: [4, 8, 9, 10, 11, 12, 13, 14, 22, 23], items: { water: 84, sun: 80, moon: 81, leaf: 85, dawn: 109 } };
+    model.setGrowth = function (n, v) { var d = F.personal[n]; if (d) d[19] = v; };
+    model.catchRate = { get: function (n) { return F.personal[n][8]; }, set: function (n, v) { F.personal[n][8] = v; } };
+    // TMs/HMs: 92 TMs + 8 HMs im arm9 (Muster je nach Spiel), Kompatibilität in den Basiswerten ab Byte 28 (13 Byte)
+    var a9 = u32(u8, 0x20), a9len = u32(u8, 0x2C), pat = rom.type === 'HGSS' ? [0x1E, 0, 0x32, 0] : [0xD1, 0, 0xD2, 0, 0xD3, 0, 0xD4, 0], at = -1;
+    for (var ai = a9; ai > 0 && ai < a9 + a9len - pat.length; ai++) {
+      var hit = true; for (var pj = 0; pj < pat.length; pj++) if (u8[ai + pj] !== pat[pj]) { hit = false; break; }
+      if (hit) { at = ai + pat.length; break; }
     }
-
-    return { data: u8, log: log.join('\n'), seed: seed, summary: summary };
+    if (at > 0 && F.personal) {
+      var tms = [], hms = [], i2;
+      for (i2 = 0; i2 < 92; i2++) tms.push(u16(u8, at + i2 * 2));
+      for (i2 = 0; i2 < 8; i2++) hms.push(u16(u8, at + (92 + i2) * 2));
+      var plausible = tms.every(function (m) { return m >= 1 && m < rom.moves.length; }) && hms.every(function (m) { return m >= 1 && m < rom.moves.length; });
+      if (plausible) {
+        var compat = [];
+        for (var pi = 1; pi < F.personal.length; pi++) {
+          var pd = F.personal[pi], sp0 = rom.species[pi];
+          if (!pd || pd.length < 41 || !sp0) continue;
+          var fl = [false];
+          for (var fi = 0; fi < 100; fi++) fl.push(!!(pd[28 + (fi >> 3)] & (1 << (fi & 7))));
+          compat.push({ key: pi, nat: sp0.nat, types: sp0.types.slice(), flags: fl, data: pd });
+        }
+        model.tm = {
+          tms: tms, hms: hms, compat: compat, earlyHM: [],
+          setTMs: function (list) { list.forEach(function (m, i) { w16(u8, at + i * 2, m); }); },
+          commit: function () {
+            compat.forEach(function (c) {
+              for (var j = 0; j < 13; j++) c.data[28 + j] = 0;
+              for (var f = 1; f < c.flags.length; f++) if (c.flags[f]) { var b = f - 1; c.data[28 + (b >> 3)] |= 1 << (b & 7); }
+            });
+          }
+        };
+      }
+    }
+    // Statische Begegnungen und Ingame-Tausche (Offsets aus data/gen4_offsets.js, Schlüssel = Spielcode + Versionsbyte): Arten stehen als Wort in den Skript-Dateien
+    var offs = window.GEN4_OFFS && window.GEN4_OFFS[rom.code + u8[0x1E]], N = window.NDS, scripts = null, tradeFiles = null;
+    try {
+      if (offs && N && N.nitroFile) {
+        var sf = offs.scripts && N.nitroFile(u8, offs.scripts); scripts = sf ? N.narc(sf) : null;
+        var tf = offs.tradesFile && N.nitroFile(u8, offs.tradesFile); tradeFiles = tf ? N.narc(tf) : null;
+      }
+    } catch (e0) { scripts = tradeFiles = null; }
+    if (scripts) {
+      var okRef = function (r, n) { var f = scripts[r[0]]; return !!f && r[1] + n <= f.length; };
+      model.statics = [];
+      offs.statics.forEach(function (st) {
+        if (!st.s.length || !st.s.every(function (r) { return okRef(r, 2); }) || !st.l.every(function (r) { return okRef(r, 1); }) || !st.f.every(function (r) { return okRef(r, 1); })) return;
+        if (!species[u16(scripts[st.s[0][0]], st.s[0][1])]) return;
+        model.statics.push({
+          level: st.l.length ? scripts[st.l[0][0]][st.l[0][1]] : 0,
+          isEgg: !st.l.length,
+          get: function () { return u16(scripts[st.s[0][0]], st.s[0][1]); },
+          set: function (n) { st.s.forEach(function (r) { w16(scripts[r[0]], r[1], n); }); st.f.forEach(function (r) { scripts[r[0]][r[1]] = 0; }); },
+          setLevel: function (l) { st.l.forEach(function (r) { scripts[r[0]][r[1]] = l; }); }
+        });
+      });
+    }
+    if (tradeFiles && offs) {
+      model.trades = [];
+      tradeFiles.forEach(function (tf2, ti) {
+        if (offs.spTrades.indexOf(ti) !== -1 || tf2.length < 0x50) return;
+        if (!species[u32(tf2, 0)] || !species[u32(tf2, 0x4C)]) return;
+        model.trades.push({
+          given: function () { return u32(tf2, 0); }, setGiven: function (n) { w32(tf2, 0, n); },
+          requested: function () { return u32(tf2, 0x4C); }, setRequested: function (n) { w32(tf2, 0x4C, n); if (tf2.length > 0x50) w32(tf2, 0x50, 0); }
+        });
+      });
+    }
+    // Items: Feld-Items als "setvar"-Befehle in den Skripten, versteckte Items und Shops im arm9
+    if (window.CC_ITEMS) {
+      var IT = window.CC_ITEMS[4];
+      model.itemData = { allowed: IT.allowed.items, tms: IT.allowed.tms, nonBad: IT.nonBad.items, shop: IT.shop, op: IT.op };
+    }
+    model.field = [];
+    if (scripts && offs && offs.ball !== undefined && scripts[offs.ball]) {
+      var f4 = scripts[offs.ball], setVar = offs.type === 'HGSS' ? 0x29 : 0x28, off4 = 0;
+      for (var g4i = 0; g4i < 4096 && off4 + 4 <= f4.length; g4i++) {
+        if (u16(f4, off4) === 0xFD13) break;
+        var at4 = u32(f4, off4) + off4 + 4; off4 += 4;
+        if (at4 + 6 > f4.length) break;
+        if (offs.ballSkip.indexOf(off4 / 4 - 1) !== -1) continue;
+        if (u16(f4, at4) === setVar && u16(f4, at4 + 2) === 0x8008) (function (io) { model.field.push({ get: function () { return u16(f4, io); }, set: function (n) { w16(f4, io, n); } }); })(at4 + 4);
+      }
+    }
+    if (offs && offs.hidden && a9 > 0 && a9 + offs.hidden[0] + offs.hidden[1] * 8 <= u8.length) {
+      for (var hi = 0; hi < offs.hidden[1]; hi++) (function (io) {
+        model.field.push({ get: function () { return u16(u8, io); }, set: function (n) { w16(u8, io, n); } });
+      })(a9 + offs.hidden[0] + hi * 8);
+    }
+    if (offs && offs.shops && a9 > 0) {
+      var sp4 = offs.shops, pat2 = []; for (var hp = 0; hp < sp4[0].length; hp += 2) pat2.push(parseInt(sp4[0].substr(hp, 2), 16));
+      var sat = -1;
+      for (var sa = a9; sa < a9 + a9len - pat2.length && sat < 0; sa++) {
+        if (u8[sa] !== pat2[0]) continue;
+        var sh2 = true; for (var sj = 1; sj < pat2.length; sj++) if (u8[sa + sj] !== pat2[sj]) { sh2 = false; break; }
+        if (sh2) sat = sa + pat2.length;
+      }
+      if (sat > 0) {
+        model.shops = [];
+        var so4 = sat;
+        for (var shi = 0; shi < sp4[1] && so4 < u8.length - 2; shi++) {
+          var slots = [], list4 = [];
+          while (so4 + 2 <= u8.length && u16(u8, so4) !== 0xFFFF) { var v4 = u16(u8, so4); if (v4 !== 0) { slots.push(so4); list4.push(v4); } so4 += 2; }
+          so4 += 2;
+          if (sp4[2].indexOf(shi) !== -1 || !list4.length) continue;
+          (function (sl, ls4, idx) {
+            model.shops.push({ name: 'Shop ' + idx, isMain: sp4[3].indexOf(idx) !== -1, items: ls4, set: function (items) { items.forEach(function (it, k) { w16(u8, sl[k], it); }); } });
+          })(slots, list4, shi);
+        }
+      }
+    }
+    // Attacken-Lehrer (Platin, HeartGold, SoulSilver): Attacken im Feld-Overlay, Kompatibilität im Overlay (Platin) bzw. in waza_oshie.bin (HGSS); nur nicht komprimierte Overlays
+    if (offs && offs.tutor && N && N.overlay && F.personal) {
+      var T = offs.tutor, tOv = null, cBuf = null;
+      try {
+        tOv = N.overlay(u8, T.ovl);
+        if (T.cFile) cBuf = N.nitroFile(u8, T.cFile); else cBuf = T.cOvl === T.ovl ? tOv : N.overlay(u8, T.cOvl);
+      } catch (e3) { tOv = cBuf = null; }
+      if (tOv && cBuf && T.moves + T.count * T.step <= tOv.length) {
+        var tmv = [], tq;
+        for (tq = 0; tq < T.count; tq++) tmv.push(u16(tOv, T.moves + tq * T.step));
+        if (tmv.every(function (m) { return m >= 1 && m < rom.moves.length; })) {
+          var tcp = [];
+          for (var pi4 = 1; pi4 < F.personal.length; pi4++) {
+            var sp4 = rom.species[pi4], co = T.compat + (pi4 - 1) * T.cbytes;
+            if (!sp4 || co + T.cbytes > cBuf.length) continue;
+            var fl4 = [false];
+            for (var b4 = 0; b4 < T.count; b4++) fl4.push(!!(cBuf[co + (b4 >> 3)] & (1 << (b4 & 7))));
+            tcp.push({ key: pi4, nat: sp4.nat, types: sp4.types.slice(), flags: fl4, off: co });
+          }
+          model.tutor = {
+            moves: tmv, compat: tcp, setMoves: function (list) { list.forEach(function (m, i) { w16(tOv, T.moves + i * T.step, m); }); },
+            commit: function () {
+              tcp.forEach(function (c) {
+                for (var j = 0; j < T.cbytes; j++) cBuf[c.off + j] = 0;
+                for (var f = 1; f < c.flags.length; f++) if (c.flags[f]) { var bb = f - 1; cBuf[c.off + (bb >> 3)] |= 1 << (bb & 7); }
+              });
+            }
+          };
+        }
+      }
+    }
+    // Pickup: 18 häufige + 11 seltene Items im Kampf-Overlay (nicht komprimiert)
+    if (offs && offs.battleOvl !== undefined && N && N.overlay) {
+      var bov = null; try { bov = N.overlay(u8, offs.battleOvl); } catch (e4) { bov = null; }
+      var hexOf = function (h) { var r = []; for (var q = 0; q < h.length; q += 2) r.push(parseInt(h.substr(q, 2), 16)); return r; };
+      var findIn = function (buf, pat) { for (var x = 0; x + pat.length <= buf.length; x++) { if (buf[x] !== pat[0]) continue; var okp = true; for (var y = 1; y < pat.length; y++) if (buf[x + y] !== pat[y]) { okp = false; break; } if (okp) return x; } return -1; };
+      if (bov) {
+        var c0 = findIn(bov, hexOf('110012001A000300')), r0 = findIn(bov, hexOf('19005C00DD00'));
+        if (c0 >= 0 && r0 >= 0) {
+          model.pickup = []; model.pickupTMs = true;
+          for (var pc = 0; pc < 18; pc++) (function (po) { model.pickup.push({ get: function () { return u16(bov, po); }, set: function (n) { w16(bov, po, n); } }); })(c0 + pc * 2);
+          for (var pr = 0; pr < 11; pr++) (function (po) { model.pickup.push({ get: function () { return u16(bov, po); }, set: function (n) { w16(bov, po, n); } }); })(r0 + pr * 2);
+        }
+      }
+    }
+    model.commit = function () { return u8; };
+    return model;
   }
 
-  window.CCRandNds = { DEFAULTS: DEFAULTS, scan: scan, run: run, validSpecies: validSpecies, makePool: makePool, wildSlots: wildSlots };
+  function run(buf, rom0, userOpts) {
+    var u8 = new Uint8Array(buf), rom = window.NDS.parseRom(u8); // Arbeitskopie: ROM neu einlesen, damit alle Archive in der Kopie liegen
+    return window.CCRandCore.run(buildModel(rom, u8), userOpts);
+  }
+
+
+  window.CCRandNds = { CAPS: { moves: true, tm: true, extra: true, evoFix: true, items: true }, get DEFAULTS() { return window.CCRandCore.DEFAULTS; }, buildModel: buildModel, scan: scan, run: run, validSpecies: validSpecies, makePool: makePool, wildSlots: wildSlots };
 })();

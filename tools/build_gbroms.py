@@ -3,8 +3,8 @@
 import re, sys, json, os
 cfg = sys.argv[1]
 KEYS = {
- 1: ['Game','Version','NonJapanese','Type','CRCInHeader','InternalPokemonCount','PokedexOrder','PokemonStatsOffset','MewStatsOffset','WildPokemonTableOffset','OldRodOffset','GoodRodOffset','SuperRodTableOffset','MoveCount','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets'],
- 2: ['Game','Version','NonJapanese','Type','CRCInHeader','PokemonStatsOffset','WildPokemonOffset','FishingWildsOffset','HeadbuttWildsOffset','HeadbuttTableSize','BCCWildsOffset','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerClassAmount','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets'],
+ 1: ['Game','Version','NonJapanese','Type','CRCInHeader','InternalPokemonCount','PokedexOrder','PokemonStatsOffset','MewStatsOffset','WildPokemonTableOffset','OldRodOffset','GoodRodOffset','SuperRodTableOffset','MoveCount','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets','TMMovesOffset','TradeTableOffset','TradeTableSize','TradeNameLength','TradesUnused'],
+ 2: ['Game','Version','NonJapanese','Type','CRCInHeader','PokemonStatsOffset','WildPokemonOffset','FishingWildsOffset','HeadbuttWildsOffset','HeadbuttTableSize','BCCWildsOffset','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerClassAmount','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets','TMMovesOffset','TradeTableOffset','TradeTableSize','TradeNameLength','TradeOTLength','TradesUnused'],
 }
 def val(v):
     v = v.split('//')[0].strip()
@@ -19,13 +19,21 @@ for gen, fn in [(1, 'gen1_offsets.ini'), (2, 'gen2_offsets.ini')]:
         line = line.rstrip('\n')
         m = re.match(r'^\[(.+)\]$', line)
         if m: cur = m.group(1); secs[cur] = {'__name': cur, '__copy': None}; continue
+        sm = re.match(r'^StaticPokemon\{\}=\{Species=\[([^\]]*)\](?:, Level=\[([^\]]*)\])?', line)
+        if cur and sm:
+            secs[cur].setdefault('statics', []).append({'s': [int(x, 0) for x in sm.group(1).split(',') if x.strip()], 'l': [int(x, 0) for x in (sm.group(2) or '').split(',') if x.strip()]})
+            continue
+        if cur and line.startswith('CopyStaticPokemon='): secs[cur]['__cs'] = line.split('=')[1].strip() not in ('0', ''); continue
         if cur and '=' in line and not line.startswith('//') and not line.startswith('StaticPokemon') and not line.startswith('File<'):
             k, v = line.split('=', 1)
             if k == 'CopyFrom': secs[cur]['__copy'] = v.strip()
             elif k in KEYS[gen]: secs[cur][k] = val(v)
     def resolve(name, seen=()):
         s = secs[name]; base = resolve(s['__copy'], seen + (name,)) if s['__copy'] else {}
-        r = dict(base); r.update({k: v for k, v in s.items() if not k.startswith('__')}); return r
+        r = dict(base); r.update({k: v for k, v in s.items() if not k.startswith('__') and k != 'statics'})
+        own = s.get('statics', [])
+        r['statics'] = (base.get('statics', []) if s.get('__cs') else []) + own
+        return r
     lst = []
     for name in secs:
         r = resolve(name); r['name'] = name; lst.append(r)
