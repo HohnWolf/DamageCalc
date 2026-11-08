@@ -43,17 +43,13 @@
   function fail(msg) {
     if (D) D.testDone({ ok: false, error: String(msg) });
   }
-  var gotPort = false;
-  CCProjectorMirror.setPortHandler(function (port) {
-    gotPort = true;
-    CCProjectorMirror.startMirror(function () { return video; }, port);
-  });
+  window.__rlProjectorFeed = function () { return { stream: video.srcObject }; };
   video.play().then(function () {
     return D.open({
       onTop: false, hideCursor: false, overlay: false, fullscreen: false, displayId: null,
       bounds: { x: 40, y: 40, width: 960, height: 540 },
       theme: 'oled', lang: 'de', overlayUrl: ''
-    });
+    }).then(function () { window.open('projector.html', 'rl-projector', 'popup=yes,width=960,height=540'); });
   }).then(function () {
     var tries = 0;
     function poll() {
@@ -62,7 +58,7 @@
         var p = s && s.projector;
         var mag = p && p.center && p.center.r > 170 && p.center.b > 170 && p.center.g < 90;
         if (mag && p.blue > 0) return shots(s);
-        if (tries > 40) return fail('Projektor zeigt das Rohbild nicht: ' + JSON.stringify(s && s.projector) + ' video=' + video.videoWidth + 'x' + video.readyState + ' port=' + gotPort);
+        if (tries > 40) return fail('Projektor zeigt das Rohbild nicht: ' + JSON.stringify(s && s.projector) + ' video=' + video.videoWidth + 'x' + video.readyState);
         setTimeout(poll, 250);
       }, function (e) { fail(e && e.message || e); });
     }
@@ -83,7 +79,8 @@
           // Der Rahmen ist eine Kontur: die Mitte bleibt das Bild, die gelben Pixel sind die Linie.
           var mainYellow = m && m.yellow > 30;
           var projMagenta = p && p.center && p.center.r > 170 && p.center.b > 170 && p.center.g < 90;
-          var projNoYellow = p && p.yellow === 0;
+          // Ein paar gelbe Pixel können vom Skalieren kommen. Der Rahmen im Hauptfenster sind Hunderte.
+          var projNoYellow = p && p.yellow < 40;
           var projBlue = p && p.blue > 0 && p.corner && p.corner.b > 140 && p.corner.r < 80;
           var menuDark = u && u.spot && u.spot.r < 90 && u.spot.g < 90 && u.spot.b < 110;
           var ok = !!(mainYellow && projMagenta && projNoYellow && projBlue && menuDark && both.main.file && both.projector.file && menu.file);

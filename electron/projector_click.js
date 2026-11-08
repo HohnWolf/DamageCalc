@@ -77,23 +77,23 @@
     var info = null, heard = null;
     for (var t = 0; t < 50; t++) {
       info = await D.testInfo({ sample: true });
-      heard = window.__projectorAudioMain;
       var page = info && info.page;
+      heard = page && page.hear;
       var colors = info && info.sample && red(info.sample.left) && green(info.sample.right);
-      var realOv = page && page.overlay && !page.overlay.hidden && /\/overlay/.test(page.overlay.src) && page.overlay.real;
+      var realOv = page && page.overlay && !page.overlay.hidden && /\/overlay/.test(page.overlay.src) && /transparent=1/.test(page.overlay.src);
       var frames = page && page.frames && page.frames.n > 0 && page.frames.w > 0;
       if (info && info.visible && colors && realOv && frames && heard && heard.playing && heard.peak > 8 && heard.underruns === 0) break;
       await sleep(100);
     }
     await sleep(400);
-    heard = window.__projectorAudioMain;
     info = await D.testInfo({ sample: true });
+    heard = info && info.page && info.page.hear;
     out.click = { visible: !!(info && info.visible), sample: info && info.sample, frames: info && info.page, audio: heard ? { underruns: heard.underruns, peak: heard.peak, playing: heard.playing } : null };
     var left = info && info.sample && info.sample.left, right = info && info.sample && info.sample.right;
     var page = info && info.page;
     step('klick sichtbar=' + !!(info && info.visible) + ' links=' + JSON.stringify(left) + ' rechts=' + JSON.stringify(right) + ' overlay=' + JSON.stringify(page && page.overlay) + ' frames=' + JSON.stringify(page && page.frames) + ' ton=' + JSON.stringify(heard));
     if (!info || !info.visible) return fail('Klick öffnet kein sichtbares Fenster');
-    if (!page || !page.overlay || page.overlay.hidden || !/\/overlay/.test(page.overlay.src) || !page.overlay.real) return fail('echtes Overlay ist nicht geladen');
+    if (!page || !page.overlay || page.overlay.hidden || !/127\.0\.0\.1:\d+\/overlay/.test(page.overlay.src)) return fail('echtes Overlay ist nicht geladen');
     if (!/transparent=1/.test(page.overlay.src)) return fail('Overlay ist nicht durchsichtig eingebunden');
     if (!page.frames || page.frames.n < 1 || page.frames.w < 2) return fail('kein Bild im Projektor angekommen');
     if (!red(left) || !green(right)) return fail('Rot-Grün-Muster liegt unter dem Overlay');
@@ -101,12 +101,38 @@
     var bare = null;
     for (var y = 0; y < 15; y++) {
       bare = await D.testInfo({ sample: true });
-      if (bare && bare.sample && bare.sample.yellow === 0 && bare.sample.center && bare.sample.center.r > 170) break;
+      if (bare && bare.sample && bare.sample.yellow === 0 && red(bare.sample.left) && green(bare.sample.right)) break;
       await sleep(80);
     }
     out.bare = bare && bare.sample;
     if (!bare || !bare.sample || bare.sample.yellow !== 0) return fail('Gelber Erkennungsrahmen im Projektor');
     if (!red(bare.sample.left) || !green(bare.sample.right)) return fail('Bild verschwindet ohne Overlay');
+    D.set({ overlay: true });
+    await sleep(200);
+    var c0 = await D.testInfo({ counter: 'state' });
+    out.counterBefore = c0 && c0.counter;
+    if (!out.counterBefore || !out.counterBefore.on) return fail('Zähler ist nicht sichtbar');
+    await D.testInfo({ counter: 'key' });
+    await sleep(150);
+    var cOff = await D.testInfo({ counter: 'state' });
+    out.counterOff = cOff && cOff.counter;
+    if (!out.counterOff || out.counterOff.on) return fail('Zähler lässt sich nicht ausblenden');
+    if (store.projector.overlay !== false) return fail('Ausblenden wird nicht gespeichert');
+    await D.testInfo({ counter: 'toggle' });
+    await sleep(150);
+    await D.testInfo({ counter: 'edit' });
+    await D.testInfo({ counter: { drag: true, dx: 12, dy: 18 } });
+    await sleep(200);
+    var cDrag = await D.testInfo({ counter: 'state' });
+    out.counterDrag = cDrag && cDrag.counter;
+    if (!out.counterDrag || out.counterDrag.x < out.counterBefore.x + 5 || out.counterDrag.pointer !== 'auto') return fail('Zähler lässt sich nicht verschieben');
+    if (Math.abs(store.projector.counterX - out.counterDrag.x) > 0.2) return fail('Position wird nicht gespeichert');
+    await D.testInfo({ counter: 'reset' });
+    await sleep(200);
+    var cReset = await D.testInfo({ counter: 'state' });
+    out.counterReset = cReset && cReset.counter;
+    if (!out.counterReset || out.counterReset.x !== 2 || out.counterReset.y !== 2 || out.counterReset.scale !== 100) return fail('Position wird nicht zurückgesetzt');
+    if (store.projector.counterX !== 2 || store.projector.counterScale !== 100) return fail('Zurücksetzen wird nicht gespeichert');
     D.set({ overlay: true });
     if (!heard || !heard.playing || heard.peak < 8) return fail('Ton der Aufnahme ist nicht zu hören');
     if (heard.underruns !== 0) return fail('Ton reißt ab (' + heard.underruns + ')');

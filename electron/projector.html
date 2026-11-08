@@ -6,14 +6,18 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: #e8e9ec;
     font-family: "Segoe UI", system-ui, sans-serif; }
-  #view { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
+  #view { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
   #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #9aa0aa; font-size: 18px; pointer-events: none; }
   #empty[hidden] { display: none; }
-  /* Overlay liegt über dem Bild, nimmt aber keine Klicks an (Rechtsklick öffnet das Menü der Seite). */
-  #ov { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; background-color: transparent; pointer-events: none; }
+  /* Der Zähler ist nur so groß wie die Karte. Klicks gehen durch, außer beim Verschieben. */
+  #counter { position: absolute; z-index: 2; left: 2%; top: 2%; transform-origin: 0 0; pointer-events: none; }
+  #counter[hidden] { display: none; }
+  #counter.edit { pointer-events: auto; outline: 1px dashed rgba(242, 201, 76, .95); outline-offset: 3px; cursor: move; }
+  #ov { position: relative; display: block; width: 280px; height: 120px; border: 0; background: transparent; background-color: transparent; pointer-events: none; }
   #ov[hidden] { display: none; }
   body.no-cursor, body.no-cursor * { cursor: none !important; }
+  body.counter-edit, body.counter-edit #counter { cursor: move !important; }
   body.menu-open, body.menu-open * { cursor: default !important; }
   #menu { position: absolute; z-index: 5; min-width: 240px; max-width: 360px; padding: 4px;
     background: #1b1d21; color: #e8e9ec; border: 1px solid #2a2a30; border-radius: 6px;
@@ -40,9 +44,9 @@
 </style>
 </head>
 <body>
-<canvas id="view"></canvas>
+<video id="view" autoplay playsinline></video>
 <div id="empty">Keine Aufnahme</div>
-<iframe id="ov" hidden title="Overlay" allowtransparency="true"></iframe>
+<div id="counter" hidden><iframe id="ov" hidden title="Overlay" allowtransparency="true"></iframe></div>
 <div id="diag" hidden></div>
 <div id="ahint" hidden>Diese Quelle liefert keinen Ton.</div>
 <div id="menu" hidden role="menu"></div>
@@ -51,129 +55,186 @@
   var S = {
     de: { empty: 'Keine Aufnahme', fs: 'Vollbild', win: 'Fenstermodus', onTop: 'Immer im Vordergrund',
       cursor: 'Mauszeiger ausblenden', overlay: 'Overlay', sound: 'Ton', volume: 'Lautstärke',
-      noAudio: 'Diese Quelle liefert keinen Ton.', diag: 'Diagnose', close: 'Schließen', mon: 'Monitor {0} · {1}×{2}',
-      diagLine: '{0} Bilder/s\nBild {1}×{2}\nQuelle {3}×{4}' },
+      noAudio: 'Diese Quelle liefert keinen Ton.', diag: 'Diagnose', counter: 'Zähler anzeigen', move: 'Zähler verschieben',
+      counterSize: 'Zählergröße', resetPos: 'Position zurücksetzen', close: 'Schließen', mon: 'Monitor {0} · {1}×{2}',
+      diagLine: '{0} Bilder/s\nBild {1}×{2}\nverworfen {3}' },
     en: { empty: 'No capture', fs: 'Fullscreen', win: 'Windowed', onTop: 'Always on top',
       cursor: 'Hide cursor', overlay: 'Overlay', sound: 'Sound', volume: 'Volume',
-      noAudio: 'This source has no audio.', diag: 'Diagnostics', close: 'Close', mon: 'Monitor {0} · {1}×{2}',
-      diagLine: '{0} frames/s\nframe {1}×{2}\nsource {3}×{4}' }
+      noAudio: 'This source has no audio.', diag: 'Diagnostics', counter: 'Show counter', move: 'Move counter',
+      counterSize: 'Counter size', resetPos: 'Reset position', close: 'Close', mon: 'Monitor {0} · {1}×{2}',
+      diagLine: '{0} frames/s\nframe {1}×{2}\ndropped {3}' }
   };
-  var lang = 'de', opts = { overlay: true, hideCursor: false, onTop: false, fullscreen: false, displayId: null, theme: 'oled', sound: true, volume: 80 };
-  var canvas = document.getElementById('view'), ctx = canvas.getContext('2d', { alpha: false });
+  var lang = 'de', opts = { overlay: true, hideCursor: false, onTop: false, fullscreen: false, displayId: null, theme: 'oled', sound: true, volume: 80, counterX: 2, counterY: 2, counterScale: 100 };
+  var counter = document.getElementById('counter'), counterEdit = false;
+  var video = document.getElementById('view');
   var empty = document.getElementById('empty'), frame = document.getElementById('ov'), menu = document.getElementById('menu');
   var ahint = document.getElementById('ahint');
   var D = window.desktop && window.desktop.projector;
-  var lastFrame = 0, pending = null, drawing = false, bmpW = 0, bmpH = 0, diagOn = false;
-  var stat = { n: 0, fps: 0, w: 0, h: 0, sw: 0, sh: 0, winT: Date.now(), winN: 0, logged: false };
+  var lastFrame = 0, diagOn = false, watching = false;
+  var stat = { n: 0, fps: 0, w: 0, h: 0, dropped: 0, winT: 0, winN: 0, logged: false };
   window.__projectorFrames = stat;
+  window.__projectorHear = { peak: 0, underruns: 0, playing: false };
 
   function t(k) {
     var s = (S[lang] || S.de)[k] || k, a = arguments;
     for (var i = 1; i < a.length; i++) s = s.split('{' + (i - 1) + '}').join(a[i]);
     return s;
   }
-  function layout() {
-    var dpr = window.devicePixelRatio || 1;
-    var w = Math.max(2, Math.round(window.innerWidth * dpr));
-    var h = Math.max(2, Math.round(window.innerHeight * dpr));
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-  }
-  function paint(bmp) {
-    layout();
-    var cw = canvas.width, ch = canvas.height;
-    var s = Math.min(cw / bmp.width, ch / bmp.height);
-    var dw = bmp.width * s, dh = bmp.height * s;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, cw, ch);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(bmp, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-  }
-  function noteFrame(w, h, sw, sh) {
-    stat.n++; stat.winN++; stat.w = w || stat.w; stat.h = h || stat.h;
-    if (sw) stat.sw = sw; if (sh) stat.sh = sh;
-    var dt = Date.now() - stat.winT;
-    if (dt >= 500) { stat.fps = Math.round(stat.winN * 1000 / dt); stat.winT = Date.now(); stat.winN = 0; }
-    if (!stat.logged) { stat.logged = true; console.info('Projektor: erstes Bild', stat.w + '×' + stat.h, 'Quelle', stat.sw + '×' + stat.sh); }
-    paintDiag();
-  }
-  function diagText() { return t('diagLine', stat.fps, stat.w || 0, stat.h || 0, stat.sw || 0, stat.sh || 0); }
+  function diagText() { return t('diagLine', stat.fps, stat.w || 0, stat.h || 0, stat.dropped || 0); }
   function paintDiag() {
     var box = document.getElementById('diag');
     if (!box) return;
     box.hidden = !diagOn;
     if (diagOn) box.textContent = diagText();
   }
-  function paintBitmap(bmp, w, h, sw, sh) {
-    if (!bmp) return;
-    layout();
-    var cw = canvas.width, ch = canvas.height, bw = (bmp.width > 1 ? bmp.width : w) || 2, bh = (bmp.height > 1 ? bmp.height : h) || 2;
-    var s = Math.min(cw / bw, ch / bh);
-    var dw = bw * s, dh = bh * s;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, cw, ch);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(bmp, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-    try { bmp.close(); } catch (e) { /* schon geschlossen */ }
-    bmpW = bw; bmpH = bh;
-    lastFrame = Date.now();
-    empty.hidden = true;
-    noteFrame(bw, bh, sw, sh);
+  function applySound() {
+    var on = opts.sound !== false;
+    video.muted = !on;
+    var vol = opts.volume == null ? 80 : +opts.volume;
+    video.volume = Math.max(0, Math.min(1, vol / 100));
+    window.__projectorHear.playing = on && !video.paused;
   }
-  function pump() {
-    if (drawing || !pending) return;
-    drawing = true;
-    var msg = pending; pending = null;
-    createImageBitmap(new Blob([msg.buf], { type: 'image/jpeg' })).then(function (bmp) {
-      bmpW = bmp.width; bmpH = bmp.height;
-      paint(bmp); bmp.close();
-      lastFrame = Date.now();
+  function tapAudio(stream) {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || tapAudio.done) return;
+    tapAudio.done = true;
+    try {
+      var ctx = new AC({ latencyHint: 'interactive' });
+      var src = ctx.createMediaStreamSource(stream);
+      var an = ctx.createAnalyser();
+      an.fftSize = 1024;
+      src.connect(an);
+      var wave = new Uint8Array(an.fftSize), ready = false;
+      ctx.onstatechange = function () {
+        if (ctx.state === 'running') ready = true;
+        else if (ready && (ctx.state === 'interrupted' || ctx.state === 'suspended')) window.__projectorHear.underruns++;
+      };
+      if (ctx.resume) ctx.resume();
+      setInterval(function () {
+        an.getByteTimeDomainData(wave);
+        var peak = 0;
+        for (var i = 0; i < wave.length; i += 8) { var d = wave[i] - 128; if (d < 0) d = -d; if (d > peak) peak = d; }
+        window.__projectorHear.peak = peak;
+        window.__projectorHear.playing = opts.sound !== false && !video.paused && video.volume > 0;
+      }, 80);
+    } catch (e) { console.error('Projektor: Tonmessung', e); }
+  }
+  function watch(el) {
+    if (watching || !el.requestVideoFrameCallback) return;
+    watching = true;
+    var count = 0, t0 = performance.now();
+    function onFrame(now) {
+      count++; stat.n++; lastFrame = Date.now();
+      stat.w = el.videoWidth || stat.w; stat.h = el.videoHeight || stat.h;
+      var q = el.getVideoPlaybackQuality && el.getVideoPlaybackQuality();
+      if (q) stat.dropped = q.droppedVideoFrames || 0;
+      if (now - t0 >= 500) { stat.fps = Math.round(count * 1000 / (now - t0)); count = 0; t0 = now; }
+      if (!stat.logged && stat.w) { stat.logged = true; console.info('Projektor: natives Bild', stat.w + '×' + stat.h); }
+      paintDiag();
       empty.hidden = true;
-      noteFrame(bmpW, bmpH, msg.sw, msg.sh);
-    }, function (err) { console.error('Projektor: JPEG', err); }).then(function () {
-      drawing = false;
-      if (pending) pump();
-    });
+      el.requestVideoFrameCallback(onFrame);
+    }
+    el.requestVideoFrameCallback(onFrame);
   }
-  function onPort(p) {
-    if (!p) return;
-    try { if (p.start) p.start(); } catch (e) { /* schon gestartet */ }
-    p.onmessage = function (ev) {
-      var d = ev.data || {};
-      if (d.kind === 'audio-status' && d.ok === false) { ahint.hidden = false; ahint.textContent = t('noAudio'); return; }
-      if (d.kind === 'bmp' && d.bmp) { paintBitmap(d.bmp, d.w, d.h, d.sw, d.sh); return; }
-      // Nur das JPEG aus dem rohen Video. Kein Canvas mit Rahmen.
-      if (d.kind !== 'jpeg' || !d.buf) return;
-      pending = d;
-      pump();
-    };
+  function takeStream() {
+    var feed = window.opener && window.opener.__rlProjectorFeed && window.opener.__rlProjectorFeed();
+    var stream = feed && feed.stream;
+    if (!stream) { empty.hidden = false; console.warn('Projektor: keine Aufnahme im Elternfenster'); return; }
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
+      var tracks = stream.getAudioTracks ? stream.getAudioTracks() : [];
+      if (!tracks.length) { ahint.hidden = false; ahint.textContent = t('noAudio'); console.warn('Projektor: Quelle ohne Tonspur'); }
+      else ahint.hidden = true;
+      video.play().catch(function (e) { console.error('Projektor: Wiedergabe', e); });
+      tapAudio(stream);
+      watch(video);
+      console.info('Projektor: gleiche Aufnahme, kein zweites Gerät');
+    }
+    applySound();
   }
-  window.addEventListener('message', function (ev) {
-    var d = ev.data;
-    if (!d || d.type !== 'rl-projector-port') return;
-    onPort(ev.ports && ev.ports[0]);
-  });
-  window.addEventListener('resize', function () { layout(); });
   setInterval(function () {
     if (diagOn) console.info('Projektor Diagnose', diagText().replace(/\n/g, ' · '));
     else if (stat.n && (!lastFrame || Date.now() - lastFrame > 2000)) console.warn('Projektor: keine neuen Bilder', diagText().replace(/\n/g, ' · '));
   }, 2000);
-  setInterval(function () {
-    if (!lastFrame || Date.now() - lastFrame < 1500) return;
-    lastFrame = 0;
-    layout();
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    empty.hidden = false;
-    empty.textContent = t('empty');
-  }, 400);
 
   function transparentOverlay(url) {
     if (!url) return '';
     if (/[?&]transparent=1(?:&|$)/.test(url)) return url;
     return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'transparent=1';
   }
+  function clampScale(v) {
+    v = Math.round(+v);
+    if (!isFinite(v)) return 100;
+    if (v < 50) return 50;
+    if (v > 300) return 300;
+    return v;
+  }
+  function placeCounter(x, y, scale) {
+    scale = clampScale(scale);
+    var bw = Math.max(1, frame.offsetWidth || 280), bh = Math.max(1, frame.offsetHeight || 120);
+    var sw = bw * scale / 100, sh = bh * scale / 100;
+    var winW = Math.max(1, window.innerWidth), winH = Math.max(1, window.innerHeight);
+    var maxX = Math.max(0, (winW - sw) / winW * 100);
+    var maxY = Math.max(0, (winH - sh) / winH * 100);
+    x = +x; y = +y;
+    if (!isFinite(x)) x = 2;
+    if (!isFinite(y)) y = 2;
+    if (x < 0) x = 0; if (x > maxX) x = maxX;
+    if (y < 0) y = 0; if (y > maxY) y = maxY;
+    opts.counterX = Math.round(x * 10) / 10;
+    opts.counterY = Math.round(y * 10) / 10;
+    opts.counterScale = scale;
+    counter.style.left = opts.counterX + '%';
+    counter.style.top = opts.counterY + '%';
+    counter.style.transform = 'scale(' + (scale / 100) + ')';
+  }
+  function saveCounter() {
+    if (D) D.set({ counterX: opts.counterX, counterY: opts.counterY, counterScale: opts.counterScale });
+  }
+  function setEdit(on) {
+    counterEdit = !!on;
+    counter.classList.toggle('edit', counterEdit);
+    document.body.classList.toggle('counter-edit', counterEdit);
+  }
+  var drag = null;
+  counter.addEventListener('mousedown', function (ev) {
+    if (!counterEdit || ev.button !== 0) return;
+    ev.preventDefault();
+    drag = { x: ev.clientX, y: ev.clientY, ox: opts.counterX, oy: opts.counterY };
+  });
+  window.addEventListener('mousemove', function (ev) {
+    if (!drag) return;
+    placeCounter(drag.ox + (ev.clientX - drag.x) / window.innerWidth * 100, drag.oy + (ev.clientY - drag.y) / window.innerHeight * 100, opts.counterScale);
+  });
+  window.addEventListener('mouseup', function () { if (!drag) return; drag = null; saveCounter(); });
+  counter.addEventListener('wheel', function (ev) {
+    if (!counterEdit) return;
+    ev.preventDefault();
+    placeCounter(opts.counterX, opts.counterY, opts.counterScale * (ev.deltaY < 0 ? 1.08 : 1 / 1.08));
+    saveCounter();
+  }, { passive: false });
+  window.addEventListener('resize', function () { placeCounter(opts.counterX, opts.counterY, opts.counterScale); });
+  window.addEventListener('message', function (ev) {
+    var d = ev.data;
+    if (!d || d.type !== 'rl-ov-box' || !/^http:\/\/127\.0\.0\.1:\d+$/.test(ev.origin || '')) return;
+    var w = Math.max(40, Math.min(1600, Math.round(+d.w) || 0));
+    var h = Math.max(40, Math.min(900, Math.round(+d.h) || 0));
+    if (!w || !h) return;
+    if (frame.offsetWidth !== w) frame.style.width = w + 'px';
+    if (frame.offsetHeight !== h) frame.style.height = h + 'px';
+    placeCounter(opts.counterX, opts.counterY, opts.counterScale);
+  });
+  window.__projectorCounter = {
+    state: function () {
+      var pe = getComputedStyle(counter).pointerEvents;
+      return { on: !counter.hidden, x: opts.counterX, y: opts.counterY, scale: opts.counterScale, edit: counterEdit, pointer: pe };
+    },
+    toggle: function () { if (D) D.set({ overlay: opts.overlay === false }); },
+    edit: function (on) { setEdit(on); },
+    drag: function (dx, dy) { placeCounter(opts.counterX + dx, opts.counterY + dy, opts.counterScale); saveCounter(); },
+    scaleTo: function (s) { placeCounter(opts.counterX, opts.counterY, s); saveCounter(); },
+    reset: function () { placeCounter(2, 2, 100); saveCounter(); }
+  };
   function apply(o) {
     if (!o) return;
     opts = o;
@@ -182,12 +243,20 @@
     document.documentElement.setAttribute('data-theme', o.theme === 'light' ? 'light' : 'oled');
     document.body.classList.toggle('no-cursor', !!o.hideCursor);
     empty.textContent = t('empty');
-    if (ahint) ahint.textContent = t('noAudio');
-    if (o.overlay && o.overlayUrl) {
+    if (ahint && ahint.hidden) ahint.textContent = t('noAudio');
+    applySound();
+    if (o.counterX != null) opts.counterX = o.counterX;
+    if (o.counterY != null) opts.counterY = o.counterY;
+    if (o.counterScale != null) opts.counterScale = o.counterScale;
+    var show = !!(o.overlay && o.overlayUrl);
+    counter.hidden = !show;
+    if (show) {
       var src = transparentOverlay(o.overlayUrl);
       if (frame.getAttribute('src') !== src) frame.src = src;
       frame.hidden = false;
+      placeCounter(opts.counterX, opts.counterY, opts.counterScale);
     } else frame.hidden = true;
+    if (!show) setEdit(false);
   }
   function hideMenu() { menu.hidden = true; document.body.classList.remove('menu-open'); }
   function item(label, on, fn) {
@@ -213,7 +282,20 @@
       sep();
       item(t('onTop'), !!opts.onTop, function () { D.set({ onTop: !opts.onTop }); });
       item(t('cursor'), !!opts.hideCursor, function () { D.set({ hideCursor: !opts.hideCursor }); });
-      item(t('overlay'), opts.overlay !== false, function () { D.set({ overlay: opts.overlay === false }); });
+      item(t('counter'), opts.overlay !== false, function () { D.set({ overlay: opts.overlay === false }); });
+      item(t('move'), counterEdit, function () { setEdit(!counterEdit); });
+      var size = document.createElement('label');
+      size.className = 'vol';
+      var sizeCap = document.createElement('span'); sizeCap.textContent = t('counterSize');
+      var sizeRange = document.createElement('input');
+      sizeRange.type = 'range'; sizeRange.min = '50'; sizeRange.max = '300'; sizeRange.step = '10';
+      sizeRange.value = String(opts.counterScale || 100);
+      sizeRange.setAttribute('aria-label', t('counterSize'));
+      sizeRange.addEventListener('input', function () { placeCounter(opts.counterX, opts.counterY, +sizeRange.value); saveCounter(); });
+      sizeRange.addEventListener('click', function (ev) { ev.stopPropagation(); });
+      size.appendChild(sizeCap); size.appendChild(sizeRange);
+      menu.appendChild(size);
+      item(t('resetPos'), false, function () { window.__projectorCounter.reset(); });
       item(t('diag'), diagOn, function () {
         diagOn = !diagOn;
         paintDiag();
@@ -252,18 +334,23 @@
   window.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') {
       if (!menu.hidden) { hideMenu(); return; }
+      if (counterEdit) { setEdit(false); return; }
       if (D) D.leaveFullscreen();
+      return;
+    }
+    if ((ev.key === 'h' || ev.key === 'H') && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
+      if (ev.target && /^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;
+      ev.preventDefault();
+      if (D) D.set({ overlay: opts.overlay === false });
     }
   });
   window.addEventListener('blur', hideMenu);
   if (D) {
     D.onOpts(apply);
     D.onShowMenu(function (pos) { openMenu((pos && pos.x) || 28, (pos && pos.y) || 28); });
-    D.state().then(apply, function () {});
-  }
-  layout();
-  // Für den Test: ob der Rahmen mitgezeichnet wurde, sieht man am Bild. Hier nur die Rohdaten.
-  window.__projectorFrame = function () { return { w: bmpW, h: bmpH, overlay: !frame.hidden }; };
+    D.state().then(function (s) { apply(s); takeStream(); }, function () { takeStream(); });
+  } else takeStream();
+  window.__projectorFrame = function () { return { w: video.videoWidth || 0, h: video.videoHeight || 0, overlay: !frame.hidden }; };
 })();
 </script>
 </body>

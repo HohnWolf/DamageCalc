@@ -95,6 +95,11 @@ if (!preview.muted || preview.volume !== 0) fail('Vorschau wird nicht stumm gesc
 else ok('Vorschau stumm, Projektor übernimmt den Ton');
 if (typeof M.grabFrame !== 'function') fail('Frame wird nicht von der Videoquelle geholt');
 else ok('Frame kommt von der Videoquelle');
+var placed = M.placeCounter(80, 90, 200, 400, 200, 800, 600);
+if (!placed || placed.scale !== 200 || placed.x !== 0 || Math.abs(placed.y - 33.3) > 0.2) fail('Zähler bleibt nicht im Fenster: ' + JSON.stringify(placed));
+else ok('Zählerposition bleibt im Fenster');
+if (M.clampScale(10) !== 50 || M.clampScale(900) !== 300 || M.placeCounter(null, null, null, 10, 10, 100, 100).x !== 2) fail('Zähler-Standard oder Skala');
+else ok('Zähler startet bei 2 % und Skala 50–300');
 
 const src = fs.readFileSync(path.join(ROOT, 'js/shiny_projector.js'), 'utf8');
 const page = fs.readFileSync(path.join(ROOT, 'electron/projector.html'), 'utf8');
@@ -120,12 +125,14 @@ if (!app.includes("CCProjector.toggle") || !app.includes('act_projector')) fail(
 else ok('Knopf und Hotkey');
 if (/desktop\.projector\.(open|close)/.test(src)) fail('Knopf ruft desktop.projector.open auf');
 else ok('Knopf benutzt die Projektor-Brücke direkt');
-if (!src.includes('desktop.open(') || !src.includes('createMediaStreamSource')) fail('Öffnen oder Ton fehlt');
-else ok('Öffnen und direkter Ton');
-if (/createScriptProcessor|kind:\s*'pcm'/.test(src)) fail('Ton läuft noch als PCM über den Hauptthread');
-else ok('kein PCM und kein ScriptProcessor');
-if (!src.includes("kind: 'bmp'") || !src.includes('setInterval(tick')) fail('Bilder hängen noch am Animationsframe oder am JPEG');
-else ok('Bilder als Bitmap, auch ohne Fokus');
+if (!src.includes('desktop.open(') || !src.includes('__rlProjectorFeed') || !src.includes('root.open(')) fail('Kindfenster fehlt');
+else ok('Projektor ist ein Kindfenster derselben Seite');
+if (!page.includes('srcObject') || !page.includes('__rlProjectorFeed')) fail('Projektor spielt nicht die bestehende Aufnahme');
+else ok('dieselbe Aufnahme im Video-Element');
+if (/createScriptProcessor|kind:\s*'pcm'/.test(src + page)) fail('Ton läuft noch als PCM');
+else ok('kein PCM');
+if (!app.includes('projectorNative') || !app.includes('native: p.native')) fail('native Bildrate fehlt');
+else ok('Quelle nativ, Grenze nur auf Wunsch');
 if (!app.includes('sound: p.sound') || !app.includes('volume:')) fail('Ton wird nicht gespeichert');
 else ok('Ton und Lautstärke in den Projektor-Einstellungen');
 if (!app.includes('Diese Quelle liefert keinen Ton') || !app.includes('This source has no audio')) fail('Hinweis ohne Ton fehlt');
@@ -145,8 +152,8 @@ else ok('Diagnose und durchsichtiges Overlay');
 const overlay = fs.readFileSync(path.join(ROOT, 'electron/overlay.html'), 'utf8');
 if (!overlay.includes('transparent=1') || !overlay.includes('color-scheme: normal')) fail('Overlay bleibt im Projektor deckend');
 else ok('Overlay ohne dunkles Schema, wenn es im Projektor liegt');
-if (pkg.version !== '1.17.12') fail('Version ist ' + pkg.version);
-else ok('Version 1.17.12');
+if (pkg.version !== '1.17.13') fail('Version ist ' + pkg.version);
+else ok('Version 1.17.13');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Projektor-Spiegel-Test OK');

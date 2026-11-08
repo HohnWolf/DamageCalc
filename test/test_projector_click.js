@@ -33,7 +33,7 @@ child.on('exit', (code) => {
   var right = result.click && result.click.sample && result.click.sample.right;
   var ov = result.click && result.click.frames && result.click.frames.overlay;
   var fr = result.click && result.click.frames && result.click.frames.frames;
-  need(ov && !ov.hidden && /\/overlay/.test(ov.src) && ov.real && /transparent=1/.test(ov.src), 'echtes Overlay liegt über dem Bild');
+  need(ov && !ov.hidden && /127\.0\.0\.1:\d+\/overlay/.test(ov.src) && /transparent=1/.test(ov.src), 'echtes Overlay liegt über dem Bild');
   need(fr && fr.n > 0 && fr.w > 1, 'Bilder kommen im Projektor an');
   need(left && left.r > 220 && left.g < 40 && left.b < 40 && right && right.g > 220 && right.r < 40 && right.b < 40, 'Rot und Grün scheinen durch das Overlay');
   need(result.bare && result.bare.yellow === 0, 'Gelber Erkennungsrahmen bleibt draußen');
@@ -41,6 +41,9 @@ child.on('exit', (code) => {
   need(result.previewMuted, 'Vorschau im Hauptfenster bleibt stumm');
   need(result.menu && !result.menu.hidden && /Ton/.test(result.menu.text) && /Diagnose/.test(result.menu.text) && result.menu.hasRange, 'Rechtsklick: Ton, Lautstärke und Diagnose');
   need(result.saved && result.saved.sound === false && result.saved.volume === 35, 'Ton und Lautstärke liegen in cc_shiny.projector');
+  need(result.counterOff && result.counterOff.on === false, 'Zähler lässt sich ausblenden');
+  need(result.counterDrag && result.counterDrag.x > result.counterBefore.x && result.counterDrag.pointer === 'auto', 'Zähler lässt sich verschieben');
+  need(result.counterReset && result.counterReset.x === 2 && result.counterReset.y === 2 && result.counterReset.scale === 100, 'Zählerposition lässt sich zurücksetzen');
   need(result.hotkey && result.hotkey.accel === 'CommandOrControl+Alt+P' && result.hotkey.visible, 'Strg+Alt+P öffnet das Fenster');
   need(code === 0 && result.ok, 'Electron beendet sich sauber');
   if (process.exitCode) { console.log(JSON.stringify(result, null, 2).slice(0, 4000)); console.log(out.slice(-2000)); }

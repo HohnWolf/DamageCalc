@@ -188,7 +188,14 @@
     function fpsControl() {
       if (!api.setFps || !window.CCProjectorMirror) return null;
       var cur = window.CCProjectorMirror.clampFps(api.getFps ? api.getFps() : 20);
+      var nativeOn = !api.getNative || api.getNative();
       var wrap = el('div', { class: 'det-fps', role: 'group', 'aria-labelledby': 'detFpsLabel' });
+      var nat = el('label', { class: 'nc-check sh-chk', title: api.nativeTitle || '' });
+      var nb = el('input', { type: 'checkbox', id: 'detFpsNative' });
+      nb.checked = nativeOn;
+      nat.appendChild(nb);
+      nat.appendChild(document.createTextNode(' ' + (api.nativeLabel || 'Quelle (nativ)')));
+      wrap.appendChild(nat);
       wrap.appendChild(el('span', { id: 'detFpsLabel', text: api.fpsLabel || 'FPS' }));
       var range = el('input', { type: 'range', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsRange', 'aria-valuemin': '10', 'aria-valuemax': '60', 'aria-valuenow': String(cur), 'aria-describedby': 'detFpsHint' });
       var num = el('input', { type: 'number', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsNum', inputmode: 'numeric', 'aria-label': api.fpsNumber || api.fpsLabel || 'FPS' });
@@ -203,6 +210,9 @@
         num.value = String(n);
         api.setFps(n);
       }
+      function lock(on) { range.disabled = on; num.disabled = on; }
+      lock(nativeOn);
+      nb.addEventListener('change', function () { lock(nb.checked); if (api.setNative) api.setNative(nb.checked); });
       range.addEventListener('input', function () { num.value = range.value; commit(range.value); });
       num.addEventListener('input', function () {
         var raw = String(num.value).trim();
@@ -298,8 +308,13 @@
       c.region = { x: x, y: y, w: w, h: hh };
       api.persist(); panel(box, h, api);
     });
+    function previewShown() {
+      if (document.hidden) return false;
+      return !!(cv.offsetParent || (cv.getClientRects && cv.getClientRects().length));
+    }
     function draw() {
       if (!document.contains(cv)) return;
+      if (!previewShown()) { setTimeout(draw, 400); return; }
       var v = s.video;
       if (v.videoWidth) {
         // draw at device-pixel resolution (never above the source) so the preview stays sharp on HiDPI screens
