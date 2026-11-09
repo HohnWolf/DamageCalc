@@ -39,7 +39,7 @@
     c.before = Math.max(5, Math.min(120, +c.before || 30));
     c.after = Math.max(0, Math.min(30, c.after == null ? 5 : +c.after));
     c.quality = c.quality === '1080' ? '1080' : '720';
-    c.audio = typeof c.audio === 'string' ? c.audio : '';
+    c.audio = typeof c.audio === 'string' ? c.audio : (D ? 'system' : ''); // desktop app: system sound by default
     c.autoFound = c.autoFound !== false;
     c.autoPhase = c.autoPhase !== false;
     c.list = Array.isArray(c.list) ? c.list.slice(0, 20) : [];
@@ -58,11 +58,12 @@
     for (var i = 0; i < list.length; i++) if (MediaRecorder.isTypeSupported(list[i])) return list[i];
     return '';
   }
-  function openSource(kind, id, label, base) {
+  function openSource(kind, id, label, base, baseAudio) {
     stopBuffer();
     var wantSys = cfg.audio === 'system' && kind === 'screen', inDev = /^in:/.test(cfg.audio) ? cfg.audio.slice(3) : '';
     var video;
-    if (base) video = Promise.resolve(new MediaStream([base.clone()])); // own copy: stopping one does not stop the other
+    // own copies: stopping one does not stop the other; the detection's sound comes along unless "no sound" is chosen
+    if (base) video = Promise.resolve(new MediaStream([base.clone()].concat(cfg.audio ? (baseAudio || []).map(function (a) { return a.clone(); }) : [])));
     else if (kind === 'camera') {
       var v = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
       if (id) v.deviceId = { exact: id };
@@ -73,7 +74,7 @@
     }
     return video.then(function (vs) {
       var tracks = vs.getVideoTracks().map(function (tr) { return tr; });
-      var audio = wantSys ? vs.getAudioTracks() : [];
+      var audio = wantSys || base ? vs.getAudioTracks() : [];
       var more = inDev ? navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: inDev }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } }) : Promise.resolve(null);
       return more.then(function (as) {
         if (as) audio = audio.concat(as.getAudioTracks());
@@ -221,7 +222,7 @@
       var det = ctx.stream && ctx.stream();
       if (det && det.getVideoTracks().length) {
         var db = el('button', { class: 'tbtn', text: t('fromDetect') });
-        db.addEventListener('click', function () { go(openSource('detect', '', t('fromDetect'), det.getVideoTracks()[0])); });
+        db.addEventListener('click', function () { go(openSource('detect', '', t('fromDetect'), det.getVideoTracks()[0], det.getAudioTracks())); });
         row.appendChild(db);
       }
       if (cfg.source && cfg.source.label) {
