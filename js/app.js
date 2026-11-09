@@ -2533,47 +2533,18 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['art:dex', 'art:shiny', 'art:overlay', 'art:catch'] };
-  // Pictograms of the "Other" card: one Poké Ball motif, drawn in the accent colour (fill layers at different opacity give the depth)
-  var TOOL_ART = (function () {
-    var open = '<svg class="tool-art" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
-    var ball = function (cx, cy, r) {
-      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="currentColor" fill-opacity=".14"/>' +
-        '<path d="M' + (cx - r) + ' ' + cy + 'A' + r + ' ' + r + ' 0 0 1 ' + (cx + r) + ' ' + cy + 'Z" fill="currentColor" fill-opacity=".38" stroke="none"/>' +
-        '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '"/><path d="M' + (cx - r) + ' ' + cy + 'H' + (cx + r) + '"/>' +
-        '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * .3).toFixed(1) + '" fill="var(--panel, #111)"/>';
-    };
-    var star = function (x, y, r) { // four-point sparkle
-      return '<path d="M' + x + ' ' + (y - r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="currentColor" stroke="none"/>';
-    };
-    return {
-      // Pokédex: the device with screen, a lens and the ball button
-      dex: open + '<rect x="9" y="5" width="30" height="38" rx="6" fill="currentColor" fill-opacity=".14"/>' +
-        '<rect x="14" y="10" width="20" height="13" rx="3" fill="currentColor" fill-opacity=".38"/>' +
-        '<path d="M17 28h6M17 33h6"/><circle cx="32" cy="31" r="4.5"/><circle cx="32" cy="31" r="1.4" fill="currentColor" stroke="none"/>' +
-        '</svg>',
-      // shiny counter: ball with sparkles
-      shiny: open + ball(21, 28, 14) + star(37, 11, 7) + star(11, 12, 4) + '</svg>',
-      // overlay: screen with a counter badge and the ball in the corner
-      overlay: open + '<rect x="5" y="8" width="38" height="26" rx="4" fill="currentColor" fill-opacity=".14"/>' +
-        '<path d="M17 42h14M24 34v8"/>' +
-        '<rect x="9" y="12" width="16" height="9" rx="2" fill="currentColor" fill-opacity=".45" stroke="none"/>' +
-        ball(34, 25, 5.5) + '</svg>',
-      // catch calculator: ball with crosshair
-      catch: open + ball(24, 24, 11) + '<path d="M24 3v7M24 38v7M3 24h7M38 24h7"/></svg>'
-    };
-  })();
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
       if (!box || box.dataset.done === (window.SPRITE_BOXES ? '2' : '1')) return;
       box.innerHTML = '';
-      CAT_ART[k].forEach(function (sp) {
-        if (sp.indexOf('art:') === 0) { var ta = el('span', { class: 'sc-mon sc-tool' }); ta.innerHTML = TOOL_ART[sp.slice(4)] || ''; box.appendChild(ta); return; }
+      var shinyAt = k === 'rest' ? Math.floor(Math.random() * CAT_ART[k].length) : -1; // Sonstiges: genau eines der drei ist shiny, bei jedem Start ein anderes
+      CAT_ART[k].forEach(function (sp, idx) {
         if (sp.indexOf('ic:') === 0) { var t = el('span', { class: 'sc-mon sc-tool' }); t.appendChild(el('span', { class: 'ic', 'data-ic': sp.slice(3) })); box.appendChild(t); return; }
         if (sp === '⛓') { box.appendChild(el('span', { class: 'sc-chain', text: sp })); return; }
         var c = el('span', { class: 'sc-mon' });
-        try { c.appendChild(spriteFit(sp, k === 'rest')); } catch (e) { /* sprite not available */ }
+        try { c.appendChild(spriteFit(sp, idx === shinyAt)); } catch (e) { /* sprite not available */ }
         box.appendChild(c);
       });
       box.dataset.done = window.SPRITE_BOXES ? '2' : '1';

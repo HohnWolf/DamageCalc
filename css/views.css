@@ -1197,11 +1197,3 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .cc-dlg-actions button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 @keyframes cc-dlg-in { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .cc-dlg { animation: none; } }
-
-/* Kategorie „Other“: Werkzeug-Symbole statt Sprites */
-.sc-art-cat .sc-tool { flex: 0 1 54px; border-radius: 12px; color: #a78bfa; background: color-mix(in srgb, #a78bfa 12%, transparent); border: 1px solid color-mix(in srgb, #a78bfa 35%, transparent); }
-.sc-art-cat .sc-tool .ic { width: 28px; height: 28px; }
-.sc-art-cat .sc-tool { background: linear-gradient(150deg, color-mix(in srgb, #a78bfa 24%, transparent), color-mix(in srgb, #a78bfa 6%, transparent)); transition: transform .18s ease, border-color .18s ease; }
-.sc-art-cat .sc-tool .tool-art { width: 64%; height: auto; aspect-ratio: 1; max-width: 42px; display: block; filter: drop-shadow(0 1px 3px color-mix(in srgb, #a78bfa 40%, transparent)); }
-.start-card:hover .sc-art-cat .sc-tool { transform: translateY(-2px); border-color: color-mix(in srgb, #a78bfa 65%, transparent); }
-@media (prefers-reduced-motion: reduce) { .sc-art-cat .sc-tool { transition: none; } .start-card:hover .sc-art-cat .sc-tool { transform: none; } }
