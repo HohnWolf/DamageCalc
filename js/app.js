@@ -225,7 +225,6 @@
       tbSpColMon: 'Pokémon', tbSpColBase: 'Basis', tbSpColSpread: 'SP / Wesen', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Schal ×1,5', tbSpColTW: 'Rückenw. ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0,5',
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm und in der oberen Leiste ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
-      setNav: 'Leiste oben', setNavHint: 'Tabs: nur geöffnete Modi, mit × schließbar. Alle: alle Tools der aktuellen Kategorie. Keine: Wechsel nur über den Startbildschirm (Logo).', setNavTabs: 'Tabs', setNavAll: 'Alle Modi', setNavOff: 'Keine', closeTab: 'Tab schließen (auch mit mittlerer Maustaste)', newTab: 'Weiteren Modus öffnen',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
       setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
       setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis.',
@@ -338,7 +337,6 @@
       tbSpColMon: 'Pokémon', tbSpColBase: 'Base', tbSpColSpread: 'SP / Nature', tbSpCol0: 'Normal', tbSpColP1: '+1', tbSpColScarf: 'Scarf ×1.5', tbSpColTW: 'Tailwind ×2', tbSpColM1: '−1', tbSpColPara: 'Para ×0.5',
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen and in the top bar. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
-      setNav: 'Top bar', setNavHint: 'Tabs: only opened modes, closable with ×. All: every tool of the current category. None: switch only via the start screen (logo).', setNavTabs: 'Tabs', setNavAll: 'All modes', setNavOff: 'None', closeTab: 'Close tab (also with the middle mouse button)', newTab: 'Open another mode',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
       setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
       setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice.',
@@ -2093,7 +2091,7 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', nav: 'tabs', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [] };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [] };
   function disabledToolsList() {
     var d = setting('disabledTools');
     return Array.isArray(d) ? d : [];
@@ -2344,7 +2342,6 @@
         var startOpts = [['start', T('setStartScreen')]];
         enabledModes().forEach(function (m) { startOpts.push([m[0], T(m[1])]); });
         selectRow(gNav, T('setStart'), T('setStartHint'), startOpts, setting('start'), function (v) { setSetting('start', v); });
-        row(gNav, T('setNav'), T('setNavHint'), [['tabs', T('setNavTabs')], ['all', T('setNavAll')], ['off', T('setNavOff')]], setting('nav'), function (v) { setSetting('nav', v); renderNav(); });
         row(gNav, T('setStartLayout'), T('setStartLayoutHint'), [['cats', T('setLayoutCats')], ['all', de ? 'Alle Tools' : 'All tools']], flatStart() ? 'all' : 'cats', function (v) {
           setSetting('startLayout', v);
           startCat = null;
@@ -2510,7 +2507,6 @@
     for (var i = 0; i < CATS.length; i++) if (CATS[i][1].indexOf(v) !== -1) return CATS[i];
     return null;
   }
-  var openTabs = (load('cc_tabs', []) || []).filter(function (v) { return VIEWS.indexOf(v) > 0; });
 
   // start screen: first the categories (single-tool categories show their tool directly), then the tools of the chosen category
   var startCat = null;
@@ -2537,13 +2533,43 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['ic:dex', 'ic:shiny', 'ic:overlay', 'ic:catch'] };
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['art:dex', 'art:shiny', 'art:overlay', 'art:catch'] };
+  // Pictograms of the "Other" card: one Poké Ball motif, drawn in the accent colour (fill layers at different opacity give the depth)
+  var TOOL_ART = (function () {
+    var open = '<svg class="tool-art" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    var ball = function (cx, cy, r) {
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="currentColor" fill-opacity=".14"/>' +
+        '<path d="M' + (cx - r) + ' ' + cy + 'A' + r + ' ' + r + ' 0 0 1 ' + (cx + r) + ' ' + cy + 'Z" fill="currentColor" fill-opacity=".38" stroke="none"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '"/><path d="M' + (cx - r) + ' ' + cy + 'H' + (cx + r) + '"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * .3).toFixed(1) + '" fill="var(--panel, #111)"/>';
+    };
+    var star = function (x, y, r) { // four-point sparkle
+      return '<path d="M' + x + ' ' + (y - r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="currentColor" stroke="none"/>';
+    };
+    return {
+      // Pokédex: the device with screen, a lens and the ball button
+      dex: open + '<rect x="9" y="5" width="30" height="38" rx="6" fill="currentColor" fill-opacity=".14"/>' +
+        '<rect x="14" y="10" width="20" height="13" rx="3" fill="currentColor" fill-opacity=".38"/>' +
+        '<path d="M17 28h6M17 33h6"/><circle cx="32" cy="31" r="4.5"/><circle cx="32" cy="31" r="1.4" fill="currentColor" stroke="none"/>' +
+        '</svg>',
+      // shiny counter: ball with sparkles
+      shiny: open + ball(21, 28, 14) + star(37, 11, 7) + star(11, 12, 4) + '</svg>',
+      // overlay: screen with a counter badge and the ball in the corner
+      overlay: open + '<rect x="5" y="8" width="38" height="26" rx="4" fill="currentColor" fill-opacity=".14"/>' +
+        '<path d="M17 42h14M24 34v8"/>' +
+        '<rect x="9" y="12" width="16" height="9" rx="2" fill="currentColor" fill-opacity=".45" stroke="none"/>' +
+        ball(34, 25, 5.5) + '</svg>',
+      // catch calculator: ball with crosshair
+      catch: open + ball(24, 24, 11) + '<path d="M24 3v7M24 38v7M3 24h7M38 24h7"/></svg>'
+    };
+  })();
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
       if (!box || box.dataset.done === (window.SPRITE_BOXES ? '2' : '1')) return;
       box.innerHTML = '';
       CAT_ART[k].forEach(function (sp) {
+        if (sp.indexOf('art:') === 0) { var ta = el('span', { class: 'sc-mon sc-tool' }); ta.innerHTML = TOOL_ART[sp.slice(4)] || ''; box.appendChild(ta); return; }
         if (sp.indexOf('ic:') === 0) { var t = el('span', { class: 'sc-mon sc-tool' }); t.appendChild(el('span', { class: 'ic', 'data-ic': sp.slice(3) })); box.appendChild(t); return; }
         if (sp === '⛓') { box.appendChild(el('span', { class: 'sc-chain', text: sp })); return; }
         var c = el('span', { class: 'sc-mon' });
@@ -2602,13 +2628,11 @@
   }
 
   function syncDisabledTools() {
-    openTabs = openTabs.filter(function (v) { return isToolEnabled(v); });
-    save('cc_tabs', openTabs);
     if (!isToolEnabled(setting('start'))) setSetting('start', 'start');
     syncStartCards();
     var cur = document.body.dataset.view;
     if (cur && cur !== 'start' && !isToolEnabled(cur)) {
-      showView(openTabs[openTabs.length - 1] || 'start');
+      showView('start');
     } else {
       renderNav();
     }
@@ -2619,7 +2643,6 @@
     if (VIEWS.indexOf(v) === -1 || !isToolEnabled(v)) v = 'start';
     document.body.dataset.view = v;
     try { sessionStorage.setItem('cc_view', v); } catch (e) { /* ignore */ }
-    if (v !== 'start' && openTabs.indexOf(v) === -1) { openTabs.push(v); save('cc_tabs', openTabs); }
     renderNav();
     if (v === 'builder' && window.CCBuilder) window.CCBuilder.render();
     if (v === 'soullink' && window.CCSoulLink) window.CCSoulLink.render();
@@ -2727,48 +2750,15 @@
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
     st.appendChild(el('span', { class: 'st-item', text: 'v' + ver }));
   }
-  // ---- top navigation: tabs (only the opened modes, closable), all modes, or none (setting "nav") ----
-  function closeTab(v) {
-    var i = openTabs.indexOf(v);
-    if (i === -1) return;
-    openTabs.splice(i, 1); save('cc_tabs', openTabs);
-    if (document.body.dataset.view === v) showView(openTabs[Math.min(i, openTabs.length - 1)] || 'start');
-    else renderNav();
-  }
+  // ---- title bar: the sidebar (Pro) or the top navigation (Studio) lists the tools, the bar only names the current one ----
   function renderNav() {
     var nav = document.getElementById('viewNav');
     if (!nav) return;
     renderSidebar(); renderStatus();
-    var mode = setting('nav'), cur = document.body.dataset.view;
+    var cur = document.body.dataset.view;
     nav.innerHTML = '';
-    if (isPro() && mode === 'all') { // the sidebar already lists every tool: the title bar just names the current one
-      nav.className = 'view-nav nav-title';
-      if (cur !== 'start') nav.appendChild(el('span', { class: 'nav-title-text', text: modeLabel(cur) }));
-      return;
-    }
-    nav.className = 'view-nav nav-' + mode;
-    if (mode === 'off' || (mode === 'all' && cur === 'start')) return;
-    var curCat = mode === 'all' && !flatStart() ? catOf(cur) : null;
-    enabledModes().forEach(function (m) {
-      if (mode === 'tabs' && openTabs.indexOf(m[0]) === -1) return;
-      if (curCat && curCat[1].indexOf(m[0]) === -1) return;
-      var b = el('button', { class: 'nav-tab' + (m[0] === cur ? ' on' : ''), 'data-go': m[0] });
-      b.appendChild(el('span', { class: 'nav-label', text: T(m[1]) }));
-      if (m[2]) b.appendChild(stageBadge(m[2]));
-      b.addEventListener('click', function () { showView(m[0]); });
-      if (mode === 'tabs') {
-        var x = el('span', { class: 'nav-close', text: '×', title: T('closeTab') });
-        x.addEventListener('click', function (ev) { ev.stopPropagation(); closeTab(m[0]); });
-        b.appendChild(x);
-        b.addEventListener('mousedown', function (ev) { if (ev.button === 1) { ev.preventDefault(); closeTab(m[0]); } });
-      }
-      nav.appendChild(b);
-    });
-    if (mode === 'tabs' && openTabs.length && cur !== 'start') {
-      var plus = el('button', { class: 'nav-new', text: '+', title: T('newTab') });
-      plus.addEventListener('click', function () { showView('start'); });
-      nav.appendChild(plus);
-    }
+    nav.className = 'view-nav nav-title';
+    if (cur !== 'start') nav.appendChild(el('span', { class: 'nav-title-text', text: modeLabel(cur) }));
   }
   // the builder card on the start screen shows the team that was edited last
   function renderStartTeam() {

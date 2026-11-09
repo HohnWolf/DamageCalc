@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Rattata Lab – Shiny-Overlay (schnell)</title>
+<!--
+  Schnelle Variante der OBS-Browser-Quelle (die bisherige Seite bleibt unter /overlay). Gleiche Parameter in der Adresse:
+    hunt=<id>|active   layout=card|row|count|free   sprite=0 odds=0 timer=0 phase=0 name=0
+    color=ffffff  accent=f2c94c  bg=transparent|1b1d21  size=1.0  font=Name   edit=1 (nur Vorschau in der App)
+  Unterschiede zur bisherigen Seite:
+    - Daten kommen per Server-Sent Events (/events) sofort, kein Abfragen alle 400 ms (Rückfall auf /state, falls nötig)
+    - Texte werden nur geschrieben, wenn sie sich ändern; der Zähler-Sprung läuft über die Web-Animations-API (kein erzwungenes Layout)
+    - Der Timer läuft in der Seite selbst (timeMs + runStart aus dem Zustand)
+    - Sprites kommen über den lokalen Cache (/match/img), mit home-shiny als letztem Rückfall
+-->
+<meta name="color-scheme" content="dark light">
+<script>
+/* Im Projektor (?transparent=1) darf die Seite keinen deckenden dunklen Hintergrund malen (siehe overlay.html). */
+(function () {
+  if (!/[?&]transparent=1(?:&|$)/.test(location.search)) return;
+  var meta = document.querySelector('meta[name="color-scheme"]');
+  if (meta) meta.setAttribute('content', 'normal');
+  document.documentElement.classList.add('transparent');
+})();
+</script>
+<style>
+  html.transparent, html.transparent body { background: transparent !important; background-color: transparent !important; color-scheme: normal !important; }
+  html, body { margin: 0; background: transparent; color-scheme: dark light; overflow: hidden; }
+  body { font-family: var(--font, 'Segoe UI', system-ui, sans-serif); color: var(--color, #fff); }
+  .ov { display: inline-flex; align-items: center; gap: calc(14px * var(--s)); padding: calc(12px * var(--s)) calc(18px * var(--s));
+    background: var(--bg, transparent); border-radius: calc(10px * var(--s)); text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+  .ov.card { flex-direction: column; text-align: center; }
+  .sprite { width: calc(120px * var(--s)); height: calc(120px * var(--s)); object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+  .txt { display: flex; flex-direction: column; gap: calc(2px * var(--s)); }
+  .ov.card .txt { align-items: center; }
+  .name { font-weight: 700; font-size: calc(20px * var(--s)); }
+  .count { font-weight: 800; font-size: calc(54px * var(--s)); line-height: 1; color: var(--accent, #f2c94c); font-variant-numeric: tabular-nums; }
+  .meta { font-size: calc(15px * var(--s)); opacity: .92; font-variant-numeric: tabular-nums; }
+  .found .count::after { content: ' ★'; }
+  .hide { display: none !important; }
+  /* own compositor layers for the parts that change: a count does not repaint the rest */
+  .count, .sprite { will-change: transform; }
+  /* free layout: every part sits where it was placed, with its own size */
+  .ov.free { display: block; position: relative; padding: 0; box-sizing: border-box; }
+  .ov.free .txt { display: contents; }
+  .ov.free .part { position: absolute; white-space: nowrap; }
+  .ov.free .count { transform-origin: left center; }
+  /* editing in the app preview */
+  .edit .ov.free { outline: 1px dashed rgba(255,255,255,.35); outline-offset: -1px; }
+  .edit .part { cursor: move; user-select: none; -webkit-user-drag: none; }
+  .edit .part:hover { outline: 1px dashed rgba(242,201,76,.8); }
+  .edit .part.sel { outline: 2px solid #f2c94c; outline-offset: 1px; }
+</style>
+</head>
+<body>
+<div class="ov" id="ov">
+  <img class="sprite part" id="sprite" alt="" draggable="false">
+  <div class="txt">
+    <div class="name part" id="name"></div>
+    <div class="count part" id="count">0</div>
+    <div class="meta part" id="odds"></div>
+    <div class="meta part" id="phase"></div>
+    <div class="meta part" id="timer"></div>
+  </div>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var root = document.documentElement;
+  root.style.setProperty('--s', q.get('size') || '1');
+  if (q.get('color')) root.style.setProperty('--color', '#' + q.get('color').replace('#', ''));
+  if (q.get('accent')) root.style.setProperty('--accent', '#' + q.get('accent').replace('#', ''));
+  if (q.get('bg') && q.get('bg') !== 'transparent') root.style.setProperty('--bg', '#' + q.get('bg').replace('#', ''));
+  if (q.get('font')) root.style.setProperty('--font', q.get('font'));
+  var ov = document.getElementById('ov');
+  var layout = q.get('layout') || 'row';
+  var free = layout === 'free', edit = free && q.get('edit') === '1';
+  ov.classList.add(layout);
+  if (edit) document.body.classList.add('edit');
+  function on(k) { return q.get(k) !== '0'; }
+  var E = {};
+  ['sprite', 'name', 'count', 'odds', 'phase', 'timer'].forEach(function (k) { E[k] = document.getElementById(k); });
+  ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) { if (!on(k) || layout === 'count') E[k].classList.add('hide'); });
+  // write a text only when it changed
+  function setText(e, v) { if (e.textContent !== v) e.textContent = v; }
+
+  // ---------------- free layout ----------------
+  var PARTS = ['sprite', 'name', 'count', 'odds', 'phase', 'timer'];
+  var cfg = null, applied = '';
+  function applyFree(f) {
+    if (!f || !f.items) return;
+    var key = JSON.stringify(f);
+    if (key === applied) return;
+    applied = key;
+    cfg = JSON.parse(key);
+    root.style.setProperty('--s', '1');
+    ov.style.width = cfg.w + 'px'; ov.style.height = cfg.h + 'px';
+    PARTS.forEach(function (k) {
+      var it = cfg.items[k], e = E[k];
+      if (!it) return;
+      e.style.left = it.x + 'px'; e.style.top = it.y + 'px';
+      e.style.setProperty('--s', it.s);
+    });
+  }
+  function send() { if (edit && cfg) parent.postMessage({ type: 'rl-ov-free', items: cfg.items }, '*'); }
+  if (edit) {
+    window.addEventListener('message', function (ev) {
+      if (ev.data && ev.data.type === 'rl-ov-free-set') { applied = ''; applyFree(ev.data.free); }
+    });
+    var drag = null, selKey = null;
+    function select(k) {
+      selKey = k;
+      PARTS.forEach(function (p) { E[p].classList.toggle('sel', p === k); });
+    }
+    function place(k) { var it = cfg.items[k], e = E[k]; e.style.left = it.x + 'px'; e.style.top = it.y + 'px'; e.style.setProperty('--s', it.s); }
+    function clamp(k) {
+      var it = cfg.items[k], e = E[k];
+      it.x = Math.round(Math.max(-e.offsetWidth + 10, Math.min(cfg.w - 10, it.x)));
+      it.y = Math.round(Math.max(-e.offsetHeight + 10, Math.min(cfg.h - 10, it.y)));
+    }
+    PARTS.forEach(function (k) {
+      var e = E[k];
+      e.title = 'Ziehen = verschieben · Mausrad = Größe · Pfeiltasten = genau';
+      e.addEventListener('mousedown', function (ev) {
+        if (!cfg || ev.button !== 0) return;
+        ev.preventDefault(); select(k);
+        drag = { k: k, x0: ev.clientX, y0: ev.clientY, ix: cfg.items[k].x, iy: cfg.items[k].y };
+      });
+      e.addEventListener('wheel', function (ev) {
+        if (!cfg) return;
+        ev.preventDefault(); select(k);
+        var it = cfg.items[k];
+        it.s = Math.round(Math.max(0.3, Math.min(5, it.s * (ev.deltaY < 0 ? 1.08 : 1 / 1.08))) * 100) / 100;
+        place(k); clamp(k); place(k); send();
+      }, { passive: false });
+    });
+    window.addEventListener('mousemove', function (ev) {
+      if (!drag) return;
+      var it = cfg.items[drag.k];
+      it.x = drag.ix + ev.clientX - drag.x0; it.y = drag.iy + ev.clientY - drag.y0;
+      clamp(drag.k); place(drag.k);
+    });
+    window.addEventListener('mouseup', function () { if (drag) { drag = null; send(); } });
+    document.addEventListener('mousedown', function (ev) { if (!ev.target.closest('.part')) select(null); });
+    window.addEventListener('keydown', function (ev) {
+      if (!selKey || !cfg) return;
+      var d = ev.shiftKey ? 10 : 1, it = cfg.items[selKey];
+      if (ev.key === 'ArrowLeft') it.x -= d; else if (ev.key === 'ArrowRight') it.x += d;
+      else if (ev.key === 'ArrowUp') it.y -= d; else if (ev.key === 'ArrowDown') it.y += d;
+      else return;
+      ev.preventDefault(); clamp(selKey); place(selKey); send();
+    });
+  }
+
+  // ---------------- sprites: local cache first, remembered per Pokémon ----------------
+  var SD = 'https://play.pokemonshowdown.com/sprites/';
+  function chainOf(id) {
+    return ['ani-shiny/' + id + '.gif', 'gen5-shiny/' + id + '.png', 'home-shiny/' + id + '.png'].map(function (p) { return '/match/img?u=' + encodeURIComponent(SD + p); });
+  }
+  var spriteUrl = {}, spriteWait = {}; // id -> working address / callbacks of a running search
+  function findSprite(id, done) {
+    if (spriteUrl[id]) { done(spriteUrl[id]); return; }
+    if (spriteWait[id]) { spriteWait[id].push(done); return; }
+    spriteWait[id] = [done];
+    var chain = chainOf(id), i = 0;
+    (function next() {
+      if (i >= chain.length) { var w = spriteWait[id]; delete spriteWait[id]; w.forEach(function (f) { f(''); }); return; }
+      var im = new Image(), u = chain[i++];
+      im.onload = function () { spriteUrl[id] = u; var w = spriteWait[id]; delete spriteWait[id]; w.forEach(function (f) { f(u); }); };
+      im.onerror = next;
+      im.src = u;
+    })();
+  }
+  var lastSprite = '';
+  function setSprite(id) {
+    if (!id || id === lastSprite) return;
+    lastSprite = id;
+    findSprite(id, function (u) { if (lastSprite === id && u && E.sprite.getAttribute('src') !== u) E.sprite.src = u; });
+  }
+
+  // ---------------- timer: runs here, no data needed per second ----------------
+  var timerHunt = null, timerTxt = '', timerTo = 0;
+  function dur(ms) {
+    var s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+    return h + ':' + ('0' + m).slice(-2) + ':' + ('0' + x).slice(-2);
+  }
+  function drawTimer() {
+    clearTimeout(timerTo);
+    var h = timerHunt;
+    if (!h) return;
+    var ms = (h.timeMs || 0) + (h.runStart ? Date.now() - h.runStart : 0);
+    setText(E.timer, h.timeMs == null ? (h.timeText || (edit ? '0:00:00' : '')) : dur(ms));
+    if (h.runStart) timerTo = setTimeout(drawTimer, 1000 - (ms % 1000) + 5); // next full second
+  }
+
+  // ---------------- state ----------------
+  var last = null;
+  function show(s) {
+    if (free && !edit && s.overlay && s.overlay.free) applyFree(s.overlay.free);
+    var hs = s.hunts || [];
+    // load the sprites of every hunt ahead, so switching the hunt shows its image at once
+    hs.forEach(function (x) { if (x.sprite && !spriteUrl[x.sprite]) findSprite(x.sprite, function () {}); });
+    var want = q.get('hunt');
+    var h = null;
+    hs.forEach(function (x) { if ((want && want !== 'active' ? x.id === want : x.id === s.active)) h = x; });
+    if (!h) h = hs[0];
+    if (!h) {
+      // nothing to show yet: placeholders, so the parts can still be arranged
+      if (edit) { setText(E.name, 'Pokémon'); setText(E.odds, '1/4.096 · 0,00 %'); setText(E.phase, 'Phase 2'); setText(E.timer, '0:00:00'); }
+      return;
+    }
+    setSprite(h.sprite);
+    setText(E.name, h.name);
+    var txt = h.count.toLocaleString('de-DE');
+    if (last !== null && h.count !== last && E.count.animate) {
+      E.count.animate([{ transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 350, easing: 'ease-out' });
+    }
+    last = h.count;
+    setText(E.count, txt);
+    setText(E.odds, h.oddsText + (h.chanceText ? ' · ' + h.chanceText : ''));
+    // in the editor, empty parts get a sample text so they can be grabbed
+    setText(E.phase, h.phaseText || (edit ? 'Phase 2 · 1.234 gesamt' : ''));
+    if (!h.timeText && edit) h = Object.assign({}, h, { timeText: '0:00:00', timeMs: null });
+    timerHunt = h; drawTimer();
+    ov.classList.toggle('found', !!h.found);
+    if (transparent) boxSoon();
+  }
+  var transparent = root.classList.contains('transparent'), boxW = 0, boxH = 0, boxQueued = false;
+  function boxSoon() {
+    if (boxQueued) return;
+    boxQueued = true;
+    requestAnimationFrame(function () {
+      boxQueued = false;
+      var b = ov.getBoundingClientRect(), w = Math.ceil(b.width), hh = Math.ceil(b.height);
+      if (w === boxW && hh === boxH) return;
+      boxW = w; boxH = hh;
+      parent.postMessage({ type: 'rl-ov-box', w: w, h: hh }, '*');
+    });
+  }
+
+  // push: the server sends every change at once; EventSource reconnects by itself when the app restarts
+  var polling = 0;
+  function poll() {
+    fetch('/state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(show).catch(function () { /* app closed */ });
+  }
+  if (window.EventSource) {
+    var es = new EventSource('/events');
+    es.onmessage = function (ev) { try { show(JSON.parse(ev.data)); } catch (e) { /* ignore a broken message */ } };
+  } else if (!polling) { polling = setInterval(poll, 400); poll(); }
+})();
+</script>
+</body>
+</html>
