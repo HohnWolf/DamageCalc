@@ -32,5 +32,11 @@ window.CCRandCore.run(model, { seed: 'abc', wild: 'random', trainers: 'random', 
   window.CCRandCore.run(G5.buildModel(rom, u8), all).then(r1 => {
     ok(/wie Vorstufe/.test(r1.log) && /\[\w+\]: /.test(r1.log) && /mindestens einmal/.test(r1.log), 'Neue Optionen: Protokoll');
     ok(r1.data && r1.seed === 'xyz', 'Neue Optionen: Lauf fertig');
-  }).then(() => window.CCRandCore.run(G5.buildModel(rom, u8), { seed: 'abc', wild: 'random', trainers: 'random' })).then(() => { console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0); }).catch(e => { console.log('Ausnahme', e); process.exit(1); });
+  }).then(() => window.CCRandCore.run(G5.buildModel(rom, u8), { seed: 'n1', wild: 'keep', trainers: 'random', stats: 'random', types: 'random', abilities: 'random', moves: 'random', starters: 'random',
+    limitGens: [1, 2], dualTypeOnly: true, banBadAbilities: true, ensureTwoAbilities: true, statsFollowEvo: true, evo: 'keep',
+    movesGuaranteed: 2, movesReorderDamaging: true, movesGoodDamagingPct: 70, movesBlockBroken: true, trainerFullyEvolved: true, trainerFullyEvolvedLevel: 10, starterMax600: true }).then(r2 => {
+    ok(r2.data && /Pokémon-Werte/.test(r2.log) && /Lv1 /.test(r2.log), 'Weitere UPR-Optionen: Lauf fertig');
+    const ids = r2.log.split(String.fromCharCode(10)).filter(l => /Lv/.test(l)).join('');
+    ok(/Lv/.test(ids), 'Trainer mit voll entwickelten Arten');
+  })).then(() => window.CCRandCore.run(G5.buildModel(rom, u8), { seed: 'abc', wild: 'random', trainers: 'random' })).then(() => { console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0); }).catch(e => { console.log('Ausnahme', e); process.exit(1); });
 }).catch(e => { console.log('Ausnahme', e); process.exit(1); });

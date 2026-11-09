@@ -1201,3 +1201,15 @@ body.is-maximized #winMax .ic-restore { display: block; }
 /* Kategorie „Other“: Werkzeug-Symbole statt Sprites */
 .sc-art-cat .sc-tool { flex: 0 1 54px; border-radius: 12px; color: #eab308; background: color-mix(in srgb, #eab308 12%, transparent); border: 1px solid color-mix(in srgb, #eab308 35%, transparent); }
 .sc-art-cat .sc-tool .ic { width: 28px; height: 28px; }
+
+/* Teamsheet modal (teambuilder) */
+.ts-box { width: min(1000px, 96vw); max-height: 92vh; display: flex; flex-direction: column; }
+.ts-opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ts-opts input { flex: 1 1 160px; min-width: 0; }
+.ts-seg { display: inline-flex; gap: 2px; }
+.ts-seg button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ts-out { overflow: auto; min-height: 0; }
+.ts-item { margin-bottom: 14px; }
+.ts-item img { width: 100%; display: block; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.ts-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.ts-save { display: inline-flex; align-items: center; text-decoration: none; color: inherit; border: 1px solid var(--line); border-radius: 6px; }

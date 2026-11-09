@@ -132,7 +132,7 @@ html[data-ui-style="pro"] .panel, html[data-ui-style="pro"] .modal-box { box-sha
 html[data-ui-style="pro"] .start-view { align-items: flex-start; justify-content: flex-start; padding: 18px 24px; overflow-y: auto; }
 html[data-ui-style="pro"] .start-inner { width: min(1100px, 100%); height: auto; display: block; text-align: left; container-type: normal; overflow: visible; }
 html[data-ui-style="pro"] .start-logo, html[data-ui-style="pro"] .sc-art { display: none !important; }
-html[data-ui-style="pro"] .pro-start-head { display: block; margin: 0 0 14px; }
+html[data-ui-style="pro"] .pro-start-head { display: none; }
 .pro-start-head { display: none; }
 html[data-ui-style="pro"] .pro-start-head h1 { margin: 0 0 2px; font-size: 17px; font-weight: 600; }
 html[data-ui-style="pro"] .pro-start-head p { margin: 0; color: var(--muted); font-size: 12px; }

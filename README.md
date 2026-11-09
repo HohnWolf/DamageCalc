@@ -258,7 +258,7 @@ Orientiert am [Universal Pokémon Randomizer ZX](https://github.com/Ajarmar/univ
 |---|---|---|---|---|---|
 | Typen/Fähigkeiten erben, Fähigkeiten sperren, Level-Attacken-Typanteil | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Entwicklungen (gleicher Typ, Ziel ändern, max. 3 Stufen) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Starter (2 Entwicklungen, gleicher Typ) | ✓ | ✓ | – | – | – |
+| Starter (zufällig, 2 Entwicklungen, gleicher Typ, BST ≤ 600) | ✓ | ✓ | ✓ (Platin, HG/SS: Rivalen-Skripte werden angepasst; HG/SS: arm9 wird neu komprimiert) | ✓ (Skripte; Auswahl-Grafik bleibt) | ✓ (Gen 6: `DllField.cro` + `DllPoke3Select.cro`, Gen 7: Geschenke) |
 | Wild (Typ-Thema, 1:1 je Gebiet, Catch ’em all), Trainer (Typ-Thema, keine Doppelten) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Attacken-Daten (Stärke, Genauigkeit, AP, Typ, Art) | ✓ (ohne Art) | ✓ (ohne Art) | ✓ | ✓ | ✓ |
 | TM-Attacken, TM/HM-Kompatibilität | ✓ | ✓ | ✓ | ✓ | ✓ (Attacken in `code.bin`, neu BLZ-komprimiert; passt der Code nicht, bleibt er unverändert) |
@@ -268,4 +268,11 @@ Orientiert am [Universal Pokémon Randomizer ZX](https://github.com/Ajarmar/univ
 | Items auf dem Feld (inkl. versteckte), Shop-Inhalte, Pickup-Items, Trainer-Items | – | ✓ | ✓ | ✓ (Shops: alle außer, wenn das Overlay komprimiert ist) | – |
 | Statische Pokémon/Geschenke, Ingame-Tausche | ✓ | ✓ | ✓ | ✓ | Statics nur Gen 7 (Sonne/Mond/Ultra); Ingame-Tausche nur Gen 6 (`code.bin`) |
 
-Dazu Voreinstellungen und ein Einstellungscode (`RL1:…`) zum Teilen. Offsets je Spielversion stehen in `data/gen3_offsets.js`, `gen4_offsets.js`, `gen5_offsets.js` (erzeugt mit `tools/make_gen*_offsets.js` aus den ini-Dateien des UPR). Nicht enthalten: Start-Items der Starter, Freundschaftswert senken, zusätzliche Trainer-Pokémon, Starter in Gen 4/5, Roamer/Fossilien/Spezial-Statics, Anpassung von Texten (TM-Beschreibungen, Tausch-Spitznamen, Dialoge) und die UPR-Patches (z. B. Gehorsam von Mew/Deoxys).
+Dazu Voreinstellungen und ein Einstellungscode (`RL1:…`) zum Teilen. Die Oberfläche ist in Unterkategorien (Allgemein, Pokémon, Starter & Statische, Wilde Pokémon, Trainer, Attacken, Items) gegliedert.
+
+Weitere Optionen (in allen Generationen über den Kern): Generationen begrenzen, nur Doppeltypen, keine nutzlosen Fähigkeiten, zwei Fähigkeiten je Pokémon, Basiswerte der Weiterentwicklungen folgen der Vorstufe, Level-Attacken (Level-1-Attacken, frühe Schadensattacke, Anteil guter Schadensattacken, keine Festschaden-Attacken), Trainer ab Level voll entwickelt, Starter-BST ≤ 600. Attacken und Basiswerte lassen sich auf eine spätere Generation aktualisieren (`data/move_updates.js` aus `tools/make_move_updates.js`, Basiswerte-Änderungen in `js/rand_core.js`). Nur Diamant/Perl/Platin: Starter-Item. Gen 4, 5 und 7: zufällige IVs und Items bei Ingame-Tauschen.
+
+Offsets je Spielversion stehen in `data/gen3_offsets.js`, `gen4_offsets.js`, `gen5_offsets.js` (erzeugt mit `tools/make_gen*_offsets.js` aus den ini-Dateien des UPR). Nicht enthalten: Freundschaftswert senken, zusätzliche Trainer-Pokémon, Rivale behält den Starter, Doppelkampf-Modus, Shiny-Chance, Roamer/Fossilien/Spezial-Statics, Anpassung von Texten (Starter-Auswahl, TM-Beschreibungen, Tausch-Spitznamen, Trainer-Namen, Dialoge), Shop-Preise/garantierte Items und die UPR-Patches (z. B. Gehorsam von Mew/Deoxys).
+
+## Teamsheet
+Im Teambuilder erzeugt der Knopf „Teamsheet“ ein Bild des aktuellen Teams auf Deutsch, Englisch oder beiden Sprachen (Namen, Wesen, Fähigkeit, Item, Attacken, HOME-Bilder über PokéAPI). Zum Kopieren oder als PNG speichern. Code: `js/teamsheet.js`.

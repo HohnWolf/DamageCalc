@@ -92,7 +92,7 @@
   function scan(rom, u8) {
     var w = rom.files.wild ? wildSlots(rom) : [];
     var maps = {}; w.forEach(function (x) { maps[x.map] = 1; });
-    return { wildMaps: Object.keys(maps).length, wildSlots: w.length, trainers: rom.trainers.length, evo: evoOk(rom), starters: false,
+    return { wildMaps: Object.keys(maps).length, wildSlots: w.length, trainers: rom.trainers.length, evo: evoOk(rom), starters: !!(window.GEN4_OFFS && window.GEN4_OFFS[rom.code + u8[0x1E]] && window.GEN4_OFFS[rom.code + u8[0x1E]].starter),
       learnsets: rom.files.learn ? rom.files.learn.length : 0 };
   }
 
@@ -118,7 +118,7 @@
     var model = {
       title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: MAXNAT, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
       abilityNames: names.abilities || [], moveNames: names.moves || [], legends: LEGEND_NAT, noStatsFor: [292], learnsets: learnsets, moves: rom.moves,
-      maxMove: rom.moves.length - 1, bannedMoves: [165], wild: [], trainers: [], evos: []
+      maxMove: rom.moves.length - 1, bannedMoves: [165], wild: [], trainers: [], evos: [], starters: []
     };
     model.commitSpecies = function () {
       species.forEach(function (sp, n) {
@@ -239,6 +239,126 @@
         });
       });
     }
+    // Starter (nach dem Universal Pokémon Randomizer ZX, Gen4RomHandler): Arten im Overlay (Diamant/Perl/Platin) bzw. im arm9 (HeartGold/SoulSilver),
+    // dazu die Rivalen- und Tag-Battle-Skripte, die feste Artnummern vergleichen. Texte und Starter-Grafik der Auswahl bleiben (nur Platin/DP: Grafik wird angepasst).
+    model.starters = [];
+    (function () {
+      var st = offs && offs.starter, sc4 = scripts;
+      if (!st || !sc4 || !N || !N.overlay) return;
+      var hg = rom.type === 'HGSS';
+      var hex = function (h) { var a = []; for (var i = 0; i < h.length; i += 2) a.push(parseInt(h.substr(i, 2), 16)); return a; };
+      var search = function (buf, pat, from, to) {
+        var r = []; from = from || 0; to = Math.min(to === undefined ? buf.length : to, buf.length);
+        for (var i = from; i + pat.length <= to; i++) { var ok = true; for (var j = 0; j < pat.length; j++) if (buf[i + j] !== pat[j]) { ok = false; break; } if (ok) r.push(i); }
+        return r;
+      };
+      var s32 = function (b, o) { return u32(b, o) | 0; };
+      var ovl = null, base = 0, a9 = 0, a9len = 0, hgRaw = null;
+      if (hg) {
+        a9 = u32(u8, 0x20); a9len = u32(u8, 0x2C);
+        var tailPat = [0x03, 0x03, 0x1A, 0x12, 0x01, 0x23, 0x00, 0x00];
+        var tail = search(u8, tailPat, a9, a9 + a9len); ovl = u8;
+        if (!tail.length && window.CTR && window.CTR.blzDecode) { // das arm9 von HeartGold/SoulSilver ist BLZ-komprimiert
+          try { hgRaw = window.CTR.blzDecode(u8.slice(a9, a9 + a9len)); } catch (e1) { hgRaw = null; }
+          if (!hgRaw) return;
+          tail = search(hgRaw, tailPat); ovl = hgRaw;
+        }
+        if (tail.length !== 1) return;
+        base = tail[0] - 13;
+      } else {
+        try { ovl = N.overlay(u8, st.ovl); } catch (e) { ovl = null; }
+        if (!ovl || st.off === undefined) return;
+        base = st.off;
+      }
+      if (base + 10 > ovl.length) return;
+      var vals = [u16(ovl, base), u16(ovl, base + 4), u16(ovl, base + 8)];
+      if (!vals.every(function (v) { return species[v]; })) return;
+      var plat = offs.type === 'Plat';
+      var files = hg ? [7, 23, 96, 110, 819, 850, 866] : plat ? [31, 36, 112, 123, 186, 427, 429, 1096] : [34, 90, 118, 180, 195, 394];
+      var tagFiles = plat ? [2, 136, 201, 236] : [2, 131, 230];
+      var pend = vals.slice(), done = false;
+      var apply = function (nw) {
+        if (done) return; done = true;
+        w16(ovl, base, nw[0]); w16(ovl, base + 4, nw[1]); w16(ovl, base + 8, nw[2]);
+        if (hg) {
+          if (hgRaw) { // arm9 neu komprimieren; muss in den alten Platz passen (Länge im Kopf und Prüfsumme werden angepasst)
+            var enc = window.CTR.blzEncode(hgRaw);
+            if (!enc || enc.length > a9len) { done = false; return; }
+            var foot = u8.slice(a9 + a9len, a9 + a9len + 12);
+            u8.fill(0xFF, a9, a9 + a9len + 12); u8.set(enc, a9); u8.set(foot, a9 + enc.length);
+            w32(u8, 0x2C, enc.length);
+            var crc = 0xFFFF; for (var ci = 0; ci < 0x15E; ci++) { crc ^= u8[ci]; for (var ck = 0; ck < 8; ck++) crc = (crc & 1) ? (crc >>> 1) ^ 0xA001 : crc >>> 1; }
+            w16(u8, 0x15E, crc);
+          }
+          var magic = [0xCE, 0x00, 0x0C, 0x80, 0x11, 0x00, 0x0C, 0x80, 152, 0, 0x1C, 0x00, 0x05];
+          files.forEach(function (fi) {
+            var f = sc4[fi]; if (!f) return;
+            var m = search(f, magic); if (m.length !== 1) return;
+            var b = m[0]; w16(f, b + 8, nw[0]);
+            var second = s32(f, b + 13) + b + 17;
+            if (second + 5 <= f.length && f[second] === 0x11 && f[second + 4] === 155) w16(f, second + 4, nw[1]);
+          });
+          var cry = null; try { cry = N.overlay(u8, st.ovl); } catch (e2) { cry = null; }
+          if (cry) {
+            var cp = search(cry, hex('0004000C10BD0000000000000000000000E000000000000000E0000000000200'));
+            if (cp.length) { var o = cp[0] + 32; for (var q = 0; q < 3; q++) w32(cry, o + q * 4, nw[q]); }
+          }
+          return;
+        }
+        if (st.gfx) { // Grafik der Starter-Auswahl (ARM-Thumb-Code im Overlay)
+          var gp = search(ovl, hex(st.gfx));
+          if (gp.length) {
+            var off = gp[0] + st.gfx.length / 2;
+            if (gp[0] > 0) {
+              w16(ovl, off + 0xC, u16(ovl, off + 0xA)); if (off % 4 === 0) ovl[off + 0xC] = (ovl[off + 0xC] - 1) & 0xFF;
+              w16(ovl, off + 0xA, u16(ovl, off + 0x8)); ovl[off + 0xA] = (ovl[off + 0xA] - 1) & 0xFF;
+              w16(ovl, off + 0x8, u16(ovl, off + 0x6)); w16(ovl, off + 0x6, u16(ovl, off + 0x4)); w16(ovl, off + 0x4, u16(ovl, off + 0x2));
+              w16(ovl, off + 0x2, 0x6828); w16(ovl, off, 0x182D);
+              off += 0x16; w16(ovl, off, 0x6828); off += 0xA;
+              for (var i = 0; i < 3; i++) {
+                var diff = nw[i] - 4 * (i + 1), i1 = 0x3200, i2 = 0x3200;
+                if (diff < 0) { i1 |= 0x800; diff = Math.abs(diff); } else if (diff > 255) { i2 |= 0xFF; diff -= 255; }
+                i1 |= diff & 0xFF;
+                ovl[off] = 4 * (i + 1);
+                w16(ovl, off + 2, u16(ovl, off + 4)); w16(ovl, off + 4, i1); w16(ovl, off + 8, i2);
+                off += 0xE;
+              }
+              ovl[off] = 1;
+              if (st.gfxInner) { var ip = search(ovl, hex(st.gfxInner)); if (ip.length && ip[0] > 0) ovl[ip[0] + st.gfxInner.length / 2 + 1] = 0x68; }
+            }
+          }
+        }
+        var rm = [0xDE, 0x00, 0x0C, 0x80, 0x11, 0x00, 0x0C, 0x80, 0x83, 0x01, 0x1C, 0x00, 0x01];
+        files.forEach(function (fi) {
+          var f = sc4[fi]; if (!f) return;
+          search(f, rm).forEach(function (b) {
+            var jl = b + rm.length, jt = s32(f, jl) + jl + 4;
+            if (jt < 0 || jt + 2 > f.length) return;
+            var w = u16(f, jt); if (w !== 0xE5 && w !== 0x28F && !(w === 0x125 && plat)) return;
+            w16(f, b + 8, nw[0]); w16(f, b + 0x15, nw[1]);
+          });
+        });
+        var t1 = [0xDE, 0x00, 0x0C, 0x80, 0x28, 0x00, 0x04, 0x80], t2 = [0x11, 0x00, 0x0C, 0x80, 0x86, 0x01, 0x1C, 0x00, 0x01];
+        tagFiles.forEach(function (fi) {
+          var f = sc4[fi]; if (!f) return;
+          search(f, t1).forEach(function (b) {
+            var p2 = b + t1.length + 2; if (p2 + t2.length + 4 > f.length) return;
+            for (var k = 0; k < t2.length; k++) if (f[p2 + k] !== t2[k]) return;
+            var jl = p2 + t2.length, jt = s32(f, jl) + jl + 4;
+            if (jt < 0 || jt + 2 > f.length || u16(f, jt) !== 0x1B) return;
+            w16(f, b + 0x21, u16(f, b + 0x21) === 387 ? nw[0] : nw[2]);
+            w16(f, b + 0xE, nw[1]);
+          });
+        });
+      };
+      if (!hg && st.script !== undefined && st.item !== undefined && sc4[st.script] && st.item + 2 <= sc4[st.script].length) { // Item, das der Starter trägt (nur Diamant/Perl/Platin)
+        var sfile = sc4[st.script];
+        model.starterItem = { get: function () { return u16(sfile, st.item); }, set: function (n) { w16(sfile, st.item, n); } };
+      }
+      for (var k = 0; k < 3; k++) (function (k) {
+        model.starters.push({ get: function () { return vals[k]; }, set: function (n) { pend[k] = n; if (k === 2) apply(pend); } });
+      })(k);
+    })();
     if (tradeFiles && offs) {
       model.trades = [];
       tradeFiles.forEach(function (tf2, ti) {
@@ -246,7 +366,9 @@
         if (!species[u32(tf2, 0)] || !species[u32(tf2, 0x4C)]) return;
         model.trades.push({
           given: function () { return u32(tf2, 0); }, setGiven: function (n) { w32(tf2, 0, n); },
-          requested: function () { return u32(tf2, 0x4C); }, setRequested: function (n) { w32(tf2, 0x4C, n); if (tf2.length > 0x50) w32(tf2, 0x50, 0); }
+          requested: function () { return u32(tf2, 0x4C); }, setRequested: function (n) { w32(tf2, 0x4C, n); if (tf2.length > 0x50) w32(tf2, 0x50, 0); },
+          setIvs: function (a) { for (var iv = 0; iv < 6; iv++) w32(tf2, 4 + iv * 4, a[iv]); },
+          setItem: function (n) { w32(tf2, 0x3C, n); }
         });
       });
     }

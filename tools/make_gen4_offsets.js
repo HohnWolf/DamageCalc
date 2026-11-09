@@ -26,7 +26,10 @@ fs.readFileSync(src, 'utf8').split(/\r?\n/).forEach(line => {
   } else if (k === 'StaticPokemon{}') {
     const g = n => { const m = val.match(new RegExp(n + '=\\[([^\\]]*)\\]')); return m ? refs(m[1]) : []; };
     cur.statics.push({ s: g('Species'), f: g('Forme'), l: g('Level') });
-  } else if (k === 'TradeScript[]') {
+  } else if (/^Starter(PokemonOvlNumber|PokemonOffset)$/.test(k)) cur.v[k] = num(val);
+  else if (/^StarterPokemonGraphicsPrefix(Inner)?$/.test(k)) cur.v[k] = val;
+  else if (/^StarterPokemon(ScriptOffset|HeldItemOffset)$/.test(k)) cur.v[k] = num(val);
+  else if (k === 'TradeScript[]') {
     // [Datei:Verlangt:Gegeben, ...]
     cur.trades.push(val.replace(/^\[|\]$/g, '').split(',').map(x => x.trim().split(':').map(num)));
   } else if (/^(Type|Version|StaticPokemonTrades|ItemBallsScriptOffset|ItemBallsSkip|HiddenItemTableOffset|HiddenItemCount|ShopCount|SkipShops|MainGameShops|ShopDataPrefix|MoveTutorMovesOffset|MoveTutorCount|MoveTutorBytesCount|MoveTutorCompatOffset|MoveTutorCompatBytesCount|FieldOvlNumber|MoveTutorCompatOvlNumber|BattleOvlNumber)$/.test(k)) {
@@ -43,6 +46,7 @@ entries.forEach(e => {
     ball: v.ItemBallsScriptOffset, ballSkip: v.ItemBallsSkip || [], hidden: v.HiddenItemTableOffset ? [v.HiddenItemTableOffset, v.HiddenItemCount] : undefined,
     tutor: v.MoveTutorMovesOffset ? { ovl: v.FieldOvlNumber, moves: v.MoveTutorMovesOffset, count: v.MoveTutorCount, step: v.MoveTutorBytesCount, compat: v.MoveTutorCompatOffset, cbytes: v.MoveTutorCompatBytesCount, cOvl: v.MoveTutorCompatOvlNumber, cFile: v.tutorFile } : undefined,
     battleOvl: v.BattleOvlNumber,
+    starter: v.StarterPokemonOvlNumber !== undefined || v.StarterPokemonOffset !== undefined ? { ovl: v.StarterPokemonOvlNumber, off: v.StarterPokemonOffset, gfx: v.StarterPokemonGraphicsPrefix, gfxInner: v.StarterPokemonGraphicsPrefixInner, script: v.StarterPokemonScriptOffset, item: v.StarterPokemonHeldItemOffset } : undefined,
     shops: v.ShopDataPrefix ? [v.ShopDataPrefix, v.ShopCount, v.SkipShops || [], v.MainGameShops || []] : undefined };
 });
 fs.writeFileSync(dst, '// Offsets der Gen-4-Spiele aus dem Universal Pokémon Randomizer ZX (GPL-3.0, Ajarmar). Erzeugt mit tools/make_gen4_offsets.js.\nwindow.GEN4_OFFS = ' + JSON.stringify(out) + ';\n');

@@ -38,7 +38,7 @@
 
   function scan(rom) {
     var w = wildSlots(rom), maps = {}; w.forEach(function (x) { maps[x.map] = 1; });
-    return { wildMaps: Object.keys(maps).length, wildSlots: w.length, trainers: rom.trainers.length, evo: !!(rom.files.evo && rom.files.evo.length > 649), starters: false, learnsets: rom.files.learn ? rom.files.learn.length : 0 };
+    return { wildMaps: Object.keys(maps).length, wildSlots: w.length, trainers: rom.trainers.length, evo: !!(rom.files.evo && rom.files.evo.length > 649), starters: !!(window.GEN5_OFFS && rom.code && window.GEN5_OFFS[rom.code] && window.GEN5_OFFS[rom.code].starters), learnsets: rom.files.learn ? rom.files.learn.length : 0 };
   }
 
   function buildModel(rom, u8) {
@@ -55,7 +55,7 @@
     var model = {
       title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: 649, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
       abilityNames: names.abilities || [], moveNames: names.moves || [], legends: LEGEND, noStatsFor: [292], learnsets: learnsets, moves: rom.moves, maxMove: 559, bannedMoves: [165],
-      wild: [], trainers: [], evos: []
+      wild: [], trainers: [], evos: [], starters: []
     };
     model.commitSpecies = function () {
       species.forEach(function (sp, n) {
@@ -166,6 +166,14 @@
         });
       });
     }
+    // Starter: je Starter mehrere Stellen in den Skript-Dateien (Auswahl, Bestätigung, Geschenk), alle mit derselben Art
+    if (scripts && offs && offs.starters && offs.starters.length === 3 && offs.starters.every(function (g) { return g && g.length && g.every(function (r) { return okRef(r, 2); }); })) {
+      offs.starters.forEach(function (g) {
+        if (!species[u16(scripts[g[0][0]], g[0][1])]) return;
+        model.starters.push({ get: function () { return u16(scripts[g[0][0]], g[0][1]); }, set: function (n) { g.forEach(function (r) { w16(scripts[r[0]], r[1], n); }); } });
+      });
+      if (model.starters.length !== 3) model.starters = [];
+    }
     if (tradeFiles && offs) {
       model.trades = [];
       var scr = 0;
@@ -177,7 +185,9 @@
           given: function () { return u16(tf2, 4); },
           setGiven: function (n) { w16(tf2, 4, n); w16(tf2, 6, 0); w16(tf2, 8, 0); w16(tf2, 0x2C, 0xFF); ts.forEach(function (r) { if (scripts && scripts[r[0]]) w16(scripts[r[0]], r[2], n); }); },
           requested: function () { return u16(tf2, 0x5C); },
-          setRequested: function (n) { w16(tf2, 0x5C, n); ts.forEach(function (r) { if (scripts && scripts[r[0]]) w16(scripts[r[0]], r[1], n); }); }
+          setRequested: function (n) { w16(tf2, 0x5C, n); ts.forEach(function (r) { if (scripts && scripts[r[0]]) w16(scripts[r[0]], r[1], n); }); },
+          setIvs: function (a) { for (var iv = 0; iv < 6; iv++) { var q = 0x10 + iv * 4; tf2[q] = a[iv]; tf2[q + 1] = tf2[q + 2] = tf2[q + 3] = 0; } },
+          setItem: function (n) { tf2[0x4C] = n & 255; tf2[0x4D] = n >> 8; tf2[0x4E] = tf2[0x4F] = 0; }
         });
       });
     }

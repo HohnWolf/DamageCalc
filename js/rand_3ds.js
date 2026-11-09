@@ -77,7 +77,7 @@
     // Attacken-Daten (Stärke, Typ)
     var moves = [], moveBuf = [], moveDirty = false;
     try {
-      var mini = g.type === 'oras' ? CTR.unpackMini(entry(moveG, 0), 'WD') : null;
+      var mini = g.type === 'oras' || g.gen === 7 ? CTR.unpackMini(entry(moveG, 0), 'WD') : null; // ORAS und Gen 7: alle Attacken in einer Mini-Datei
       for (var mv = 1; mv <= g.maxMove; mv++) {
         var md = mini ? mini[mv] : entry(moveG, mv);
         if (md && md.length > 6) { moves[mv] = { power: md[3], type: md[0], acc: md[4], pp: md[5], cat: md[2] === 1 ? 0 : md[2] === 2 ? 1 : 2 }; moveBuf[mv] = md; }
@@ -134,6 +134,12 @@
           setLevel: function (l) { buf[off + lvOff] = l; }
         });
       };
+      // Starter: die ersten drei Geschenke (Art bei +0, Form bei +2)
+      model.starters = [];
+      if (gifts && g.gen === 7) for (var qi = 0; qi < 3; qi++) (function (o) {
+        if (o + 0x14 <= gifts.length && species[u16(gifts, o)]) model.starters.push({ get: function () { return u16(gifts, o); }, set: function (n) { w16(gifts, o, n); gifts[o + 2] = 0; } });
+      })(qi * 0x14);
+      if (model.starters.length !== 3) model.starters = [];
       if (gifts) for (var gi = 3; gi < Math.floor(gifts.length / 0x14); gi++) addStatic(gifts, gi * 0x14, 3, { egg: gifts[gi * 0x14 + 10] === 1 });
       if (stEnc) for (var si = 0; si < Math.floor(stEnc.length / 0x38); si++) if (g.skipStatics.indexOf(si) === -1) addStatic(stEnc, si * 0x38, 3, { resetMoves: true });
       // Ingame-Tausche (Datei 4, 0x34 Byte je Eintrag): gegebene Art bei +0 (Form bei +4), verlangte Art bei +0x2C
@@ -144,7 +150,9 @@
           if (!species[u16(tradeF, o)] || !species[u16(tradeF, o + 0x2C)]) return;
           model.trades.push({
             given: function () { return u16(tradeF, o); }, setGiven: function (n) { w16(tradeF, o, n); tradeF[o + 4] = 0; },
-            requested: function () { return u16(tradeF, o + 0x2C); }, setRequested: function (n) { w16(tradeF, o + 0x2C, n); }
+            requested: function () { return u16(tradeF, o + 0x2C); }, setRequested: function (n) { w16(tradeF, o + 0x2C, n); },
+            setIvs: function (a) { for (var iv = 0; iv < 6; iv++) tradeF[o + 6 + iv] = a[iv]; },
+            setItem: function (n) { w16(tradeF, o + 0x14, n); }
           });
         })(ti * 0x34);
       }
@@ -235,8 +243,35 @@
         }
       }
     }
-    model.scanInfo = { wildMaps: wildAreas, wildSlots: model.wild.length, trainers: trNum, evo: model.evos.length > 0, starters: false, learnsets: Object.keys(learnsets).length };
+    model.scanInfo = { wildMaps: wildAreas, wildSlots: model.wild.length, trainers: trNum, evo: model.evos.length > 0, starters: !!(model.starters && model.starters.length) || (g.gen === 6 && scanOnly && !!CTR.findFile(ctx.info, 'DllField.cro') && !!CTR.findFile(ctx.info, 'DllPoke3Select.cro')), learnsets: Object.keys(learnsets).length };
 
+    // Gen 6: Starter stehen als Geschenke in DllField.cro (Art +0, Form +4) und zusätzlich in der Anzeige von DllPoke3Select.cro (Art +0, Form +2, je 0x54 Byte)
+    // (Offsets aus dem Universal Pokémon Randomizer ZX). Die Texte der Auswahl bleiben unverändert.
+    if (g.gen === 6 && !scanOnly) {
+      try {
+        var G6 = g.type === 'oras' ? { gift: 0xF906C, count: 0x25, size: 0x24, idx: [0, 1, 2, 28, 29, 30, 31, 32, 33, 34, 35, 36], offOff: 0xB8, extra: 0 }
+          : { gift: 0xF805C, count: 0x13, size: 0x18, idx: [0, 1, 2, 3, 4, 5], offOff: 0xB8, extra: 0x10 };
+        var fieldF = await CTR.readFile(ctx.info, 'DllField.cro'), dispF = await CTR.readFile(ctx.info, 'DllPoke3Select.cro');
+        if (fieldF && dispF && G6.gift + G6.count * G6.size <= fieldF.data.length) {
+          var fd = fieldF.data, dd = dispF.data, dOff = u16(dd, G6.offOff) + G6.extra, okS = dOff + G6.idx.length * 0x54 <= dd.length;
+          G6.idx.forEach(function (gi, j) { if (u16(fd, G6.gift + gi * G6.size) !== u16(dd, dOff + j * 0x54) || !species[u16(fd, G6.gift + gi * G6.size)]) okS = false; });
+          if (okS) {
+            model.starters = [];
+            G6.idx.forEach(function (gi, j) {
+              var go = G6.gift + gi * G6.size, dO = dOff + j * 0x54;
+              model.starters.push({
+                get: function () { return u16(fd, go); },
+                set: function (n) {
+                  w16(fd, go, n); fd[go + 4] = 0; w16(dd, dO, n); dd[dO + 2] = 0;
+                  patches.push({ off: fieldF.loc.off + go, bytes: fd.slice(go, go + 6) });
+                  patches.push({ off: dispF.loc.off + dO, bytes: dd.slice(dO, dO + 4) });
+                }
+              });
+            });
+          }
+        }
+      } catch (e6) { model.starters = []; }
+    }
     // Programmcode (ExeFS .code, BLZ-komprimiert): TM-Attacken und – nur Gen 6 – Ingame-Tausche
     var codeEx = null, code = null, codeDirty = false;
     if (!scanOnly) { try { codeEx = await CTR.readCode(ctx.info); code = codeEx && codeEx.code; } catch (e0) { codeEx = code = null; } }

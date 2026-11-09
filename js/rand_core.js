@@ -16,8 +16,25 @@
     tmMoves: 'keep', tmGoodDamaging: false, tmGoodPct: 60, tmKeepField: true, tmCompat: 'keep', tmFollowEvo: false, tmSanity: true,
     wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', itemsBanBad: false,
     evoImpossible: false, evoNoTime: false, evoEasier: false, expCurve: 'keep', expLegendsSlow: false,
-    tutorMoves: 'keep', tutorCompat: 'keep', statics: 'keep', staticLegendSwap: false, staticLevelPct: 0, trades: 'keep', tradeRequested: false
+    tutorMoves: 'keep', tutorCompat: 'keep', statics: 'keep', staticLegendSwap: false, staticLevelPct: 0, trades: 'keep', tradeRequested: false,
+    // weitere Optionen des UPR: Generationen begrenzen, Typen, Faehigkeiten, Basiswerte, Attacken-Sets, Trainer, Starter
+    limitGens: [], dualTypeOnly: false, banBadAbilities: false, ensureTwoAbilities: false, statsFollowEvo: false,
+    movesGuaranteed: 0, movesReorderDamaging: false, movesGoodDamagingPct: 0, movesBlockBroken: false,
+    trainerFullyEvolved: false, trainerFullyEvolvedLevel: 30, starterMax600: false,
+    updateMoves: 0, updateStats: 0, starterHeldItem: false, tradeIVs: false, tradeItems: false
   };
+  var GEN_END = [0, 151, 251, 386, 493, 649, 721, 809];
+  var BAD_ABILITIES = [57, 58, 107, 108, 118, 119, 188, 222, 223], BROKEN_MOVES = [49, 82]; // Plus, Minus, Vorahnung, Vorwarnung, Honigsammler, Schnüffler, Aura-Bruch, Empfänger, Alchemie; Schallwelle, Drachenwut (Festschaden)
+  // Änderungen der Basiswerte in späteren Generationen (Universal Pokémon Randomizer ZX, GlobalConstants.getStatChanges); Reihenfolge der Werte: KP, Angr, Vert, Init, SpA, SpV
+  var STAT_CHANGES = {
+    6: { 12: { 4: 90 }, 15: { 1: 90 }, 18: { 3: 101 }, 25: { 2: 40, 5: 50 }, 26: { 3: 110 }, 31: { 1: 92 }, 34: { 1: 102 }, 36: { 4: 95 }, 40: { 4: 85 }, 45: { 4: 110 }, 62: { 1: 95 }, 65: { 5: 95 }, 71: { 5: 70 }, 76: { 1: 120 },
+      181: { 2: 85 }, 182: { 2: 95 }, 184: { 4: 60 }, 189: { 5: 95 }, 267: { 4: 100 }, 295: { 5: 73 }, 398: { 5: 60 }, 407: { 2: 65 }, 508: { 1: 110 }, 521: { 1: 115 }, 526: { 5: 80 }, 537: { 1: 95 }, 542: { 5: 80 }, 545: { 1: 100 }, 553: { 2: 80 } },
+    7: { 24: { 1: 95 }, 51: { 1: 100 }, 83: { 1: 90 }, 85: { 3: 110 }, 101: { 3: 150 }, 103: { 5: 75 }, 164: { 4: 86 }, 168: { 5: 70 }, 211: { 2: 85 }, 219: { 0: 60, 4: 90 }, 222: { 0: 65, 2: 95, 5: 95 }, 226: { 0: 85 }, 277: { 4: 75 }, 279: { 4: 95 },
+      284: { 4: 100, 3: 80 }, 301: { 3: 90 }, 313: { 2: 75, 5: 85 }, 314: { 2: 75, 5: 85 }, 337: { 0: 90 }, 338: { 0: 90 }, 358: { 0: 75, 2: 80, 5: 90 }, 527: { 0: 65 }, 558: { 1: 105 }, 614: { 1: 130 }, 615: { 0: 80, 2: 50 } },
+    8: { 681: { 2: 140, 5: 140 } },
+    9: { 488: { 2: 110, 5: 120 } }
+  };
+  var CAT_IDX = { PHYSICAL: 0, SPECIAL: 1, STATUS: 2 }, TYPE_DE = { FIGHTING: 'Kampf', FLYING: 'Flug', GROUND: 'Boden', GHOST: 'Geist' };
   // Attacken, die keine "guten Schadensattacken" sind bzw. nicht rollen sollen (GlobalConstants des UPR)
   var BAN_DMG = [120, 138, 153, 173, 206, 248, 252, 264, 353, 364, 387, 389, 132, 99, 205, 301, 485, 492, 255, 49, 82, 32, 12, 90, 329];
   var FIELD_MOVES = [15, 19, 57, 70, 148, 91, 100, 127, 230, 291];
@@ -43,8 +60,10 @@
       bst0.push(sp[s] ? bst(sp[s]) : 0);
       if (!sp[s]) continue;
       if (o.noLegend && model.legends && model.legends.indexOf(s) !== -1) continue;
+      if (o.limitGens && o.limitGens.length) { var gn = 1; while (gn < GEN_END.length - 1 && s > GEN_END[gn]) gn++; if (o.limitGens.indexOf(gn) === -1) continue; }
       pool.push(s);
     }
+    if (!pool.length) for (s = 1; s <= max; s++) if (sp[s]) pool.push(s);
     var sorted = pool.slice().sort(function (a, b) { return bst0[a] - bst0[b]; });
     function pick(orig, similar, exclude, filter) {
       var list = sorted;
@@ -68,6 +87,42 @@
     function aName(a) { return AN[a] || ('#' + a); }
     function mName(m) { return MN[m] || ('Attacke ' + m); }
     L('Rattata Labs Randomizer – ' + model.title); L('Seed: ' + seed); L('');
+
+    // --- Aktualisierung auf spätere Generationen: Attacken und Basiswerte ---
+    var engGen = max <= 151 ? 1 : max <= 251 ? 2 : max <= 386 ? 3 : max <= 493 ? 4 : max <= 649 ? 5 : max <= 721 ? 6 : 7;
+    var updMv = +o.updateMoves || 0, updSt = +o.updateStats || 0;
+    if (updMv > engGen && model.moves && model.setMove && window.MOVE_UPDATES) {
+      L('=== Attacken auf Generation ' + updMv + ' aktualisiert ===');
+      var fieldNames = { power: 'Stärke', acc: 'Genauigkeit', pp: 'AP', type: 'Typ', cat: 'Art' }, nUpd = 0;
+      window.MOVE_UPDATES.forEach(function (u) {
+        var gTo = u[0], cond = u[1], fld = u[2], mvId = u[3], val = u[4];
+        if (gTo > updMv || engGen >= gTo) return;
+        if (cond) { var cn = +cond.replace(/[^0-9]/g, ''); if (cond.indexOf('>=') === 0 ? engGen < cn : engGen !== cn) return; }
+        var mo0 = model.moves[mvId]; if (!mo0) return;
+        if (fld === 'type') { val = (model.typeNames || []).indexOf(TYPE_DE[val]); if (val < 0) return; }
+        if (fld === 'cat') { if (mo0.cat === undefined) return; val = CAT_IDX[val]; }
+        if (mo0[fld] === undefined || mo0[fld] === val || (fld === 'acc' && (Math.abs(mo0.acc - val) < 1 || (val >= 100 && mo0.acc >= 100)))) return; // Treffer-immer-Attacken bleiben
+        var chg = {}; chg[fld] = val; var before = mo0[fld];
+        model.setMove(mvId, chg); mo0[fld] = val; nUpd++;
+        L(mName(mvId) + ': ' + fieldNames[fld] + ' ' + (fld === 'type' ? tName(before) + ' → ' + tName(val) : before + ' → ' + val));
+      });
+      L(nUpd + ' Änderungen.'); L('');
+    }
+    if (updSt > engGen && !model.specialShared) {
+      L('=== Basiswerte auf Generation ' + updSt + ' aktualisiert ===');
+      var nSt = 0;
+      Object.keys(STAT_CHANGES).forEach(function (gk) {
+        var gv = +gk; if (gv > updSt || gv <= engGen) return;
+        Object.keys(STAT_CHANGES[gk]).forEach(function (nat) {
+          var e0 = sp[+nat]; if (!e0 || model.noStatsFor && model.noStatsFor.indexOf(+nat) !== -1) return;
+          var ch0 = STAT_CHANGES[gk][nat], parts0 = [];
+          Object.keys(ch0).forEach(function (ix) { if (e0.bs[+ix] !== ch0[ix]) { parts0.push(['KP', 'Angr', 'Vert', 'Init', 'SpAng', 'SpVert'][+ix] + ' ' + e0.bs[+ix] + ' → ' + ch0[ix]); e0.bs[+ix] = ch0[ix]; } });
+          if (parts0.length) { nSt++; L(nameOf(+nat) + ': ' + parts0.join(', ')); }
+        });
+      });
+      if (nSt && model.commitSpecies) model.commitSpecies();
+      L(nSt + ' Pokémon angepasst.'); L('');
+    }
 
     // --- Attacken-Daten (Stärke, Genauigkeit, AP, Typ, Art) ---
     if ((o.movePower || o.moveAcc || o.movePP || o.moveType || o.moveCat) && model.moves && model.setMove) {
@@ -113,12 +168,13 @@
       L('=== Pokémon-Werte ===');
       var typePool = model.typePool || [];
       var abPool = model.abilityPool ? model.abilityPool.filter(function (a) {
-        return !(o.banTrapping && TRAPPING.indexOf(a) !== -1) && !(o.banNegative && NEGATIVE.indexOf(a) !== -1) && !(a === 25 && !o.allowWonderGuard);
+        return !(o.banTrapping && TRAPPING.indexOf(a) !== -1) && !(o.banNegative && NEGATIVE.indexOf(a) !== -1) && !(o.banBadAbilities && (NEGATIVE.concat(BAD_ABILITIES)).indexOf(a) !== -1) && !(a === 25 && !o.allowWonderGuard);
       }) : null;
       if (abPool && o.allowWonderGuard && abPool.indexOf(25) === -1) abPool.push(25);
       var order = [];
       for (s = 1; s <= max; s++) order.push(s);
-      if (o.followEvoTypes || o.followEvoAbilities) order.sort(function (a, b) { return depth0(a) - depth0(b) || a - b; });
+      var origBs = {}; for (s = 1; s <= max; s++) if (sp[s]) origBs[s] = sp[s].bs.slice();
+      if (o.followEvoTypes || o.followEvoAbilities || o.statsFollowEvo) order.sort(function (a, b) { return depth0(a) - depth0(b) || a - b; });
       for (var oi = 0; oi < order.length; oi++) {
         s = order[oi];
         var e = sp[s]; if (!e) continue;
@@ -133,6 +189,10 @@
             var diff = total - ns.reduce(function (a, b) { return a + b; }, 0), guard = 0;
             while (diff !== 0 && guard++ < 2000) { var ix = rng.int(n), stp = diff > 0 ? 1 : -1; if (ns[ix] + stp >= 10 && ns[ix] + stp <= 250) { ns[ix] += stp; diff -= stp; } }
           }
+          if (o.statsFollowEvo && pr && preOf0[s] && origBs[preOf0[s]]) { // Weiterentwicklung: neue Werte der Vorstufe plus der urspruengliche Unterschied
+            var po = origBs[preOf0[s]];
+            ns = ns.map(function (x, ii) { return Math.max(10, Math.min(250, pr.bs[ii] + (old[ii] - po[ii]))); });
+          }
           for (var i = 0; i < n; i++) e.bs[i] = ns[i];
           if (model.specialShared) e.bs[5] = e.bs[4];
           parts.push('Werte ' + old.join('/') + ' → ' + ns.join('/'));
@@ -141,10 +201,10 @@
           var tp0 = e.types; e.types = pr.types.slice();
           parts.push('Typ ' + tName(tp0[0]) + (tp0[0] === tp0[1] ? '' : '/' + tName(tp0[1])) + ' → ' + tName(e.types[0]) + (e.types[0] === e.types[1] ? '' : '/' + tName(e.types[1])) + ' (wie Vorstufe)');
         } else if (o.types !== 'keep' && typePool.length) {
-          var t0 = e.types, mono = t0[0] === t0[1], a = rng.pick(typePool), b = mono ? a : rng.pick(typePool);
+          var t0 = e.types, mono0 = t0[0] === t0[1], mono = mono0 && !o.dualTypeOnly, a = rng.pick(typePool), b = mono ? a : rng.pick(typePool);
           if (!mono && a === b) b = typePool[(typePool.indexOf(a) + 1 + rng.int(typePool.length - 1)) % typePool.length];
           e.types = [a, b];
-          parts.push('Typ ' + tName(t0[0]) + (mono ? '' : '/' + tName(t0[1])) + ' → ' + tName(a) + (mono ? '' : '/' + tName(b)));
+          parts.push('Typ ' + tName(t0[0]) + (mono0 ? '' : '/' + tName(t0[1])) + ' → ' + tName(a) + (mono ? '' : '/' + tName(b)));
         }
         if (o.abilities !== 'keep' && abPool && e.abilities && o.followEvoAbilities && pr && pr.abilities) {
           var a1 = e.abilities.slice(); e.abilities = pr.abilities.slice();
@@ -160,6 +220,10 @@
           e.abilities = na;
           parts.push('Fähigkeit ' + a0.filter(Boolean).map(aName).join('/') + ' → ' + na.filter(Boolean).map(aName).join('/'));
         }
+        if (o.abilities !== 'keep' && o.ensureTwoAbilities && abPool && e.abilities && e.abilities.length > 1 && e.abilities[0] && (!e.abilities[1] || e.abilities[1] === e.abilities[0]) && abPool.length > 1) {
+          var second = rng.pick(abPool), gd = 0; while (second === e.abilities[0] && gd++ < 20) second = rng.pick(abPool);
+          if (second !== e.abilities[0]) { e.abilities[1] = second; parts.push('zweite Fähigkeit ' + aName(second)); }
+        }
         if (parts.length) L(nameOf(s) + ': ' + parts.join(', '));
       }
       if (model.commitSpecies) model.commitSpecies();
@@ -171,13 +235,16 @@
       L('=== Attacken (Level-Aufstieg) ===');
       var damaging = [], byType = {}, all = [], banned = model.bannedMoves || [];
       for (var m = 1; m <= model.maxMove; m++) {
-        if (banned.indexOf(m) !== -1) continue;
+        if (banned.indexOf(m) !== -1 || (o.movesBlockBroken && BROKEN_MOVES.indexOf(m) !== -1)) continue;
         var mi = model.moves && model.moves[m];
         if (model.moves && !mi) continue;
         all.push(m);
         if (mi && mi.power > 0) { damaging.push(m); (byType[mi.type] = byType[mi.type] || []).push(m); }
       }
       if (!damaging.length) damaging = all;
+      var goodDmg = damaging.filter(function (m2) { var i2 = model.moves && model.moves[m2]; return BAN_DMG.indexOf(m2) === -1 && (!i2 || i2.power >= 50); });
+      if (!goodDmg.length) goodDmg = damaging;
+      var goodPct = (+o.movesGoodDamagingPct || 0) / 100;
       for (s = 1; s <= max; s++) {
         var ld = model.learnsets[s], e2 = sp[s];
         if (!ld || !e2) continue;
@@ -186,13 +253,19 @@
           var mv, tries = 0;
           do {
             var r = rng();
-            if (r < (+o.moveTypePct || 0) / 100 && byType[tp[rng.int(2)]]) mv = rng.pick(byType[tp[rng.int(2)]] || damaging);
+            if (goodPct && rng() < goodPct) mv = rng.pick(goodDmg);
+            else if (r < (+o.moveTypePct || 0) / 100 && byType[tp[rng.int(2)]]) mv = rng.pick(byType[tp[rng.int(2)]] || damaging);
             else if (k < 2 || r < 0.65) mv = rng.pick(damaging);
             else mv = rng.pick(all);
           } while (used.indexOf(mv) !== -1 && ++tries < 30);
           used.push(mv); out.push([ld[k][0], mv]);
-          line.push('Lv' + ld[k][0] + ' ' + mName(mv));
         }
+        if (o.movesReorderDamaging && out.length > 1) { // eine Schadensattacke gehört in die ersten Plätze
+          var isDmg = function (m3) { return damaging.indexOf(m3) !== -1; };
+          if (!isDmg(out[0][1]) && !isDmg(out[1][1])) for (var d3 = 2; d3 < out.length; d3++) if (isDmg(out[d3][1])) { var tmpM = out[1][1]; out[1][1] = out[d3][1]; out[d3][1] = tmpM; break; }
+        }
+        if ((+o.movesGuaranteed || 0) > 0) for (var g3 = 0; g3 < Math.min(+o.movesGuaranteed, out.length); g3++) out[g3][0] = 1; // die ersten Attacken schon auf Level 1
+        out.forEach(function (en) { line.push('Lv' + en[0] + ' ' + mName(en[1])); });
         model.setLearnset(s, out); model.learnsets[s] = out;
         L(nameOf(s) + ': ' + line.join(', '));
       }
@@ -422,6 +495,10 @@
         var tkeys = Object.keys(tmap).filter(function (t) { return tmap[t].length >= model.starters.length; });
         if (tkeys.length) { var tt = rng.pick(tkeys), tl = tmap[tt]; sFilter = function (x) { return tl.indexOf(x) !== -1; }; L('Typ der Starter: ' + tName(+tt)); }
       }
+      if (o.starters === 'random' && o.starterMax600) {
+        var prevF = sFilter; sFilter = function (x) { return bst0[x] <= 600 && (!prevF || prevF(x)); };
+        if (pool.filter(sFilter).length < model.starters.length) sFilter = prevF;
+      }
       model.starters.forEach(function (st, i) {
         var oldS = st.get(), nw;
         if (o.starters === 'custom' && o.starterPick && o.starterPick[i % 3]) nw = o.starterPick[i % 3];
@@ -535,6 +612,23 @@
       }
     }
 
+    // --- Starter-Item und Tausch-Werte ---
+    if (ID && o.starterHeldItem && model.starterItem) {
+      var oldSi = model.starterItem.get(), newSi = rng.pick(ID.nonBad.filter(function (x) { return !tmSet[x]; }));
+      model.starterItem.set(newSi);
+      L('=== Starter-Item ==='); L(itemName(oldSi) + ' → ' + itemName(newSi)); L('');
+    }
+    if ((o.tradeIVs || (o.tradeItems && ID)) && model.trades && model.trades.length) {
+      L('=== Ingame-Tausche: Werte ===');
+      model.trades.forEach(function (tr3, ti3) {
+        var parts3 = [];
+        if (o.tradeIVs && tr3.setIvs) { var iv3 = []; for (var q3 = 0; q3 < 6; q3++) iv3.push(rng.int(32)); tr3.setIvs(iv3); parts3.push('IV ' + iv3.join('/')); }
+        if (o.tradeItems && ID && tr3.setItem) { var it3 = rng.pick(ID.nonBad.filter(function (x) { return !tmSet[x]; })); tr3.setItem(it3); parts3.push('Item ' + itemName(it3)); }
+        if (parts3.length) L('Tausch ' + (ti3 + 1) + ': ' + parts3.join(', '));
+      });
+      L('');
+    }
+
     // --- Level der wilden Pokémon ---
     if (+o.wildLevelPct && model.wild && model.wild.length) {
       var wn = 0; model.wild.forEach(function (sl) { if (sl.scale) { sl.scale(+o.wildLevelPct); wn++; } });
@@ -553,6 +647,15 @@
         tr.mons.forEach(function (pm) {
           var cur = pm.get(), lv = pm.level;
           if (o.trainers !== 'keep') { cur = pick(cur, o.trainers === 'similar', o.trainerNoDup ? party : null, tf); party.push(cur); }
+          if (o.trainerFullyEvolved && lv >= (+o.trainerFullyEvolvedLevel || 30) && model.evos) { // ab diesem Level nur voll entwickelte Arten
+            for (var fe = 0; fe < 4; fe++) {
+              var nx = model.evos.filter(function (ev) { return ev.from === cur && ev.get() !== cur && sp[ev.get()]; });
+              if (!nx.length) break;
+              var ec = o.noLegend ? nx.filter(function (ev) { return !(model.legends && model.legends.indexOf(ev.get()) !== -1); }) : nx;
+              if (!ec.length) break;
+              cur = rng.pick(ec).get();
+            }
+          }
           if (o.trainerItems !== 'keep' && pm.setItem && ID && pm.hasItem) { var ti = rng.pick((o.itemsBanBad ? ID.nonBad : ID.nonBad).filter(function (x) { return !tmSet[x]; })); pm.setItem(ti); }
           if (pct) lv = Math.max(1, Math.min(100, Math.round(pm.level * (1 + pct / 100))));
           if (o.trainers !== 'keep') pm.set(cur);

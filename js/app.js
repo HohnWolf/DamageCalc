@@ -2911,6 +2911,7 @@
     el: el, esc: esc, opt: opt, toast: toast, pushUndo: pushUndo, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
     parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
+    withLang: function (l, fn) { var o = LANG; LANG = l; try { return fn(); } finally { LANG = o; } },
     setting: setting, setSetting: setSetting, saveFile: saveFile, openSettings: openSettings, saveCustomSet: saveCustomSet
   };
   // expose for debugging

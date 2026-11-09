@@ -27,6 +27,8 @@ fs.readFileSync(src, 'utf8').split(/\r?\n/).forEach(line => {
   } else if (k === 'StaticPokemon{}') {
     const g = n => { const m = val.match(new RegExp(n + '=\\[([^\\]]*)\\]')); return m ? refs(m[1]) : []; };
     cur.statics.push({ s: g('Species'), f: g('Forme'), l: g('Level') });
+  } else if (/^StarterOffsets[123]$/.test(k)) {
+    (cur.v.starters = cur.v.starters || [])[+k.slice(-1) - 1] = refs(val.replace(/^\[|\]$/g, ''));
   } else if (k === 'TradeScript[]') {
     // [Datei:Verlangt:Gegeben, ...]
     cur.trades.push(val.replace(/^\[|\]$/g, '').split(',').map(x => x.trim().split(':').map(num)));
@@ -40,7 +42,7 @@ const out = {};
 entries.forEach(e => {
   const v = e.v;
   if (!v.Game) return;
-  out[v.Game] = { type: v.Type, scripts: v.scriptsFile, tradesFile: v.tradesFile, unused: v.TradesUnused || [], eggs: v.StaticEggPokemonOffsets || [], statics: e.statics, trades: e.trades,
+  out[v.Game] = { type: v.Type, scripts: v.scriptsFile, tradesFile: v.tradesFile, unused: v.TradesUnused || [], eggs: v.StaticEggPokemonOffsets || [], starters: v.starters, statics: e.statics, trades: e.trades,
     ball: v.ItemBallsScriptOffset, ballSkip: v.ItemBallsSkip || [], hiddenFile: v.HiddenItemsScriptOffset, hiddenSkip: v.HiddenItemsSkip || [], shopsFile: v.shopsFile, shopCount: v.ShopCount, shopSkip: (v.TMShops || []).concat(v.RegularShops || []),
     pickupOvl: v.PickupOvlNumber,
     tutor: v.MoveTutorOvlNumber !== undefined ? [v.MoveTutorOvlNumber, v.MoveTutorDataOffset] : undefined, shopOvl: v.ShopItemOvlNumber !== undefined && v.ShopItemOffsets ? [v.ShopItemOvlNumber, v.ShopItemOffsets, v.ShopItemSizes] : undefined };

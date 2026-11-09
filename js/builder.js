@@ -256,6 +256,7 @@
       '<span class="tb-count" id="tbCount"></span>' +
       '<span class="tb-acts">' +
       '<button class="tbtn" id="tbExport">' + T('tbExport') + '</button>' +
+      '<button class="tbtn" id="tbSheet" title="' + (de ? 'Teamsheet als Bild (Deutsch / Englisch)' : 'Team sheet as image (German / English)') + '">' + (de ? 'Teamsheet' : 'Team sheet') + '</button>' +
       '<button class="tbtn" id="tbDup">' + T('tbDuplicate') + '</button>' +
       '<button class="tbtn danger" id="tbDel">' + T('tbDelete') + '</button>' +
       '<span class="tb-sep"></span>' +
@@ -327,6 +328,10 @@
       var tm = team(), v = curVersion(tm);
       var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
       A.showModal(T('tbExportTitle') + ': ' + title, tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n'));
+    });
+    root.querySelector('#tbSheet').addEventListener('click', function () {
+      var tm = team();
+      if (window.CCTeamsheet) window.CCTeamsheet.open({ name: tm.name, mons: curVersion(tm).mons });
     });
     root.querySelector('#tbDup').addEventListener('click', function () {
       var tm = team();

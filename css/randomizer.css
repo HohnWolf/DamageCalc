@@ -22,3 +22,11 @@
 .rd-code { max-width: 220px; }
 .rd-adv summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 4px 0; }
 .rd-advbody { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 4px; }
+
+/* Unterkategorien (Tabs) */
+.rd-tabs { flex-wrap: wrap; }
+.rd-tabbox { display: flex; flex-direction: column; }
+.rd-panel { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 8px; }
+.rd-sub { margin: 8px 0 0; font-size: 13px; color: var(--accent-2); border-bottom: 1px solid var(--line-soft); padding-bottom: 3px; }
+.rd-sub:first-child { margin-top: 0; }
+.rd-gens { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
