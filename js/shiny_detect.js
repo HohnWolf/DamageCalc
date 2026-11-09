@@ -90,6 +90,7 @@
     clearInterval(s.loop);
     try { s.stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) { /* already stopped */ }
     delete sessions[id];
+    if (window.CCProjector) window.CCProjector.sourceStopped(id);
   }
   function chooseScreen(cb) { Cap.chooseScreen(cb); }
 
@@ -184,6 +185,71 @@
     head.appendChild(stEl);
     box.appendChild(head);
     box.appendChild(el('div', { class: 'det-alpha', text: t('alphaNote') }));
+    function fpsControl() {
+      if (!api.setFps || !window.CCProjectorMirror) return null;
+      var cur = window.CCProjectorMirror.clampFps(api.getFps ? api.getFps() : 20);
+      var nativeOn = !api.getNative || api.getNative();
+      var wrap = el('div', { class: 'det-fps', role: 'group', 'aria-labelledby': 'detFpsLabel' });
+      var nat = el('label', { class: 'nc-check sh-chk', title: api.nativeTitle || '' });
+      var nb = el('input', { type: 'checkbox', id: 'detFpsNative' });
+      nb.checked = nativeOn;
+      nat.appendChild(nb);
+      nat.appendChild(document.createTextNode(' ' + (api.nativeLabel || 'Quelle (nativ)')));
+      wrap.appendChild(nat);
+      if (api.setMode) {
+        var ml = el('label', { class: 'nc-sel', title: api.modeTitle || '' });
+        ml.appendChild(el('span', { text: api.modeLabel || 'Modus' }));
+        var ms = el('select', { id: 'detProjMode' });
+        [['classic', api.modeOld || 'Aktuell'], ['fast', api.modeNew || 'Neu']].forEach(function (x) {
+          var o = el('option', { value: x[0], text: x[1] });
+          if ((api.getMode ? api.getMode() : 'classic') === x[0]) o.selected = true;
+          ms.appendChild(o);
+        });
+        ms.addEventListener('change', function () { api.setMode(ms.value); });
+        ml.appendChild(ms);
+        wrap.appendChild(ml);
+      }
+      wrap.appendChild(el('span', { id: 'detFpsLabel', text: api.fpsLabel || 'FPS' }));
+      var range = el('input', { type: 'range', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsRange', 'aria-valuemin': '10', 'aria-valuemax': '60', 'aria-valuenow': String(cur), 'aria-describedby': 'detFpsHint' });
+      var num = el('input', { type: 'number', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsNum', inputmode: 'numeric', 'aria-label': api.fpsNumber || api.fpsLabel || 'FPS' });
+      function show(n) {
+        range.value = String(n);
+        range.setAttribute('aria-valuenow', String(n));
+        if (document.activeElement !== num) num.value = String(n);
+      }
+      function commit(raw) {
+        var n = window.CCProjectorMirror.clampFps(raw);
+        show(n);
+        num.value = String(n);
+        api.setFps(n);
+      }
+      function lock(on) { range.disabled = on; num.disabled = on; }
+      lock(nativeOn);
+      nb.addEventListener('change', function () { lock(nb.checked); if (api.setNative) api.setNative(nb.checked); });
+      range.addEventListener('input', function () { num.value = range.value; commit(range.value); });
+      num.addEventListener('input', function () {
+        var raw = String(num.value).trim();
+        if (/^\d{2}$/.test(raw)) {
+          var n = +raw;
+          if (n >= 10 && n <= 60) { range.value = String(n); range.setAttribute('aria-valuenow', String(n)); api.setFps(n); }
+        }
+      });
+      num.addEventListener('change', function () { commit(num.value); });
+      wrap.appendChild(range);
+      wrap.appendChild(num);
+      wrap.appendChild(el('span', { id: 'detFpsHint', class: 'hint', text: api.fpsHint || '' }));
+      return wrap;
+    }
+    function projectorButton() {
+      if (!api.projector) return null;
+      var pb = el('button', { type: 'button', class: 'tbtn' + (api.projectorOn && api.projectorOn() ? ' on' : ''), text: api.projectorLabel ? api.projectorLabel() : 'Projektor', title: api.projectorTitle || '' });
+      pb.setAttribute('data-projector', '1');
+      pb.addEventListener('click', function () {
+        try { api.projector(); }
+        catch (e) { console.error('Projektor', e); A.toast(de ? 'Das Projektor-Fenster konnte nicht geöffnet werden.' : 'The projector window could not be opened.'); }
+      });
+      return pb;
+    }
     if (!s) {
       var row = el('div', { class: 'det-row' });
       var sb = el('button', { class: 'tbtn', text: t('screen') });
@@ -207,6 +273,10 @@
         rc.addEventListener('click', function () { go(c.source); });
         row.appendChild(rc);
       }
+      var pb0 = projectorButton();
+      if (pb0) row.appendChild(pb0);
+      var fps0 = fpsControl();
+      if (fps0) row.appendChild(fps0);
       box.appendChild(row);
       stEl.textContent = t('noSource');
       return;
@@ -251,8 +321,13 @@
       c.region = { x: x, y: y, w: w, h: hh };
       api.persist(); panel(box, h, api);
     });
+    function previewShown() {
+      if (document.hidden) return false;
+      return !!(cv.offsetParent || (cv.getClientRects && cv.getClientRects().length));
+    }
     function draw() {
       if (!document.contains(cv)) return;
+      if (!previewShown()) { setTimeout(draw, 400); return; }
       var v = s.video;
       if (v.videoWidth) {
         // draw at device-pixel resolution (never above the source) so the preview stays sharp on HiDPI screens
@@ -261,6 +336,7 @@
         if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(v, 0, 0, W, H);
+        // Gelber Rahmen nur auf diesem Vorschau-Canvas. Der Projektor liest ausschließlich s.video.
         var r = drag ? { x: Math.min(drag.a.x, drag.b.x), y: Math.min(drag.a.y, drag.b.y), w: Math.abs(drag.a.x - drag.b.x), h: Math.abs(drag.a.y - drag.b.y) } : c.region;
         if (r) {
           ctx.lineWidth = Math.max(2, Math.round(W / 400));
@@ -289,6 +365,10 @@
     var dc = el('button', { class: 'tbtn', text: t('disconnect') });
     dc.addEventListener('click', function () { stop(h.id); api.persist(); panel(box, h, api); });
     tools.appendChild(dc);
+    var pb = projectorButton();
+    if (pb) tools.appendChild(pb);
+    var fps1 = fpsControl();
+    if (fps1) tools.appendChild(fps1);
     box.appendChild(tools);
 
     // text mode: what to look for (empty = name of the hunt)
@@ -397,6 +477,8 @@
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
     // connected source of a hunt (the clips can record the same picture)
     stream: function (id) { return sessions[id] ? sessions[id].stream : null; },
+    // Rohes Video der Aufnahme (ohne Erkennungsrahmen). Der Projektor spiegelt nur dieses Element.
+    video: function (id) { return sessions[id] ? sessions[id].video : null; },
     _similarity: similarity, _sessions: sessions, _textScore: textScore,
     // for tests: use any MediaStream (e.g. canvas.captureStream()) as the source
     _attach: function (h, stream, api) {

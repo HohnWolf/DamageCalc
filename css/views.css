@@ -167,8 +167,8 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .cat-card.cat-dex:hover { border-color: #10b981; }
 .cat-card.cat-go { border-top-color: #06b6d4; }
 .cat-card.cat-go:hover { border-color: #06b6d4; }
-.cat-card.cat-rest { border-top-color: #eab308; }
-.cat-card.cat-rest:hover { border-color: #eab308; }
+.cat-card.cat-rest { border-top-color: #a78bfa; }
+.cat-card.cat-rest:hover { border-color: #a78bfa; }
 
 .start-card .sc-art-cat, .sc-art-cat {
   flex: 1;
@@ -1197,11 +1197,6 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .cc-dlg-actions button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 @keyframes cc-dlg-in { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .cc-dlg { animation: none; } }
-
-/* Kategorie „Other“: Werkzeug-Symbole statt Sprites */
-.sc-art-cat .sc-tool { flex: 0 1 54px; border-radius: 12px; color: #eab308; background: color-mix(in srgb, #eab308 12%, transparent); border: 1px solid color-mix(in srgb, #eab308 35%, transparent); }
-.sc-art-cat .sc-tool .ic { width: 28px; height: 28px; }
-
 /* Teamsheet modal (teambuilder) */
 .ts-box { width: min(1000px, 96vw); max-height: 92vh; display: flex; flex-direction: column; }
 .ts-opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }

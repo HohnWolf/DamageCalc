@@ -41,7 +41,14 @@
     setBtn: '✎ Festlegen', setT: 'Begegnungen und Zeit von Hand festlegen (auch per Doppelklick auf Zahl oder Zeit)', setTitle: 'Zähler und Zeit festlegen',
     setCount: 'Begegnungen (diese Phase)', setTotal: 'Gesamt (alle Phasen)', setTotalT: 'Leer lassen: ändert sich um denselben Betrag wie die Begegnungen', setTime: 'Zeit (Stunden : Minuten : Sekunden)',
     setHint: 'Zum Übernehmen eines Hunts aus einem anderen Zähler oder zum Korrigieren. „Heute“ bleibt unverändert.', act_clip: 'Clip speichern', clipPlay: 'Clip abspielen',
-    openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.'
+    openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.',
+    act_projector: 'Projektor', projector: 'Projektor', projectorT: 'Öffnet die Aufnahme in einem eigenen Fenster, mit Zähler, Quote und Timer darüber. Der gelbe Erkennungsrahmen bleibt nur in diesem Fenster.',
+    projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).',
+    projectorOpenFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
+    projectorNoAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
+    projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Obergrenze für die Aufnahme, nur wenn „Quelle (nativ)“ aus ist.',
+    projectorMode: 'Modus', projectorModeT: 'Zum Vergleichen: Aktuell oder Neu (weniger Last im Fenster, Overlay per Push, Latenz-Anzeige in der Diagnose). Umschalten geht auch im Projektor mit M.', projectorModeOld: 'Aktuell', projectorModeNew: 'Neu (schnell)',
+    projectorNative: 'Quelle (nativ)', projectorNativeN: 'Bildrate der Aufnahme, ohne Extra-Kopie. Ohne Haken gilt die Zahl als Obergrenze.'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
     tabHunts: 'Hunts', tabDex: 'Collection', tabSetup: 'Hotkeys & OBS', newHunt: '+ New hunt', huntsActive: 'Active', huntsDone: 'Found',
@@ -73,7 +80,14 @@
     setBtn: '✎ Set', setT: 'Set encounters and time by hand (also by double-clicking the number or the time)', setTitle: 'Set counter and time',
     setCount: 'Encounters (this phase)', setTotal: 'Total (all phases)', setTotalT: 'Leave empty: changes by the same amount as the encounters', setTime: 'Time (hours : minutes : seconds)',
     setHint: 'To take over a hunt from another counter or to correct it. "Today" stays as it is.', act_clip: 'Save clip', clipPlay: 'Play clip',
-    openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.'
+    openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.',
+    act_projector: 'Projector', projector: 'Projector', projectorT: 'Opens the capture in its own window, with counter, odds and timer on top. The yellow detection box stays in this window only.',
+    projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).',
+    projectorOpenFail: 'The projector window could not be opened.',
+    projectorNoAudio: 'This source has no audio. The picture is still shown.',
+    projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Cap for the capture, only when "Source (native)" is off.',
+    projectorMode: 'Mode', projectorModeT: 'For comparing: Current or New (less work in the window, overlay by push, latency readout in diagnostics). Toggle in the projector with M.', projectorModeOld: 'Current', projectorModeNew: 'New (fast)',
+    projectorNative: 'Source (native)', projectorNativeN: 'The capture frame rate, without an extra copy. Uncheck to use the number as a cap.'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
   function fmt(n) { return Math.round(n).toLocaleString(de ? 'de-DE' : 'en-US'); }
@@ -175,6 +189,40 @@
   });
   store.tab = store.tab || 'hunts';
   if (store.hotkeys.clip == null) store.hotkeys.clip = '';
+  if (store.hotkeys.projector == null) store.hotkeys.projector = 'CommandOrControl+Alt+P';
+  function cleanProjector(p) {
+    p = p && typeof p === 'object' ? p : {};
+    var b = p.bounds && typeof p.bounds === 'object' ? p.bounds : null;
+    var id = p.displayId == null || p.displayId === '' ? null : p.displayId;
+    return {
+      onTop: !!p.onTop, hideCursor: !!p.hideCursor, overlay: p.overlay !== false,
+      fullscreen: !!p.fullscreen, displayId: id,
+      fps: window.CCProjectorMirror ? window.CCProjectorMirror.clampFps(p.fps) : 20,
+      native: p.native !== false,
+      mode: p.mode === 'fast' ? 'fast' : 'classic',
+      sound: p.sound !== false,
+      volume: window.CCProjectorMirror ? window.CCProjectorMirror.clampVolume(p.volume) : 80,
+      counterX: window.CCProjectorMirror ? window.CCProjectorMirror.placeCounter(p.counterX, p.counterY, p.counterScale, 1, 1, 100, 100).x : 2,
+      counterY: window.CCProjectorMirror ? window.CCProjectorMirror.placeCounter(p.counterX, p.counterY, p.counterScale, 1, 1, 100, 100).y : 2,
+      counterScale: window.CCProjectorMirror ? window.CCProjectorMirror.clampScale(p.counterScale) : 100,
+      bounds: b ? { x: Math.round(+b.x) || 0, y: Math.round(+b.y) || 0, width: Math.max(480, Math.round(+b.width) || 960), height: Math.max(270, Math.round(+b.height) || 540) } : null
+    };
+  }
+  store.projector = cleanProjector(store.projector);
+  function overlayHref(base, edit) {
+    if (!base) return '';
+    var o = store.overlay, q = [];
+    if (o.hunt) q.push('hunt=' + encodeURIComponent(o.hunt));
+    if (o.layout !== 'row') q.push('layout=' + o.layout);
+    ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) { if (!o[k]) q.push(k + '=0'); });
+    if (o.color && o.color !== '#ffffff') q.push('color=' + o.color.slice(1));
+    if (o.accent && o.accent !== '#f2c94c') q.push('accent=' + o.accent.slice(1));
+    if (o.bg) q.push('bg=' + o.bg.slice(1));
+    if (+o.size !== 1 && o.layout !== 'free') q.push('size=' + o.size);
+    var u = base + (q.length ? '?' + q.join('&') : '');
+    if (edit) u += (u.indexOf('?') >= 0 ? '&' : '?') + 'edit=1';
+    return u;
+  }
   var Clip = window.CCShinyClip || null;
   if (Clip) store.clip = Clip.init(store.clip, function () { persist(); });
   store.dexGen = store.dexGen || 0;
@@ -291,6 +339,7 @@
   // global hotkeys and the window keys
   function hotkeyAction(action) {
     if (action === 'clip') { if (Clip) Clip.trigger('manual', sel() ? huntName(sel()) : '', sel() ? sel().id : ''); return; }
+    if (action === 'projector') { if (window.CCProjector) window.CCProjector.toggle(sel() ? sel().id : null); return; }
     if (action === 'phase') autoClip(sel(), 'phase');
     var list = store.hunts.filter(function (h) { return h.hotkey && h.status !== 'found'; });
     if (!list.length && sel()) list = [sel()];
@@ -324,16 +373,22 @@
     return { id: h.id, name: huntName(h), sprite: sid(h.species), count: h.count, total: h.total || 0, phase: h.phases.length + 1,
       phaseText: h.phases.length ? t('phaseN', h.phases.length + 1) + ' · ' + t('total', fmt(h.total || 0)) : '',
       oddsText: oddsText(h), chanceText: pct(O.cumulative(p, h.count)) + ' %', timeText: dur(timeOf(h)), methodText: de ? m.de : m.en,
-      gameText: de ? g.de : g.en, found: h.status === 'found' };
+      gameText: de ? g.de : g.en, found: h.status === 'found',
+      // the fast overlay (overlay2.html) runs the timer itself from these two values
+      timeMs: h.timeMs || 0, runStart: h.runStart || 0 };
   }
-  var pushTimer = null;
+  // first push goes out at once (counting shows up immediately), further ones within 60 ms are merged into one
+  var pushTimer = null, lastPush = 0;
+  function doPush() {
+    pushTimer = null; lastPush = Date.now();
+    var active = store.overlay.hunt && hunt(store.overlay.hunt) ? store.overlay.hunt : (sel() ? sel().id : null);
+    D.pushState({ hunts: store.hunts.map(stateOf), active: active, overlay: { free: store.overlay.free } });
+  }
   function pushState() {
     if (!D) return;
     clearTimeout(pushTimer);
-    pushTimer = setTimeout(function () {
-      var active = store.overlay.hunt && hunt(store.overlay.hunt) ? store.overlay.hunt : (sel() ? sel().id : null);
-      D.pushState({ hunts: store.hunts.map(stateOf), active: active, overlay: { free: store.overlay.free } });
-    }, 60);
+    var wait = 60 - (Date.now() - lastPush);
+    if (wait <= 0) doPush(); else pushTimer = setTimeout(doPush, wait);
   }
   // timers tick every second (screen and overlay)
   setInterval(function () {
@@ -570,7 +625,20 @@
       var dp = el('div', { class: 'sh-detect panel' });
       grid.appendChild(dp);
       window.CCShinyDetect.panel(dp, h, { count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
-        name: function () { return h.species ? monName(h.species) : ''; } });
+        name: function () { return h.species ? monName(h.species) : ''; },
+        projector: D && window.CCProjector ? function () { window.CCProjector.toggle(h.id); } : null,
+        projectorOn: function () { return !!(window.CCProjector && window.CCProjector.isOpen()); },
+        projectorLabel: function () { return t('projector'); },
+        projectorTitle: t('projectorT'),
+        getFps: function () { return store.projector.fps; },
+        setFps: function (n) { store.projector.fps = window.CCProjectorMirror.clampFps(n); persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
+        getNative: function () { return store.projector.native !== false; },
+        getMode: function () { return store.projector.mode === 'fast' ? 'fast' : 'classic'; },
+        setMode: function (m) { store.projector.mode = m === 'fast' ? 'fast' : 'classic'; persist(); if (window.CCProjector && window.CCProjector.syncMode) window.CCProjector.syncMode(); },
+        modeLabel: t('projectorMode'), modeTitle: t('projectorModeT'), modeOld: t('projectorModeOld'), modeNew: t('projectorModeNew'),
+        setNative: function (on) { store.projector.native = !!on; persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
+        fpsLabel: t('projectorFps'), fpsNumber: t('projectorFpsN'), fpsHint: t('projectorFpsHint'),
+        nativeLabel: t('projectorNative'), nativeTitle: t('projectorNativeN') });
     }
     if (Clip) {
       var cp = el('div', { class: 'sh-detect sh-clip panel' });
@@ -856,7 +924,7 @@
     var hp = el('div', { class: 'panel sh-card' });
     hp.appendChild(el('h3', { text: t('hkTitle') }));
     hp.appendChild(el('div', { class: 'hint', text: D ? t('hkHint') : t('hkDesktop') }));
-    ['inc', 'dec', 'phase', 'timer', 'clip'].forEach(function (a) {
+    ['inc', 'dec', 'phase', 'timer', 'clip', 'projector'].forEach(function (a) {
       var r = el('div', { class: 'sh-hk-row' });
       r.appendChild(el('span', { class: 'sh-hk-name', text: t('act_' + a) }));
       var key = el('span', { class: 'sh-hk-key', text: accelLabel(store.hotkeys[a]) });
@@ -962,22 +1030,13 @@
       frameWrap.style.height = Math.ceil(o.free.h * k) + 2 + 'px';
       if (obsSize) obsSize.textContent = t('freeObs', o.free.w, o.free.h);
     }
-    function url() {
-      var q = [];
-      if (o.hunt) q.push('hunt=' + encodeURIComponent(o.hunt));
-      if (o.layout !== 'row') q.push('layout=' + o.layout);
-      ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) { if (!o[k]) q.push(k + '=0'); });
-      if (o.color && o.color !== '#ffffff') q.push('color=' + o.color.slice(1));
-      if (o.accent && o.accent !== '#f2c94c') q.push('accent=' + o.accent.slice(1));
-      if (o.bg) q.push('bg=' + o.bg.slice(1));
-      if (+o.size !== 1 && o.layout !== 'free') q.push('size=' + o.size);
-      return baseUrl + (q.length ? '?' + q.join('&') : '');
-    }
+    function url() { return overlayHref(baseUrl, false); }
     function update() {
       if (!baseUrl) return;
       var u = url();
       urlIn.value = u;
-      frame.src = isFree ? u + (u.indexOf('?') >= 0 ? '&' : '?') + 'edit=1' : u;
+      frame.src = overlayHref(baseUrl, isFree);
+      if (window.CCProjector) window.CCProjector.syncOverlay(u);
       fitFrame();
     }
     wrap.appendChild(op);
@@ -1008,7 +1067,30 @@
     box.appendChild(el('span', { class: 'sc-shiny-count', text: h ? fmt(h.count) + ' · ' + oddsText(h) : '1/4096' }));
   }
 
-  window.CCShiny = { render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction };
-  function boot() { renderStartArt(); applyHotkeys(); pushState(); }
+  if (window.CCProjector) window.CCProjector.bind({
+    video: function (id) { return window.CCShinyDetect && window.CCShinyDetect.video ? window.CCShinyDetect.video(id) : null; },
+    overlayUrl: function () { return baseOverlay ? overlayHref(baseOverlay, false) : ''; },
+    opts: function () { return store.projector; },
+    save: function (patch) { store.projector = cleanProjector(Object.assign({}, store.projector, patch || {})); persist(); },
+    theme: function () { return document.documentElement.getAttribute('data-theme') || 'oled'; },
+    lang: de ? 'de' : 'en',
+    toast: function (m) { A.toast(m); },
+    noDesktop: t('projectorDesktop'), noVideo: t('projectorNoVideo'),
+    openFail: t('projectorOpenFail'), noAudio: t('projectorNoAudio')
+  });
+  var baseOverlay = '';
+  if (D) D.overlayInfo().then(function (info) {
+    baseOverlay = (info && info.url) || '';
+    if (window.CCProjector && window.CCProjector.isOpen()) window.CCProjector.syncOverlay(overlayHref(baseOverlay, false));
+  });
+  window.CCShiny = { render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref };
+  function boot() {
+    renderStartArt(); applyHotkeys(); pushState();
+    // Ungültige Bildrate aus dem Speicher sofort auf 10–60 zurückschreiben.
+    try {
+      var raw = JSON.parse(localStorage.getItem('cc_shiny') || '{}');
+      if (!raw.projector || raw.projector.fps !== store.projector.fps) A.save('cc_shiny', store);
+    } catch (e) { /* Speicher gesperrt */ }
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

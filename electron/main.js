@@ -32,7 +32,14 @@ process.on('unhandledRejection', (err) => {
   throw err;
 });
 
+// Der Projektor ist ein Kindfenster (window.open). Das darf auch ohne Browser-Geste aufgehen.
+app.commandLine.appendSwitch('disable-popup-blocking');
 const ROOT = path.join(__dirname, '..');
+const projector = require('./projector');
+// Test des Projektors: eigene Nutzerdaten, damit die laufende App nicht blockiert wird
+if (process.argv.includes('--projector-test') || process.argv.includes('--projector-click-test')) {
+  app.setPath('userData', path.join(require('os').tmpdir(), 'rl-projector-test-' + process.pid));
+}
 
 // Frühere Namen ("Champions Damage Calc" bis 1.1, "Rattata Lab" bis 1.11.1): Teams, Sets und Einstellungen beim ersten Start übernehmen
 try {
@@ -53,7 +60,22 @@ function saveBounds(win) {
 
 let win = null;
 
+function createTestWindow() {
+  win = new BrowserWindow({
+    x: 20, y: 20, width: 1000, height: 640,
+    show: true,
+    backgroundColor: '#111111',
+    title: 'Projektor-Test',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'projector_harness.html'));
+}
+
 function createWindow() {
+  if (process.argv.includes('--projector-test')) { createTestWindow(); return; }
   const isShiny = (Math.floor(Math.random() * 8192) === 0) || process.argv.includes('--shiny');
   const iconPath = (isShiny && fs.existsSync(path.join(ROOT, 'icon_shiny.ico')))
     ? path.join(ROOT, 'icon_shiny.ico')
@@ -83,11 +105,7 @@ function createWindow() {
   win.on('unmaximize', sendMax);
   win.webContents.on('did-finish-load', sendMax);
 
-  // Links (z. B. Credits) im normalen Browser öffnen, nicht in der App
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:/.test(url)) shell.openExternal(url);
-    return { action: 'deny' };
-  });
+  // HTTPS-Links und das Projektor-Fenster: electron/projector.js (install)
   win.webContents.on('will-navigate', (e, url) => {
     if (/^https?:/.test(url)) { e.preventDefault(); shell.openExternal(url); }
   });
@@ -102,6 +120,19 @@ function createWindow() {
 
   win.on('close', () => saveBounds(win));
   win.loadFile(path.join(ROOT, 'index.html'), isShiny ? { query: { shiny: '1' } } : undefined);
+  if (process.argv.includes('--projector-click-test')) {
+    const driver = fs.readFileSync(path.join(__dirname, 'projector_click.js'), 'utf8');
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.executeJavaScript(driver, true).catch((err) => {
+        console.error('Projektor-Klick-Test', err);
+        try { fs.mkdirSync(process.env.RL_SHOT_DIR || require('os').tmpdir(), { recursive: true }); } catch (e) { /* */ }
+        try {
+          fs.writeFileSync(path.join(process.env.RL_SHOT_DIR || require('os').tmpdir(), 'result.json'), JSON.stringify({ ok: false, error: String(err && err.message || err) }));
+        } catch (e) { /* */ }
+        setTimeout(() => { try { app.exit(1); } catch (e) { process.exit(1); } }, 50);
+      });
+    });
+  }
 }
 
 ipcMain.on('win', (e, what) => {
@@ -134,6 +165,7 @@ if (!app.requestSingleInstanceLock()) {
     });
     createWindow();
     shiny.init(win);
+    projector.init(win);
     match.init(shiny);
     ocr.init();
     updater.init(win);

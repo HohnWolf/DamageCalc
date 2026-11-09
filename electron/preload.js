@@ -2,6 +2,12 @@
 // (globale Hotkeys, OBS-Overlay/Textdateien, Auswahl der Bildschirmquelle, Texterkennung), die Match-Overlays und Updates. Sonst nichts.
 const { contextBridge, ipcRenderer } = require('electron');
 
+// MessagePort vom Hauptprozess ins Fenster (isolierte Welt → Seite)
+ipcRenderer.on('projector-port', (event) => {
+  try { window.postMessage({ type: 'rl-projector-port' }, '*', event.ports); }
+  catch (e) { console.error('Projektor: Port', e); }
+});
+
 contextBridge.exposeInMainWorld('desktop', {
   minimize: () => ipcRenderer.send('win', 'min'),
   toggleMaximize: () => ipcRenderer.send('win', 'max'),
@@ -24,6 +30,25 @@ contextBridge.exposeInMainWorld('desktop', {
     // Windows.Media.Ocr gibt es nur unter Windows. Auf anderen Systemen bleibt die Brücke weg,
     // damit die Seite denselben Hinweis zeigt wie im Browser, statt PowerShell zu starten.
     ocr: process.platform === 'win32' ? (b64) => ipcRenderer.invoke('shiny-ocr', String(b64)) : undefined,
+  },
+  // Projektor-Fenster (electron/projector.js): Aufnahme in einem eigenen Fenster, Overlay darüber
+  projector: {
+    open: (o) => ipcRenderer.invoke('projector-open', o || {}),
+    close: () => ipcRenderer.send('projector-close'),
+    set: (o) => ipcRenderer.send('projector-set', o || {}),
+    displays: () => ipcRenderer.invoke('projector-displays'),
+    state: () => ipcRenderer.invoke('projector-state'),
+    leaveFullscreen: () => ipcRenderer.send('projector-leave-fs'),
+    onOpts: (cb) => ipcRenderer.on('projector-opts', (e, o) => cb(o)),
+    onClosed: (cb) => ipcRenderer.on('projector-closed', () => cb()),
+    onBounds: (cb) => ipcRenderer.on('projector-bounds', (e, b) => cb(b)),
+    onShowMenu: (cb) => ipcRenderer.on('projector-show-menu', (e, pos) => cb(pos || {})),
+    onError: (cb) => ipcRenderer.on('projector-error', (e, o) => cb(o || {})),
+    testSample: () => ipcRenderer.invoke('projector-test-sample'),
+    testShot: (spec) => ipcRenderer.invoke('projector-test-shot', spec || {}),
+    testMenu: () => ipcRenderer.send('projector-test-menu'),
+    testDone: (result) => ipcRenderer.send('projector-test-done', result || {}),
+    testInfo: (spec) => ipcRenderer.invoke('projector-test-info', spec || {}),
   },
   // Match-Overlays für OBS (electron/match.js): Stand schicken, Adresse, Teamlogos, Start-Screen abspielen
   match: {

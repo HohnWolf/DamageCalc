@@ -131,7 +131,14 @@ html[data-ui-style="pro"] .panel, html[data-ui-style="pro"] .modal-box { box-sha
 /* ---- overview (start screen) ---- */
 html[data-ui-style="pro"] .start-view { align-items: flex-start; justify-content: flex-start; padding: 18px 24px; overflow-y: auto; }
 html[data-ui-style="pro"] .start-inner { width: min(1100px, 100%); height: auto; display: block; text-align: left; container-type: normal; overflow: visible; }
-html[data-ui-style="pro"] .start-logo, html[data-ui-style="pro"] .sc-art { display: none !important; }
+html[data-ui-style="pro"] .sc-art { display: none !important; }
+/* Startlogo über der Übersicht; js/logo_egg.js tauscht es mit 1:8192 gegen das Shiny-Logo (Klasse is-shiny-logo). */
+html[data-ui-style="pro"] .start-logo {
+  display: block;
+  height: clamp(64px, 12vh, 100px);
+  width: auto;
+  margin: 0 0 12px;
+}
 html[data-ui-style="pro"] .pro-start-head { display: none; }
 .pro-start-head { display: none; }
 html[data-ui-style="pro"] .pro-start-head h1 { margin: 0 0 2px; font-size: 17px; font-weight: 600; }

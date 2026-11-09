@@ -31,9 +31,9 @@
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css?v=87">
-  <link rel="stylesheet" href="css/views.css?v=101">
+  <link rel="stylesheet" href="css/views.css?v=103">
   <link rel="stylesheet" href="css/nuz.css?v=88">
-  <link rel="stylesheet" href="css/shiny.css?v=86">
+  <link rel="stylesheet" href="css/shiny.css?v=88">
   <link rel="stylesheet" href="css/match.css?v=86">
   <link rel="stylesheet" href="css/overlay.css?v=91">
   <link rel="stylesheet" href="css/catch.css?v=86">
@@ -41,14 +41,14 @@
   <link rel="stylesheet" href="css/godex.css?v=7">
   <link rel="stylesheet" href="css/randomizer.css?v=3">
   <link rel="stylesheet" href="css/savedit.css?v=8">
-  <link rel="stylesheet" href="css/pro.css?v=19">
-  <link rel="stylesheet" href="css/studio.css?v=16">
+  <link rel="stylesheet" href="css/pro.css?v=20">
+  <link rel="stylesheet" href="css/studio.css?v=17">
   </head>
 <body data-view="start">
   <aside id="sidebar" class="sidebar" aria-label="Navigation"></aside>
   <div id="appMain" class="app-main">
   <header class="topbar" id="topbar">
-    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img src="img/home.png?v=86" alt=""></button>
+    <button id="btnHome" class="brand-btn" data-tt="homeTitle"><img data-rl-brand src="img/home.png?v=86" alt=""></button>
     <nav class="view-nav" id="viewNav"></nav>
     <button id="btnUpdate" class="pill update-pill" hidden></button>
     <div class="top-actions">
@@ -63,25 +63,9 @@
 
   <section id="startView" class="start-view">
     <div class="start-inner">
-      <div class="pro-start-head"><h1 data-t="proStartTitle"></h1><p data-t="proStartSub"></p></div>
       <img class="start-logo" src="img/logo.png" alt="">
-      <script>
-        (function() {
-          try {
-            var params = new URLSearchParams(window.location.search);
-            var isShiny = (Math.floor(Math.random() * 8192) === 0) ||
-                          params.has('shiny') ||
-                          (window.location.hash && window.location.hash.indexOf('shiny') !== -1);
-            if (isShiny) {
-              window.__IS_SHINY_LOGO = true;
-              var logoEl = document.querySelector('.start-logo');
-              if (logoEl) logoEl.src = 'img/logo_shiny.png';
-              var iconEl = document.querySelector('link[rel="icon"]');
-              if (iconEl) iconEl.href = 'img/logo_shiny.png';
-            }
-          } catch (e) {}
-        })();
-      </script>
+      <div class="pro-start-head"><h1 data-t="proStartTitle"></h1><p data-t="proStartSub"></p></div>
+      <script src="js/logo_egg.js?v=118"></script>
             <button id="catBack" class="cat-back" data-t="catBack" hidden></button>
       <div class="start-cards">
         <button class="start-card cat-card cat-fight" data-cat="fight">
@@ -314,7 +298,7 @@
   <script src="data/sprite_boxes.js?v=86"></script>
   <script src="js/online.js?v=86"></script>
   <script src="js/calc.js?v=86"></script>
-  <script src="js/app.js?v=115"></script>
+  <script src="js/app.js?v=119"></script>
   <script src="js/builder.js?v=89"></script>
   <script src="js/teamsheet.js?v=2"></script>
   <script src="data/natdex.js?v=86"></script>
@@ -356,10 +340,11 @@
   <script src="js/saveui.js?v=15"></script>
   <script src="js/nuzcalc.js?v=86"></script>
   <script src="js/shiny_odds.js?v=86"></script>
-  <script src="js/capture.js?v=86"></script>
-  <script src="js/shiny_detect.js?v=86"></script>
+  <script src="js/capture.js?v=121"></script>
+  <script src="js/shiny_detect.js?v=125"></script>
   <script src="js/shiny_clip.js?v=86"></script>
-  <script src="js/shiny.js?v=86"></script>
+  <script src="js/shiny_projector.js?v=125"></script>
+  <script src="js/shiny.js?v=125"></script>
   <script src="js/match_parse.js?v=86"></script>
   <script src="js/match.js?v=86"></script>
   <script src="data/pokeapi_ids.js?v=86"></script>

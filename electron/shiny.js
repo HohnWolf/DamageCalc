@@ -62,8 +62,23 @@ function writeFiles() {
 }
 
 // ---------------- OBS: local server ----------------
+// Zustand einmal beim Eintreffen serialisieren (nicht bei jeder Abfrage) und per Server-Sent Events an die schnelle Overlay-Seite schieben
+let stateJson = JSON.stringify(state);
+let sseKey = '';
+const sseClients = new Set();
+// die Anzeige-Zeit der Timer läuft in der Seite selbst: ändert sich nur timeText, muss niemand benachrichtigt werden
+function sseFingerprint(s) { return JSON.stringify([s.active, s.overlay, s.hunts.map((h) => Object.assign({}, h, { timeText: 0 }))]); }
+function broadcast() {
+  const key = sseFingerprint(state);
+  if (key === sseKey) return;
+  sseKey = key;
+  const msg = 'data: ' + stateJson + '\n\n';
+  sseClients.forEach((r) => { try { r.write(msg); } catch (e) { sseClients.delete(r); } });
+}
+
 function startServer() {
   const html = fs.readFileSync(path.join(__dirname, 'overlay.html'), 'utf8');
+  const html2 = fs.readFileSync(path.join(__dirname, 'overlay2.html'), 'utf8');
   const server = http.createServer((req, res) => {
     // only local requests (no other device, no foreign website via DNS tricks)
     const host = String(req.headers.host || '').replace(/:\d+$/, '');
@@ -72,11 +87,22 @@ function startServer() {
     if (url.pathname === '/overlay' || url.pathname === '/') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(html);
+    } else if (url.pathname === '/overlay2') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(html2);
+    } else if (url.pathname === '/events') {
+      if (req.socket) { req.socket.setNoDelay(true); req.socket.setTimeout(0); }
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
+      res.write('retry: 500\n\ndata: ' + stateJson + '\n\n');
+      sseClients.add(res);
+      req.on('close', () => sseClients.delete(res));
     } else if (url.pathname === '/state') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-      res.end(JSON.stringify(state));
+      res.end(stateJson);
     } else if (!routes.some((h) => h(req, res, url))) { res.writeHead(404); res.end(); }
   });
+  // Lebenszeichen, damit keine Zwischenstation die offene Verbindung kappt
+  setInterval(() => { sseClients.forEach((r) => { try { r.write(':\n\n'); } catch (e) { sseClients.delete(r); } }); }, 20000).unref();
   let tries = 0;
   const listen = () => server.listen(BASE_PORT + tries, '127.0.0.1');
   server.on('listening', () => { port = BASE_PORT + tries; });
@@ -91,6 +117,8 @@ function init(mainWindow) {
     if (!s || !Array.isArray(s.hunts)) return;
     // overlay: Anordnung des freien Layouts (Bühne, Position und Größe der Teile), live für OBS
     state = { hunts: s.hunts, active: s.active, overlay: s.overlay || null, updated: Date.now() };
+    stateJson = JSON.stringify(state);
+    broadcast();
     writeFiles();
   });
   ipcMain.handle('shiny-overlay-info', () => ({ port, url: port ? 'http://127.0.0.1:' + port + '/overlay' : '', dir: obsDir() }));
@@ -104,7 +132,7 @@ function init(mainWindow) {
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
     desktopCapturer.getSources({ types: ['screen', 'window'] }).then((list) => {
       const src = list.find((s) => s.id === chosenSource) || list[0];
-      // Clips mit Ton: Systemton (Loopback) nur, wenn die Seite Audio verlangt; die Erkennung fragt ohne Audio
+      // Systemton (Loopback) nur unter Windows und nur, wenn die Seite Audio mitverlangt (Erkennung und Clips).
       callback(src ? (request.audioRequested && process.platform === 'win32' ? { video: src, audio: 'loopback' } : { video: src }) : {});
     }).catch(() => callback({}));
   });

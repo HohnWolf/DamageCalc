@@ -76,7 +76,14 @@ html[data-ui-style="studio"] .tb-slot, html[data-ui-style="studio"] .sl-run { bo
 /* ---- overview: tiles ---- */
 html[data-ui-style="studio"] .start-view { align-items: flex-start; justify-content: flex-start; padding: 22px 30px; overflow-y: auto; }
 html[data-ui-style="studio"] .start-inner { width: min(1500px, 100%); height: auto; display: block; text-align: left; container-type: normal; overflow: visible; }
-html[data-ui-style="studio"] .start-logo, html[data-ui-style="studio"] .start-foot { display: none !important; }
+html[data-ui-style="studio"] .start-foot { display: none !important; }
+/* Startlogo über den Kategorien; js/logo_egg.js tauscht es mit 1:8192 gegen das Shiny-Logo (Klasse is-shiny-logo). */
+html[data-ui-style="studio"] .start-logo {
+  display: block;
+  height: clamp(72px, 13vh, 112px);
+  width: auto;
+  margin: 0 auto 14px;
+}
 html[data-ui-style="studio"] .pro-start-head { display: none; }
 html[data-ui-style="studio"] .pro-start-head h1 { margin: 0 0 3px; font-size: 20px; font-weight: 700; }
 html[data-ui-style="studio"] .pro-start-head p { margin: 0; color: var(--muted); font-size: 12.5px; }
