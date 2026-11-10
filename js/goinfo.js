@@ -227,7 +227,7 @@
     if (st.note.trim()) { c.fillStyle = T.mut; c.textAlign = 'left'; fit(c, st.note.trim(), W - 2 * P.m - (st.brand ? 260 * P.s : 0), 24 * P.s, '500', 13); c.fillText(st.note.trim(), P.m, y); }
     if (st.brand) { c.fillStyle = T.mut; c.globalAlpha = 0.8; c.font = '600 ' + 22 * P.s + 'px ' + FF; c.textAlign = 'right'; c.fillText('Rattata Lab · Pokémon GO', W - P.m, y); c.textAlign = 'left'; c.globalAlpha = 1; }
   }
-  function sectionLabel(c, txt, x, y, T, s) { c.fillStyle = T.mut; c.font = '700 ' + 24 * s + 'px ' + FF; c.fillText(txt.toUpperCase(), x, y); }
+  function sectionLabel(c, txt, x, y, T, s) { rr(c, x, y - 21 * s, 6 * s, 26 * s, 3 * s); c.fillStyle = T.acc; c.fill(); c.fillStyle = T.mut; c.font = '700 ' + 24 * s + 'px ' + FF; c.textAlign = 'left'; c.fillText(txt.toUpperCase(), x + 18 * s, y); }
 
   // ======================= Raid =======================
   async function drawRaid(c, W, H, P, T) {
@@ -246,87 +246,112 @@
     var cnt = counterList(m, Math.min(st.ccount || 6, wide ? 8 : 6));
     var cntIm = await Promise.all(cnt.map(function (x) { return loadMon(x.m, false); }));
 
-    // linke / obere Bühne: Boss
-    var stageX, stageW, stageY, stageH, infoX, infoW, infoY;
-    if (wide) { stageX = P.m; stageW = W * 0.4; stageY = top; stageH = H - top - P.m * 1.2; infoX = W * 0.5; infoW = W - infoX - P.m; infoY = P.m + 70 * s; }
-    else { stageX = P.m; stageW = W - 2 * P.m; stageY = top; stageH = cnt.length ? Math.min(H * 0.31, W * 0.54) : Math.min(H * 0.36, W * 0.62); infoX = P.m; infoW = W - 2 * P.m; infoY = stageY + stageH + 20 * s; }
-    var rad = Math.min(stageW, stageH * (wide ? 0.8 : 0.86)) * 0.48, cx = stageX + stageW / 2, cy = stageY + rad * 1.02;
-    var halo = c.createRadialGradient(cx, cy, 0, cx, cy, rad * 1.05); halo.addColorStop(0, tint + 'aa'); halo.addColorStop(1, tint + '00');
-    c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, rad * 1.05, 0, Math.PI * 2); c.fill();
-    drawImg(c, bossIm, cx - rad, cy - rad, rad * 2, rad * 2, '?');
-    if (m) {
-      var nm = monName(m); c.fillStyle = T.fg; c.textAlign = 'center';
-      var ny = cy + rad + 66 * s;
-      var sz = fit(c, nm, stageW, 62 * s, '800', 24); c.fillText(nm, cx, ny + (wide ? 0 : 0));
+    // ---------- Bausteine ----------
+    function infoCard(x, y, w, h, label, val, hi, sprite, inside) {
+      rr(c, x, y, w, h, 20 * s); c.fillStyle = T.card; c.fill(); c.strokeStyle = T.line; c.lineWidth = 2; c.stroke();
+      if (hi) { rr(c, x, y, 8 * s, h, 4 * s); c.fillStyle = hi; c.fill(); }
+      var pad = 24 * s, sw = sprite ? (inside ? Math.min(h * 0.92, 120 * s) : 100 * s) : 0;
+      var tw = w - pad - 16 * s - (inside ? sw : 0);
+      c.textAlign = 'left'; c.fillStyle = T.mut; var ll = label.split('\n').slice(0, 2);
+      ll.forEach(function (t, k) { fit(c, t, tw, k ? 17 * s : 20 * s, '600', 10); c.fillText(t, x + pad, y + h * 0.30 + k * 22 * s - (ll.length - 1) * 8 * s); });
+      c.fillStyle = hi || T.fg; fit(c, val, tw, Math.min(46 * s, h * 0.42), '800', 16); c.fillText(val, x + pad, y + h * 0.78);
+      if (sprite) { if (inside) drawImg(c, sprite, x + w - sw - 8 * s, y + (h - sw) / 2, sw, sw); else drawImg(c, sprite, x + w - sw * 0.8, y - sw * 0.35, sw, sw); }
+    }
+    function drawWeak(x, y, w) {
+      var chH = 54 * s, gap = 12 * s, cx = x, rowY = y, n = 1;
+      weak.forEach(function (wk) {
+        var label = (de ? TYPE_DE[wk[0]] : wk[0]) + '  ×' + fmtN(wk[1]);
+        c.font = 'bold ' + 25 * s + 'px ' + FF; var cwid = c.measureText(label).width + chH * 0.9;
+        if (cx + cwid > x + w) { cx = x; rowY += chH + gap; n++; }
+        chip(c, label, cx, rowY, chH, TYPE_COL[wk[0]], textOn(TYPE_COL[wk[0]]), 25 * s);
+        if (wk[1] > 2) { c.strokeStyle = '#fff'; c.lineWidth = 3; rr(c, cx, rowY, cwid, chH, chH / 2); c.stroke(); }
+        cx += cwid + gap;
+      });
+      if (!weak.length) { c.fillStyle = T.mut; c.font = '500 ' + 26 * s + 'px ' + FF; c.fillText('–', x, rowY + 36 * s); }
+      return n * (chH + gap) - gap;
+    }
+    function weakRows(w) {
+      var chH = 54 * s, gap = 12 * s, cx = 0, n = 1; c.font = 'bold ' + 25 * s + 'px ' + FF;
+      weak.forEach(function (wk) { var cwid = c.measureText((de ? TYPE_DE[wk[0]] : wk[0]) + '  ×' + fmtN(wk[1])).width + chH * 0.9; if (cx + cwid > w) { cx = 0; n++; } cx += cwid + gap; });
+      return n * (chH + gap) - gap;
+    }
+    function drawCounters(x, y, w, availH, per, cellH0) {
+      var hasEl = cnt.some(function (q) { return q.fmE || q.cmE; });
+      sectionLabel(c, (de ? 'Empfohlene Konter' : 'Recommended counters') + (hasEl ? (de ? '   (* = Elite-Attacke)' : '   (* = Elite move)') : ''), x, y, T, s); y += 22 * s;
+      var gap = 12 * s, rowsN = Math.ceil(cnt.length / per), colW = (w - (per - 1) * gap) / per;
+      var cellH = Math.max(86 * s, Math.min(cellH0, (availH - 22 * s - (rowsN - 1) * gap) / rowsN));
+      cnt.forEach(function (q, i) {
+        var col = i % per, rw = Math.floor(i / per), x0 = x + col * (colW + gap), y0 = y + rw * (cellH + gap);
+        rr(c, x0, y0, colW, cellH, 18 * s); c.fillStyle = T.card; c.fill(); c.strokeStyle = T.line; c.lineWidth = 2; c.stroke();
+        var im = Math.min(cellH - 12 * s, colW * 0.4); drawImg(c, cntIm[i], x0 + 8 * s, y0 + (cellH - im) / 2, im, im, '?');        // Rang-Plakette
+        c.fillStyle = i === 0 ? '#fbbf24' : T.line; c.beginPath(); c.arc(x0 + 20 * s, y0 + 20 * s, 14 * s, 0, Math.PI * 2); c.fill();
+        c.fillStyle = i === 0 ? '#1a1300' : T.fg; c.font = '800 ' + 17 * s + 'px ' + FF; c.textAlign = 'center'; c.fillText(String(i + 1), x0 + 20 * s, y0 + 26 * s);
+        var tx = x0 + im + 18 * s, tw = colW - im - 28 * s, mv = [[q.fm, q.fmT, q.fmE], [q.cm, q.cmT, q.cmE]].filter(function (a) { return a[0]; });
+        c.textAlign = 'left'; var nm = monName(q.m);
+        var ny = mv.length ? y0 + cellH * 0.36 : y0 + cellH / 2 + 8 * s;
+        c.fillStyle = T.fg; fit(c, nm, tw, 26 * s, '800', 12); c.fillText(nm, tx, ny);
+        if (q.shadow) { var sh = shadowTxt().toUpperCase(); c.font = '800 ' + 14 * s + 'px ' + FF; var shw = c.measureText(sh).width + 14 * s; rr(c, x0 + colW - shw - 8 * s, y0 + 6 * s, shw, 22 * s, 11 * s); c.fillStyle = '#7c3aed'; c.fill(); c.fillStyle = '#fff'; c.fillText(sh, x0 + colW - shw - 1 * s, y0 + 22 * s); }
+        mv.forEach(function (a, k) {
+          var my = ny + 30 * s + k * 28 * s, txt = a[0] + (a[2] ? ' *' : ''), f2 = fit(c, txt, tw - 20 * s, 20 * s, '600', 10);
+          c.fillStyle = TYPE_COL[a[1]] || T.mut; c.beginPath(); c.arc(tx + 6 * s, my - f2 * 0.32, 6 * s, 0, Math.PI * 2); c.fill();
+          c.fillStyle = T.fg; c.globalAlpha = 0.92; c.fillText(txt, tx + 20 * s, my); c.globalAlpha = 1;
+        });
+      });
+    }
+    function bossBlock(cx, cy, rad, stageW) {
+      var halo = c.createRadialGradient(cx, cy, 0, cx, cy, rad * 1.1); halo.addColorStop(0, tint + 'bb'); halo.addColorStop(0.7, tint + '33'); halo.addColorStop(1, tint + '00');
+      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, rad * 1.1, 0, Math.PI * 2); c.fill();
+      c.save(); c.strokeStyle = tint; c.globalAlpha = 0.35; c.lineWidth = 3 * s; c.beginPath(); c.arc(cx, cy, rad * 0.98, 0, Math.PI * 2); c.stroke(); c.restore();
+      c.save(); c.fillStyle = 'rgba(0,0,0,0.28)'; c.beginPath(); c.ellipse(cx, cy + rad * 0.92, rad * 0.62, rad * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
+      drawImg(c, bossIm, cx - rad, cy - rad, rad * 2, rad * 2, '?');
+      var ny = cy + rad + 62 * s;
+      if (!m) { c.fillStyle = T.mut; c.textAlign = 'center'; c.font = '600 ' + 30 * s + 'px ' + FF; c.fillText(de ? 'Boss wählen' : 'Pick a boss', cx, ny); c.textAlign = 'left'; return ny; }
+      var nm = monName(m); c.fillStyle = T.fg; c.textAlign = 'center'; fit(c, nm, stageW, 62 * s, '800', 24); c.fillText(nm, cx, ny);
       var tw = 0, th = 44 * s; c.font = 'bold ' + 24 * s + 'px ' + FF;
-      var widths = types.map(function (t) { return c.measureText(TYPE_DE[t] && de ? TYPE_DE[t] : t).width + th * 0.9 + 8 * s; });
+      var widths = types.map(function (t) { return c.measureText(de ? TYPE_DE[t] : t).width + th * 0.9 + 8 * s; });
       var sum = widths.reduce(function (a, b) { return a + b; }, 0), tx = cx - sum / 2 + 4 * s;
       types.forEach(function (t, i) { chip(c, de ? TYPE_DE[t] : t, tx + tw, ny + 16 * s, th, TYPE_COL[t], textOn(TYPE_COL[t]), 24 * s); tw += widths[i]; });
       c.textAlign = 'left';
-      if (!wide) infoY = ny + 16 * s + th + 30 * s;
-      else stageH = ny + 16 * s + th;
+      return ny + 16 * s + th;
+    }
+    var cpLabel = (de ? 'Fang-CP Lv 20' : 'Catch CP Lv 20') + (cm0 !== m ? '\n' + (de ? 'Normalform' : 'base form') : '');
+    var cps = m ? [
+      [cpLabel, cpOf(cm0, 20, 10) + ' – ' + cpOf(cm0, 20, 15), null, null],
+      [de ? 'Wetter-CP Lv 25' : 'Boosted CP Lv 25', cpOf(cm0, 25, 10) + ' – ' + cpOf(cm0, 25, 15), null, null],
+      ['Shiny', st.shinyOk ? (de ? 'möglich ✨' : 'possible ✨') : (de ? 'nein' : 'no'), st.shinyOk ? '#fbbf24' : null, st.shinyOk ? shIm : null]
+    ] : [];
+
+    if (wide) {
+      var stageX = P.m, stageW = W * 0.4, stageY = top, infoX = W * 0.5, infoW = W - infoX - P.m, y = P.m + 70 * s;
+      var rad = Math.max(60 * s, Math.min(stageW * 0.48, (H - top - P.m * 1.2 - 140 * s) / 2));
+      bossBlock(stageX + stageW / 2, stageY + rad * 1.02, rad, stageW);
+      if (m) {
+        var cw = (infoW - 2 * 16 * s) / 3, chh = 120 * s;
+        cps.forEach(function (cd, i) { infoCard(infoX + i * (cw + 16 * s), y, cw, chh, cd[0], cd[1], cd[2], cd[3], false); });
+        y += chh + 30 * s;
+        sectionLabel(c, de ? 'Schwächen' : 'Weaknesses', infoX, y, T, s); y += 22 * s;
+        y += drawWeak(infoX, y, infoW) + 34 * s;
+      }
+      if (cnt.length) drawCounters(infoX, y, infoW, H - y - P.m * 1.3, 2, 130 * s);
     } else {
-      c.fillStyle = T.mut; c.textAlign = 'center'; c.font = '600 ' + 30 * s + 'px ' + FF; c.fillText(de ? 'Boss wählen' : 'Pick a boss', cx, cy + rad + 40 * s); c.textAlign = 'left';
-    }
-    var y = infoY;
-
-    // CP-Karten
-    if (m) {
-      var cw = (infoW - 2 * 16 * s) / 3, chh = 120 * s;
-      var cards = [
-        [(de ? 'Fang-CP Lv 20' : 'Catch CP Lv 20') + (cm0 !== m ? ' · ' + (de ? 'Normalform' : 'base form') : ''), cpOf(cm0, 20, 10) + ' – ' + cpOf(cm0, 20, 15)],
-        [de ? 'Wetter-CP Lv 25' : 'Boosted CP Lv 25', cpOf(cm0, 25, 10) + ' – ' + cpOf(cm0, 25, 15)],
-        ['Shiny', st.shinyOk ? (de ? 'möglich ✨' : 'possible ✨') : (de ? 'nein' : 'no')]
-      ];
-      cards.forEach(function (cd, i) {
-        var x = infoX + i * (cw + 16 * s);
-        rr(c, x, y, cw, chh, 18 * s); c.fillStyle = T.card; c.fill(); c.strokeStyle = T.line; c.lineWidth = 2; c.stroke();
-        c.fillStyle = T.mut; c.font = '600 ' + 21 * s + 'px ' + FF; c.fillText(cd[0], x + 18 * s, y + 38 * s);
-        c.fillStyle = (i === 2 && st.shinyOk) ? '#fbbf24' : T.fg; fit(c, cd[1], cw - 30 * s, 40 * s, '800', 16); c.fillText(cd[1], x + 18 * s, y + 88 * s);
-      });
-      if (st.shinyOk && shIm) { var sw = 100 * s; drawImg(c, shIm, infoX + 2 * (cw + 16 * s) + cw - sw * 0.8, y - sw * 0.35, sw, sw); }
-      y += chh + 30 * s;
-
-      // Schwächen
-      sectionLabel(c, de ? 'Schwächen' : 'Weaknesses', infoX, y, T, s); y += 16 * s;
-      var chH = 54 * s, gap = 12 * s, x = infoX, rowY = y;
-      weak.forEach(function (w) {
-        var label = (de ? TYPE_DE[w[0]] : w[0]) + '  ×' + fmtN(w[1]);
-        c.font = 'bold ' + 25 * s + 'px ' + FF; var cwid = c.measureText(label).width + chH * 0.9;
-        if (x + cwid > infoX + infoW) { x = infoX; rowY += chH + gap; }
-        chip(c, label, x, rowY, chH, TYPE_COL[w[0]], textOn(TYPE_COL[w[0]]), 25 * s);
-        if (w[1] > 2) { c.strokeStyle = '#fff'; c.lineWidth = 3; rr(c, x, rowY, cwid, chH, chH / 2); c.stroke(); }
-        x += cwid + gap;
-      });
-      if (!weak.length) { c.fillStyle = T.mut; c.font = '500 ' + 26 * s + 'px ' + FF; c.fillText('–', infoX, rowY + 36 * s); }
-      y = rowY + chH + 34 * s;
-    }
-
-    // Konter
-    if (cnt.length) {
-      var hasMv = cnt.some(function (x) { return x.fm || x.cm; }), hasEl = cnt.some(function (x) { return x.fmE || x.cmE; });
-      sectionLabel(c, (de ? 'Empfohlene Konter' : 'Recommended counters') + (hasEl ? (de ? '   (* = Elite-Attacke)' : '   (* = Elite move)') : ''), infoX, y, T, s); y += 14 * s;
-      var per = wide ? 4 : Math.max(cnt.length, 4), colW = infoW / per, cellH = Math.min(colW * (hasMv ? 1.75 : 1.05), (hasMv ? 300 : 190) * s);
+      var fr = P.m * 1.3, R = H - top - fr, gp = 32 * s, x0 = P.m, W0 = W - 2 * P.m;
+      var per = cnt.length > 4 ? 3 : (cnt.length > 2 ? 2 : Math.max(1, cnt.length)), cellH0 = 136 * s, heroMax = H > W * 1.5 ? 760 * s : 620 * s;
       var rowsN = Math.ceil(cnt.length / per);
-      var avail = H - y - P.m * 1.3; cellH = Math.min(cellH, avail / rowsN);
-      var mvH = hasMv ? 58 * s : 0;
-      cnt.forEach(function (cm, i) {
-        var col = i % per, rw = Math.floor(i / per), x0 = infoX + col * colW, y0 = y + rw * cellH;
-        rr(c, x0 + 4 * s, y0 + 4 * s, colW - 8 * s, cellH - 8 * s, 16 * s); c.fillStyle = T.card; c.fill();
-        var ih = cellH - 8 * s - 34 * s - mvH;
-        drawImg(c, cntIm[i], x0 + 10 * s, y0 + 8 * s, colW - 20 * s, ih, '?');
-        var cl = monName(cm.m), nameY = y0 + cellH - 16 * s - mvH; c.textAlign = 'center';
-        if (cm.shadow) { c.fillStyle = '#a78bfa'; c.font = '700 ' + 15 * s + 'px ' + FF; c.fillText(shadowTxt().toUpperCase(), x0 + colW / 2, y0 + 24 * s); }
-        c.fillStyle = T.fg; fit(c, cl, colW - 16 * s, 21 * s, '700', 11); c.fillText(cl, x0 + colW / 2, nameY); c.textAlign = 'left';
-        [[cm.fm, cm.fmT, cm.fmE], [cm.cm, cm.cmT, cm.cmE]].forEach(function (mv, k) {
-          if (!mv[0]) return;
-          var my = nameY + 29 * s + k * 28 * s, txt = mv[0] + (mv[2] ? ' *' : ''), tw = colW - 16 * s - 18 * s;
-          var fs2 = fit(c, txt, tw, 19 * s, '600', 9); c.fillStyle = T.mut;
-          var wtxt = c.measureText(txt).width, startX = x0 + colW / 2 - (wtxt + 14 * s) / 2;
-          c.fillStyle = TYPE_COL[mv[1]] || T.mut; c.beginPath(); c.arc(startX + 5 * s, my - fs2 * 0.32, 5 * s, 0, Math.PI * 2); c.fill();
-          c.fillStyle = T.fg; c.globalAlpha = 0.9; c.fillText(txt, startX + 14 * s, my); c.globalAlpha = 1;
-        });
-      });
+      var cntH = cnt.length ? 22 * s + rowsN * (cellH0 + 12 * s) - 12 * s : 0;
+      var wkH = m ? 22 * s + weakRows(W0) : 0;
+      var heroH = R - cntH - wkH - gp * (m ? 2 : 1) - (cnt.length ? 0 : 0);
+      heroH = Math.max(250 * s, Math.min(heroH, heroMax));
+      if (cnt.length) { var left = R - heroH - cntH - wkH - gp * 2; if (left > 0) cellH0 = Math.min(210 * s, cellH0 + left / rowsN); }
+      var avCnt = H - fr - top - heroH - wkH - gp * 2;
+      var sw = W0 * 0.5, rad2 = Math.min(sw * 0.5, (heroH - 130 * s) / 2);
+      bossBlock(x0 + sw / 2, top + rad2 + 6 * s, rad2, sw - 10 * s);
+      if (m) {
+        var cx0 = x0 + sw + 20 * s, cw2 = W0 - sw - 20 * s, ch2 = (heroH - 2 * 14 * s) / 3;
+        cps.forEach(function (cd, i) { infoCard(cx0, top + i * (ch2 + 14 * s), cw2, ch2, cd[0], cd[1], cd[2], cd[3], true); });
+      }
+      var y2 = top + heroH + gp;
+      if (m) { sectionLabel(c, de ? 'Schwächen' : 'Weaknesses', x0, y2, T, s); y2 += 22 * s; y2 += drawWeak(x0, y2, W0) + gp + 10 * s; }
+      if (cnt.length) drawCounters(x0, y2, W0, H - fr - y2, per, cellH0);
     }
   }
 
@@ -386,7 +411,7 @@
 
   async function renderCanvas() {
     var sz = SIZES[st.size] || SIZES.post, T = THEMES[st.theme] || THEMES.night, SC = 1;
-    var W = sz[0], H = sz[1], P = { s: W / 1080 * (W > H * 1.2 ? 0.95 : 1), m: Math.round(W * 0.055) };
+    var W = sz[0], H = sz[1], P = { s: W > H * 1.2 ? H / 1080 * 1.05 : W / 1080, m: Math.round(W * (W > H * 1.2 ? 0.04 : 0.055)) };
     var cv = document.createElement('canvas'); cv.width = W * SC; cv.height = H * SC;
     var c = cv.getContext('2d'); c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high'; c.textBaseline = 'alphabetic';
     if (st.kind === 'raid') { await drawRaid(c, W, H, P, T); footer(c, W, H, P, T); }
