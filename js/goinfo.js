@@ -160,7 +160,7 @@
   function apiId(m) {
     var IDS = window.POKEAPI_IDS || {}, base = norm(m[1]).replace(/[äöü]/g, ''), f = (m[2] || '').toLowerCase();
     if (f) {
-      var suffix = f.replace(/^mega[- ]?/, 'mega-').replace(/^megax$/, 'mega-x').replace(/^megay$/, 'mega-y').replace(/^(alola|alolan)$/, 'alola').replace(/^(galar|galarian)$/, 'galar').replace(/^(hisui|hisuian)$/, 'hisui').replace(/^paldea.*$/, 'paldea').replace(/-$/, '');
+      var suffix = f.replace(/^dusk-mane$/, 'dusk').replace(/^dawn-wings$/, 'dawn').replace(/^mega[- ]?/, 'mega-').replace(/^megax$/, 'mega-x').replace(/^megay$/, 'mega-y').replace(/^(alola|alolan)$/, 'alola').replace(/^(galar|galarian)$/, 'galar').replace(/^(hisui|hisuian)$/, 'hisui').replace(/^paldea.*$/, 'paldea').replace(/-$/, '');
       var slug = String(m[1]).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + suffix;
       if (IDS[slug]) return IDS[slug];
     }
@@ -528,14 +528,15 @@
     var msg = el('span', { class: 'hint', 'data-msg': '' });
     cp.addEventListener('click', function () {
       if (!lastCv) return;
+      if (!navigator.clipboard || !window.ClipboardItem) { sv.click(); return; } // z. B. Android-WebView: stattdessen teilen/speichern
       lastCv.toBlob(function (bl) {
         navigator.clipboard.write([new ClipboardItem({ 'image/png': bl })]).then(function () { msg.textContent = de ? 'Kopiert' : 'Copied'; }, function () { msg.textContent = de ? 'Kopieren nicht möglich – bitte speichern.' : 'Copy not possible – please save.'; });
       }, 'image/png');
     });
     sv.addEventListener('click', function () {
       if (!lastCv) return;
-      var a = document.createElement('a'); a.href = lastCv.toDataURL('image/png');
-      a.download = 'go-' + (st.kind === 'raid' ? 'raid-' + norm(st.boss) : 'forschung') + '.png'; document.body.appendChild(a); a.click(); a.remove();
+      var fn = 'go-' + (st.kind === 'raid' ? 'raid-' + norm(st.boss) : 'forschung') + '.png';
+      lastCv.toBlob(function (bl) { if (bl) A.saveFile(fn, bl, 'image/png'); }, 'image/png'); // Android: Teilen-Dialog, Desktop: Download
     });
     bar.appendChild(cp); bar.appendChild(sv); bar.appendChild(msg); main.appendChild(bar);
     main.appendChild(el('div', { class: 'gi-out', 'data-out': '' }));

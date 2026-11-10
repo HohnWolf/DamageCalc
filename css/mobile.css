@@ -69,3 +69,8 @@ html.rl-android .gc-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: tou
 html.rl-android .gc-table { min-width: 760px; }
 html.rl-android .gc-table thead th { position: static; }
 html.rl-android #gcBossBanner .gc-boss-card { flex-wrap: wrap; }
+
+/* GO-Infografik: auf dem Handy untereinander, Bild in voller Breite */
+html.rl-android .gi-layout { display: flex; flex-direction: column; gap: 10px; }
+html.rl-android .gi-out { overflow: visible; flex: none; }
+html.rl-android .gi-canvas { width: 100%; max-height: none; }
