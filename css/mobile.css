@@ -133,3 +133,20 @@ html.rl-android .start-cards .cat-card { height: auto !important; flex: none !im
 html.rl-android .start-logo { height: 64px !important; margin-bottom: 6px !important; }
 /* breite Zeilen (z. B. Attacken-Ergebnisse im Rechner) wischbar statt abgeschnitten */
 html.rl-android .panel .body { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+
+/* ===== 1.20.1: Soul Link, Nuzlocke und Teambuilder auf dem Handy: untereinander statt abgeschnitten ===== */
+html.rl-android .sl-wrap, html.rl-android .nc-grid { display: flex !important; flex-direction: column; grid-template-columns: 1fr !important; gap: 10px; min-height: 0; height: auto !important; }
+html.rl-android .sl-wrap > *, html.rl-android .nc-grid > * { min-width: 0; max-width: 100%; height: auto !important; max-height: none !important; overflow: visible; }
+html.rl-android .sl-main { overflow: visible; padding-right: 0; }
+html.rl-android .sl-head, html.rl-android .tb-head { flex-wrap: wrap; }
+html.rl-android .sl-head > input, html.rl-android .tb-head > input { flex: 1 1 100%; min-width: 0; }
+html.rl-android .sl-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.rl-android .sl-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+html.rl-android .nc-results, html.rl-android .nc-vs { grid-template-columns: minmax(0, 1fr); }
+html.rl-android .nc-vs-mid { justify-self: center; }
+html.rl-android .nc-foe-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.rl-android .tb-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.rl-android .tb-head > button { flex: 1 1 auto; }
+html.rl-android .tb-acts { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 100%; min-width: 0; }
+html.rl-android .tb-acts > * { flex: 1 1 auto; }
+html.rl-android .tb-vers input, html.rl-android .tb-vers select { flex: 1 1 100%; }
