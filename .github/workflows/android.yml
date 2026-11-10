@@ -21,13 +21,28 @@ jobs:
           npm ci
           node build-web.js
           npx cap sync android
+      - name: Signaturschlüssel bereitstellen
+        env:
+          KS_B64: "${{ secrets.ANDROID_KEYSTORE_B64 }}"
+        run: |
+          if [ -z "$KS_B64" ]; then
+            if [ "${{ github.event_name }}" = "release" ]; then echo "::error::Secret ANDROID_KEYSTORE_B64 fehlt: ohne feste Signatur kann die App sich nicht aktualisieren (siehe README)"; exit 1; fi
+            echo "Kein Schlüssel: Test-APK mit Debug-Signatur"
+          else
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/rattata.p12"
+            echo "RL_KEYSTORE=$RUNNER_TEMP/rattata.p12" >> "$GITHUB_ENV"
+          fi
       - name: APK bauen
         working-directory: mobile/android
+        env:
+          RL_KEYSTORE_PASSWORD: "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+          RL_KEY_ALIAS: "${{ secrets.ANDROID_KEY_ALIAS }}"
+          RL_KEY_PASSWORD: "${{ secrets.ANDROID_KEY_PASSWORD }}"
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
       - name: APK umbenennen
-        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk RattataLab-android.apk
+        run: cp mobile/android/app/build/outputs/apk/release/app-release.apk RattataLab-android.apk
       - uses: actions/upload-artifact@v4
         with: { name: RattataLab-android, path: RattataLab-android.apk }
       - name: An das Release hängen

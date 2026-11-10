@@ -233,7 +233,11 @@
       updReady: 'Update {0}: neu starten', updReadyT: 'Rattata Labs {0} ist geladen. Klicken zum Neustarten und Installieren, sonst wird es beim nächsten Beenden installiert.',
       updReadyMsg: 'Version {0} ist geladen und wird beim nächsten Beenden installiert.', updRestart: 'Jetzt neu starten',
       updPortable: 'Update {0} verfügbar', updPortableT: 'Version {0} ist auf GitHub. Die portable Version aktualisiert sich nicht selbst: Klicken öffnet die Download-Seite.',
-      updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite'
+      updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite',
+      setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
+      updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
+      updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
+      updPerm: 'Android braucht einmalig die Erlaubnis „Unbekannte Apps installieren“ für Rattata Labs. Erlauben, zurückgehen und erneut antippen.'
     },
     en: {
       sub: 'VGC 2026 · Level 50 · Stat Points (max 32 each, 66 total) · Reg M-C',
@@ -345,7 +349,11 @@
       updReady: 'Update {0}: restart', updReadyT: 'Rattata Labs {0} is downloaded. Click to restart and install, otherwise it is installed the next time you quit.',
       updReadyMsg: 'Version {0} is downloaded and will be installed the next time you quit.', updRestart: 'Restart now',
       updPortable: 'Update {0} available', updPortableT: 'Version {0} is on GitHub. The portable version does not update itself: click to open the download page.',
-      updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page'
+      updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page',
+      setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. To install it, it downloads the file and opens the Android installer.',
+      updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
+      updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
+      updPerm: 'Android needs the one-time permission "Install unknown apps" for Rattata Labs. Allow it, go back and tap again.'
     }
   };
   function T(key) {
@@ -2126,13 +2134,16 @@
   var settingsModal = null, settingsRedraw = null, settingsTab = 'look';
   // update state from the desktop app (electron/updater.js): idle | checking | none | available | progress | ready | portable | error | off
   var updStatus = { state: 'off' };
+  // Update-Schnittstelle: Electron (window.desktop.update) oder Android-Huelle (js/android_update.js)
+  function updApi() { return (window.desktop && window.desktop.update) || window.RL_APP_UPDATE || null; }
   function updMessage(s) {
     switch (s.state) {
       case 'checking': return T('updChecking');
       case 'none': return T('updNone');
       case 'available': return T('updLoading', s.version);
       case 'progress': return T('updProgress', s.version, s.percent);
-      case 'ready': return T('updReadyMsg', s.version);
+      case 'ready': return T(s.android ? 'updAReadyMsg' : 'updReadyMsg', s.version);
+      case 'perm': return T('updPerm');
       case 'portable': return T('updPortableMsg', s.version);
       case 'error': return T('updErr', s.message || '?');
       case 'off': return T('updOff');
@@ -2144,7 +2155,7 @@
     return window.RLLogoEgg ? window.RLLogoEgg.homeSrc(!!window.__IS_SHINY_LOGO) : 'img/home.png';
   }
   function updCard(box) {
-    var D = window.desktop, s = updStatus;
+    var D = { update: updApi() }, s = updStatus;
     var card = el('div', { class: 'set-upd-card' });
     var top = el('div', { class: 'set-upd-top' });
     var badge = el('div', { class: 'set-upd-badge' });
@@ -2155,7 +2166,7 @@
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
     titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.4') + (s.portable ? ' · Portable' : '') }));
     info.appendChild(titleRow);
-    info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
+    info.appendChild(el('div', { class: 'hint', text: T(s.android ? 'setUpdHintA' : s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
     var msg = updMessage(s);
     if (msg) {
       var stRow = el('div', { class: 'set-upd-status upd-' + s.state });
@@ -2172,8 +2183,8 @@
     }
     top.appendChild(info);
     var act = el('div', { class: 'set-upd-act' }), b;
-    if (s.state === 'ready' || s.state === 'portable') {
-      b = el('button', { class: 'primary-btn', text: T(s.state === 'ready' ? 'updRestart' : 'updDownload') });
+    if (s.state === 'ready' || s.state === 'portable' || s.state === 'perm') {
+      b = el('button', { class: 'primary-btn', text: T(s.android ? 'updAInstall' : s.state === 'ready' ? 'updRestart' : 'updDownload') });
       b.addEventListener('click', function () { D.update.install(); });
     } else {
       b = el('button', { class: 'set-btn', text: T(s.state === 'checking' ? 'updChecking' : 'updCheck') });
@@ -2184,6 +2195,28 @@
     top.appendChild(act);
     card.appendChild(top);
     box.appendChild(card);
+  }
+  // updates: checked on every start; the button appears once an update is downloaded (Windows), available (portable, Android)
+  function initUpdates() {
+    var U = updApi();
+    if (U) {
+      var ub = document.getElementById('btnUpdate');
+      var applyUpd = function (s) {
+        if (!s) return;
+        updStatus = s;
+        var show = s.state === 'ready' || s.state === 'portable' || s.state === 'perm';
+        ub.hidden = !show;
+        if (show) {
+          ub.textContent = T(s.android ? 'updAReady' : s.state === 'ready' ? 'updReady' : 'updPortable', s.version);
+          ub.title = T(s.android ? 'updAReadyT' : s.state === 'ready' ? 'updReadyT' : 'updPortableT', s.version);
+        }
+        if (settingsRedraw) settingsRedraw();
+        renderStatus();
+      };
+      ub.addEventListener('click', function () { U.install(); });
+      U.onStatus(applyUpd);
+      U.get().then(applyUpd);
+    }
   }
   function openSettings() {
     if (settingsModal) return;
@@ -2207,7 +2240,7 @@
         ['tools', de ? 'Werkzeuge & Start' : 'Tools & start', 'tools', de ? 'Startbildschirm, obere Leiste und sichtbare Werkzeuge anpassen' : 'Customize startup behavior, top bar and active tools'],
         ['data', de ? 'Daten & Import' : 'Data & import', 'data', de ? 'Backups verwalten, Online-Daten aktualisieren und Teams importieren' : 'Manage backups, update online data and import teams']
       ];
-      if (window.desktop && window.desktop.update) {
+      if (updApi()) {
         SECS.push(['app', de ? 'App & Updates' : 'App & updates', 'app', de ? 'Versionsstatus prüfen und automatische Updates verwalten' : 'Check version status and manage automatic updates']);
       }
       if (!SECS.some(function (s) { return s[0] === settingsTab; })) settingsTab = SECS[0][0];
@@ -2481,7 +2514,7 @@
           r.appendChild(g);
           gImp.appendChild(r);
         })();
-      } else if (settingsTab === 'app' && window.desktop && window.desktop.update) {
+      } else if (settingsTab === 'app' && updApi()) {
         updCard(body);
       }
       body.scrollTop = keepScroll;
@@ -2813,26 +2846,8 @@
         document.body.classList.toggle('is-maximized', m);
         document.getElementById('winMax').title = T(m ? 'winRestore' : 'winMax');
       });
-      // updates: checked on every start; the button appears once an update is downloaded (or, portable, available)
-      if (D.update) {
-        var ub = document.getElementById('btnUpdate');
-        var applyUpd = function (s) {
-          if (!s) return;
-          updStatus = s;
-          var show = s.state === 'ready' || s.state === 'portable';
-          ub.hidden = !show;
-          if (show) {
-            ub.textContent = T(s.state === 'ready' ? 'updReady' : 'updPortable', s.version);
-            ub.title = T(s.state === 'ready' ? 'updReadyT' : 'updPortableT', s.version);
-          }
-          if (settingsRedraw) settingsRedraw();
-          renderStatus();
-        };
-        ub.addEventListener('click', function () { D.update.install(); });
-        D.update.onStatus(applyUpd);
-        D.update.get().then(applyUpd);
-      }
     }
+    initUpdates(); // Windows-App (window.desktop.update) oder Android-Huelle (window.RL_APP_UPDATE)
     // test hooks and reloads (language switch) keep the current view; a fresh start shows the start screen
     var v = 'start';
     if (/^#(selftest|runreg|runsets|runreset|calc)$/.test(location.hash) || /[?&]teamdemo\b/.test(location.search)) v = 'calc';

@@ -74,3 +74,62 @@ html.rl-android #gcBossBanner .gc-boss-card { flex-wrap: wrap; }
 html.rl-android .gi-layout { display: flex; flex-direction: column; gap: 10px; }
 html.rl-android .gi-out { overflow: visible; flex: none; }
 html.rl-android .gi-canvas { width: 100%; max-height: none; }
+
+/* ===== Handy-Überarbeitung: größere Ziele, kompaktere Startseite, Ergebnis zuerst, ruhigere Flächen ===== */
+html.rl-android body { font-size: 15px; line-height: 1.4; }
+html.rl-android button, html.rl-android select, html.rl-android input, html.rl-android textarea { min-height: 44px; font-size: 16px; border-radius: 10px; }
+html.rl-android input[type="checkbox"], html.rl-android input[type="radio"] { min-height: 0; width: 22px; height: 22px; flex: none; }
+html.rl-android input[type="range"] { min-height: 32px; }
+html.rl-android label { -webkit-user-select: none; user-select: none; }
+html.rl-android .wrap { padding: 10px 10px calc(16px + env(safe-area-inset-bottom)); gap: 10px; }
+html.rl-android .panel { border-radius: 14px; }
+html.rl-android ::-webkit-scrollbar { width: 0; height: 0; }
+
+/* obere Leiste: größere Tabs, klarer aktiver Zustand */
+html.rl-android .sidebar { height: calc(54px + env(safe-area-inset-top)) !important; box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+html.rl-android .sidebar .sb-list { gap: 4px; align-items: center; scroll-snap-type: x proximity; }
+html.rl-android .sidebar .sb-list > *, html.rl-android .sidebar .sb-list button { min-height: 42px; scroll-snap-align: start; white-space: nowrap; border-radius: 12px; }
+
+/* Startseite: Kategorien als 2er-Kacheln, Werkzeuge als kompakte Listenzeilen */
+html.rl-android .start-inner { padding: 12px 12px calc(20px + env(safe-area-inset-bottom)) !important; max-width: 100% !important; }
+html.rl-android .start-logo { height: 84px !important; width: auto !important; margin: 4px auto 10px !important; display: block; }
+html.rl-android .start-cards.is-all { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px; }
+html.rl-android .start-cards.is-all .start-group { display: none !important; }
+html.rl-android .start-cards .cat-card { min-height: 0; padding: 10px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px; }
+html.rl-android .start-cards .cat-card .sc-art { height: 64px !important; max-height: 64px !important; min-height: 0; overflow: hidden; transform: none; }
+html.rl-android .start-cards .cat-card .sc-art .sc-mon { transform: scale(.78); }
+html.rl-android .start-cards .cat-card .sc-title { font-size: 16px; }
+html.rl-android .start-cards .cat-card .sc-text { font-size: 12px; opacity: .75; line-height: 1.3; }
+html.rl-android .start-cards .sg-cards .start-card { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; min-height: 64px; border-radius: 14px; }
+html.rl-android .start-cards .sg-cards .start-card .sc-art { display: none !important; }
+html.rl-android .start-cards .sg-cards .start-card .sc-title { font-size: 17px; }
+html.rl-android .start-cards .sg-cards .start-card .sc-text { font-size: 13px; opacity: .75; }
+html.rl-android .cat-back { min-height: 44px; padding: 0 16px; border-radius: 12px; margin-bottom: 8px; }
+
+/* GO-Infografik: Ergebnis zuerst, Speichern-Leiste fest unten */
+html.rl-android .goinfo-view { padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
+html.rl-android .gi-main { order: -1; padding: 8px; }
+html.rl-android .gi-side { padding: 10px; overflow: visible; }
+html.rl-android .gi-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--panel, #14161b); border-top: 1px solid var(--line, rgba(128,128,128,.3)); box-shadow: 0 -6px 18px rgba(0,0,0,.4); }
+html.rl-android .gi-bar .tbtn { flex: 1 1 0; min-height: 46px; font-weight: 700; }
+html.rl-android .gi-bar .hint { flex: 1 1 100%; text-align: center; margin: 0; }
+html.rl-android .gi-seg button { min-height: 44px; padding: 8px 12px; }
+html.rl-android .gi-canvas { border-radius: 10px; }
+html.rl-android .gi-chk { min-height: 44px; display: flex; align-items: center; gap: 10px; }
+html.rl-android .gi-pk { min-height: 40px; }
+html.rl-android .gi-pk-b { min-width: 36px; min-height: 36px; }
+
+/* Rechner & Co.: nichts über den Rand, Zeilen wrappen, Buttonleisten umbrechen */
+html.rl-android .tbar, html.rl-android .btn-row, html.rl-android .toolbar, html.rl-android .row, html.rl-android .seg { flex-wrap: wrap; }
+html.rl-android .result-banner, html.rl-android .res-banner, html.rl-android #resultBox { position: sticky; top: calc(54px + env(safe-area-inset-top)); z-index: 40; }
+html.rl-android .toast { bottom: calc(80px + env(safe-area-inset-bottom)); }
+html.rl-android .start-cards, html.rl-android .start-cards:not(.is-all) { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box; }
+html.rl-android .start-cards .start-card { margin: 0 !important; width: 100% !important; box-sizing: border-box; }
+html.rl-android .start-cards .cat-card .sc-art { height: 56px !important; max-height: 56px !important; }
+html.rl-android .start-cards .sg-cards .start-card { height: auto !important; min-height: 64px !important; flex: none !important; justify-content: center; }
+html.rl-android .start-cards .sg-cards { gap: 8px; }
+html.rl-android .start-cards .start-group { display: block; }
+html.rl-android .start-cards .cat-card { height: auto !important; flex: none !important; }
+html.rl-android .start-logo { height: 64px !important; margin-bottom: 6px !important; }
+/* breite Zeilen (z. B. Attacken-Ergebnisse im Rechner) wischbar statt abgeschnitten */
+html.rl-android .panel .body { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }

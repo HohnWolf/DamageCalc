@@ -420,7 +420,11 @@
   }
 
   // ======================= UI =======================
-  var root = null, token = 0, timer = 0, lastCv = null;
+  var root = null, token = 0, timer = 0, lastCv = null, lastBlob = null;
+  function blobOf() { // PNG schon vorab kodiert -> Speichern/Kopieren sofort
+    if (!lastBlob && lastCv) { var cv0 = lastCv; lastBlob = new Promise(function (res) { cv0.toBlob(res, 'image/png'); }); }
+    return lastBlob;
+  }
   function field(label, node) { var w = el('label', { class: 'gi-f' }); w.appendChild(el('span', { class: 'gi-l', text: label })); w.appendChild(node); return w; }
   function input(key, ph, list) {
     var i = el('input', { type: 'text', spellcheck: 'false', placeholder: ph || '' }); i.value = st[key] || '';
@@ -529,14 +533,12 @@
     cp.addEventListener('click', function () {
       if (!lastCv) return;
       if (!navigator.clipboard || !window.ClipboardItem) { sv.click(); return; } // z. B. Android-WebView: stattdessen teilen/speichern
-      lastCv.toBlob(function (bl) {
-        navigator.clipboard.write([new ClipboardItem({ 'image/png': bl })]).then(function () { msg.textContent = de ? 'Kopiert' : 'Copied'; }, function () { msg.textContent = de ? 'Kopieren nicht möglich – bitte speichern.' : 'Copy not possible – please save.'; });
-      }, 'image/png');
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blobOf() })]).then(function () { msg.textContent = de ? 'Kopiert' : 'Copied'; }, function () { msg.textContent = de ? 'Kopieren nicht möglich – bitte speichern.' : 'Copy not possible – please save.'; });
     });
     sv.addEventListener('click', function () {
       if (!lastCv) return;
       var fn = 'go-' + (st.kind === 'raid' ? 'raid-' + norm(st.boss) : 'forschung') + '.png';
-      lastCv.toBlob(function (bl) { if (bl) A.saveFile(fn, bl, 'image/png'); }, 'image/png'); // Android: Teilen-Dialog, Desktop: Download
+      blobOf().then(function (bl) { if (bl) A.saveFile(fn, bl, 'image/png'); }); // Android: Teilen-Dialog, Desktop: Download
     });
     bar.appendChild(cp); bar.appendChild(sv); bar.appendChild(msg); main.appendChild(bar);
     main.appendChild(el('div', { class: 'gi-out', 'data-out': '' }));
@@ -552,7 +554,8 @@
     var cv;
     try { cv = await renderCanvas(); } catch (e) { out.textContent = (de ? 'Fehler beim Zeichnen: ' : 'Render error: ') + e.message; return; }
     if (my !== token) return;
-    lastCv = cv; cv.className = 'gi-canvas'; out.innerHTML = ''; out.appendChild(cv);
+    lastCv = cv; lastBlob = null; cv.className = 'gi-canvas'; out.innerHTML = ''; out.appendChild(cv);
+    setTimeout(function () { if (lastCv === cv) blobOf(); }, 50); // gleich nach der Vorschau im Hintergrund kodieren
   }
 
   window.CCGoInfo = { render: render, _findMon: findMon, _weak: weaknesses, _cp: cpOf };
