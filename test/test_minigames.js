@@ -66,18 +66,21 @@ assert.strictEqual(tieRound.leftSpeed, tieRound.rightSpeed);
 assert.strictEqual(api.judgeSpeed(tieRound, 'tie').correct, true);
 
 const all = api.buildPool({});
-assert.strictEqual(api.matchQuiz('Lahmus', 'Slowbro', all).kind, 'correct');
-assert.strictEqual(api.matchQuiz('slowbro', 'Slowbro', all).kind, 'correct');
-assert.strictEqual(api.matchQuiz('Relaxo', 'Snorlax', all).kind, 'correct');
-assert.strictEqual(api.matchQuiz('Snorlax', 'Snorlax', all).kind, 'correct');
-assert.strictEqual(api.matchQuiz('Relaxo', 'Slowbro', all).kind, 'wrong');
-assert.strictEqual(api.matchQuiz('keinpokemon', 'Slowbro', all).kind, 'unknown');
-assert.ok(api.suggest('lah', all, 8).some(function (p) { return p.name === 'Slowbro'; }));
+// Speed: ein Sieger zum Anklicken, Gleichstand nur wenn der Pool nichts anderes hergibt
+for (let i = 0; i < 50; i++) {
+  const r = api.makeSpeedRound(all);
+  assert.notStrictEqual(r.leftSpeed, r.rightSpeed, 'Runde mit Sieger');
+}
 
-assert.strictEqual(api.quizPoints({}, 0), 100);
-assert.strictEqual(api.quizPoints({ type: true }, 0), 100 - api.HINTS.type);
-assert.ok(api.quizPoints({ type: true, gen: true, sprite: true }, 0) < api.quizPoints({ type: true }, 0));
-assert.strictEqual(api.quizPoints({}, 2), 80);
+// Quiz: 6 Pokemon zur Auswahl, genau eines richtig, alle mit verschiedenen Basiswerten
+const answer = all.filter(function (p) { return p.name === 'Slowbro'; })[0];
+const ch = api.makeQuizChoices(answer, all, Math.random, 6);
+assert.strictEqual(ch.length, 6);
+assert.strictEqual(ch.filter(function (p) { return p.name === 'Slowbro'; }).length, 1, 'Antwort genau einmal');
+assert.strictEqual(new Set(ch.map(function (p) { return JSON.stringify(p.bs); })).size, 6, 'verschiedene Basiswerte');
+assert.strictEqual(api.makeQuizChoices(answer, all.slice(0, 3), Math.random, 6).length <= 4, true, 'kleiner Pool: weniger Auswahl');
+assert.strictEqual(api.judgeQuiz('Slowbro', 'Slowbro', all).correct, true);
+assert.strictEqual(api.judgeQuiz('Snorlax', 'Slowbro', all).correct, false);
 
 const dmgMoves = api.damagingMoves('Pikachu');
 assert.ok(dmgMoves.indexOf('Thunderbolt') !== -1);
@@ -105,6 +108,13 @@ const off = api.scoreDamage(truth.maxPct + 40, truth.minPct, truth.maxPct);
 assert.ok(Math.abs(off.distance - 40) < 0.11);
 assert.ok(off.points < 100);
 
+// Verloren ist, wer mehr als 10 Prozentpunkte neben der Spanne liegt
+assert.strictEqual(api.DMG_TOLERANCE, 10);
+assert.strictEqual(api.judgeDamage(truth.maxPct + 10, truth.minPct, truth.maxPct).correct, true, 'genau 10 daneben noch ok');
+assert.strictEqual(api.judgeDamage(truth.maxPct + 10.5, truth.minPct, truth.maxPct).correct, false, 'mehr als 10 daneben verloren');
+assert.strictEqual(api.judgeDamage(Math.max(0, truth.minPct - 10.5), truth.minPct, truth.maxPct).correct, truth.minPct - 10.5 < 0, 'auch nach unten');
+assert.strictEqual(api.judgeDamage((truth.minPct + truth.maxPct) / 2, truth.minPct, truth.maxPct).correct, true);
+
 calls = 0;
 const rolled = api.makeDamageScenario(all, function () { return 0; });
 assert.ok(calls >= 1, 'scenario generation uses Calc.calculate');
@@ -112,6 +122,7 @@ assert.strictEqual(rolled.attackerName, 'Chikorita');
 assert.notStrictEqual(rolled.defenderName, rolled.attackerName);
 assert.strictEqual(rolled.move.category === 'Physical' || rolled.move.category === 'Special', true);
 assert.ok(rolled.move.bp >= 40);
+assert.ok(api.evaluateDamage(rolled).minPct <= 100, 'Spanne mit hoechstens 100 % erreichbar');
 assert.ok(rolled.item === '(none)' || rolled.item === 'Life Orb' || rolled.item);
 assert.ok(rolled.weather === 'None' || rolled.weather === 'Sun' || rolled.weather === 'Rain');
 
@@ -125,15 +136,19 @@ api.recordSpeed(false);
 st = api.load();
 assert.strictEqual(st.speed.streak, 0);
 assert.strictEqual(st.speed.high, 2, 'highscore keeps the best streak');
-api.recordQuiz(70);
-api.recordQuiz(40);
+api.recordQuiz(true); api.recordQuiz(true); api.recordQuiz(true); api.recordQuiz(false); api.recordQuiz(true);
 st = api.load();
-assert.strictEqual(st.quiz.score, 110);
-assert.strictEqual(st.quiz.high, 70);
-assert.strictEqual(JSON.parse(mem[MG.KEY]).quiz.high, 70);
+assert.deepStrictEqual(st.quiz, { score: 4, streak: 1, high: 3 }, 'Quiz zaehlt Serien');
+api.recordDamage(true); api.recordDamage(false);
+assert.deepStrictEqual(api.load().damage, { score: 1, streak: 0, high: 1 }, 'Schaden zaehlt Serien');
+assert.strictEqual(JSON.parse(mem[MG.KEY]).quiz.high, 3);
+// alter Spielstand (Punkte statt Serien): Quiz und Schaden starten neu, Speed und Optionen bleiben
+mem[MG.KEY] = JSON.stringify({ opts: { gen: 3, evolved: true }, speed: { score: 5, streak: 1, high: 4 }, quiz: { score: 110, high: 70 }, damage: { score: 300, high: 90 } });
+st = api.load();
+assert.deepStrictEqual([st.quiz.high, st.damage.high, st.speed.high, st.opts.gen], [0, 0, 4, 3], 'Migration alter Spielstaende');
 api.saveOpts({ gen: 2, evolved: true });
 assert.strictEqual(api.load().opts.gen, 2);
 assert.strictEqual(api.load().opts.evolved, true);
-assert.strictEqual(api.load().speed.high, 2, 'options do not wipe scores');
+assert.strictEqual(api.load().speed.high, 4, 'options do not wipe scores');
 
 console.log('Minigames-Test OK');

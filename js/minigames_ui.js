@@ -80,12 +80,39 @@
     card.appendChild(row);
   }
 
+  // Gemeinsamer Abschluss einer Runde: richtig -> "Weiter", falsch -> verloren, "Neues Spiel".
+  function endRound(box, result, correct, okText, lostText, again, rec) {
+    banner(result, correct, correct ? okText : lostText);
+    var next = el('button', { class: 'mg-btn primary', type: 'button', text: T(correct ? 'mgNext' : 'mgNewGame') });
+    next.addEventListener('click', again);
+    result.appendChild(next);
+    paintMeters(box, rec);
+    next.focus();
+  }
+  function paintMeters(box, rec) {
+    var bs = box.querySelectorAll('.mg-meters b');
+    if (bs[0]) bs[0].textContent = rec.score;
+    if (bs[1]) bs[1].textContent = rec.streak;
+    if (bs[2]) bs[2].textContent = rec.high;
+  }
+  function runMeters(top, st) { meters(top, [[T('mgScore'), st.score], [T('mgStreak'), st.streak], [T('mgHigh'), st.high]]); }
+  function pickCard(mon, onPick) {
+    var c = el('button', { class: 'mg-card mg-pick', type: 'button' });
+    var sp = el('div', { class: 'mg-sprite' });
+    sp.appendChild(sprite(mon.name, false));
+    c.appendChild(sp);
+    c.appendChild(el('h3', { text: label(mon.name) }));
+    types(c, mon.types);
+    c.addEventListener('click', onPick);
+    return c;
+  }
+
   function renderSpeed() {
     var box = shell('mgSpeedView');
     if (!box) return;
     var st = api.load().speed;
     var top = el('div', { class: 'mg-top' });
-    meters(top, [[T('mgScore'), st.score], [T('mgStreak'), st.streak], [T('mgHigh'), st.high]]);
+    runMeters(top, st);
     top.appendChild(optsBar(renderSpeed));
     box.appendChild(top);
     var mons = pool();
@@ -93,29 +120,20 @@
     if (!round) { box.appendChild(el('p', { class: 'mg-empty', text: T('mgEmpty') })); return; }
     box.appendChild(el('h2', { class: 'mg-ask', text: T('mgSpeedAsk') }));
     var stage = el('div', { class: 'mg-stage' });
-    function card(mon) {
-      var c = el('div', { class: 'mg-card' });
-      var sp = el('div', { class: 'mg-sprite' });
-      sp.appendChild(sprite(mon.name, false));
-      c.appendChild(sp);
-      c.appendChild(el('h3', { text: label(mon.name) }));
-      types(c, mon.types);
+    var result = el('div');
+    var locked = false;
+    function card(mon, side) {
+      var c = pickCard(mon, function () { choose(side); });
       var spd = el('div', { class: 'mg-speed' });
       spd.hidden = true;
       c.appendChild(spd);
       return { el: c, spd: spd };
     }
-    var left = card(round.left), right = card(round.right);
-    stage.appendChild(left.el);
-    stage.appendChild(el('div', { class: 'mg-vs', text: T('mgVs') }));
-    stage.appendChild(right.el);
-    box.appendChild(stage);
-    var actions = el('div', { class: 'mg-actions' });
-    var result = el('div');
-    var locked = false;
+    var left = card(round.left, 'left'), right = card(round.right, 'right');
     function choose(choice) {
       if (locked) return;
       locked = true;
+      var before = api.load().speed.streak;
       var j = api.judgeSpeed(round, choice);
       var rec = api.recordSpeed(j.correct);
       left.spd.hidden = false; right.spd.hidden = false;
@@ -123,24 +141,13 @@
       right.spd.textContent = T('mgSpeedStat', round.rightSpeed);
       left.el.classList.add(j.truth === 'right' ? 'lose' : 'win');
       right.el.classList.add(j.truth === 'left' ? 'lose' : 'win');
-      actions.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
-      banner(result, j.correct, j.correct ? T('mgSpeedOk') : T('mgSpeedBad'));
-      var next = el('button', { class: 'mg-btn primary', type: 'button', text: T('mgNext') });
-      next.addEventListener('click', renderSpeed);
-      result.appendChild(next);
-      var metersBox = box.querySelector('.mg-meters');
-      if (metersBox) {
-        metersBox.querySelectorAll('b')[0].textContent = rec.score;
-        metersBox.querySelectorAll('b')[1].textContent = rec.streak;
-        metersBox.querySelectorAll('b')[2].textContent = rec.high;
-      }
+      left.el.disabled = true; right.el.disabled = true;
+      endRound(box, result, j.correct, T('mgSpeedOk'), T('mgLost', before), renderSpeed, rec);
     }
-    [['left', 'mgSpeedLeft'], ['tie', 'mgSpeedTie'], ['right', 'mgSpeedRight']].forEach(function (x) {
-      var b = el('button', { class: 'mg-btn' + (x[0] === 'tie' ? '' : ' primary'), type: 'button', text: T(x[1]) });
-      b.addEventListener('click', function () { choose(x[0]); });
-      actions.appendChild(b);
-    });
-    box.appendChild(actions);
+    stage.appendChild(left.el);
+    stage.appendChild(el('div', { class: 'mg-vs', text: T('mgVs') }));
+    stage.appendChild(right.el);
+    box.appendChild(stage);
     box.appendChild(result);
   }
 
@@ -149,14 +156,13 @@
     if (!box) return;
     var st = api.load().quiz;
     var top = el('div', { class: 'mg-top' });
-    meters(top, [[T('mgScore'), st.score], [T('mgHigh'), st.high]]);
+    runMeters(top, st);
     top.appendChild(optsBar(renderQuiz));
     box.appendChild(top);
     var mons = pool();
     if (!mons.length) { box.appendChild(el('p', { class: 'mg-empty', text: T('mgEmpty') })); return; }
     var answer = mons[Math.floor(Math.random() * mons.length)];
-    var hints = { type: false, gen: false, sprite: false };
-    var misses = 0, locked = false;
+    var choices = api.makeQuizChoices(answer, mons);
     box.appendChild(el('h2', { class: 'mg-ask', text: T('mgQuizAsk') }));
     var stats = el('div', { class: 'mg-stats' });
     var max = 255;
@@ -170,111 +176,28 @@
       stats.appendChild(row);
     });
     box.appendChild(stats);
-    var extra = el('div');
-    box.appendChild(extra);
-    var worth = el('p', { class: 'mg-meta' });
-    function paintWorth() { worth.textContent = T('mgQuizWorth', api.quizPoints(hints, misses)); }
-    paintWorth();
-    var hintRow = el('div', { class: 'mg-hints' });
-    function hintBtn(key, labelKey) {
-      var b = el('button', { class: 'mg-btn', type: 'button', text: T(labelKey) });
-      b.appendChild(el('span', { class: 'mg-hintcost', text: ' ' + T('mgQuizHintCost', api.HINTS[key]) }));
-      b.addEventListener('click', function () {
-        if (locked || hints[key]) return;
-        hints[key] = true;
-        b.disabled = true;
-        paintWorth();
-        if (key === 'type') types(extra, answer.types);
-        if (key === 'gen') extra.appendChild(el('p', { class: 'mg-meta', text: answer.gen ? T('mgGenN', answer.gen) : T('mgGenAll') }));
-        if (key === 'sprite') {
-          var plate = el('div', { class: 'mg-sil' });
-          plate.appendChild(sprite(answer.name, true));
-          extra.appendChild(plate);
-        }
-      });
-      return b;
-    }
-    hintRow.appendChild(hintBtn('type', 'mgQuizType'));
-    hintRow.appendChild(hintBtn('gen', 'mgQuizGen'));
-    hintRow.appendChild(hintBtn('sprite', 'mgQuizSil'));
-    box.appendChild(hintRow);
-    box.appendChild(worth);
-    var search = el('div', { class: 'mg-search' });
-    var input = el('input', { type: 'text', autocomplete: 'off', spellcheck: 'false' });
-    input.placeholder = T('mgQuizPh');
-    var list = el('ul', { class: 'mg-suggest' });
-    list.hidden = true;
-    var hi = -1, shown = [];
-    function paintList() {
-      list.innerHTML = '';
-      shown = api.suggest(input.value, mons, 8);
-      shown.forEach(function (p, i) {
-        var li = el('li');
-        var b = el('button', { type: 'button', text: label(p.name) });
-        if (i === hi) b.className = 'on';
-        b.addEventListener('mousedown', function (ev) { ev.preventDefault(); input.value = label(p.name); list.hidden = true; submit(); });
-        li.appendChild(b);
-        list.appendChild(li);
-      });
-      list.hidden = !shown.length;
-    }
-    input.addEventListener('input', function () { hi = -1; paintList(); });
-    input.addEventListener('keydown', function (ev) {
-      if (ev.key === 'ArrowDown') { hi = Math.min(shown.length - 1, hi + 1); paintList(); ev.preventDefault(); }
-      else if (ev.key === 'ArrowUp') { hi = Math.max(0, hi - 1); paintList(); ev.preventDefault(); }
-      else if (ev.key === 'Enter') { if (hi >= 0 && shown[hi]) input.value = label(shown[hi].name); list.hidden = true; submit(); ev.preventDefault(); }
-      else if (ev.key === 'Escape') list.hidden = true;
-    });
-    search.appendChild(input);
-    search.appendChild(list);
-    box.appendChild(search);
-    var actions = el('div', { class: 'mg-actions' });
-    var guess = el('button', { class: 'mg-btn primary', type: 'button', text: T('mgQuizGuess') });
-    var give = el('button', { class: 'mg-btn', type: 'button', text: T('mgQuizGive') });
-    actions.appendChild(guess);
-    actions.appendChild(give);
-    box.appendChild(actions);
+    var grid = el('div', { class: 'mg-choices' });
     var result = el('div');
+    var locked = false, btns = [];
+    choices.forEach(function (mon) {
+      var c = pickCard(mon, function () {
+        if (locked) return;
+        locked = true;
+        var before = api.load().quiz.streak;
+        var j = api.judgeQuiz(mon.name, answer.name, mons);
+        var rec = api.recordQuiz(j.correct);
+        btns.forEach(function (b) {
+          b.el.disabled = true;
+          if (api.judgeQuiz(b.mon.name, answer.name, mons).correct) b.el.classList.add('win');
+        });
+        if (!j.correct) c.classList.add('lose');
+        endRound(box, result, j.correct, T('mgQuizOk', label(answer.name)), T('mgQuizLost', label(answer.name), before), renderQuiz, rec);
+      });
+      btns.push({ el: c, mon: mon });
+      grid.appendChild(c);
+    });
+    box.appendChild(grid);
     box.appendChild(result);
-    function finish(points, ok, text) {
-      if (locked) return;
-      locked = true;
-      result.innerHTML = '';
-      var rec = api.recordQuiz(points);
-      list.hidden = true;
-      input.disabled = true;
-      guess.disabled = true;
-      give.disabled = true;
-      banner(result, ok, text);
-      var reveal = el('div', { class: 'mg-card' });
-      var sp = el('div', { class: 'mg-sprite' });
-      sp.appendChild(sprite(answer.name, false));
-      reveal.appendChild(sp);
-      reveal.appendChild(el('h3', { text: label(answer.name) }));
-      result.appendChild(reveal);
-      var next = el('button', { class: 'mg-btn primary', type: 'button', text: T('mgNext') });
-      next.addEventListener('click', renderQuiz);
-      result.appendChild(next);
-      var bs = box.querySelectorAll('.mg-meters b');
-      if (bs[0]) bs[0].textContent = rec.score;
-      if (bs[1]) bs[1].textContent = rec.high;
-    }
-    function submit() {
-      if (locked) return;
-      var hit = api.matchQuiz(input.value, answer.name, mons);
-      if (hit.kind === 'empty' || hit.kind === 'unknown') { result.innerHTML = ''; banner(result, false, T('mgQuizUnknown')); return; }
-      if (hit.kind === 'correct') finish(api.quizPoints(hints, misses), true, T('mgQuizOk', label(answer.name), api.quizPoints(hints, misses)));
-      else {
-        misses++;
-        paintWorth();
-        result.innerHTML = '';
-        banner(result, false, T('mgQuizBad', label(hit.species)));
-        input.select();
-      }
-    }
-    guess.addEventListener('click', submit);
-    give.addEventListener('click', function () { finish(0, false, T('mgQuizWas', label(answer.name))); });
-    input.focus();
   }
 
   function itemLabel(name) {
@@ -286,7 +209,7 @@
     if (!box) return;
     var st = api.load().damage;
     var top = el('div', { class: 'mg-top' });
-    meters(top, [[T('mgScore'), st.score], [T('mgHigh'), st.high]]);
+    runMeters(top, st);
     top.appendChild(optsBar(renderDamage));
     box.appendChild(top);
     var mons = pool();
@@ -335,8 +258,8 @@
     stage.appendChild(side(sc.defenderName, sc.defender, T('mgDef')));
     box.appendChild(stage);
     var slider = el('div', { class: 'mg-slider' });
-    var range = el('input', { type: 'range', min: '0', max: '250', step: '1', value: '50' });
-    var num = el('input', { type: 'number', min: '0', max: '250', step: '1', value: '50' });
+    var range = el('input', { type: 'range', min: '0', max: '100', step: '1', value: '50' });
+    var num = el('input', { type: 'number', min: '0', max: '100', step: '1', value: '50' });
     function sync(from, to) { to.value = from.value; }
     range.addEventListener('input', function () { sync(range, num); });
     num.addEventListener('input', function () { sync(num, range); });
@@ -356,13 +279,14 @@
       go.disabled = true;
       range.disabled = true;
       num.disabled = true;
-      var guess = Math.max(0, Math.min(250, +num.value || 0));
+      var guess = Math.max(0, Math.min(100, +num.value || 0));
       var truth = api.evaluateDamage(sc);
-      var scored = api.scoreDamage(guess, truth.minPct, truth.maxPct);
-      var rec = api.recordDamage(scored.points);
-      var ok = scored.distance === 0;
-      banner(result, ok, T('mgDmgRange', truth.min, truth.max, fmt(truth.minPct), fmt(truth.maxPct)));
-      result.appendChild(el('p', { class: 'mg-meta', text: ok ? T('mgDmgExact', scored.points) : T('mgDmgOff', fmt(scored.distance), scored.points) }));
+      var j = api.judgeDamage(guess, truth.minPct, truth.maxPct);
+      var before = st.streak;
+      var rec = api.recordDamage(j.correct);
+      var text = j.correct ? (j.distance === 0 ? T('mgDmgExact') : T('mgDmgOff', fmt(j.distance), j.tolerance)) : T('mgDmgLost', fmt(j.distance), j.tolerance, before);
+      banner(result, j.correct, text);
+      result.appendChild(el('p', { class: 'mg-meta', text: T('mgDmgRange', truth.min, truth.max, fmt(truth.minPct), fmt(truth.maxPct)) }));
       var scale = Math.max(100, truth.maxPct, guess, 1);
       var track = el('div', { class: 'mg-track' });
       var rng = el('span', { class: 'rng' });
@@ -373,12 +297,11 @@
       track.appendChild(rng);
       track.appendChild(pin);
       result.appendChild(track);
-      var next = el('button', { class: 'mg-btn primary', type: 'button', text: T('mgNext') });
+      var next = el('button', { class: 'mg-btn primary', type: 'button', text: T(j.correct ? 'mgNext' : 'mgNewGame') });
       next.addEventListener('click', renderDamage);
       result.appendChild(next);
-      var bs = box.querySelectorAll('.mg-meters b');
-      if (bs[0]) bs[0].textContent = rec.score;
-      if (bs[1]) bs[1].textContent = rec.high;
+      paintMeters(box, rec);
+      next.focus();
     });
   }
 

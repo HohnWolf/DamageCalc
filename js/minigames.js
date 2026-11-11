@@ -1,4 +1,4 @@
-// Minigames: Wer ist schneller?, Basiswerte-Quiz, Schadens-Schätzung.
+// Minigames: Wer ist schneller?, Basiswerte-Quiz, Schadens-Schätzung. Alle drei enden beim ersten Fehler; gezählt wird die Serie.
 // Damage totals always come from js/calc.js (Calc.calculate / Calc.calcStat). This file does not reimplement the formula.
 (function (root) {
   'use strict';
@@ -6,9 +6,9 @@
   var KEY = 'cc_minigames';
   var GEN_MAX = [0, 151, 251, 386, 493, 649, 721, 809, 905, 1025];
   var STATS = ['hp', 'at', 'df', 'sa', 'sd', 'sp'];
-  var HINTS = { type: 25, gen: 15, sprite: 35 };
-  var QUIZ_BASE = 100;
-  var QUIZ_MISS = 10;
+  var QUIZ_CHOICES = 6;       // Basiswerte-Quiz: so viele Pokémon stehen zur Auswahl
+  var DMG_TOLERANCE = 10;     // Schadens-Schätzung: erlaubte Abweichung in Prozentpunkten
+  var STATE_V = 2;            // Version der Spielstände von Quiz und Schaden (Serien statt Punkte)
   var FORM_DE = {
     Shield: 'Schild', Blade: 'Klinge', Wash: 'Wasch', Heat: 'Hitze', Frost: 'Frost', Fan: 'Wirbel', Mow: 'Schneid',
     Midday: 'Tag', Midnight: 'Nacht', Dusk: 'Zwielicht', Hero: 'Held', Hangry: 'Kohldampf', Average: 'Normal', Small: 'Klein', Large: 'Groß', Super: 'Riesig',
@@ -96,9 +96,10 @@
   function emptyState() {
     return {
       opts: { gen: 0, evolved: false },
+      v: STATE_V,
       speed: { score: 0, streak: 0, high: 0 },
-      quiz: { score: 0, high: 0 },
-      damage: { score: 0, high: 0 }
+      quiz: { score: 0, streak: 0, high: 0 },
+      damage: { score: 0, streak: 0, high: 0 }
     };
   }
   function num(n) { n = +n; return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
@@ -200,9 +201,11 @@
       if (j >= i) j++;
       return [pool[i], pool[j]];
     }
+    // Gleiche Basis-Initiative gibt es nur, wenn der Pool nichts anderes hergibt (zum Anklicken braucht es einen Sieger).
     function makeSpeedRound(pool, rng) {
       var pair = pickTwo(pool, rng || Math.random);
       if (!pair) return null;
+      for (var i = 0; i < 40 && pair[0].bs.sp === pair[1].bs.sp; i++) pair = pickTwo(pool, rng || Math.random);
       return { left: pair[0], right: pair[1], leftSpeed: pair[0].bs.sp, rightSpeed: pair[1].bs.sp };
     }
     // choice: 'left' | 'right' | 'tie'. Equal base Speed is a tie, not a coin flip.
@@ -210,33 +213,30 @@
       var truth = round.leftSpeed === round.rightSpeed ? 'tie' : (round.leftSpeed > round.rightSpeed ? 'left' : 'right');
       return { truth: truth, correct: choice === truth };
     }
-    function matchQuiz(guess, answerName, pool) {
-      var g = norm(guess);
-      if (!g) return { kind: 'empty' };
-      var hits = [];
-      (pool || []).forEach(function (p) { if (p.aliases.indexOf(g) !== -1) hits.push(p); });
-      if (!hits.length) return { kind: 'unknown' };
-      var answer = null;
-      (pool || []).some(function (p) { if (p.name === answerName) { answer = p; return true; } return false; });
-      var ok = hits.some(function (p) { return sameStats(p, answer); });
-      return { kind: ok ? 'correct' : 'wrong', species: hits[0].name };
-    }
-    function suggest(query, pool, limit) {
-      var q = norm(query);
-      if (!q) return [];
-      limit = limit || 8;
-      var out = [];
-      for (var i = 0; i < pool.length && out.length < limit; i++) {
-        if (pool[i].aliases.some(function (a) { return a.indexOf(q) !== -1; })) out.push(pool[i]);
+    function shuffle(list, rng) {
+      for (var i = list.length - 1; i > 0; i--) {
+        var j = Math.floor(rng() * (i + 1)), t = list[i];
+        list[i] = list[j]; list[j] = t;
       }
-      return out;
+      return list;
     }
-    function quizPoints(hints, misses) {
-      hints = hints || {};
-      var p = QUIZ_BASE;
-      Object.keys(HINTS).forEach(function (k) { if (hints[k]) p -= HINTS[k]; });
-      p -= QUIZ_MISS * (misses || 0);
-      return Math.max(0, p);
+    // Die richtige Antwort plus bis zu 5 andere Pokémon mit anderen Basiswerten, gemischt.
+    function makeQuizChoices(answer, pool, rng, n) {
+      rng = rng || Math.random;
+      n = n || QUIZ_CHOICES;
+      var out = [answer];
+      var rest = shuffle((pool || []).filter(function (p) { return p.name !== answer.name && !sameStats(p, answer); }), rng);
+      for (var i = 0; i < rest.length && out.length < n; i++) {
+        if (!out.some(function (o) { return sameStats(o, rest[i]); })) out.push(rest[i]);
+      }
+      return shuffle(out, rng);
+    }
+    // Formen mit gleichen Basiswerten zählen als richtig.
+    function judgeQuiz(choiceName, answerName, pool) {
+      if (choiceName === answerName) return { correct: true };
+      var c = null, a = null;
+      (pool || []).forEach(function (p) { if (p.name === choiceName) c = p; if (p.name === answerName) a = p; });
+      return { correct: sameStats(c, a) };
     }
     function findMon(pool, name) {
       for (var i = 0; i < pool.length; i++) if (pool[i].name === name) return pool[i];
@@ -322,7 +322,7 @@
         if (!sc) continue;
         var truth = evaluateDamage(sc);
         last = sc;
-        if (truth.max > 0 && truth.hp > 1) return sc;
+        if (truth.max > 0 && truth.hp > 1 && truth.minPct <= 100) return sc; // mit höchstens 100 % lässt sich die Spanne noch treffen
       }
       return last;
     }
@@ -331,6 +331,11 @@
       if (!isFinite(guess)) guess = 0;
       var dist = guess < minPct ? (minPct - guess) : guess > maxPct ? (guess - maxPct) : 0;
       return { distance: Math.round(dist * 10) / 10, points: Math.max(0, Math.round(100 - dist * 2)) };
+    }
+    // Verloren ist, wer mehr als DMG_TOLERANCE Prozentpunkte neben der Spanne liegt.
+    function judgeDamage(guess, minPct, maxPct) {
+      var r = scoreDamage(guess, minPct, maxPct);
+      return { distance: r.distance, correct: r.distance <= DMG_TOLERANCE, tolerance: DMG_TOLERANCE };
     }
     function load() {
       var e = emptyState();
@@ -344,7 +349,7 @@
           e.opts.evolved = !!v.opts.evolved;
         }
         ['speed', 'quiz', 'damage'].forEach(function (k) {
-          if (!v[k]) return;
+          if (!v[k] || (k !== 'speed' && v.v !== STATE_V)) return; // alte Quiz-/Schadenspunkte passen nicht zu den Serien
           Object.keys(e[k]).forEach(function (f) { e[k][f] = num(v[k][f]); });
         });
       } catch (err) { /* keep defaults */ }
@@ -360,38 +365,33 @@
       s.opts.evolved = !!opts.evolved;
       return save(s);
     }
-    function recordSpeed(correct) {
+    // Eine Runde gewertet: richtig verlängert die Serie, falsch beendet sie.
+    function recordRun(bucket, correct) {
       var s = load();
+      var r = s[bucket];
       if (correct) {
-        s.speed.score++;
-        s.speed.streak++;
-        if (s.speed.streak > s.speed.high) s.speed.high = s.speed.streak;
-      } else s.speed.streak = 0;
+        r.score++;
+        r.streak++;
+        if (r.streak > r.high) r.high = r.streak;
+      } else r.streak = 0;
       save(s);
-      return s.speed;
-    }
-    function recordPoints(bucket, points) {
-      var s = load();
-      points = num(points);
-      s[bucket].score += points;
-      if (points > s[bucket].high) s[bucket].high = points;
-      save(s);
-      return s[bucket];
+      return r;
     }
 
     return {
-      KEY: KEY, HINTS: HINTS, STATS: STATS,
+      KEY: KEY, STATS: STATS, QUIZ_CHOICES: QUIZ_CHOICES, DMG_TOLERANCE: DMG_TOLERANCE,
       buildPool: buildPool, makeSpeedRound: makeSpeedRound, judgeSpeed: judgeSpeed,
-      matchQuiz: matchQuiz, suggest: suggest, quizPoints: quizPoints, germanName: function (name) { return germanName(name, namesDe, formDe); },
+      makeQuizChoices: makeQuizChoices, judgeQuiz: judgeQuiz, judgeDamage: judgeDamage, germanName: function (name) { return germanName(name, namesDe, formDe); },
       damagingMoves: damagingMoves, buildDamageScenario: buildDamageScenario, makeDamageScenario: makeDamageScenario,
       evaluateDamage: evaluateDamage, scoreDamage: scoreDamage,
-      load: load, saveOpts: saveOpts, recordSpeed: recordSpeed,
-      recordQuiz: function (points) { return recordPoints('quiz', points); },
-      recordDamage: function (points) { return recordPoints('damage', points); }
+      load: load, saveOpts: saveOpts,
+      recordSpeed: function (correct) { return recordRun('speed', correct); },
+      recordQuiz: function (correct) { return recordRun('quiz', correct); },
+      recordDamage: function (correct) { return recordRun('damage', correct); }
     };
   }
 
-  var api = { KEY: KEY, HINTS: HINTS, create: create, norm: norm, germanName: germanName };
+  var api = { KEY: KEY, create: create, norm: norm, germanName: germanName };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.CCMinigames = api;
 })(typeof window !== 'undefined' ? window : globalThis);

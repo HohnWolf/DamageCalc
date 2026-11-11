@@ -71,3 +71,8 @@ body:not([data-view="mgdmg"]) .mgdmg-view { display: none !important; }
   .mg-vs { padding: 2px 0; }
   .mg-sprite, .mg-sprite svg, .mg-sprite img { width: 80px; height: 80px; }
 }
+.mg-pick { font: inherit; color: inherit; text-align: center; cursor: pointer; }
+.mg-pick:hover:not(:disabled) { border-color: var(--accent-2); }
+.mg-pick:disabled { cursor: default; opacity: 1; }
+.mg-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 700px) { .mg-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
