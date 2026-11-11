@@ -17,7 +17,7 @@ function copy(rel) {
 let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const flag = '<script>window.RL_ANDROID = true; document.documentElement.classList.add("rl-android");' +
   ' try { if (!localStorage.getItem("cc_settings")) localStorage.setItem("cc_settings", JSON.stringify({ uiStyle: "studio" })); } catch (e) {}</script>';
-html = html.replace('<head>', '<head>\n  ' + flag + '\n  <script src="js/android_update.js"></script>'); // App-Update über GitHub-Releases (nur Android)
+html = html.replace('<head>', '<head>\n  ' + flag + '\n  <script src="js/update_channel.js"></script>\n  <script src="js/android_update.js"></script>'); // App-Update über GitHub-Releases (nur Android)
 html = html.replace('<meta name="viewport" content="width=device-width, initial-scale=1">',
   '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">');
 html = html.replace('</head>', '  <link rel="stylesheet" href="css/mobile.css">\n  </head>');

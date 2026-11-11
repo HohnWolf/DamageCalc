@@ -66,5 +66,7 @@ contextBridge.exposeInMainWorld('desktop', {
     onStatus: (cb) => ipcRenderer.on('update-status', (e, s) => cb(s)),
     check: () => ipcRenderer.send('update-check'),
     install: () => ipcRenderer.send('update-install'),
+    setChannel: (ch) => ipcRenderer.send('update-channel', String(ch || '')),
+    rollback: () => ipcRenderer.send('update-rollback'),
   },
 });

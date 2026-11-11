@@ -226,15 +226,21 @@
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm und in der oberen Leiste ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
-      setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
-      setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis.',
+      setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version. Der Update-Kanal legt fest, welche Versionen geladen werden.',
+      setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis. Der Update-Kanal gilt auch hier.',
       updCheck: 'Jetzt suchen', updChecking: 'Suche …', updNone: 'Du hast die neueste Version.', updLoading: 'Version {0} wird geladen …',
       updProgress: 'Version {0} wird geladen … {1} %', updErr: 'Suche fehlgeschlagen: {0}', updOff: 'Updates gibt es nur in der Windows-App.',
+      updChannel: 'Update-Kanal', updChannelHint: 'Vollversionen installieren nur neue Neben- oder Hauptversionen (zum Beispiel 1.20 auf 1.21) und dann die neueste Fassung dieser Linie. Zwischenversionen installieren jede neuere Fassung, auch Patches und Vorabversionen.',
+      updFull: 'Vollversionen', updInterim: 'Zwischenversionen', updChannelNow: 'Kanal: {0}', updInterimBadge: 'Zwischenversion',
+      updPatchHeld: 'Patch {0} ist veröffentlicht. Vollversionen bieten ihn nicht an. Die nächste Vollversion (neue Neben- oder Hauptnummer) kommt automatisch, sobald sie neuer ist.',
+      updAhead: 'Diese Fassung ist neuer als die letzte Vollversion. Es gibt kein automatisches Downgrade. Die nächste Vollversion wird angeboten, sobald sie neuer ist als die installierte.',
+      updOnPre: 'Es ist eine Zwischenversion installiert. Die Vollversion {0} wird nicht automatisch installiert. Die nächste Vollversion mit neuer Neben- oder Hauptnummer kommt von selbst, sobald sie neuer ist.',
+      updRollback: 'Auf Vollversion zurückwechseln', updRollbackHint: 'Installiert die letzte Vollversion {0}.',
       updReady: 'Update {0}: neu starten', updReadyT: 'Rattata Labs {0} ist geladen. Klicken zum Neustarten und Installieren, sonst wird es beim nächsten Beenden installiert.',
       updReadyMsg: 'Version {0} ist geladen und wird beim nächsten Beenden installiert.', updRestart: 'Jetzt neu starten',
       updPortable: 'Update {0} verfügbar', updPortableT: 'Version {0} ist auf GitHub. Die portable Version aktualisiert sich nicht selbst: Klicken öffnet die Download-Seite.',
       updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite',
-      setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
+      setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Der Update-Kanal gilt auch hier. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
       updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
       updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
       updPerm: 'Android braucht einmalig die Erlaubnis „Unbekannte Apps installieren“ für Rattata Labs. Erlauben, zurückgehen und erneut antippen.'
@@ -342,15 +348,21 @@
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen and in the top bar. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
-      setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
-      setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice.',
+      setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start. The update channel decides which versions are downloaded.',
+      setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice. The update channel applies here too.',
       updCheck: 'Check now', updChecking: 'Checking …', updNone: 'You have the latest version.', updLoading: 'Downloading version {0} …',
       updProgress: 'Downloading version {0} … {1}%', updErr: 'Check failed: {0}', updOff: 'Updates are only available in the Windows app.',
+      updChannel: 'Update channel', updChannelHint: 'Full releases install only new minor or major versions (for example 1.20 to 1.21), then the newest build of that line. Interim releases install every newer build, including patches and pre-releases.',
+      updFull: 'Full releases', updInterim: 'Interim releases', updChannelNow: 'Channel: {0}', updInterimBadge: 'Interim',
+      updPatchHeld: 'Patch {0} is published. Full releases do not offer it. The next full release (new minor or major) is offered automatically once it is newer.',
+      updAhead: 'This build is newer than the latest full release. There is no automatic downgrade. The next full release will be offered once it is newer than the installed one.',
+      updOnPre: 'An interim build is installed. Full release {0} is not installed automatically. The next full release with a new minor or major is offered on its own once it is newer.',
+      updRollback: 'Switch back to the full release', updRollbackHint: 'Installs the latest full release {0}.',
       updReady: 'Update {0}: restart', updReadyT: 'Rattata Labs {0} is downloaded. Click to restart and install, otherwise it is installed the next time you quit.',
       updReadyMsg: 'Version {0} is downloaded and will be installed the next time you quit.', updRestart: 'Restart now',
       updPortable: 'Update {0} available', updPortableT: 'Version {0} is on GitHub. The portable version does not update itself: click to open the download page.',
       updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page',
-      setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. To install it, it downloads the file and opens the Android installer.',
+      setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. The update channel applies here too. To install it, it downloads the file and opens the Android installer.',
       updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
       updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
       updPerm: 'Android needs the one-time permission "Install unknown apps" for Rattata Labs. Allow it, go back and tap again.'
@@ -2099,7 +2111,7 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [] };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [], updateChannel: 'full' };
   function disabledToolsList() {
     var d = setting('disabledTools');
     return Array.isArray(d) ? d : [];
@@ -2136,7 +2148,15 @@
   var updStatus = { state: 'off' };
   // Update-Schnittstelle: Electron (window.desktop.update) oder Android-Huelle (js/android_update.js)
   function updApi() { return (window.desktop && window.desktop.update) || window.RL_APP_UPDATE || null; }
+  function updateChannel() {
+    var raw = setting('updateChannel');
+    return window.RLUpdateChannel ? window.RLUpdateChannel.normalizeChannel(raw) : (raw === 'interim' ? 'interim' : 'full');
+  }
+  function updChannelName(id) { return T(id === 'interim' ? 'updInterim' : 'updFull'); }
   function updMessage(s) {
+    if (s.state === 'none' && s.ahead) return T('updAhead');
+    if (s.state === 'none' && s.prerelease && s.latestFull) return T('updOnPre', s.latestFull);
+    if (s.state === 'none' && s.patchHeld) return T('updPatchHeld', s.patchVersion || s.latestFull || '');
     switch (s.state) {
       case 'checking': return T('updChecking');
       case 'none': return T('updNone');
@@ -2156,6 +2176,8 @@
   }
   function updCard(box) {
     var D = { update: updApi() }, s = updStatus;
+    var ch = updateChannel();
+    var onPre = !!(s.prerelease || (window.RLUpdateChannel && window.RLUpdateChannel.isPrerelease(s.current)));
     var card = el('div', { class: 'set-upd-card' });
     var top = el('div', { class: 'set-upd-top' });
     var badge = el('div', { class: 'set-upd-badge' });
@@ -2164,9 +2186,12 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.4') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.21.0') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
+    if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
     info.appendChild(el('div', { class: 'hint', text: T(s.android ? 'setUpdHintA' : s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
+    info.appendChild(el('div', { class: 'hint', text: T('updChannelNow', updChannelName(ch)) }));
     var msg = updMessage(s);
     if (msg) {
       var stRow = el('div', { class: 'set-upd-status upd-' + s.state });
@@ -2192,8 +2217,32 @@
       b.addEventListener('click', function () { D.update.check(); });
     }
     act.appendChild(b);
+    if (s.rollback && ch === 'full' && D.update && D.update.rollback && s.state !== 'ready' && s.state !== 'progress' && s.state !== 'available' && s.state !== 'portable') {
+      var rb = el('button', { type: 'button', class: 'set-btn', text: T('updRollback'), title: T('updRollbackHint', s.rollback) });
+      rb.addEventListener('click', function () { D.update.rollback(); });
+      act.appendChild(rb);
+    }
     top.appendChild(act);
     card.appendChild(top);
+    var chRow = el('div', { class: 'set-upd-channel' });
+    var lab = el('div', { class: 'set-label' });
+    lab.appendChild(el('div', { class: 'set-name', text: T('updChannel') }));
+    lab.appendChild(el('div', { class: 'hint', text: T('updChannelHint') }));
+    chRow.appendChild(lab);
+    var g = el('div', { class: 'set-seg', role: 'radiogroup', 'aria-label': T('updChannel') });
+    [['full', T('updFull')], ['interim', T('updInterim')]].forEach(function (o) {
+      var on = o[0] === ch;
+      var btn = el('button', { type: 'button', class: on ? 'on' : '', text: o[1], role: 'radio', 'aria-checked': on ? 'true' : 'false' });
+      btn.addEventListener('click', function () {
+        if (o[0] === updateChannel()) return;
+        setSetting('updateChannel', o[0]);
+        if (D.update && D.update.setChannel) D.update.setChannel(o[0]);
+        if (settingsRedraw) settingsRedraw();
+      });
+      g.appendChild(btn);
+    });
+    chRow.appendChild(g);
+    card.appendChild(chRow);
     box.appendChild(card);
   }
   // updates: checked on every start; the button appears once an update is downloaded (Windows), available (portable, Android)
@@ -2216,6 +2265,11 @@
       ub.addEventListener('click', function () { U.install(); });
       U.onStatus(applyUpd);
       U.get().then(applyUpd);
+      if (U.setChannel) {
+        U.setChannel(updateChannel());
+        // Der Hauptprozess registriert den Kanal erst nach dem Fensterstart; ein zweites Mal trifft ihn sicher.
+        setTimeout(function () { if (updApi() && updApi().setChannel) updApi().setChannel(updateChannel()); }, 1500);
+      }
     }
   }
   function openSettings() {
@@ -2268,7 +2322,9 @@
 
       var sideFoot = el('div', { class: 'set-side-foot' });
       var ver = (updStatus && updStatus.current) || '1.17.4';
-      sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
+      var foot = 'Rattata Labs · v' + ver;
+      if (updApi()) foot += ' · ' + updChannelName(updateChannel());
+      sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
       side.appendChild(sideFoot);
       shell.appendChild(side);
 
@@ -2755,6 +2811,11 @@
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
     st.appendChild(el('span', { class: 'st-item', text: 'v' + ver }));
+    if (updApi() && updStatus && updStatus.state !== 'off') {
+      var pre = !!(updStatus.prerelease || (window.RLUpdateChannel && window.RLUpdateChannel.isPrerelease(ver)));
+      var chId = window.RLUpdateChannel ? window.RLUpdateChannel.normalizeChannel(updStatus.channel || updateChannel()) : updateChannel();
+      st.appendChild(el('span', { class: 'st-item' + (pre || chId === 'interim' ? ' st-interim' : ''), text: pre ? T('updInterimBadge') : updChannelName(chId) }));
+    }
   }
   // ---- title bar: the sidebar (Pro) or the top navigation (Studio) lists the tools, the bar only names the current one ----
   function renderNav() {
