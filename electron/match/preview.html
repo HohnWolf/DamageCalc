@@ -13,6 +13,8 @@ html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;ov
 #intro{position:fixed;inset:0;width:100%;height:100%;border:0;background:transparent;opacity:0;pointer-events:none;transition:opacity .8s ease;z-index:50}
 #intro.on{opacity:1}
 #view.solid{background:linear-gradient(160deg,#2c1450,#150b25 70%)}
+#tlogo{position:absolute;left:50%;top:50%;width:70vh;height:70vh;transform:translate(-50%,-50%);object-fit:contain;opacity:.22;pointer-events:none;display:none}
+#tlogo.on{display:block}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased;backface-visibility:hidden;font-family:"Bahnschrift","Arial Narrow","Segoe UI",system-ui,sans-serif;color:#fff}
 /* stage */
 .bar{position:absolute;left:64px;right:64px;top:22px;height:80px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:16px}
@@ -90,7 +92,7 @@ html,body{margin:0;height:100%;background:transparent;color-scheme:dark light;ov
 .vs::after{content:'';position:absolute;inset:-4px;border-radius:50%;box-shadow:0 0 26px 4px rgba(215,184,255,.7);opacity:0;animation:vsg 3.6s ease-in-out infinite;pointer-events:none}
 @keyframes vsg{0%,100%{opacity:0}50%{opacity:1}}
 </style></head><body>
-<div id="view"><div id="bgfx"><i class="rot"></i><i class="b b1"></i><i class="b b2"></i><i class="b b3"></i><i class="b b4"></i><i class="sweep"></i><div id="parts"></div></div><div id="stage"></div></div>
+<div id="view"><div id="bgfx"><i class="rot"></i><i class="b b1"></i><i class="b b2"></i><i class="b b3"></i><i class="b b4"></i><i class="sweep"></i><div id="parts"></div></div><img id="tlogo" alt=""><div id="stage"></div></div>
 <iframe id="intro" title="Start" scrolling="no"></iframe>
 <script>
 const $=id=>document.getElementById(id);
@@ -231,6 +233,15 @@ function playIntro(n){
     introTimer=setTimeout(()=>{v.style.visibility='';f.classList.remove('on');introTimer=setTimeout(()=>{f.removeAttribute('src');},1000);},INTRO_MS);};
   f.src='/match/start?auto=1&n='+n;
 }
+// Teamlogo mittig hinter den Teams: das linke (eigene) Logo, sonst das rechte
+let logoKey='';
+function setTeamLogo(l,r){
+  const k=l?'L':r?'R':'',v=k==='L'?l:r,key=k+v,img=$('tlogo');
+  if(key===logoKey)return;
+  logoKey=key;
+  if(!k){img.classList.remove('on');img.removeAttribute('src');return;}
+  img.src='/match/logo/'+k+'?v='+v;img.classList.add('on');
+}
 let last='',bootId=null;
 async function poll(){
   try{
@@ -239,6 +250,7 @@ async function poll(){
     bootId=d.v;
     if(introPlay!==null&&d.play!==introPlay)playIntro(d.play);
     introPlay=d.play;
+    setTeamLogo(d.logoL,d.logoR);
     const j=JSON.stringify(d.preview||{});
     if(j===last){window.__ready=true;return;}
     last=j;st=Object.assign(st,d.preview||{});

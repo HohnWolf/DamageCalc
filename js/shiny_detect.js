@@ -84,6 +84,53 @@
       return s;
     });
   }
+  // Automatik: zuletzt genutzte Quelle wieder öffnen. Fenster-IDs ändern sich nach einem Neustart, dann zählt der Titel.
+  var autoTried = {}, autoPending = {};
+  function resolveSource(src) {
+    var D = window.desktop && window.desktop.shiny;
+    if (src.kind !== 'screen' || !D || !D.captureSources) return Promise.resolve(src);
+    return D.captureSources().then(function (list) {
+      var m = list.filter(function (x) { return x.id === src.id; })[0] || list.filter(function (x) { return x.name === src.label; })[0];
+      return m ? { kind: 'screen', id: m.id, label: m.name } : null;
+    }, function () { return src; });
+  }
+  function autoConnect(h, api) {
+    var c = cfg(h);
+    if (sessions[h.id] || autoPending[h.id] || !c.source || !c.source.label) return Promise.resolve(null);
+    autoPending[h.id] = true;
+    return resolveSource(c.source).then(function (src) {
+      if (!src) throw new Error(c.source.label);
+      return connect(h, src, api);
+    }).then(function (s) {
+      autoPending[h.id] = false;
+      if (api && api.persist) api.persist();
+      rerenderPanel(h.id);
+      return s;
+    }, function (e) { autoPending[h.id] = false; console.warn('Auto-Verbinden fehlgeschlagen', e); return null; });
+  }
+  // Timer gestartet: Erkennung mitstarten (verbindet bei Bedarf zuerst)
+  function autoStart(h, connectToo) {
+    var p = panels[h.id];
+    if (!p) return;
+    var c = cfg(h);
+    function begin(s) {
+      if (!s || s.running || !c.region) return;
+      if (c.mode === 'text') { if (!OCR || !wantedTexts(c, p.api).length) return; } else if (!c.refs.length) return;
+      s.api = p.api; s.hunt = h;
+      s.running = true; s.state = 'idle'; s.hitsN = 0;
+      if (!s.loop) startLoop(s);
+      rerenderPanel(h.id);
+    }
+    if (sessions[h.id]) begin(sessions[h.id]);
+    else if (connectToo) autoConnect(h, p.api).then(begin);
+  }
+  // Timer pausiert: Erkennung anhalten (Quelle bleibt verbunden)
+  function autoStop(h) {
+    var s = sessions[h.id];
+    if (!s || !s.running) return;
+    s.running = false; s.state = 'idle'; s.hitsN = 0;
+    rerenderPanel(h.id);
+  }
   function stop(id) {
     var s = sessions[id];
     if (!s) return;
@@ -251,6 +298,7 @@
       return pb;
     }
     if (!s) {
+      if (api.autoConnect && api.autoConnect() && c.source && c.source.label && !autoTried[h.id]) { autoTried[h.id] = true; autoConnect(h, api); }
       var row = el('div', { class: 'det-row' });
       var sb = el('button', { class: 'tbtn', text: t('screen') });
       sb.addEventListener('click', function () { chooseScreen(function (src) { go(src); }); });
@@ -473,7 +521,7 @@
   }
 
   window.CCShinyDetect = {
-    panel: panel, stop: stop, cleanRefs: cleanRefs,
+    panel: panel, stop: stop, cleanRefs: cleanRefs, autoStart: autoStart, autoStop: autoStop,
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
     // connected source of a hunt (the clips can record the same picture)
     stream: function (id) { return sessions[id] ? sessions[id].stream : null; },

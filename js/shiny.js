@@ -27,7 +27,7 @@
     notes: 'Notizen', date: 'Datum', catchTitle: 'Shiny gefangen', editCatch: 'Fang bearbeiten', addCatch: '+ Fang eintragen', delCatch: 'Fang löschen',
     delCatchConfirm: 'Diesen Fang löschen?', catches: 'Fänge', dex: 'Shiny-Dex', allGens: 'Alle', genN: 'Gen {0}', caught: 'gefangen', seen: 'gesehen',
     dexStats: '{0} Shinys · {1} Arten · Shiny-Dex {2}/{3}', noCatches: 'Noch keine Shinys. Beende einen Hunt mit „Gefunden!“ oder trage einen Fang ein.',
-    viaHunt: '{0} Begegnungen · {1}', phasesN: '{0} Phasen', hkTitle: 'Globale Hotkeys', hkHint: 'Zählen auch, wenn das Spiel oder der Emulator im Vordergrund ist. Sie wirken auf alle Hunts mit Haken bei „Hotkeys zählen diesen Hunt“.',
+    viaHunt: '{0} Begegnungen · {1}', phasesN: '{0} Phasen', autoTitle: 'Automatik', autoConnect: 'Aufnahme automatisch wieder verbinden', autoConnectT: 'Verbindet beim Öffnen eines Hunts automatisch wieder mit der zuletzt genutzten Capture-Karte bzw. dem Fenster.', autoDetect: 'Erkennung starten, sobald der Timer startet', autoDetectT: 'Startet die automatische Erkennung, wenn du den Timer des Hunts startest (Voraussetzung: Bereich und Referenz bzw. Suchtext sind eingerichtet).', hkTitle: 'Globale Hotkeys', hkHint: 'Zählen auch, wenn das Spiel oder der Emulator im Vordergrund ist. Sie wirken auf alle Hunts mit Haken bei „Hotkeys zählen diesen Hunt“.',
     hkDesktop: 'Globale Hotkeys gibt es nur in der Desktop-App. Im Browser zählen + und − bei geöffnetem Shiny-Zähler.',
     act_inc: 'Zählen (+)', act_dec: 'Zurück (−)', act_phase: 'Phase abschließen', act_timer: 'Timer starten/pausieren',
     change: 'Ändern', remove: 'Entfernen', pressKeys: 'Tastenkombination drücken … (Esc bricht ab)', hkOk: 'aktiv', hkFail: 'belegt oder ungültig', none: '—',
@@ -66,7 +66,7 @@
     notes: 'Notes', date: 'Date', catchTitle: 'Shiny caught', editCatch: 'Edit catch', addCatch: '+ Add catch', delCatch: 'Delete catch',
     delCatchConfirm: 'Delete this catch?', catches: 'Catches', dex: 'Shiny Dex', allGens: 'All', genN: 'Gen {0}', caught: 'caught', seen: 'seen',
     dexStats: '{0} shinies · {1} species · Shiny Dex {2}/{3}', noCatches: 'No shinies yet. Finish a hunt with "Found!" or add a catch.',
-    viaHunt: '{0} encounters · {1}', phasesN: '{0} phases', hkTitle: 'Global hotkeys', hkHint: 'They count even while the game or emulator is in front. They act on every hunt with "Hotkeys count this hunt" ticked.',
+    viaHunt: '{0} encounters · {1}', phasesN: '{0} phases', autoTitle: 'Automation', autoConnect: 'Reconnect the capture automatically', autoConnectT: 'Reconnects to the last used capture card or window when a hunt opens.', autoDetect: 'Start detection when the timer starts', autoDetectT: 'Starts the automatic detection when you start the hunt timer (needs area and reference or search text to be set up).', hkTitle: 'Global hotkeys', hkHint: 'They count even while the game or emulator is in front. They act on every hunt with "Hotkeys count this hunt" ticked.',
     hkDesktop: 'Global hotkeys are only available in the desktop app. In the browser + and − count while the shiny counter is open.',
     act_inc: 'Count (+)', act_dec: 'Back (−)', act_phase: 'Finish phase', act_timer: 'Start/pause timer',
     change: 'Change', remove: 'Remove', pressKeys: 'Press a key combination … (Esc cancels)', hkOk: 'active', hkFail: 'taken or invalid', none: '—',
@@ -188,6 +188,7 @@
     persist();
   });
   store.tab = store.tab || 'hunts';
+  store.auto = { connect: !!(store.auto && store.auto.connect), detect: !!(store.auto && store.auto.detect) };
   if (store.hotkeys.clip == null) store.hotkeys.clip = '';
   if (store.hotkeys.projector == null) store.hotkeys.projector = 'CommandOrControl+Alt+P';
   function cleanProjector(p) {
@@ -263,8 +264,14 @@
   }
   function timeOf(h) { return (h.timeMs || 0) + (h.runStart ? Date.now() - h.runStart : 0); }
   function setRunning(h, on) {
-    if (on && !h.runStart) h.runStart = Date.now();
-    if (!on && h.runStart) { h.timeMs = timeOf(h); h.runStart = 0; }
+    if (on && !h.runStart) {
+      h.runStart = Date.now();
+      if (store.auto.detect && window.CCShinyDetect && window.CCShinyDetect.autoStart) window.CCShinyDetect.autoStart(h, store.auto.connect);
+    }
+    if (!on && h.runStart) {
+      h.timeMs = timeOf(h); h.runStart = 0;
+      if (store.auto.detect && window.CCShinyDetect && window.CCShinyDetect.autoStop) window.CCShinyDetect.autoStop(h);
+    }
   }
   function huntName(h) { return h.title || monName(h.species) || (de ? 'Neuer Hunt' : 'New hunt'); }
 
@@ -624,7 +631,7 @@
     if (window.CCShinyDetect) {
       var dp = el('div', { class: 'sh-detect panel' });
       grid.appendChild(dp);
-      window.CCShinyDetect.panel(dp, h, { count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
+      window.CCShinyDetect.panel(dp, h, { autoConnect: function () { return store.auto.connect; }, count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
         name: function () { return h.species ? monName(h.species) : ''; },
         projector: D && window.CCProjector ? function () { window.CCProjector.toggle(h.id); } : null,
         projectorOn: function () { return !!(window.CCProjector && window.CCProjector.isOpen()); },
@@ -920,6 +927,19 @@
   function renderSetup(body) {
     var wrap = el('div', { class: 'sh-setup' });
     body.appendChild(wrap);
+    // automation
+    var ap = el('div', { class: 'panel sh-card' });
+    ap.appendChild(el('h3', { text: t('autoTitle') }));
+    [['connect', 'autoConnect'], ['detect', 'autoDetect']].forEach(function (x) {
+      var lb = el('label', { class: 'nc-check sh-chk', title: t(x[1] + 'T') });
+      var cbx = el('input', { type: 'checkbox' }); cbx.checked = !!store.auto[x[0]];
+      cbx.addEventListener('change', function () { store.auto[x[0]] = cbx.checked; persist(); });
+      lb.appendChild(cbx); lb.appendChild(document.createTextNode(' ' + t(x[1])));
+      ap.appendChild(lb);
+      ap.appendChild(el('div', { class: 'hint', text: t(x[1] + 'T') }));
+    });
+    wrap.appendChild(ap);
+
     // hotkeys
     var hp = el('div', { class: 'panel sh-card' });
     hp.appendChild(el('h3', { text: t('hkTitle') }));
