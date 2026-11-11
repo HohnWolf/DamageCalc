@@ -179,7 +179,7 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
+      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
@@ -226,14 +226,46 @@
       setLang: 'Sprache', setLangHint: 'Beim Wechsel der Sprache lädt die App neu, dabei geht nichts verloren.',
       setTools: 'Aktive Tools', setToolsHint: 'Deaktivierte Tools werden auf dem Startbildschirm und in der oberen Leiste ausgeblendet. Gespeicherte Daten bleiben erhalten.', setToolsAll: 'Alle aktivieren', setToolsMin1: 'Mindestens ein Tool muss aktiv bleiben.',
       setStart: 'Beim Öffnen der App', setStartHint: 'Welcher Bildschirm nach dem Start erscheint', setStartScreen: 'Startbildschirm',
-      setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version und lädt sie im Hintergrund.',
-      setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis.',
+      setUpd: 'Updates', setUpdHint: 'Version {0}. Die App sucht bei jedem Start nach einer neuen Version. Der Update-Kanal legt fest, welche Versionen geladen werden.',
+      setUpdHintP: 'Version {0} (portabel). Die App sucht bei jedem Start nach einer neuen Version und zeigt dann einen Hinweis. Der Update-Kanal gilt auch hier.',
       updCheck: 'Jetzt suchen', updChecking: 'Suche …', updNone: 'Du hast die neueste Version.', updLoading: 'Version {0} wird geladen …',
       updProgress: 'Version {0} wird geladen … {1} %', updErr: 'Suche fehlgeschlagen: {0}', updOff: 'Updates gibt es nur in der Windows-App.',
+      updChannel: 'Update-Kanal', updChannelHint: 'Vollversionen installieren nur neue Neben- oder Hauptversionen (zum Beispiel 1.20 auf 1.21) und dann die neueste Fassung dieser Linie. Zwischenversionen installieren jede neuere Fassung, auch Patches und Vorabversionen.',
+      updFull: 'Vollversionen', updInterim: 'Zwischenversionen', updChannelNow: 'Kanal: {0}', updInterimBadge: 'Zwischenversion',
+      updPatchHeld: 'Patch {0} ist veröffentlicht. Vollversionen bieten ihn nicht an. Die nächste Vollversion (neue Neben- oder Hauptnummer) kommt automatisch, sobald sie neuer ist.',
+      updAhead: 'Diese Fassung ist neuer als die letzte Vollversion. Es gibt kein automatisches Downgrade. Die nächste Vollversion wird angeboten, sobald sie neuer ist als die installierte.',
+      updOnPre: 'Es ist eine Zwischenversion installiert. Die Vollversion {0} wird nicht automatisch installiert. Die nächste Vollversion mit neuer Neben- oder Hauptnummer kommt von selbst, sobald sie neuer ist.',
+      updRollback: 'Auf Vollversion zurückwechseln', updRollbackHint: 'Installiert die letzte Vollversion {0}.',
       updReady: 'Update {0}: neu starten', updReadyT: 'Rattata Labs {0} ist geladen. Klicken zum Neustarten und Installieren, sonst wird es beim nächsten Beenden installiert.',
       updReadyMsg: 'Version {0} ist geladen und wird beim nächsten Beenden installiert.', updRestart: 'Jetzt neu starten',
       updPortable: 'Update {0} verfügbar', updPortableT: 'Version {0} ist auf GitHub. Die portable Version aktualisiert sich nicht selbst: Klicken öffnet die Download-Seite.',
-      updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite'
+      updPortableMsg: 'Version {0} ist verfügbar. Die portable Version bitte neu herunterladen.', updDownload: 'Download-Seite',
+      setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Der Update-Kanal gilt auch hier. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
+      updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
+      updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
+      catPlay: 'Minigames', catPlayText: 'Wer ist schneller?, Basiswerte-Quiz und Schadens-Schätzung',
+      navMgSpeed: 'Wer ist schneller?', navMgQuiz: 'Basiswerte-Quiz', navMgDmg: 'Schadens-Schätzung',
+      startMgSpeedText: 'Zwei Pokémon: welches hat die höhere Basis-Initiative? Bei Gleichstand gibt es „Gleich schnell“.',
+      startMgSpeedKo: 'Basis-Initiative · Serie · Highscore',
+      startMgQuizText: 'Sechs Basiswerte sehen und das Pokémon erraten. Deutsche und englische Namen gelten.',
+      startMgQuizKo: 'Werte · Hinweise · Highscore',
+      startMgDmgText: 'Schätze den Schaden in Prozent der KP. Die Spanne rechnet der Damage Calculator.',
+      startMgDmgKo: 'Level 50 · Einzel · Damage Calc',
+      mgScore: 'Punkte', mgStreak: 'Serie', mgHigh: 'Highscore', mgGen: 'Generation', mgGenAll: 'Alle Generationen', mgGenN: 'Generation {0}', mgEvolved: 'Nur voll entwickelte',
+      mgNext: 'Weiter', mgVs: 'VS', mgEmpty: 'Zu wenige Pokémon für diese Auswahl.',
+      mgSpeedAsk: 'Welches Pokémon ist schneller?', mgSpeedLeft: 'Links schneller', mgSpeedRight: 'Rechts schneller', mgSpeedTie: 'Gleich schnell',
+      mgSpeedOk: 'Richtig', mgSpeedBad: 'Falsch', mgSpeedStat: 'Initiative {0}',
+      mgQuizAsk: 'Welches Pokémon hat diese Basiswerte?', mgQuizPh: 'Deutscher oder englischer Name …', mgQuizGuess: 'Raten',
+      mgQuizType: 'Typen', mgQuizGen: 'Generation', mgQuizSil: 'Silhouette', mgQuizGive: 'Aufgeben',
+      mgQuizOk: 'Richtig, {0}. +{1}', mgQuizBad: 'Nein, das ist nicht {0}.', mgQuizUnknown: 'Diesen Namen kenne ich nicht.', mgQuizWas: 'Es war {0}.',
+      mgQuizWorth: 'Diese Runde: {0} Punkte', mgQuizHintCost: '−{0}',
+      mgStHp: 'KP', mgStAt: 'Ang', mgStDf: 'Vert', mgStSa: 'SpA', mgStSd: 'SpV', mgStSp: 'Init',
+      mgDmgAsk: 'Wie viel Prozent der KP verliert der Verteidiger?', mgDmgGuess: 'Schätzung', mgDmgSubmit: 'Schätzen',
+      mgDmgRange: '{0}–{1} Schaden ({2}–{3} %)', mgDmgOff: 'Abweichung {0} Prozentpunkte. +{1}', mgDmgExact: 'In der Spanne. +{0}',
+      mgLevel: 'Level {0}', mgNature: 'Wesen', mgAbility: 'Fähigkeit', mgItem: 'Item', mgWeather: 'Wetter', mgTerrain: 'Terrain',
+      mgNone: 'keins', mgNoItem: 'keins', mgSp: 'SP 0', mgAtk: 'Angreifer', mgDef: 'Verteidiger', mgHp: 'KP {0}', mgPower: 'Stärke {0}',
+      mgPhysical: 'Physisch', mgSpecial: 'Speziell', mgSingles: 'Einzel', mgNoCrit: 'kein Volltreffer',
+      updPerm: 'Android braucht einmalig die Erlaubnis „Unbekannte Apps installieren“ für Rattata Labs. Erlauben, zurückgehen und erneut antippen.'
     },
     en: {
       sub: 'VGC 2026 · Level 50 · Stat Points (max 32 each, 66 total) · Reg M-C',
@@ -291,7 +323,7 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', navGoCounter: 'Top Counter', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
@@ -338,14 +370,46 @@
       setLang: 'Language', setLangHint: 'The app reloads when the language changes, nothing is lost.',
       setTools: 'Enabled tools', setToolsHint: 'Disabled tools are hidden on the start screen and in the top bar. Saved data is kept.', setToolsAll: 'Enable all', setToolsMin1: 'At least one tool must stay enabled.',
       setStart: 'When the app opens', setStartHint: 'Which screen appears after starting', setStartScreen: 'Start screen',
-      setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start and downloads it in the background.',
-      setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice.',
+      setUpd: 'Updates', setUpdHint: 'Version {0}. The app looks for a new version on every start. The update channel decides which versions are downloaded.',
+      setUpdHintP: 'Version {0} (portable). The app looks for a new version on every start and shows a notice. The update channel applies here too.',
       updCheck: 'Check now', updChecking: 'Checking …', updNone: 'You have the latest version.', updLoading: 'Downloading version {0} …',
       updProgress: 'Downloading version {0} … {1}%', updErr: 'Check failed: {0}', updOff: 'Updates are only available in the Windows app.',
+      updChannel: 'Update channel', updChannelHint: 'Full releases install only new minor or major versions (for example 1.20 to 1.21), then the newest build of that line. Interim releases install every newer build, including patches and pre-releases.',
+      updFull: 'Full releases', updInterim: 'Interim releases', updChannelNow: 'Channel: {0}', updInterimBadge: 'Interim',
+      updPatchHeld: 'Patch {0} is published. Full releases do not offer it. The next full release (new minor or major) is offered automatically once it is newer.',
+      updAhead: 'This build is newer than the latest full release. There is no automatic downgrade. The next full release will be offered once it is newer than the installed one.',
+      updOnPre: 'An interim build is installed. Full release {0} is not installed automatically. The next full release with a new minor or major is offered on its own once it is newer.',
+      updRollback: 'Switch back to the full release', updRollbackHint: 'Installs the latest full release {0}.',
       updReady: 'Update {0}: restart', updReadyT: 'Rattata Labs {0} is downloaded. Click to restart and install, otherwise it is installed the next time you quit.',
       updReadyMsg: 'Version {0} is downloaded and will be installed the next time you quit.', updRestart: 'Restart now',
       updPortable: 'Update {0} available', updPortableT: 'Version {0} is on GitHub. The portable version does not update itself: click to open the download page.',
-      updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page'
+      updPortableMsg: 'Version {0} is available. Please download the portable version again.', updDownload: 'Download page',
+      setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. The update channel applies here too. To install it, it downloads the file and opens the Android installer.',
+      updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
+      updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
+      catPlay: 'Minigames', catPlayText: 'Who is faster?, base stat quiz and damage estimate',
+      navMgSpeed: 'Who is faster?', navMgQuiz: 'Base Stat Quiz', navMgDmg: 'Damage Estimate',
+      startMgSpeedText: 'Two Pokémon: which has the higher base Speed? Ties have their own answer.',
+      startMgSpeedKo: 'Base Speed · streak · high score',
+      startMgQuizText: 'See the six base stats and name the Pokémon. German and English names both count.',
+      startMgQuizKo: 'Stats · hints · high score',
+      startMgDmgText: 'Estimate the damage as a percent of HP. The range comes from the damage calculator.',
+      startMgDmgKo: 'Level 50 · Singles · damage calc',
+      mgScore: 'Score', mgStreak: 'Streak', mgHigh: 'High score', mgGen: 'Generation', mgGenAll: 'All generations', mgGenN: 'Generation {0}', mgEvolved: 'Fully evolved only',
+      mgNext: 'Next', mgVs: 'VS', mgEmpty: 'Not enough Pokémon for this filter.',
+      mgSpeedAsk: 'Which Pokémon is faster?', mgSpeedLeft: 'Left is faster', mgSpeedRight: 'Right is faster', mgSpeedTie: 'Same Speed',
+      mgSpeedOk: 'Correct', mgSpeedBad: 'Wrong', mgSpeedStat: 'Speed {0}',
+      mgQuizAsk: 'Which Pokémon has these base stats?', mgQuizPh: 'German or English name …', mgQuizGuess: 'Guess',
+      mgQuizType: 'Types', mgQuizGen: 'Generation', mgQuizSil: 'Silhouette', mgQuizGive: 'Give up',
+      mgQuizOk: 'Correct, {0}. +{1}', mgQuizBad: 'No, that is not {0}.', mgQuizUnknown: 'I do not know that name.', mgQuizWas: 'It was {0}.',
+      mgQuizWorth: 'This round: {0} points', mgQuizHintCost: '−{0}',
+      mgStHp: 'HP', mgStAt: 'Atk', mgStDf: 'Def', mgStSa: 'SpA', mgStSd: 'SpD', mgStSp: 'Spe',
+      mgDmgAsk: 'What percent of HP does the defender lose?', mgDmgGuess: 'Estimate', mgDmgSubmit: 'Guess',
+      mgDmgRange: '{0}–{1} damage ({2}–{3}%)', mgDmgOff: 'Off by {0} percentage points. +{1}', mgDmgExact: 'Inside the range. +{0}',
+      mgLevel: 'Level {0}', mgNature: 'Nature', mgAbility: 'Ability', mgItem: 'Item', mgWeather: 'Weather', mgTerrain: 'Terrain',
+      mgNone: 'none', mgNoItem: 'none', mgSp: 'SP 0', mgAtk: 'Attacker', mgDef: 'Defender', mgHp: 'HP {0}', mgPower: 'Power {0}',
+      mgPhysical: 'Physical', mgSpecial: 'Special', mgSingles: 'Singles', mgNoCrit: 'no critical hit',
+      updPerm: 'Android needs the one-time permission "Install unknown apps" for Rattata Labs. Allow it, go back and tap again.'
     }
   };
   function T(key) {
@@ -2091,7 +2155,7 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [] };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [], updateChannel: 'full' };
   function disabledToolsList() {
     var d = setting('disabledTools');
     return Array.isArray(d) ? d : [];
@@ -2126,13 +2190,24 @@
   var settingsModal = null, settingsRedraw = null, settingsTab = 'look';
   // update state from the desktop app (electron/updater.js): idle | checking | none | available | progress | ready | portable | error | off
   var updStatus = { state: 'off' };
+  // Update-Schnittstelle: Electron (window.desktop.update) oder Android-Huelle (js/android_update.js)
+  function updApi() { return (window.desktop && window.desktop.update) || window.RL_APP_UPDATE || null; }
+  function updateChannel() {
+    var raw = setting('updateChannel');
+    return window.RLUpdateChannel ? window.RLUpdateChannel.normalizeChannel(raw) : (raw === 'interim' ? 'interim' : 'full');
+  }
+  function updChannelName(id) { return T(id === 'interim' ? 'updInterim' : 'updFull'); }
   function updMessage(s) {
+    if (s.state === 'none' && s.ahead) return T('updAhead');
+    if (s.state === 'none' && s.prerelease && s.latestFull) return T('updOnPre', s.latestFull);
+    if (s.state === 'none' && s.patchHeld) return T('updPatchHeld', s.patchVersion || s.latestFull || '');
     switch (s.state) {
       case 'checking': return T('updChecking');
       case 'none': return T('updNone');
       case 'available': return T('updLoading', s.version);
       case 'progress': return T('updProgress', s.version, s.percent);
-      case 'ready': return T('updReadyMsg', s.version);
+      case 'ready': return T(s.android ? 'updAReadyMsg' : 'updReadyMsg', s.version);
+      case 'perm': return T('updPerm');
       case 'portable': return T('updPortableMsg', s.version);
       case 'error': return T('updErr', s.message || '?');
       case 'off': return T('updOff');
@@ -2144,7 +2219,9 @@
     return window.RLLogoEgg ? window.RLLogoEgg.homeSrc(!!window.__IS_SHINY_LOGO) : 'img/home.png';
   }
   function updCard(box) {
-    var D = window.desktop, s = updStatus;
+    var D = { update: updApi() }, s = updStatus;
+    var ch = updateChannel();
+    var onPre = !!(s.prerelease || (window.RLUpdateChannel && window.RLUpdateChannel.isPrerelease(s.current)));
     var card = el('div', { class: 'set-upd-card' });
     var top = el('div', { class: 'set-upd-top' });
     var badge = el('div', { class: 'set-upd-badge' });
@@ -2153,9 +2230,12 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.17.4') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.21.0') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
+    if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
-    info.appendChild(el('div', { class: 'hint', text: T(s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
+    info.appendChild(el('div', { class: 'hint', text: T(s.android ? 'setUpdHintA' : s.portable ? 'setUpdHintP' : 'setUpdHint', s.current || '?') }));
+    info.appendChild(el('div', { class: 'hint', text: T('updChannelNow', updChannelName(ch)) }));
     var msg = updMessage(s);
     if (msg) {
       var stRow = el('div', { class: 'set-upd-status upd-' + s.state });
@@ -2172,8 +2252,8 @@
     }
     top.appendChild(info);
     var act = el('div', { class: 'set-upd-act' }), b;
-    if (s.state === 'ready' || s.state === 'portable') {
-      b = el('button', { class: 'primary-btn', text: T(s.state === 'ready' ? 'updRestart' : 'updDownload') });
+    if (s.state === 'ready' || s.state === 'portable' || s.state === 'perm') {
+      b = el('button', { class: 'primary-btn', text: T(s.android ? 'updAInstall' : s.state === 'ready' ? 'updRestart' : 'updDownload') });
       b.addEventListener('click', function () { D.update.install(); });
     } else {
       b = el('button', { class: 'set-btn', text: T(s.state === 'checking' ? 'updChecking' : 'updCheck') });
@@ -2181,9 +2261,60 @@
       b.addEventListener('click', function () { D.update.check(); });
     }
     act.appendChild(b);
+    if (s.rollback && ch === 'full' && D.update && D.update.rollback && s.state !== 'ready' && s.state !== 'progress' && s.state !== 'available' && s.state !== 'portable') {
+      var rb = el('button', { type: 'button', class: 'set-btn', text: T('updRollback'), title: T('updRollbackHint', s.rollback) });
+      rb.addEventListener('click', function () { D.update.rollback(); });
+      act.appendChild(rb);
+    }
     top.appendChild(act);
     card.appendChild(top);
+    var chRow = el('div', { class: 'set-upd-channel' });
+    var lab = el('div', { class: 'set-label' });
+    lab.appendChild(el('div', { class: 'set-name', text: T('updChannel') }));
+    lab.appendChild(el('div', { class: 'hint', text: T('updChannelHint') }));
+    chRow.appendChild(lab);
+    var g = el('div', { class: 'set-seg', role: 'radiogroup', 'aria-label': T('updChannel') });
+    [['full', T('updFull')], ['interim', T('updInterim')]].forEach(function (o) {
+      var on = o[0] === ch;
+      var btn = el('button', { type: 'button', class: on ? 'on' : '', text: o[1], role: 'radio', 'aria-checked': on ? 'true' : 'false' });
+      btn.addEventListener('click', function () {
+        if (o[0] === updateChannel()) return;
+        setSetting('updateChannel', o[0]);
+        if (D.update && D.update.setChannel) D.update.setChannel(o[0]);
+        if (settingsRedraw) settingsRedraw();
+      });
+      g.appendChild(btn);
+    });
+    chRow.appendChild(g);
+    card.appendChild(chRow);
     box.appendChild(card);
+  }
+  // updates: checked on every start; the button appears once an update is downloaded (Windows), available (portable, Android)
+  function initUpdates() {
+    var U = updApi();
+    if (U) {
+      var ub = document.getElementById('btnUpdate');
+      var applyUpd = function (s) {
+        if (!s) return;
+        updStatus = s;
+        var show = s.state === 'ready' || s.state === 'portable' || s.state === 'perm';
+        ub.hidden = !show;
+        if (show) {
+          ub.textContent = T(s.android ? 'updAReady' : s.state === 'ready' ? 'updReady' : 'updPortable', s.version);
+          ub.title = T(s.android ? 'updAReadyT' : s.state === 'ready' ? 'updReadyT' : 'updPortableT', s.version);
+        }
+        if (settingsRedraw) settingsRedraw();
+        renderStatus();
+      };
+      ub.addEventListener('click', function () { U.install(); });
+      U.onStatus(applyUpd);
+      U.get().then(applyUpd);
+      if (U.setChannel) {
+        U.setChannel(updateChannel());
+        // Der Hauptprozess registriert den Kanal erst nach dem Fensterstart; ein zweites Mal trifft ihn sicher.
+        setTimeout(function () { if (updApi() && updApi().setChannel) updApi().setChannel(updateChannel()); }, 1500);
+      }
+    }
   }
   function openSettings() {
     if (settingsModal) return;
@@ -2207,7 +2338,7 @@
         ['tools', de ? 'Werkzeuge & Start' : 'Tools & start', 'tools', de ? 'Startbildschirm, obere Leiste und sichtbare Werkzeuge anpassen' : 'Customize startup behavior, top bar and active tools'],
         ['data', de ? 'Daten & Import' : 'Data & import', 'data', de ? 'Backups verwalten, Online-Daten aktualisieren und Teams importieren' : 'Manage backups, update online data and import teams']
       ];
-      if (window.desktop && window.desktop.update) {
+      if (updApi()) {
         SECS.push(['app', de ? 'App & Updates' : 'App & updates', 'app', de ? 'Versionsstatus prüfen und automatische Updates verwalten' : 'Check version status and manage automatic updates']);
       }
       if (!SECS.some(function (s) { return s[0] === settingsTab; })) settingsTab = SECS[0][0];
@@ -2235,7 +2366,9 @@
 
       var sideFoot = el('div', { class: 'set-side-foot' });
       var ver = (updStatus && updStatus.current) || '1.17.4';
-      sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: 'Rattata Labs · v' + ver }));
+      var foot = 'Rattata Labs · v' + ver;
+      if (updApi()) foot += ' · ' + updChannelName(updateChannel());
+      sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
       side.appendChild(sideFoot);
       shell.appendChild(side);
 
@@ -2329,6 +2462,7 @@
           if (window.CCDex && document.body.dataset.view === 'dex') window.CCDex.render();
           if (window.CCGoDex && document.body.dataset.view === 'godex') window.CCGoDex.render();
           if (window.CCGoCounter && document.body.dataset.view === 'gocounter') window.CCGoCounter.render();
+          if (window.CCGoInfo && document.body.dataset.view === 'goinfo') window.CCGoInfo.render();
         });
 
         var gScale = makeGroup(de ? 'Anzeige & Sprache' : 'Display & language');
@@ -2396,7 +2530,7 @@
       } else if (settingsTab === 'data') {
         var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
         (function () {
-          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter'];
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames'];
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2480,7 +2614,7 @@
           r.appendChild(g);
           gImp.appendChild(r);
         })();
-      } else if (settingsTab === 'app' && window.desktop && window.desktop.update) {
+      } else if (settingsTab === 'app' && updApi()) {
         updCard(body);
       }
       body.scrollTop = keepScroll;
@@ -2490,10 +2624,10 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'randomizer', 'savedit'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
     var REST = ['shiny', 'overlay', 'catch']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
@@ -2533,7 +2667,7 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], play: ['Pikachu', 'Jigglypuff', 'Magikarp'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
@@ -2627,6 +2761,8 @@
     if (v === 'dex' && window.CCDex) window.CCDex.render();
     if (v === 'godex' && window.CCGoDex) window.CCGoDex.render();
     if (v === 'gocounter' && window.CCGoCounter) window.CCGoCounter.render();
+    if (v === 'goinfo' && window.CCGoInfo) window.CCGoInfo.render();
+    if ((v === 'mgspeed' || v === 'mgquiz' || v === 'mgdmg') && window.CCMinigamesUI) window.CCMinigamesUI.open(v);
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2637,14 +2773,14 @@
   }
 
   // ======================= Pro shell: sidebar + status bar =======================
-  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', rest: 'catRest' };
+  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', play: 'catPlay', rest: 'catRest' };
   function modeLabel(id) {
     if (id === 'start') return T('proOverview');
     var m = MODES.filter(function (x) { return x[0] === id; })[0];
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', rest: window.RL_ANDROID ? 'dex' : 'shiny' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', play: 'play', rest: window.RL_ANDROID ? 'dex' : 'shiny' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }
@@ -2720,6 +2856,11 @@
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
     st.appendChild(el('span', { class: 'st-item', text: 'v' + ver }));
+    if (updApi() && updStatus && updStatus.state !== 'off') {
+      var pre = !!(updStatus.prerelease || (window.RLUpdateChannel && window.RLUpdateChannel.isPrerelease(ver)));
+      var chId = window.RLUpdateChannel ? window.RLUpdateChannel.normalizeChannel(updStatus.channel || updateChannel()) : updateChannel();
+      st.appendChild(el('span', { class: 'st-item' + (pre || chId === 'interim' ? ' st-interim' : ''), text: pre ? T('updInterimBadge') : updChannelName(chId) }));
+    }
   }
   // ---- title bar: the sidebar (Pro) or the top navigation (Studio) lists the tools, the bar only names the current one ----
   function renderNav() {
@@ -2811,26 +2952,8 @@
         document.body.classList.toggle('is-maximized', m);
         document.getElementById('winMax').title = T(m ? 'winRestore' : 'winMax');
       });
-      // updates: checked on every start; the button appears once an update is downloaded (or, portable, available)
-      if (D.update) {
-        var ub = document.getElementById('btnUpdate');
-        var applyUpd = function (s) {
-          if (!s) return;
-          updStatus = s;
-          var show = s.state === 'ready' || s.state === 'portable';
-          ub.hidden = !show;
-          if (show) {
-            ub.textContent = T(s.state === 'ready' ? 'updReady' : 'updPortable', s.version);
-            ub.title = T(s.state === 'ready' ? 'updReadyT' : 'updPortableT', s.version);
-          }
-          if (settingsRedraw) settingsRedraw();
-          renderStatus();
-        };
-        ub.addEventListener('click', function () { D.update.install(); });
-        D.update.onStatus(applyUpd);
-        D.update.get().then(applyUpd);
-      }
     }
+    initUpdates(); // Windows-App (window.desktop.update) oder Android-Huelle (window.RL_APP_UPDATE)
     // test hooks and reloads (language switch) keep the current view; a fresh start shows the start screen
     var v = 'start';
     if (/^#(selftest|runreg|runsets|runreset|calc)$/.test(location.hash) || /[?&]teamdemo\b/.test(location.search)) v = 'calc';
@@ -2846,6 +2969,10 @@
     else if (location.hash === '#dex') v = 'dex';
     else if (location.hash === '#godex') v = 'godex';
     else if (location.hash === '#gocounter') v = 'gocounter';
+    else if (location.hash === '#goinfo') v = 'goinfo';
+    else if (location.hash === '#mgspeed') v = 'mgspeed';
+    else if (location.hash === '#mgquiz') v = 'mgquiz';
+    else if (location.hash === '#mgdmg') v = 'mgdmg';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

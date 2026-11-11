@@ -2,9 +2,9 @@
 
 /* ================= View switching ================= */
 body:not([data-view="start"]) .start-view, body:not([data-view="calc"]) .calc-view,
-body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view, body:not([data-view="overlay"]) .overlay-view, body:not([data-view="catch"]) .catch-view, body:not([data-view="dex"]) .dex-view:not(.godex-view):not(.gocounter-view), body:not([data-view="godex"]) .godex-view, body:not([data-view="gocounter"]) .gocounter-view, body:not([data-view="randomizer"]) .randomizer-view, body:not([data-view="savedit"]) .save-view { display: none !important; }
+body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view, body:not([data-view="overlay"]) .overlay-view, body:not([data-view="catch"]) .catch-view, body:not([data-view="dex"]) .dex-view:not(.godex-view):not(.gocounter-view):not(.goinfo-view), body:not([data-view="godex"]) .godex-view, body:not([data-view="gocounter"]) .gocounter-view, body:not([data-view="goinfo"]) .goinfo-view, body:not([data-view="randomizer"]) .randomizer-view, body:not([data-view="savedit"]) .save-view { display: none !important; }
 body:not([data-view="calc"]) .only-calc { display: none !important; }
-body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start, body[data-view="overlay"] .no-start, body[data-view="catch"] .no-start, body[data-view="dex"] .no-start, body[data-view="godex"] .no-start, body[data-view="gocounter"] .no-start, body[data-view="randomizer"] .no-start, body[data-view="savedit"] .no-start { display: none !important; }
+body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start, body[data-view="overlay"] .no-start, body[data-view="catch"] .no-start, body[data-view="dex"] .no-start, body[data-view="godex"] .no-start, body[data-view="gocounter"] .no-start, body[data-view="goinfo"] .no-start, body[data-view="randomizer"] .no-start, body[data-view="savedit"] .no-start, body[data-view="mgspeed"] .no-start, body[data-view="mgquiz"] .no-start, body[data-view="mgdmg"] .no-start { display: none !important; }
 
 .sprite-fit { image-rendering: pixelated; }
 /* uncropped sprites (cosmetic variants) fill small boxes the same way */
@@ -104,12 +104,14 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .start-cards .cat-card.cat-runs { order: 2; }
 .start-cards .cat-card.cat-dex { order: 3; }
 .start-cards .cat-card.cat-go { order: 4; }
-.start-cards .cat-card.cat-rest { order: 5; }
+.start-cards .cat-card.cat-play { order: 5; }
+.start-cards .cat-card.cat-rest { order: 6; }
 .start-cards .start-group.sg-fight { order: 6; }
 .start-cards .start-group.sg-runs { order: 7; }
 .start-cards .start-group.sg-dex { order: 8; }
 .start-cards .start-group.sg-go { order: 9; }
-.start-cards .start-group.sg-rest { order: 10; }
+.start-cards .start-group.sg-play { order: 11; }
+.start-cards .start-group.sg-rest { order: 12; }
 .start-cards .cat-card[hidden], .start-group[hidden] { display: none !important; }
 
 /* In category detail view (Schritt 2) */
@@ -167,6 +169,8 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .cat-card.cat-dex:hover { border-color: #10b981; }
 .cat-card.cat-go { border-top-color: #06b6d4; }
 .cat-card.cat-go:hover { border-color: #06b6d4; }
+.cat-card.cat-play { border-top-color: #f59e0b; }
+.cat-card.cat-play:hover { border-color: #f59e0b; }
 .cat-card.cat-rest { border-top-color: #a78bfa; }
 .cat-card.cat-rest:hover { border-color: #a78bfa; }
 
@@ -981,6 +985,7 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .set-upd-title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 4px;
 }
@@ -1038,7 +1043,40 @@ body.is-maximized #winMax .ic-restore { display: block; }
 }
 .set-upd-act {
   flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
 }
+.set-channel-pill, .set-interim-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.set-channel-pill {
+  background: var(--input);
+  color: var(--muted);
+  border: 1px solid var(--line-soft);
+}
+.set-channel-pill.is-interim, .set-interim-badge {
+  background: #f59e0b;
+  color: #1a1203;
+  border: 0;
+}
+.set-upd-channel {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.set-upd-channel .set-seg { flex-wrap: wrap; }
+.st-interim { color: #e0a106; font-weight: 700; }
 
 @media (max-width: 720px) {
   .set-shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
@@ -1049,6 +1087,8 @@ body.is-maximized #winMax .ic-restore { display: block; }
   .set-row { flex-direction: column; align-items: stretch; gap: 10px; }
   .set-seg { align-self: flex-start; flex-wrap: wrap; }
   .set-upd-top { flex-direction: column; align-items: flex-start; }
+  .set-upd-channel { flex-direction: column; align-items: flex-start; }
+  .set-upd-act { align-items: stretch; }
 }
 
 /* ---- moves, item and ability in the editor: buttons that open the picker window, effect text below ---- */

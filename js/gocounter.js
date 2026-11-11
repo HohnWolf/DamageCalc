@@ -1888,8 +1888,35 @@
     A.showView('gocounter');
   }
 
+  // Top-Konter gegen einen Raid-Boss (für die GO-Infografik): nutzt die aktuellen Filter, ändert den gespeicherten Zustand nicht
+  var bossCache = {};
+  function mvN(m) { return !m ? '' : (typeof m === 'string' ? m : m.name || ''); }
+  function bossCounters(num, form, tier, n) {
+    if (!speciesByNum[num]) return [];
+    var key = [num, form || '', tier || 0, st.metric, st.levelMode, st.partySize, st.teamMode, st.mega, st.shadow, st.legendary, st.elite, st.mixed, st.offtype, st.unreleased, st.newdps, st.pveTurns].join('|');
+    var res = bossCache[key];
+    if (!res) {
+      var keep = { mode: st.mode, bossNum: st.bossNum, bossForm: st.bossForm, bossTier: st.bossTier, bossFm: st.bossFm, bossCm: st.bossCm, suboptimal: st.suboptimal, grouped: st.grouped };
+      try {
+        st.mode = 'boss'; st.bossNum = num; st.bossForm = form || ''; st.bossTier = tier || 0; st.bossFm = ''; st.bossCm = ''; st.suboptimal = false; st.grouped = false;
+        var r = computeRankings(), seen = {};
+        res = (r.list || []).filter(function (c) {
+          var k = c.num + '|' + (c.label || '') + '|' + (c.shadow ? 1 : 0);
+          if (seen[k]) return false; seen[k] = true; return true;
+        }).slice(0, 60).map(function (c) {
+          return { num: c.num, label: c.label || '', shadow: !!c.shadow, name: monName(c), nameEn: c.nameEn,
+            fm: mvN(c.fm) ? moveName(mvN(c.fm)) : '', fmT: c.fm_type || (fmByName[mvN(c.fm)] || {}).type || '', fmE: !!c.fm_is_elite,
+            cm: mvN(c.cm) ? moveName(mvN(c.cm)) : '', cmT: c.cm_type || (cmByName[mvN(c.cm)] || {}).type || '', cmE: !!c.cm_is_elite };
+      });
+      } finally { Object.keys(keep).forEach(function (k) { st[k] = keep[k]; }); }
+      bossCache[key] = res;
+    }
+    return res.slice(0, n || 6);
+  }
+
   window.CCGoCounter = {
     render: render,
+    bossCounters: bossCounters,
     openBoss: openBoss,
     computeRankings: computeRankings
   };

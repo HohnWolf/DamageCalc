@@ -1,0 +1,28 @@
+/* GO-Infografik: Raid- & Feldforschungs-Infografiken */
+.start-card.card-goinfo { --card-accent: #f59e0b; --card-glow: rgba(245, 158, 11, 0.22); }
+.goinfo-view { display: flex; flex-direction: column; min-height: 0; }
+.gi-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 8px; align-items: stretch; }
+.gi-side { display: flex; flex-direction: column; gap: 10px; overflow: auto; min-height: 0; padding: 12px; }
+.gi-f { display: flex; flex-direction: column; gap: 4px; }
+.gi-l { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; opacity: .65; }
+.gi-side input[type="text"], .gi-side textarea, .gi-side select { width: 100%; box-sizing: border-box; }
+.gi-seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.gi-seg button { flex: 1 1 auto; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line, rgba(128,128,128,.35)); background: transparent; color: inherit; cursor: pointer; font: inherit; }
+.gi-seg button.on { background: var(--card-accent, #f59e0b); color: #111; border-color: transparent; font-weight: 700; }
+.gi-chk { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.gi-rows { display: flex; flex-direction: column; gap: 8px; }
+.gi-row { display: flex; flex-direction: column; gap: 5px; padding: 8px; border-radius: 10px; border: 1px solid var(--line, rgba(128,128,128,.3)); }
+.gi-row-top { display: flex; gap: 6px; }
+.gi-row-top input { flex: 1; min-width: 0; }
+.gi-main { display: flex; flex-direction: column; min-height: 0; padding: 10px; }
+.gi-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.gi-out { flex: 1; min-height: 0; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+.gi-canvas { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+@media (max-width: 820px) { .gi-layout { grid-template-columns: 1fr; } .gi-canvas { max-height: none; } }
+.gi-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.gi-pk { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border-radius: 999px; border: 1px solid var(--line, rgba(128,128,128,.4)); font-size: 12px; }
+.gi-pk.sh { border-color: #fbbf24; background: rgba(251,191,36,.12); }
+.gi-pk-b { border: 0; background: transparent; color: inherit; cursor: pointer; opacity: .55; padding: 0 3px; font: inherit; }
+.gi-pk-b:hover { opacity: 1; }
+.gi-pk.sh .gi-pk-b:first-of-type { opacity: 1; }
+.gi-side input.bad { outline: 2px solid #ef4444; }

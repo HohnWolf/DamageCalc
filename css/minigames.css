@@ -1,0 +1,73 @@
+/* Minigames. Colours come from the active theme (style.css / pro.css / studio.css). */
+body:not([data-view="mgspeed"]) .mgspeed-view,
+body:not([data-view="mgquiz"]) .mgquiz-view,
+body:not([data-view="mgdmg"]) .mgdmg-view { display: none !important; }
+
+.mg-view { overflow: auto; }
+.mg-shell { width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+.mg-top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.mg-meters { display: flex; flex-wrap: wrap; gap: 8px; }
+.mg-meter { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 10px; min-width: 88px; }
+.mg-meter span { display: block; color: var(--muted); font-size: 11px; }
+.mg-meter b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.mg-opts { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; color: var(--muted); font-size: 12px; }
+.mg-opts select { height: var(--h); background: var(--input); color: var(--text); border: 1px solid var(--input-line); border-radius: var(--radius); }
+.mg-opts label { display: inline-flex; align-items: center; gap: 6px; }
+
+.mg-ask { margin: 0; font-size: 16px; font-weight: 700; }
+.mg-stage { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: stretch; }
+.mg-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.mg-card.win { border-color: var(--good); }
+.mg-card.lose { border-color: var(--bad); }
+.mg-card h3 { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.mg-meta, .mg-ask, .mg-move { overflow-wrap: anywhere; }
+.mg-sprite { width: 96px; height: 96px; display: flex; align-items: center; justify-content: center; }
+.mg-sprite svg, .mg-sprite img { width: 96px; height: 96px; }
+.mg-vs { align-self: center; font-weight: 800; color: var(--muted); }
+.mg-speed { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.mg-types { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.mg-meta { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.mg-meta b { color: var(--text); font-weight: 700; }
+
+.mg-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mg-btn { height: 32px; padding: 0 14px; border-radius: var(--radius); font-weight: 700; }
+.mg-btn.primary { background: var(--btn-on); border-color: var(--btn-on); color: var(--on-btn); }
+.mg-btn.primary:hover { background: var(--btn-on-hover); }
+.mg-btn:disabled { opacity: .55; cursor: default; }
+
+.mg-banner { border-radius: var(--radius); padding: 8px 12px; background: var(--panel-head); border: 1px solid var(--line); }
+.mg-banner.ok { border-color: var(--good); }
+.mg-banner.bad { border-color: var(--bad); }
+
+.mg-stats { display: flex; flex-direction: column; gap: 7px; width: 100%; }
+.mg-stat { display: grid; grid-template-columns: 52px 36px minmax(0, 1fr); gap: 8px; align-items: center; }
+.mg-stat .k { color: var(--muted); font-weight: 700; font-size: 12px; }
+.mg-stat .v { font-variant-numeric: tabular-nums; font-weight: 800; text-align: right; }
+.mg-bar { height: 10px; background: var(--line-soft); border-radius: 5px; overflow: hidden; }
+.mg-bar > span { display: block; height: 100%; background: var(--accent-2); border-radius: 5px; }
+
+.mg-search { position: relative; width: min(420px, 100%); }
+.mg-search input { width: 100%; height: 32px; background: var(--input); color: var(--text); border: 1px solid var(--input-line); border-radius: var(--radius); padding: 0 10px; }
+.mg-suggest { position: absolute; left: 0; right: 0; top: 34px; z-index: 5; margin: 0; padding: 4px; list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); max-height: 220px; overflow: auto; }
+.mg-suggest button { width: 100%; height: 28px; text-align: left; background: transparent; border: 0; color: var(--text); }
+.mg-suggest button.on, .mg-suggest button:hover { background: var(--accent-soft); }
+.mg-hints { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mg-hintcost { color: var(--muted); font-size: 11px; }
+.mg-sil { width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; background: #d8dbe2; border-radius: 12px; }
+.mg-sil svg, .mg-sil img { width: 104px; height: 104px; filter: brightness(0); }
+
+.mg-move { font-size: 15px; font-weight: 800; }
+.mg-slider { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mg-slider input[type="range"] { flex: 1 1 180px; min-width: 0; accent-color: var(--accent-2); }
+.mg-slider input[type="number"] { width: 76px; height: 32px; background: var(--input); color: var(--text); border: 1px solid var(--input-line); border-radius: var(--radius); padding: 0 8px; }
+.mg-track { position: relative; height: 14px; background: var(--line-soft); border-radius: 7px; margin-top: 6px; }
+.mg-track .rng { position: absolute; top: 0; bottom: 0; background: var(--good); border-radius: 7px; }
+.mg-track .pin { position: absolute; top: -3px; width: 3px; height: 20px; background: var(--accent); border-radius: 2px; }
+
+.mg-empty { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .mg-stage { grid-template-columns: minmax(0, 1fr); }
+  .mg-vs { padding: 2px 0; }
+  .mg-sprite, .mg-sprite svg, .mg-sprite img { width: 80px; height: 80px; }
+}

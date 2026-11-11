@@ -12,6 +12,7 @@
   --ic-savedit: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M19%2021H5a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h11l5%205v11a2%202%200%200%201-2%202z%22%2F%3E%3Cpath%20d%3D%22M17%2021v-8H7v8M7%203v5h8%22%2F%3E%3C%2Fsvg%3E");
   --ic-dex: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%205h7a2%202%200%200%201%202%202v13a2%202%200%200%200-2-2H3z%22%2F%3E%3Cpath%20d%3D%22M21%205h-7a2%202%200%200%200-2%202v13a2%202%200%200%201%202-2h7z%22%2F%3E%3C%2Fsvg%3E");
   --ic-godex: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2021s-6.5-6-6.5-11a6.5%206.5%200%200%201%2013%200c0%205-6.5%2011-6.5%2011z%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2210%22%20r%3D%222.5%22%2F%3E%3C%2Fsvg%3E");
+  --ic-goinfo: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%222%22%2F%3E%3Ccircle%20cx%3D%228.5%22%20cy%3D%228.5%22%20r%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M21%2015l-5-5L5%2021%22%2F%3E%3C%2Fsvg%3E");
   --ic-gocounter: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14.5%2017.5L3%206V3h3l11.5%2011.5%22%2F%3E%3Cpath%20d%3D%22M13%2019l6-6%22%2F%3E%3Cpath%20d%3D%22M16%2016l4%204%22%2F%3E%3Cpath%20d%3D%22M19%2021l2-2%22%2F%3E%3Cpath%20d%3D%22M14.5%206.5L18%203h3v3l-3.5%203.5%22%2F%3E%3Cpath%20d%3D%22M5%2014l4%204%22%2F%3E%3Cpath%20d%3D%22M7%2017l-3%203%22%2F%3E%3Cpath%20d%3D%22M3%2019l2%202%22%2F%3E%3C%2Fsvg%3E");
   --ic-shiny: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203l2.2%205.8L20%2011l-5.8%202.2L12%2019l-2.2-5.8L4%2011l5.8-2.2z%22%2F%3E%3C%2Fsvg%3E");
   --ic-overlay: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M8%2020h8M12%2016v4%22%2F%3E%3C%2Fsvg%3E");
@@ -22,6 +23,10 @@
   --ic-tools: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2218%22%20height%3D%227%22%20rx%3D%221.5%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2214%22%20width%3D%2218%22%20height%3D%227%22%20rx%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M7%206.5h.01M7%2017.5h.01%22%2F%3E%3C%2Fsvg%3E");
   --ic-data: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%226%22%20rx%3D%228%22%20ry%3D%223%22%2F%3E%3Cpath%20d%3D%22M4%206v6c0%201.7%203.6%203%208%203s8-1.3%208-3V6M4%2012v6c0%201.7%203.6%203%208%203s8-1.3%208-3v-6%22%2F%3E%3C%2Fsvg%3E");
   --ic-app: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2020V5M5%2012l7-7%207%207%22%2F%3E%3C%2Fsvg%3E");
+  --ic-play: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222.5%22%20y%3D%227%22%20width%3D%2219%22%20height%3D%2211%22%20rx%3D%224%22%2F%3E%3Cpath%20d%3D%22M7%2010.5v4M5%2012.5h4%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2211.5%22%20r%3D%22.8%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2218.2%22%20cy%3D%2213.7%22%20r%3D%22.8%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fsvg%3E");
+  --ic-mgspeed: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%202L4%2014h7l-1%208%2010-14h-7z%22%2F%3E%3C%2Fsvg%3E");
+  --ic-mgquiz: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2020V10M10%2020V4M16%2020v-7M21%2020H3%22%2F%3E%3C%2Fsvg%3E");
+  --ic-mgdmg: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%204l6%206-9.5%209.5H4.5V13.5z%22%2F%3E%3C%2Fsvg%3E");
 }
 html[data-ui-style="pro"] {
   --sb-w: 184px;
@@ -85,6 +90,7 @@ html[data-ui-style="pro"] .sb-foot { flex: none; padding: 6px; border-top: 1px s
 .ic[data-ic="dex"] { --ic: var(--ic-dex); }
 .ic[data-ic="godex"] { --ic: var(--ic-godex); }
 .ic[data-ic="gocounter"] { --ic: var(--ic-gocounter); }
+.ic[data-ic="goinfo"] { --ic: var(--ic-goinfo); }
 .ic[data-ic="shiny"] { --ic: var(--ic-shiny); }
 .ic[data-ic="overlay"] { --ic: var(--ic-overlay); }
 .ic[data-ic="catch"] { --ic: var(--ic-catch); }
@@ -94,6 +100,10 @@ html[data-ui-style="pro"] .sb-foot { flex: none; padding: 6px; border-top: 1px s
 .ic[data-ic="tools"] { --ic: var(--ic-tools); }
 .ic[data-ic="data"] { --ic: var(--ic-data); }
 .ic[data-ic="app"] { --ic: var(--ic-app); }
+.ic[data-ic="play"] { --ic: var(--ic-play); }
+.ic[data-ic="mgspeed"] { --ic: var(--ic-mgspeed); }
+.ic[data-ic="mgquiz"] { --ic: var(--ic-mgquiz); }
+.ic[data-ic="mgdmg"] { --ic: var(--ic-mgdmg); }
 html[data-ui-style="pro"] .sb-collapse .ic { transition: transform .15s ease; }
 html.sb-collapsed[data-ui-style="pro"] .sb-collapse .ic { transform: rotate(180deg); }
 html.sb-collapsed[data-ui-style="pro"] .sidebar { width: 46px; }
@@ -175,6 +185,10 @@ html[data-ui-style="pro"] .start-card.card-overlay::before { --ic: var(--ic-over
 html[data-ui-style="pro"] .start-card.card-catch::before { --ic: var(--ic-catch); }
 html[data-ui-style="pro"] .start-card.card-godex::before { --ic: var(--ic-godex); }
 html[data-ui-style="pro"] .start-card.card-gocounter::before { --ic: var(--ic-gocounter); }
+html[data-ui-style="pro"] .start-card.card-goinfo::before { --ic: var(--ic-goinfo); }
+html[data-ui-style="pro"] .start-card.card-mgspeed::before { --ic: var(--ic-mgspeed); }
+html[data-ui-style="pro"] .start-card.card-mgquiz::before { --ic: var(--ic-mgquiz); }
+html[data-ui-style="pro"] .start-card.card-mgdmg::before { --ic: var(--ic-mgdmg); }
 html[data-ui-style="pro"] .sc-head { display: contents; }
 html[data-ui-style="pro"] .sc-title { grid-column: 2; grid-row: 1; font-size: 13px; font-weight: 600; }
 html[data-ui-style="pro"] .sc-key { grid-column: 3; grid-row: 1; }
@@ -283,6 +297,7 @@ html[data-ui-style="pro"] .start-cards.is-cat .sg-label { display: block; margin
 html[data-ui-style="pro"] .start-cards.is-cat .sg-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); grid-auto-flow: row; grid-auto-columns: auto; grid-template-rows: none; gap: 6px; justify-content: stretch; }
 html[data-ui-style="pro"] .start-card.cat-fight::before { --ic: var(--ic-calc); }
 html[data-ui-style="pro"] .start-card.cat-runs::before { --ic: var(--ic-soullink); }
+html[data-ui-style="pro"] .start-card.cat-play::before { --ic: var(--ic-play); }
 html[data-ui-style="pro"] .start-card.cat-rest::before { --ic: var(--ic-shiny); }
 html[data-ui-style="pro"] .cat-card, html[data-ui-style="pro"] .cat-card:hover { transform: none; box-shadow: none; }
 html[data-ui-style="pro"] .cat-card .sc-key { position: static; background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 0; }

@@ -1,5 +1,19 @@
 apply plugin: 'com.android.application'
 
+// Version kommt aus der package.json der Desktop-App (eine Nummer fuer alles): 1.21.0 -> versionCode 12100.
+// Ein Vorab-Suffix zaehlt einen Schritt weniger (1.22.0-beta.1 -> 12199), damit die Vollversion 1.22.0 (12200) darueber passt.
+def appVersion = new groovy.json.JsonSlurper().parse(file('../../../package.json')).version as String
+def core = appVersion.split('-')[0]
+def vp = core.tokenize('.').collect { (it as String).replaceAll(/[^0-9].*$/, '').toInteger() }
+while (vp.size() < 3) vp.add(0)
+def appVersionCode = vp[0] * 10000 + vp[1] * 100 + vp[2]
+if (appVersion.contains('-') && appVersionCode > 1) appVersionCode -= 1
+
+// Feste Signatur ist Pflicht, damit Android ein Update ueber die installierte App akzeptiert.
+// Schluessel: RL_KEYSTORE (Datei), RL_KEYSTORE_PASSWORD, RL_KEY_ALIAS, RL_KEY_PASSWORD (CI-Secrets, siehe README).
+// Ohne Schluessel (lokaler Test) wird mit dem Debug-Schluessel signiert.
+def ksFile = System.getenv('RL_KEYSTORE')
+
 android {
     namespace "de.hohnwolf.rattatalab"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +21,8 @@ android {
         applicationId "de.hohnwolf.rattatalab"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +30,19 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (ksFile) {
+                storeFile file(ksFile)
+                storePassword System.getenv('RL_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('RL_KEY_ALIAS')
+                keyPassword System.getenv('RL_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig ksFile ? signingConfigs.release : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
