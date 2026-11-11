@@ -5,7 +5,7 @@
   var Kit = window.CCMinigames;
   if (!A || !Kit) return;
   var api = Kit.create({
-    dex: A.DEX, moves: A.MOVES, learn: window.CHAMP_LEARN, learnParent: window.CHAMP_PARENT,
+    dex: A.DEX, moves: A.MOVES, learn: window.CHAMP_LEARN, learnParent: window.CHAMP_PARENT, setsFor: A.setsFor,
     namesDe: window.NAMES_DE, formDe: A.FORM_DE, natdex: window.NATDEX, calc: window.Calc
   });
   var el = A.el, T = A.T;
@@ -110,6 +110,7 @@
   function renderSpeed() {
     var box = shell('mgSpeedView');
     if (!box) return;
+    box.classList.add('mg-center');
     var st = api.load().speed;
     var top = el('div', { class: 'mg-top' });
     runMeters(top, st);
@@ -204,6 +205,21 @@
     if (!name || name === '(none)') return T('mgNoItem');
     return A.nItem ? A.nItem(name) : name;
   }
+  function terrainText(t) {
+    var m = { Electric: de() ? 'Elektro' : 'Electric', Grassy: de() ? 'Gras' : 'Grassy', Psychic: de() ? 'Psycho' : 'Psychic', Misty: de() ? 'Nebel' : 'Misty' };
+    return t && t !== 'None' ? (m[t] || t) : T('mgNone');
+  }
+  function boostText(sc) {
+    var names = { at: de() ? 'Angriff' : 'Attack', sa: de() ? 'Sp.-Angriff' : 'Sp. Atk', df: de() ? 'Verteidigung' : 'Defense', sd: de() ? 'Sp.-Vert.' : 'Sp. Def' };
+    var out = [];
+    [['atkBoost', de() ? 'Angreifer' : 'Attacker'], ['defBoost', de() ? 'Verteidiger' : 'Defender']].forEach(function (g) {
+      Object.keys(sc[g[0]] || {}).forEach(function (k) {
+        var v = sc[g[0]][k];
+        if (v) out.push(g[1] + ' ' + names[k] + ' ' + (v > 0 ? '+' : '') + v);
+      });
+    });
+    return out.join(' \u00b7 ');
+  }
   function renderDamage() {
     var box = shell('mgDmgView');
     if (!box) return;
@@ -213,7 +229,7 @@
     top.appendChild(optsBar(renderDamage));
     box.appendChild(top);
     var mons = pool();
-    var sc = api.makeDamageScenario(mons);
+    var sc = api.makeDamageScenario(mons, null, st.streak);
     if (!sc) { box.appendChild(el('p', { class: 'mg-empty', text: T('mgEmpty') })); return; }
     box.appendChild(el('h2', { class: 'mg-ask', text: T('mgDmgAsk') }));
     var stage = el('div', { class: 'mg-stage' });
@@ -231,8 +247,6 @@
       meta.appendChild(document.createElement('br'));
       meta.appendChild(el('b', { text: T('mgItem') + ': ' }));
       meta.appendChild(document.createTextNode(itemLabel(mon.item)));
-      meta.appendChild(document.createElement('br'));
-      meta.appendChild(document.createTextNode(T('mgHp', mon.maxHP)));
       c.appendChild(meta);
       return c;
     }
@@ -246,14 +260,16 @@
     mid.appendChild(el('p', { class: 'mg-meta', text: T('mgNature') + ': ' + (A.nNature ? A.nNature(sc.nature) : sc.nature) + ' · ' + T('mgSp') }));
     mid.appendChild(el('p', { class: 'mg-meta', text: T('mgNoCrit') }));
     var field = el('p', { class: 'mg-meta' });
-    var weatherMap = { Sun: de() ? 'Sonne' : 'Sun', Rain: de() ? 'Regen' : 'Rain' };
+    var weatherMap = { Sun: de() ? 'Sonne' : 'Sun', Rain: de() ? 'Regen' : 'Rain', Sand: de() ? 'Sandsturm' : 'Sandstorm', Snow: de() ? 'Schnee' : 'Snow' };
     var weather = sc.weather && sc.weather !== 'None' ? (weatherMap[sc.weather] || sc.weather) : T('mgNone');
     field.appendChild(el('b', { text: T('mgWeather') + ': ' }));
     field.appendChild(document.createTextNode(weather));
     field.appendChild(document.createElement('br'));
     field.appendChild(el('b', { text: T('mgTerrain') + ': ' }));
-    field.appendChild(document.createTextNode(T('mgNone')));
+    field.appendChild(document.createTextNode(terrainText(sc.terrain)));
     mid.appendChild(field);
+    var bs = boostText(sc);
+    if (bs) mid.appendChild(el('p', { class: 'mg-meta', text: bs }));
     stage.appendChild(mid);
     stage.appendChild(side(sc.defenderName, sc.defender, T('mgDef')));
     box.appendChild(stage);

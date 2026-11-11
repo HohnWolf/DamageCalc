@@ -3003,6 +3003,14 @@
     natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
     el: el, esc: esc, opt: opt, toast: toast, pushUndo: pushUndo, showModal: showModal, copy: copy, load: load, save: save, T: T,
     typeBadge: typeBadge, spriteImg: spriteImg, spriteUrl: spriteUrl, idOf: idOf, FORM_DE: FORM_DE, spriteFit: spriteFit, spriteById: spriteById, speciesGroups: speciesGroups, defaultSet: defaultSet,
+    setsFor: function (sp) {
+      var out = [];
+      [SETDEX, ONLINE_SETS.usage, ONLINE_SETS.smogon].forEach(function (src) {
+        var o = (src || {})[sp] || {};
+        Object.keys(o).forEach(function (n) { out.push(o[n]); });
+      });
+      return out;
+    },
     parseShowdown: parseShowdown, exportSet: exportSet, setCalcTeam: setCalcTeam, getCalcTeams: function () { return teams; }, showView: showView,
     withLang: function (l, fn) { var o = LANG; LANG = l; try { return fn(); } finally { LANG = o; } },
     setting: setting, setSetting: setSetting, saveFile: saveFile, openSettings: openSettings, saveCustomSet: saveCustomSet

@@ -156,6 +156,28 @@
       });
       return out;
     }
+    // Moves aus den beliebten Sets (NCP, Usage, Online) des Pokemon; nur sinnvolle Schadensmoves.
+    function setMoves(name) {
+      var out = [], seen = {};
+      var list = deps.setsFor ? (deps.setsFor(name) || []) : [];
+      list.forEach(function (set) {
+        ((set && set.moves) || []).forEach(function (n) {
+          if (!n || seen[n] || !deps.moves[n] || !isSensibleMove(n, deps.moves[n])) return;
+          seen[n] = 1; out.push(n);
+        });
+      });
+      return out;
+    }
+    // Ohne Sets: hauptsaechlich STAB-Moves (ca. 85 %), sonst alle sinnvollen Moves.
+    function pickMove(entry, rng) {
+      var fromSets = setMoves(entry.name);
+      if (fromSets.length) return fromSets[Math.floor(rng() * fromSets.length)];
+      var all = damagingMoves(entry.name);
+      if (!all.length) return null;
+      var stab = all.filter(function (n) { return entry.types.indexOf(deps.moves[n].type) !== -1; });
+      var list = stab.length && rng() < 0.85 ? stab : all;
+      return list[Math.floor(rng() * list.length)];
+    }
     function isPlayable(name, entry) {
       if (!name || !entry || !entry.bs) return false;
       if (/totem|gmax|eternamax|primal|crowned/i.test(name)) return false;
@@ -248,22 +270,23 @@
       for (var i = 0; i < names.length; i++) if (map[names[i]] === type) return names[i];
       return '';
     }
-    function toCalcMon(entry, item) {
+    function toCalcMon(entry, item, boosts) {
+      boosts = boosts || {};
       var C = deps.calc;
       var nature = 'Hardy';
       var stats = {};
       C.STAT_KEYS.forEach(function (s) { stats[s] = C.calcStat(s, entry.bs[s] || 1, 0, nature, entry.name); });
       return {
         species: entry.name, baseSpecies: baseSpeciesName(entry.name), types: entry.types.slice(),
-        stats: stats, boosts: { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 },
+        stats: stats, boosts: { hp: 0, at: boosts.at || 0, df: boosts.df || 0, sa: boosts.sa || 0, sd: boosts.sd || 0, sp: 0 },
         nature: nature, ability: entry.ability || '', item: item || '(none)', status: 'Healthy',
         curHP: stats.hp, maxHP: stats.hp, weight: entry.weight || 50, canEvolve: !!entry.canEvolve, fainted: 0,
         sps: { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 }
       };
     }
-    function blankField(weather) {
+    function blankField(weather, terrain) {
       return {
-        format: 'Singles', weather: weather && weather !== 'None' ? weather : 'None', terrain: 'None', gravity: false,
+        format: 'Singles', weather: weather && weather !== 'None' ? weather : 'None', terrain: terrain && terrain !== 'None' ? terrain : 'None', gravity: false,
         ruin: { tablets: false, vessel: false, sword: false, beads: false },
         fairyAura: false, darkAura: false, auraBreak: false
       };
@@ -278,12 +301,14 @@
       Object.keys(src).forEach(function (k) { move[k] = src[k]; });
       move.name = moveName;
       move.crit = false;
-      var field = blankField(spec.weather);
+      var field = blankField(spec.weather, spec.terrain);
+      var ab = spec.atkBoost || {}, db = spec.defBoost || {};
       return {
         attackerName: atk.name, defenderName: def.name, moveName: moveName,
-        item: spec.item || '(none)', weather: field.weather, terrain: 'None', format: 'Singles',
+        item: spec.item || '(none)', weather: field.weather, terrain: field.terrain, format: 'Singles',
         level: deps.calc.LEVEL, nature: 'Hardy', sp: 0,
-        attacker: toCalcMon(atk, spec.item || '(none)'), defender: toCalcMon(def, '(none)'),
+        attacker: toCalcMon(atk, spec.item || '(none)', ab), defender: toCalcMon(def, '(none)', db),
+        atkBoost: ab, defBoost: db,
         move: move, field: field, aSide: {}, dSide: {}
       };
     }
@@ -297,28 +322,41 @@
       var hp = scenario.defender.maxHP || 1;
       return { rolls: rolls, min: min, max: max, hp: hp, minPct: min / hp * 100, maxPct: max / hp * 100 };
     }
-    function makeDamageScenario(pool, rng) {
+    // streak: Serie des Spielers. Ab 10 kommen teils Wetter/Terrain dazu, ab 20 teils Statuswerte-Aenderungen.
+    function makeDamageScenario(pool, rng, streak) {
+      streak = streak | 0;
       rng = rng || Math.random;
       if (!deps.calc || typeof deps.calc.calculate !== 'function') throw new Error('Calc.calculate missing');
       var last = null;
       for (var attempt = 0; attempt < 24; attempt++) {
         var pair = pickTwo(pool, rng);
         if (!pair) return null;
-        var moves = damagingMoves(pair[0].name);
-        if (!moves.length) continue;
-        var moveName = moves[Math.floor(rng() * moves.length)];
+        var moveName = pickMove(pair[0], rng);
+        if (!moveName) continue;
         var move = deps.moves[moveName];
         var itemRoll = rng();
         var item = '(none)';
         if (itemRoll < 0.18) item = 'Life Orb';
         else if (itemRoll < 0.36) { var ti = typeItem(move.type); if (ti) item = ti; }
-        var wRoll = rng();
-        var weather = 'None';
-        if (wRoll < 0.22) {
-          if (move.type === 'Fire') weather = 'Sun';
-          else if (move.type === 'Water') weather = 'Rain';
+        var weather = 'None', terrain = 'None', atkBoost = {}, defBoost = {};
+        if (streak >= 10) {
+          if (rng() < 0.4) {
+            var wl = ['Sun', 'Rain', 'Sand', 'Snow'];
+            weather = move.type === 'Fire' && rng() < 0.6 ? 'Sun' : move.type === 'Water' && rng() < 0.6 ? 'Rain' : wl[Math.floor(rng() * wl.length)];
+          }
+          if (rng() < 0.35) {
+            var tm = { Electric: 'Electric', Grass: 'Grassy', Psychic: 'Psychic', Dragon: 'Misty' };
+            var tl = ['Electric', 'Grassy', 'Psychic', 'Misty'];
+            terrain = tm[move.type] && rng() < 0.6 ? tm[move.type] : tl[Math.floor(rng() * tl.length)];
+          }
         }
-        var sc = buildDamageScenario({ pool: pool, attacker: pair[0].name, defender: pair[1].name, move: moveName, item: item, weather: weather });
+        if (streak >= 20) {
+          var phys = move.category === 'Physical';
+          var vals = [-2, -1, 1, 2];
+          if (rng() < 0.4) atkBoost[phys ? 'at' : 'sa'] = vals[Math.floor(rng() * 4)];
+          if (rng() < 0.4) defBoost[phys ? 'df' : 'sd'] = vals[Math.floor(rng() * 4)];
+        }
+        var sc = buildDamageScenario({ pool: pool, attacker: pair[0].name, defender: pair[1].name, move: moveName, item: item, weather: weather, terrain: terrain, atkBoost: atkBoost, defBoost: defBoost });
         if (!sc) continue;
         var truth = evaluateDamage(sc);
         last = sc;
