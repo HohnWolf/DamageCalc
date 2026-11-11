@@ -185,7 +185,8 @@
     if (shiny && px !== still) chain.push(still);
     var i = 0;
     function syncCls(u) { img.classList.toggle('hd', u.indexOf('/home-centered') !== -1); img.classList.toggle('still', /\.png$/.test(u) && u.indexOf('/home-centered') === -1); }
-    img.onerror = function () { i++; if (i < chain.length) { syncCls(chain[i]); img.src = chain[i]; } };
+    img.onerror = function () { i++; if (i < chain.length) { img.classList.remove('rdy'); syncCls(chain[i]); img.src = chain[i]; } };
+    img.addEventListener('load', function () { img.classList.add('rdy'); }); // nach dem Einpassen im onload des Aufrufers
     syncCls(chain[0]);
     img.src = chain[0];
   }

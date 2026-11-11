@@ -2287,6 +2287,11 @@
     });
     chRow.appendChild(g);
     card.appendChild(chRow);
+    if (window.RLPatchnotes) {
+      var pn = el('button', { type: 'button', class: 'set-btn', text: de ? 'Patchnotes anzeigen' : 'Show patch notes' });
+      pn.addEventListener('click', function () { window.RLPatchnotes.show(); });
+      card.appendChild(pn);
+    }
     box.appendChild(card);
   }
   // updates: checked on every start; the button appears once an update is downloaded (Windows), available (portable, Android)

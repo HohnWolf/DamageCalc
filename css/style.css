@@ -1006,3 +1006,7 @@ html[data-ui-style="compact"] .catch-grid {
 .toast.toast-undo { display: flex; align-items: center; gap: 12px; }
 .toast-undo-btn { background: var(--accent, #4a90e2); color: #fff; border: 0; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
 .toast-undo-btn:hover { filter: brightness(1.1); }
+.patch-box { width: min(520px, 92vw); }
+.patch-body { max-height: min(55vh, 420px); overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.patch-ver ul { margin: 4px 0 0; padding-left: 20px; }
+.patch-ver li { margin: 2px 0; }
