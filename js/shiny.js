@@ -236,6 +236,22 @@
   }
   // closing, restarting or updating right after a change: write it now, not after the short delay
   window.addEventListener('pagehide', function () { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; A.save('cc_shiny', store); } });
+  // Beim Schliessen der Anwendung pausieren alle laufenden Timer. Faellt das Schliessen aus (Absturz, Prozess beendet),
+  // gilt beim naechsten Start der letzte Herzschlag als Ende, damit die Zeit nicht weiterlaeuft.
+  function pauseAllTimers() {
+    var any = false;
+    store.hunts.forEach(function (h) { if (h.runStart) { setRunning(h, false); any = true; } });
+    if (any) { clearTimeout(saveTimer); saveTimer = null; A.save('cc_shiny', store); }
+  }
+  window.addEventListener('pagehide', pauseAllTimers);
+  window.addEventListener('beforeunload', pauseAllTimers);
+  store.hunts.forEach(function (h) {
+    if (h.runStart && store.alive && store.alive > h.runStart) { h.timeMs = (h.timeMs || 0) + (store.alive - h.runStart); h.runStart = 0; }
+  });
+  setInterval(function () {
+    if (!store.hunts.some(function (h) { return h.runStart; })) return;
+    store.alive = Date.now(); A.save('cc_shiny', store);
+  }, 15000);
   // references of the auto detection saved by 1.3.0 carried a broken cache: repair them once and save
   if (window.CCShinyDetect && window.CCShinyDetect.cleanRefs) {
     var refsFixed = false;
