@@ -6,7 +6,7 @@
   var A = window.CC;
   if (!A) return;
   var el = A.el, de = A.LANG === 'de';
-  var KEY = 'cc_lastver', MAX = 5;
+  var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
     { v: '1.22.0',
       de: ['Teampreview: Jedes Teamlogo steht mittig hinter seinem Team.', 'Shiny-Zähler: „Aufnahme automatisch wieder verbinden“ und „Erkennung mit dem Timer starten“ gibt es jetzt auch in den Einstellungen unter „Werkzeuge & Start“.'],

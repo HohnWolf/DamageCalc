@@ -18,6 +18,7 @@ eq(P._notes[0].v, pkg.version, 'neuester Eintrag = package.json (' + pkg.version
 eq(P._notes.every((n) => n.de.length && n.en.length && n.de.length === n.en.length || (n.de.length && n.en.length)), true, 'jede Version hat deutsche und englische Texte');
 eq(P._entries('1.21.0', '1.21.1').map((n) => n.v), ['1.21.1'], 'Update 1.21.0 -> 1.21.1: ein Eintrag');
 eq(P._entries('1.20.0', '1.21.1').map((n) => n.v), ['1.21.1', '1.21.0', '1.20.1'], 'Sprung über mehrere Versionen: alle dazwischen');
+eq(P._entries('1.21.0', '1.22.0').map((n) => n.v), ['1.22.0', '1.21.6', '1.21.5', '1.21.4', '1.21.3', '1.21.2', '1.21.1'], 'Vollversion 1.21.0 -> 1.22.0: alle Aenderungen dazwischen, nicht nur die letzten fuenf');
 eq(P._entries('1.21.1', '1.21.1').length, 0, 'gleiche Version: nichts');
 
 // _check: Speicher und Popup (show wird über document erkannt)
