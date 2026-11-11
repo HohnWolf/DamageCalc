@@ -237,6 +237,28 @@
       setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
       updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
       updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
+      catPlay: 'Minigames', catPlayText: 'Wer ist schneller?, Basiswerte-Quiz und Schadens-Schätzung',
+      navMgSpeed: 'Wer ist schneller?', navMgQuiz: 'Basiswerte-Quiz', navMgDmg: 'Schadens-Schätzung',
+      startMgSpeedText: 'Zwei Pokémon: welches hat die höhere Basis-Initiative? Bei Gleichstand gibt es „Gleich schnell“.',
+      startMgSpeedKo: 'Basis-Initiative · Serie · Highscore',
+      startMgQuizText: 'Sechs Basiswerte sehen und das Pokémon erraten. Deutsche und englische Namen gelten.',
+      startMgQuizKo: 'Werte · Hinweise · Highscore',
+      startMgDmgText: 'Schätze den Schaden in Prozent der KP. Die Spanne rechnet der Damage Calculator.',
+      startMgDmgKo: 'Level 50 · Einzel · Damage Calc',
+      mgScore: 'Punkte', mgStreak: 'Serie', mgHigh: 'Highscore', mgGen: 'Generation', mgGenAll: 'Alle Generationen', mgGenN: 'Generation {0}', mgEvolved: 'Nur voll entwickelte',
+      mgNext: 'Weiter', mgVs: 'VS', mgEmpty: 'Zu wenige Pokémon für diese Auswahl.',
+      mgSpeedAsk: 'Welches Pokémon ist schneller?', mgSpeedLeft: 'Links schneller', mgSpeedRight: 'Rechts schneller', mgSpeedTie: 'Gleich schnell',
+      mgSpeedOk: 'Richtig', mgSpeedBad: 'Falsch', mgSpeedStat: 'Initiative {0}',
+      mgQuizAsk: 'Welches Pokémon hat diese Basiswerte?', mgQuizPh: 'Deutscher oder englischer Name …', mgQuizGuess: 'Raten',
+      mgQuizType: 'Typen', mgQuizGen: 'Generation', mgQuizSil: 'Silhouette', mgQuizGive: 'Aufgeben',
+      mgQuizOk: 'Richtig, {0}. +{1}', mgQuizBad: 'Nein, das ist nicht {0}.', mgQuizUnknown: 'Diesen Namen kenne ich nicht.', mgQuizWas: 'Es war {0}.',
+      mgQuizWorth: 'Diese Runde: {0} Punkte', mgQuizHintCost: '−{0}',
+      mgStHp: 'KP', mgStAt: 'Ang', mgStDf: 'Vert', mgStSa: 'SpA', mgStSd: 'SpV', mgStSp: 'Init',
+      mgDmgAsk: 'Wie viel Prozent der KP verliert der Verteidiger?', mgDmgGuess: 'Schätzung', mgDmgSubmit: 'Schätzen',
+      mgDmgRange: '{0}–{1} Schaden ({2}–{3} %)', mgDmgOff: 'Abweichung {0} Prozentpunkte. +{1}', mgDmgExact: 'In der Spanne. +{0}',
+      mgLevel: 'Level {0}', mgNature: 'Wesen', mgAbility: 'Fähigkeit', mgItem: 'Item', mgWeather: 'Wetter', mgTerrain: 'Terrain',
+      mgNone: 'keins', mgNoItem: 'keins', mgSp: 'SP 0', mgAtk: 'Angreifer', mgDef: 'Verteidiger', mgHp: 'KP {0}', mgPower: 'Stärke {0}',
+      mgPhysical: 'Physisch', mgSpecial: 'Speziell', mgSingles: 'Einzel', mgNoCrit: 'kein Volltreffer',
       updPerm: 'Android braucht einmalig die Erlaubnis „Unbekannte Apps installieren“ für Rattata Labs. Erlauben, zurückgehen und erneut antippen.'
     },
     en: {
@@ -353,6 +375,28 @@
       setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. To install it, it downloads the file and opens the Android installer.',
       updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
       updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
+      catPlay: 'Minigames', catPlayText: 'Who is faster?, base stat quiz and damage estimate',
+      navMgSpeed: 'Who is faster?', navMgQuiz: 'Base Stat Quiz', navMgDmg: 'Damage Estimate',
+      startMgSpeedText: 'Two Pokémon: which has the higher base Speed? Ties have their own answer.',
+      startMgSpeedKo: 'Base Speed · streak · high score',
+      startMgQuizText: 'See the six base stats and name the Pokémon. German and English names both count.',
+      startMgQuizKo: 'Stats · hints · high score',
+      startMgDmgText: 'Estimate the damage as a percent of HP. The range comes from the damage calculator.',
+      startMgDmgKo: 'Level 50 · Singles · damage calc',
+      mgScore: 'Score', mgStreak: 'Streak', mgHigh: 'High score', mgGen: 'Generation', mgGenAll: 'All generations', mgGenN: 'Generation {0}', mgEvolved: 'Fully evolved only',
+      mgNext: 'Next', mgVs: 'VS', mgEmpty: 'Not enough Pokémon for this filter.',
+      mgSpeedAsk: 'Which Pokémon is faster?', mgSpeedLeft: 'Left is faster', mgSpeedRight: 'Right is faster', mgSpeedTie: 'Same Speed',
+      mgSpeedOk: 'Correct', mgSpeedBad: 'Wrong', mgSpeedStat: 'Speed {0}',
+      mgQuizAsk: 'Which Pokémon has these base stats?', mgQuizPh: 'German or English name …', mgQuizGuess: 'Guess',
+      mgQuizType: 'Types', mgQuizGen: 'Generation', mgQuizSil: 'Silhouette', mgQuizGive: 'Give up',
+      mgQuizOk: 'Correct, {0}. +{1}', mgQuizBad: 'No, that is not {0}.', mgQuizUnknown: 'I do not know that name.', mgQuizWas: 'It was {0}.',
+      mgQuizWorth: 'This round: {0} points', mgQuizHintCost: '−{0}',
+      mgStHp: 'HP', mgStAt: 'Atk', mgStDf: 'Def', mgStSa: 'SpA', mgStSd: 'SpD', mgStSp: 'Spe',
+      mgDmgAsk: 'What percent of HP does the defender lose?', mgDmgGuess: 'Estimate', mgDmgSubmit: 'Guess',
+      mgDmgRange: '{0}–{1} damage ({2}–{3}%)', mgDmgOff: 'Off by {0} percentage points. +{1}', mgDmgExact: 'Inside the range. +{0}',
+      mgLevel: 'Level {0}', mgNature: 'Nature', mgAbility: 'Ability', mgItem: 'Item', mgWeather: 'Weather', mgTerrain: 'Terrain',
+      mgNone: 'none', mgNoItem: 'none', mgSp: 'SP 0', mgAtk: 'Attacker', mgDef: 'Defender', mgHp: 'HP {0}', mgPower: 'Power {0}',
+      mgPhysical: 'Physical', mgSpecial: 'Special', mgSingles: 'Singles', mgNoCrit: 'no critical hit',
       updPerm: 'Android needs the one-time permission "Install unknown apps" for Rattata Labs. Allow it, go back and tap again.'
     }
   };
@@ -2430,7 +2474,7 @@
       } else if (settingsTab === 'data') {
         var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
         (function () {
-          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo'];
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames'];
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2524,10 +2568,10 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
     var REST = ['shiny', 'overlay', 'catch']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
@@ -2567,7 +2611,7 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], play: ['Pikachu', 'Jigglypuff', 'Magikarp'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
@@ -2662,6 +2706,7 @@
     if (v === 'godex' && window.CCGoDex) window.CCGoDex.render();
     if (v === 'gocounter' && window.CCGoCounter) window.CCGoCounter.render();
     if (v === 'goinfo' && window.CCGoInfo) window.CCGoInfo.render();
+    if ((v === 'mgspeed' || v === 'mgquiz' || v === 'mgdmg') && window.CCMinigamesUI) window.CCMinigamesUI.open(v);
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2672,14 +2717,14 @@
   }
 
   // ======================= Pro shell: sidebar + status bar =======================
-  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', rest: 'catRest' };
+  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', play: 'catPlay', rest: 'catRest' };
   function modeLabel(id) {
     if (id === 'start') return T('proOverview');
     var m = MODES.filter(function (x) { return x[0] === id; })[0];
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', rest: window.RL_ANDROID ? 'dex' : 'shiny' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', play: 'play', rest: window.RL_ANDROID ? 'dex' : 'shiny' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }
@@ -2864,6 +2909,9 @@
     else if (location.hash === '#godex') v = 'godex';
     else if (location.hash === '#gocounter') v = 'gocounter';
     else if (location.hash === '#goinfo') v = 'goinfo';
+    else if (location.hash === '#mgspeed') v = 'mgspeed';
+    else if (location.hash === '#mgquiz') v = 'mgquiz';
+    else if (location.hash === '#mgdmg') v = 'mgdmg';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

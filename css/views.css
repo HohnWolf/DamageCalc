@@ -4,7 +4,7 @@
 body:not([data-view="start"]) .start-view, body:not([data-view="calc"]) .calc-view,
 body:not([data-view="builder"]) .builder-view, body:not([data-view="nuz"]) .nuz-view, body:not([data-view="soullink"]) .sl-view, body:not([data-view="shiny"]) .shiny-view, body:not([data-view="match"]) .match-view, body:not([data-view="overlay"]) .overlay-view, body:not([data-view="catch"]) .catch-view, body:not([data-view="dex"]) .dex-view:not(.godex-view):not(.gocounter-view):not(.goinfo-view), body:not([data-view="godex"]) .godex-view, body:not([data-view="gocounter"]) .gocounter-view, body:not([data-view="goinfo"]) .goinfo-view, body:not([data-view="randomizer"]) .randomizer-view, body:not([data-view="savedit"]) .save-view { display: none !important; }
 body:not([data-view="calc"]) .only-calc { display: none !important; }
-body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start, body[data-view="overlay"] .no-start, body[data-view="catch"] .no-start, body[data-view="dex"] .no-start, body[data-view="godex"] .no-start, body[data-view="gocounter"] .no-start, body[data-view="goinfo"] .no-start, body[data-view="randomizer"] .no-start, body[data-view="savedit"] .no-start { display: none !important; }
+body[data-view="start"] .no-start, body[data-view="nuz"] .no-start, body[data-view="soullink"] .no-start, body[data-view="shiny"] .no-start, body[data-view="match"] .no-start, body[data-view="overlay"] .no-start, body[data-view="catch"] .no-start, body[data-view="dex"] .no-start, body[data-view="godex"] .no-start, body[data-view="gocounter"] .no-start, body[data-view="goinfo"] .no-start, body[data-view="randomizer"] .no-start, body[data-view="savedit"] .no-start, body[data-view="mgspeed"] .no-start, body[data-view="mgquiz"] .no-start, body[data-view="mgdmg"] .no-start { display: none !important; }
 
 .sprite-fit { image-rendering: pixelated; }
 /* uncropped sprites (cosmetic variants) fill small boxes the same way */
@@ -104,12 +104,14 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .start-cards .cat-card.cat-runs { order: 2; }
 .start-cards .cat-card.cat-dex { order: 3; }
 .start-cards .cat-card.cat-go { order: 4; }
-.start-cards .cat-card.cat-rest { order: 5; }
+.start-cards .cat-card.cat-play { order: 5; }
+.start-cards .cat-card.cat-rest { order: 6; }
 .start-cards .start-group.sg-fight { order: 6; }
 .start-cards .start-group.sg-runs { order: 7; }
 .start-cards .start-group.sg-dex { order: 8; }
 .start-cards .start-group.sg-go { order: 9; }
-.start-cards .start-group.sg-rest { order: 10; }
+.start-cards .start-group.sg-play { order: 11; }
+.start-cards .start-group.sg-rest { order: 12; }
 .start-cards .cat-card[hidden], .start-group[hidden] { display: none !important; }
 
 /* In category detail view (Schritt 2) */
@@ -167,6 +169,8 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .cat-card.cat-dex:hover { border-color: #10b981; }
 .cat-card.cat-go { border-top-color: #06b6d4; }
 .cat-card.cat-go:hover { border-color: #06b6d4; }
+.cat-card.cat-play { border-top-color: #f59e0b; }
+.cat-card.cat-play:hover { border-color: #f59e0b; }
 .cat-card.cat-rest { border-top-color: #a78bfa; }
 .cat-card.cat-rest:hover { border-color: #a78bfa; }
 

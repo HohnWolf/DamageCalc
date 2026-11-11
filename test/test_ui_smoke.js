@@ -3,7 +3,7 @@
 // Eigenen Browser angeben: CHROME_PATH=... node test/test_ui_smoke.js
 const http = require('http'), fs = require('fs'), path = require('path'), cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
-const VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit'];
+const VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg'];
 const WIDTHS = [1280, 412];
 
 function findBrowser() {

@@ -122,6 +122,7 @@ html[data-ui-style="studio"] .start-cards.is-all .sg-fight { grid-column: span 3
 html[data-ui-style="studio"] .start-cards.is-all .sg-runs { grid-column: span 2; }
 html[data-ui-style="studio"] .start-cards.is-all .sg-dex { grid-column: span 1; }
 html[data-ui-style="studio"] .start-cards.is-all .sg-go { grid-column: span 2; }
+html[data-ui-style="studio"] .start-cards.is-all .sg-play { grid-column: span 3; }
 html[data-ui-style="studio"] .start-cards.is-all .sg-rest { grid-column: span 4; }
 html[data-ui-style="studio"] .start-cards.is-all .sg-label { grid-column: 1 / -1; }
 html[data-ui-style="studio"] .start-cards.is-all .sg-cards { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; grid-auto-flow: row; grid-auto-columns: auto; gap: 0 16px; }
