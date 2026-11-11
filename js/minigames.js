@@ -291,6 +291,11 @@
         fairyAura: false, darkAura: false, auraBreak: false
       };
     }
+    // Mega-Pokemon koennen nur ihren Mega-Stein tragen.
+    function megaStoneOf(name) {
+      if (!/^Mega /.test(name || '')) return null;
+      return (deps.megaStone && deps.megaStone(name)) || '(none)';
+    }
     function buildDamageScenario(spec) {
       var pool = spec.pool;
       var atk = findMon(pool, spec.attacker), def = findMon(pool, spec.defender);
@@ -307,7 +312,7 @@
         attackerName: atk.name, defenderName: def.name, moveName: moveName,
         item: spec.item || '(none)', weather: field.weather, terrain: field.terrain, format: 'Singles',
         level: deps.calc.LEVEL, nature: 'Hardy', sp: 0,
-        attacker: toCalcMon(atk, spec.item || '(none)', ab), defender: toCalcMon(def, '(none)', db),
+        attacker: toCalcMon(atk, spec.item || '(none)', ab), defender: toCalcMon(def, megaStoneOf(def.name) || '(none)', db),
         atkBoost: ab, defBoost: db,
         move: move, field: field, aSide: {}, dSide: {}
       };
@@ -338,6 +343,8 @@
         var item = '(none)';
         if (itemRoll < 0.18) item = 'Life Orb';
         else if (itemRoll < 0.36) { var ti = typeItem(move.type); if (ti) item = ti; }
+        var stone = megaStoneOf(pair[0].name);
+        if (stone) item = stone;
         var weather = 'None', terrain = 'None', atkBoost = {}, defBoost = {};
         if (streak >= 10) {
           if (rng() < 0.4) {

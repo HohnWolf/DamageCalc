@@ -6,6 +6,11 @@
   if (!A || !Kit) return;
   var api = Kit.create({
     dex: A.DEX, moves: A.MOVES, learn: window.CHAMP_LEARN, learnParent: window.CHAMP_PARENT, setsFor: A.setsFor,
+    megaStone: function (name) {
+      var lk = window.MEGA_STONE_USER_LOOKUP || {}, base = name.replace(/^Mega (.+?)(?: [XYZ])?$/, '$1'), hit = null;
+      Object.keys(lk).some(function (stone) { if (A.megaFormeFor(base, stone) === name) { hit = stone; return true; } return false; });
+      return hit;
+    },
     namesDe: window.NAMES_DE, formDe: A.FORM_DE, natdex: window.NATDEX, calc: window.Calc
   });
   var el = A.el, T = A.T;
@@ -20,12 +25,23 @@
     var s = (Math.round(n * 10) / 10).toFixed(1);
     return de() ? s.replace('.', ',') : s;
   }
-  function sprite(name, silent) {
-    var node;
-    try { node = A.spriteFit(name, false); } catch (e) { node = el('span', { text: label(name) }); }
-    if (silent && node.querySelectorAll) node.querySelectorAll('title').forEach(function (t) { t.remove(); });
-    if (silent && node.removeAttribute) node.removeAttribute('title');
-    return node;
+  // Home-Sprites; bei neuen Megas fehlt Home, dann das Dex-Sprite, zuletzt Gen 5.
+  function spriteId(species) {
+    var mega = species.match(/^Mega (.+?)(?: ([XYZ]))?$/);
+    if (mega) return A.idOf(mega[1]) + '-mega' + (mega[2] ? mega[2].toLowerCase() : '');
+    var i = species.indexOf('-');
+    return i > 0 ? A.idOf(species.slice(0, i)) + '-' + A.idOf(species.slice(i + 1)) : A.idOf(species);
+  }
+  function sprite(name) {
+    var id = spriteId(name), base = 'https://play.pokemonshowdown.com/sprites/';
+    var chain = [base + 'home/' + id + '.png', base + 'dex/' + id + '.png', base + 'gen5/' + id + '.png'], i = 0;
+    var img = el('img', { alt: '', src: chain[0], loading: 'lazy' });
+    img.onerror = function () {
+      i++;
+      if (i < chain.length) img.src = chain[i];
+      else img.replaceWith(el('span', { text: label(name) }));
+    };
+    return img;
   }
   function banner(parent, ok, text) {
     parent.appendChild(el('div', { class: 'mg-banner ' + (ok ? 'ok' : 'bad'), text: text }));
