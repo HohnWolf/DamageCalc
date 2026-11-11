@@ -2485,6 +2485,16 @@
           if (settingsRedraw) settingsRedraw();
         });
 
+        if (window.CCShiny && window.CCShiny.setAuto) {
+          var gSh = makeGroup(de ? 'Shiny-Zähler' : 'Shiny counter');
+          var onOff = [['1', de ? 'An' : 'On'], ['0', de ? 'Aus' : 'Off']];
+          row(gSh, de ? 'Aufnahme automatisch wieder verbinden' : 'Reconnect the capture automatically',
+            de ? 'Verbindet beim Öffnen eines Hunts die zuletzt genutzte Capture Card oder das Fenster erneut.' : 'Reconnects the last used capture card or window when a hunt is opened.',
+            onOff, window.CCShiny.getAuto('connect') ? '1' : '0', function (v) { window.CCShiny.setAuto('connect', v === '1'); });
+          row(gSh, de ? 'Erkennung mit dem Timer starten' : 'Start detection with the timer',
+            de ? 'Startet die Erkennung, sobald der Timer startet, und stoppt sie beim Pausieren.' : 'Starts detection when the timer starts and stops it when the timer is paused.',
+            onOff, window.CCShiny.getAuto('detect') ? '1' : '0', function (v) { window.CCShiny.setAuto('detect', v === '1'); });
+        }
         var gTools = makeGroup(T('setTools'));
         var r = el('div', { class: 'set-row set-row-stack' });
         var lab = el('div', { class: 'set-label set-tools-head' });

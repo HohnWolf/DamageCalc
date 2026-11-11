@@ -8,6 +8,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 5;
   var NOTES = [
+    { v: '1.22.0',
+      de: ['Teampreview: Jedes Teamlogo steht mittig hinter seinem Team.', 'Shiny-Zähler: „Aufnahme automatisch wieder verbinden“ und „Erkennung mit dem Timer starten“ gibt es jetzt auch in den Einstellungen unter „Werkzeuge & Start“.'],
+      en: ['Team preview: each team logo is centered behind its own team.', 'Shiny counter: "Reconnect the capture automatically" and "Start detection with the timer" are now also in settings under "Tools & start".'] },
     { v: '1.21.6',
       de: ['Minigames: Alle Spiele zeigen jetzt Home-Sprites, auch Mega-Pokémon haben wieder ein Bild.', 'Schadens-Schätzung: Mega-Pokémon tragen immer ihren Mega-Stein.', 'Wer ist schneller?: Die Pokémon stehen nicht mehr viel zu weit unten.'],
       en: ['Minigames: all games now show Home sprites, Mega Pokémon have a picture again.', 'Damage estimate: Mega Pokémon always hold their Mega Stone.', 'Who is faster?: the Pokémon are no longer far too low on the screen.'] },
