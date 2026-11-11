@@ -1,9 +1,13 @@
 apply plugin: 'com.android.application'
 
-// Version kommt aus der package.json der Desktop-App (eine Nummer fuer alles): 1.20.0 -> versionCode 12000
-def appVersion = new groovy.json.JsonSlurper().parse(file('../../../package.json')).version
-def vp = appVersion.tokenize('.').collect { it.toInteger() }
+// Version kommt aus der package.json der Desktop-App (eine Nummer fuer alles): 1.21.0 -> versionCode 12100.
+// Ein Vorab-Suffix zaehlt einen Schritt weniger (1.22.0-beta.1 -> 12199), damit die Vollversion 1.22.0 (12200) darueber passt.
+def appVersion = new groovy.json.JsonSlurper().parse(file('../../../package.json')).version as String
+def core = appVersion.split('-')[0]
+def vp = core.tokenize('.').collect { (it as String).replaceAll(/[^0-9].*$/, '').toInteger() }
+while (vp.size() < 3) vp.add(0)
 def appVersionCode = vp[0] * 10000 + vp[1] * 100 + vp[2]
+if (appVersion.contains('-') && appVersionCode > 1) appVersionCode -= 1
 
 // Feste Signatur ist Pflicht, damit Android ein Update ueber die installierte App akzeptiert.
 // Schluessel: RL_KEYSTORE (Datei), RL_KEYSTORE_PASSWORD, RL_KEY_ALIAS, RL_KEY_PASSWORD (CI-Secrets, siehe README).
