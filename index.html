@@ -31,7 +31,7 @@
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
   <link rel="stylesheet" href="css/style.css?v=87">
-  <link rel="stylesheet" href="css/views.css?v=103">
+  <link rel="stylesheet" href="css/views.css?v=104">
   <link rel="stylesheet" href="css/nuz.css?v=88">
   <link rel="stylesheet" href="css/shiny.css?v=88">
   <link rel="stylesheet" href="css/match.css?v=86">
@@ -42,8 +42,9 @@
   <link rel="stylesheet" href="css/goinfo.css?v=1">
   <link rel="stylesheet" href="css/randomizer.css?v=3">
   <link rel="stylesheet" href="css/savedit.css?v=8">
-  <link rel="stylesheet" href="css/pro.css?v=20">
-  <link rel="stylesheet" href="css/studio.css?v=17">
+  <link rel="stylesheet" href="css/pro.css?v=21">
+  <link rel="stylesheet" href="css/studio.css?v=18">
+  <link rel="stylesheet" href="css/minigames.css?v=1">
   </head>
 <body data-view="start">
   <aside id="sidebar" class="sidebar" aria-label="Navigation"></aside>
@@ -83,6 +84,11 @@
           <span class="sc-art sc-art-cat" id="catArt_go"></span>
           <span class="sc-head"><span class="sc-title" data-t="catGo"></span></span>
           <span class="sc-text" data-t="catGoText"></span>
+        </button>
+        <button class="start-card cat-card cat-play" data-cat="play">
+          <span class="sc-art sc-art-cat" id="catArt_play"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catPlay"></span></span>
+          <span class="sc-text" data-t="catPlayText"></span>
         </button>
         <button class="start-card cat-card cat-rest" data-cat="rest">
           <span class="sc-art sc-art-cat" id="catArt_rest"></span>
@@ -186,6 +192,38 @@
         </button>
           </div>
         </div>
+        <div class="start-group sg-play" data-cat="play">
+          <div class="sg-label" data-t="catPlay"></div>
+          <div class="sg-cards">
+        <button class="start-card card-mgspeed" data-go="mgspeed">
+          <span class="sc-art sc-art-mgspeed">
+            <span class="sc-dmg">90 vs 40</span>
+            <span class="sc-bar"><span style="width:70%"></span></span>
+            <span class="sc-ko" data-t="startMgSpeedKo"></span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navMgSpeed"></span></span>
+          <span class="sc-text" data-t="startMgSpeedText"></span>
+        </button>
+        <button class="start-card card-mgquiz" data-go="mgquiz">
+          <span class="sc-art sc-art-mgquiz">
+            <span class="sc-dmg">HP 78 · Atk 84</span>
+            <span class="sc-bar"><span style="width:55%"></span></span>
+            <span class="sc-ko" data-t="startMgQuizKo"></span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navMgQuiz"></span></span>
+          <span class="sc-text" data-t="startMgQuizText"></span>
+        </button>
+        <button class="start-card card-mgdmg" data-go="mgdmg">
+          <span class="sc-art sc-art-mgdmg">
+            <span class="sc-dmg">? % <small>42–48 %</small></span>
+            <span class="sc-bar"><span style="width:45%"></span></span>
+            <span class="sc-ko" data-t="startMgDmgKo"></span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navMgDmg"></span></span>
+          <span class="sc-text" data-t="startMgDmgText"></span>
+        </button>
+          </div>
+        </div>
         <div class="start-group sg-rest" data-cat="rest">
           <div class="sg-label" data-t="catRest"></div>
           <div class="sg-cards">
@@ -241,6 +279,9 @@
   <main id="goinfoView" class="wrap dex-view goinfo-view"></main>
   <main id="randomizerView" class="wrap randomizer-view"></main>
   <main id="saveView" class="wrap save-view"></main>
+  <main id="mgSpeedView" class="wrap mg-view mgspeed-view"></main>
+  <main id="mgQuizView" class="wrap mg-view mgquiz-view"></main>
+  <main id="mgDmgView" class="wrap mg-view mgdmg-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -367,5 +408,7 @@
   <script src="js/godex.js?v=6"></script>
   <script src="js/gocounter.js?v=6"></script>
   <script src="js/goinfo.js?v=1"></script>
+  <script src="js/minigames.js?v=1"></script>
+  <script src="js/minigames_ui.js?v=1"></script>
 </body>
 </html>
