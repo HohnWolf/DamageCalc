@@ -1,5 +1,5 @@
 // Patchnotes: nach einem Update zeigt die App beim ersten Start einmal ein Popup mit den Neuerungen seit der zuletzt gesehenen Version.
-// Die zuletzt gesehene Version steht in localStorage "cc_lastver". Beim allerersten Start (Neuinstallation) gibt es kein Popup.
+// Die zuletzt gesehene Version steht in localStorage "cc_lastver". Ohne gemerkte Version (erstes Update auf eine Version mit Patchnotes) zeigt es nur den aktuellen Eintrag.
 // Neue Version: oben in NOTES eintragen (Version, de, en). Aufruf von Hand: window.RLPatchnotes.show().
 (function () {
   'use strict';
@@ -8,6 +8,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 5;
   var NOTES = [
+    { v: '1.21.3',
+      de: ['Patchnotes: Das Popup erscheint jetzt zuverlässig nach jedem Update.'],
+      en: ['Patch notes: the popup now reliably appears after every update.'] },
     { v: '1.21.2',
       de: ['Neu: Patchnotes erscheinen nach jedem Update als Popup (auch in den Einstellungen unter „App & Updates“ abrufbar).', 'Teambuilder: Beim Wechsel zwischen Pokémon ist das Bild nicht mehr kurz riesig, und Attacken und Werte springen nicht mehr.'],
       en: ['New: patch notes appear as a popup after every update (also available in settings under "App & updates").', 'Team builder: when switching between Pokémon the picture is no longer huge for a moment, and moves and stats no longer jump.'] },
@@ -80,8 +83,8 @@
     var last = get();
     if (last === cur) return;
     set(cur);
-    if (!last) return; // erste Installation: nichts zu berichten
-    if (cmp(cur, last) <= 0) return; // Rückstufung
+    // ohne gemerkte Version (Update von einer Version vor den Patchnotes, oder Neuinstallation): nur den aktuellen Eintrag zeigen
+    if (last && cmp(cur, last) <= 0) return; // Rückstufung
     var l = entries(last, cur);
     if (l.length) show(l);
   }
