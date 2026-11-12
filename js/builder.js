@@ -255,10 +255,10 @@
       '<div class="tb-head">' +
       '<input id="tbName" class="tb-name" spellcheck="false" placeholder="' + A.esc(T('tbName')) + '">' +
       '<span class="tb-count" id="tbCount"></span>' +
+      '<button type="button" class="primary-btn tb-meta" id="tbMeta" title="' + (de ? 'Dieses Team lokal gegen Meta-Teams testen' : 'Test this team against meta teams, locally') + '">' + (de ? 'Meta-Test' : 'Meta test') + '</button>' +
       '<span class="tb-acts">' +
       '<button class="tbtn" id="tbExport">' + T('tbExport') + '</button>' +
       '<button class="tbtn" id="tbSheet" title="' + (de ? 'Teamsheet als Bild (Deutsch / Englisch)' : 'Team sheet as image (German / English)') + '">' + (de ? 'Teamsheet' : 'Team sheet') + '</button>' +
-      '<button class="tbtn" id="tbMeta" title="' + (de ? 'Team lokal gegen Meta-Teams testen' : 'Test this team against meta teams, locally') + '">' + (de ? 'Meta-Test' : 'Meta test') + '</button>' +
       '<button class="tbtn" id="tbDup">' + T('tbDuplicate') + '</button>' +
       '<button class="tbtn danger" id="tbDel">' + T('tbDelete') + '</button>' +
       '<span class="tb-sep"></span>' +
@@ -1451,19 +1451,9 @@
       var mv = t.mons.splice(from, 1)[0]; t.mons.splice(to, 0, mv);
       persist(); return true;
     },
-    // fuer den SP-Optimierer: Teams lesen und SP/Wesen eines Sets zurueckschreiben
-    teams: function () { store.teams.forEach(ensureVersions); return JSON.parse(JSON.stringify(store.teams)); },
-    setSps: function (teamId, idx, sps, nature) {
-      var t = null;
-      store.teams.some(function (x) { if (x.id === teamId) { t = x; return true; } return false; });
-      if (!t) return false;
-      ensureVersions(t);
-      var m = t.mons[idx];
-      if (!m) return false;
-      m.set = m.set || {};
-      m.set.sps = Object.assign({ hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 }, sps);
-      if (nature) m.set.nature = nature;
-      persist(); return true;
+    current: function () {
+      var t = team();
+      return { name: t.name, mons: (curVersion(t).mons || []).slice() };
     }
   };
 })();

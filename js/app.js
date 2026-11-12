@@ -252,7 +252,7 @@
       startMgDmgText: 'Schätze den Schaden in Prozent der KP. Die Spanne rechnet der Damage Calculator.',
       startMgDmgKo: 'Level 50 · Einzel · Damage Calc',
       navSpeedTier: 'Speed-Tiers', startSpeedTierKo: 'Basis · Max · Scarf', startSpeedTierText: 'Initiative-Werte aller Champions-Pokémon auf Level 50: Basis, Max Speed, neutral mit 0 oder 32 SP, Wesen mit -Init und mit Choice Scarf. Sortier- und filterbar, mit Rückenwind und Stufen.',
-      navSpOpt: 'SP-Optimierer', startSpOptKo: 'Überlebt · K.O. · Initiative', startSpOptText: 'Findet die kleinste SP-Verteilung für deine Ziele: überlebt einen Treffer, schlägt einen Gegner K.O., ist schneller als ein Wert. Mit Import aus dem Teambuilder und Rückschreiben ins Set.',
+      navMeta: 'Meta-Test', startMetaKo: 'Lokal · ohne Showdown', startMetaText: 'Testet das Team aus dem Teambuilder lokal gegen Meta-Teams. Kein Server, keine Ladder.',
       startMgTypeText: 'Du siehst, wie effektiv jeder Typ gegen ein verstecktes Pokémon ist. Welches von sechs ist es?', startMgTypeKo: 'Schwächen · Resistenzen · Highscore',
       mgTypeAsk: 'Welches Pokémon hat diese Typ-Effektivitäten? Tippe den Namen ein. Ein Fehler beendet das Spiel.', mgTypeNote: 'Ohne Fähigkeiten. Jedes Pokémon mit denselben Typen zählt als richtig.',
       mgTypeOk: 'Richtig, {0} ({1}).', mgTypeLost: 'Falsch, es war {0} ({1}). Deine Serie: {2}', mgStTotal: 'Gesamt',
@@ -401,7 +401,7 @@
       startMgDmgText: 'Estimate the damage as a percent of HP. The range comes from the damage calculator.',
       startMgDmgKo: 'Level 50 · Singles · damage calc',
       navSpeedTier: 'Speed Tiers', startSpeedTierKo: 'Base · Max · Scarf', startSpeedTierText: 'Speed stats of every Champions Pokémon at level 50: base, max speed, neutral with 0 or 32 SP, -Spe nature and Choice Scarf. Sortable and filterable, with Tailwind and stat stages.',
-      navSpOpt: 'SP Optimizer', startSpOptKo: 'Survive · KO · Speed', startSpOptText: 'Finds the smallest SP spread for your goals: survive a hit, knock out an opponent, outspeed a value. Import from the Teambuilder and write the result back to the set.',
+      navMeta: 'Meta test', startMetaKo: 'Local · no Showdown', startMetaText: 'Tests the teambuilder team locally against meta teams. No server, no ladder.',
       startMgTypeText: 'See how effective each type is against a hidden Pokémon. Which of the six is it?', startMgTypeKo: 'Weaknesses · resistances · high score',
       mgTypeAsk: 'Which Pokémon takes these type effectiveness values? Type its name. One mistake ends the game.', mgTypeNote: 'Abilities are ignored. Any Pokémon with the same types counts as correct.',
       mgTypeOk: 'Correct, {0} ({1}).', mgTypeLost: 'Wrong, it was {0} ({1}). Your streak: {2}', mgStTotal: 'Total',
@@ -2668,10 +2668,10 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'spopt', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['spopt', 'navSpOpt'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier', 'spopt']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']]];
+  var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
     var REST = ['shiny', 'overlay', 'catch', 'projector']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
@@ -2740,9 +2740,10 @@
     var back = document.getElementById('catBack');
     if (back) back.hidden = !startCat;
     MODES.forEach(function (m) {
-      var card = grid.querySelector('.start-card[data-go="' + m[0] + '"]');
+      var card = grid.querySelector('.start-card[data-go="' + m[0] + '"]:not([data-meta])');
       if (card) card.hidden = !isToolEnabled(m[0]);
     });
+    grid.querySelectorAll('[data-meta]').forEach(function (card) { card.hidden = !isToolEnabled('builder'); });
     CATS.forEach(function (c) {
       var t = catTools(c);
       var g = grid.querySelector('.start-group[data-cat="' + c[0] + '"]');
@@ -2786,6 +2787,12 @@
     }
   }
 
+  function openMetaTest(alreadyThere) {
+    if (!isToolEnabled('builder')) { showView('start'); return; }
+    if (!alreadyThere) showView('builder');
+    var cur = window.CCBuilder && window.CCBuilder.current && window.CCBuilder.current();
+    if (window.RLMeta && cur) window.RLMeta.open(cur);
+  }
   function showView(v, keepCat) {
     if (v === 'start' && !keepCat) startCat = null;
     if (VIEWS.indexOf(v) === -1 || !isToolEnabled(v)) v = 'start';
@@ -2807,11 +2814,11 @@
     if (v === 'gocounter' && window.CCGoCounter) window.CCGoCounter.render();
     if (v === 'goinfo' && window.CCGoInfo) window.CCGoInfo.render();
     if (v === 'speedtier' && window.CCSpeedTier) window.CCSpeedTier.render();
-    if (v === 'spopt' && window.CCSpOpt) window.CCSpOpt.render();
     if ((v === 'mgspeed' || v === 'mgquiz' || v === 'mgdmg' || v === 'mgtype') && window.CCMinigamesUI) window.CCMinigamesUI.open(v);
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
+    if (window.__RL_OPEN_META) { window.__RL_OPEN_META = false; openMetaTest(true); }
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
@@ -2863,9 +2870,13 @@
       var m = MODES.filter(function (x) { return x[0] === id; })[0];
       return item(id, T(m[1]), id, m[2]);
     }
+    function addTool(id) {
+      list.appendChild(toolItem(id));
+      if (id === 'builder') list.appendChild(item('meta', T('navMeta'), 'match', false, function () { openMetaTest(); }));
+    }
     if (studio) {
       list.appendChild(el('div', { class: 'sb-group' }));
-      if (catNow) catTools(catNow).forEach(function (id) { list.appendChild(toolItem(id)); });
+      if (catNow) catTools(catNow).forEach(addTool);
       else CATS.forEach(function (c) {
         if (!catTools(c).length) return;
         var it = item('cat-' + c[0], T(CAT_LABEL[c[0]]), CAT_ICON[c[0]], false, function () { openCat(c); });
@@ -2877,7 +2888,7 @@
         var tools = catTools(c);
         if (!tools.length) return;
         list.appendChild(el('div', { class: 'sb-group', text: T(CAT_LABEL[c[0]]) }));
-        tools.forEach(function (id) { list.appendChild(toolItem(id)); });
+        tools.forEach(addTool);
       });
     }
     sb.appendChild(list);
@@ -2956,7 +2967,10 @@
     try { localStorage.removeItem('cc_battlelog'); } catch (e) { /* Speicher gesperrt */ }
     if (VIEWS.indexOf(setting('start')) === -1) setSetting('start', 'start');
     document.querySelectorAll('[data-go]').forEach(function (b) {
-      b.addEventListener('click', function () { showView(b.dataset.go); });
+      b.addEventListener('click', function () {
+        if (b.dataset.meta) { openMetaTest(); return; }
+        showView(b.dataset.go);
+      });
     });
     document.getElementById('btnHome').addEventListener('click', function () { showView('start'); });
     document.querySelectorAll('.cat-card').forEach(function (b) {
@@ -3018,7 +3032,7 @@
     else if (location.hash === '#gocounter') v = 'gocounter';
     else if (location.hash === '#goinfo') v = 'goinfo';
     else if (location.hash === '#speedtier') v = 'speedtier';
-    else if (location.hash === '#spopt') v = 'spopt';
+    else if (location.hash === '#meta' || location.hash === '#metatest') { v = 'builder'; window.__RL_OPEN_META = true; }
     else if (location.hash === '#mgspeed') v = 'mgspeed';
     else if (location.hash === '#mgquiz') v = 'mgquiz';
     else if (location.hash === '#mgdmg') v = 'mgdmg';
