@@ -292,6 +292,19 @@
       (pool || []).forEach(function (p) { if (p.name === choiceName) c = p; if (p.name === answerName) a = p; });
       return { correct: !!(c && a) && effKey(c.types) === effKey(a.types) };
     }
+    // Eingetipptes Pokémon (deutsch oder englisch) in der Liste suchen.
+    function findByName(text, list) {
+      var n = norm(text);
+      if (!n) return null;
+      for (var i = 0; i < (list || []).length; i++) if (list[i].aliases.indexOf(n) !== -1) return list[i];
+      return null;
+    }
+    // Richtig ist jedes Pokémon mit denselben Typen wie die Antwort. Unbekannte Namen zählen nicht als Fehler (known: false).
+    function judgeTypeGuess(text, answer, list) {
+      var g = findByName(text, list);
+      if (!g) return { known: false, correct: false };
+      return { known: true, guess: g, correct: g.name === answer.name || effKey(g.types) === effKey(answer.types) };
+    }
     function findMon(pool, name) {
       for (var i = 0; i < pool.length; i++) if (pool[i].name === name) return pool[i];
       return null;
@@ -496,7 +509,7 @@
     return {
       KEY: KEY, STATS: STATS, QUIZ_CHOICES: QUIZ_CHOICES, DMG_TOLERANCE: DMG_TOLERANCE,
       buildPool: buildPool, makeSpeedRound: makeSpeedRound, judgeSpeed: judgeSpeed,
-      makeQuizChoices: makeQuizChoices, judgeQuiz: judgeQuiz, makeTypeRound: makeTypeRound, judgeType: judgeType, effectivenessOf: effectivenessOf, judgeDamage: judgeDamage, germanName: function (name) { return germanName(name, namesDe, formDe); },
+      makeQuizChoices: makeQuizChoices, judgeQuiz: judgeQuiz, makeTypeRound: makeTypeRound, judgeType: judgeType, judgeTypeGuess: judgeTypeGuess, findByName: findByName, effectivenessOf: effectivenessOf, judgeDamage: judgeDamage, germanName: function (name) { return germanName(name, namesDe, formDe); },
       damagingMoves: damagingMoves, buildDamageScenario: buildDamageScenario, makeDamageScenario: makeDamageScenario,
       evaluateDamage: evaluateDamage, scoreDamage: scoreDamage,
       load: load, saveOpts: saveOpts,

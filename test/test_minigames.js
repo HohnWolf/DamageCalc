@@ -144,6 +144,14 @@ api.saveOpts({ scope: 'all' });
 assert.strictEqual(api.load().opts.scope, 'all');
 assert.strictEqual(api.load().speed.high, 4, 'options do not wipe scores');
 
+// Typ-Raetsel getippt: deutsche/englische Namen, gleiche Typen zaehlen, unbekannt ist kein Fehler
+{
+  const ans = all.find(function (p) { return p.name === 'Slowbro'; });
+  assert.strictEqual(api.judgeTypeGuess('Lahmus', ans, all).correct, true, 'deutscher Name');
+  assert.strictEqual(api.judgeTypeGuess(' slowpoke ', ans, all).correct, true, 'gleiche Typen zaehlen');
+  assert.strictEqual(api.judgeTypeGuess('Snorlax', ans, all).correct, false);
+  assert.strictEqual(api.judgeTypeGuess('Nixmon', ans, all).known, false);
+}
 // Typ-Raetsel: 6 Pokemon mit verschiedenen Typ-Profilen, die Antwort ist dabei, gleiche Typen zaehlen als richtig
 if (api.makeTypeRound) {
   const tr = api.makeTypeRound(all, Math.random, 6);

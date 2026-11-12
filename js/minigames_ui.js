@@ -233,6 +233,7 @@
   function renderType() {
     var box = shell('mgTypeView');
     if (!box) return;
+    box.classList.add('mg-center');
     var st = api.load().type;
     var top = el('div', { class: 'mg-top' });
     runMeters(top, st);
@@ -242,43 +243,53 @@
     var round = api.makeTypeRound(mons);
     if (!round) { box.appendChild(el('p', { class: 'mg-empty', text: T('mgEmpty') })); return; }
     box.appendChild(el('h2', { class: 'mg-ask', text: T('mgTypeAsk') }));
-    var groups = [[4, 'x4'], [2, 'x2'], [0.5, 'x05'], [0.25, 'x025'], [0, 'x0']];
+    var groups = [[4, 'mgTe4', 'x4'], [2, 'mgTe2', 'x2'], [1, 'mgTe1', 'x1'], [0.5, 'mgTe05', 'x05'], [0.25, 'mgTe025', 'x025'], [0, 'mgTe0', 'x0']];
     var tbl = el('div', { class: 'mg-eff' });
     groups.forEach(function (g) {
       var ts = Object.keys(round.effectiveness).filter(function (t) { return round.effectiveness[t] === g[0]; });
       if (!ts.length) return;
-      var row = el('div', { class: 'mg-eff-row ' + g[1] });
-      row.appendChild(el('span', { class: 'k', text: g[0] === 0.5 ? '½×' : g[0] === 0.25 ? '¼×' : g[0] + '×' }));
-      var w = el('span', { class: 'mg-types' });
+      var row = el('div', { class: 'mg-eff-row ' + g[2] });
+      row.appendChild(el('div', { class: 'mg-eff-title', text: T(g[1]) }));
+      var w = el('div', { class: 'mg-types' });
       ts.forEach(function (t) { w.appendChild(A.typeBadge(t)); });
       row.appendChild(w);
       tbl.appendChild(row);
     });
     box.appendChild(tbl);
     box.appendChild(el('p', { class: 'mg-meta', text: T('mgTypeNote') }));
-    var grid = el('div', { class: 'mg-choices' });
+    var all = api.buildPool({ scope: 'all' });
+    var listId = 'mgTypeNames';
+    var dl = el('datalist', { id: listId });
+    all.forEach(function (p) { dl.appendChild(el('option', { value: label(p.name) })); });
+    var form = el('div', { class: 'mg-guess' });
+    var input = el('input', { type: 'text', class: 'mg-input', placeholder: T('mgTypeInput'), autocomplete: 'off', spellcheck: 'false' });
+    input.setAttribute('list', listId);
+    var go = el('button', { class: 'mg-btn primary', type: 'button', text: T('mgTypeSubmit') });
+    form.appendChild(input);
+    form.appendChild(dl);
+    form.appendChild(go);
+    box.appendChild(form);
     var result = el('div');
-    var locked = false, btns = [];
-    round.choices.forEach(function (mon) {
-      var c = pickCard(mon, function () {
-        if (locked) return;
-        locked = true;
-        var before = api.load().type.streak;
-        var j = api.judgeType(mon.name, round.answer.name, mons);
-        var rec = api.recordType(j.correct);
-        btns.forEach(function (b) {
-          b.el.disabled = true;
-          if (api.judgeType(b.mon.name, round.answer.name, mons).correct) b.el.classList.add('win');
-        });
-        if (!j.correct) c.classList.add('lose');
-        var tn = round.answer.types.map(function (t) { return A.nType ? A.nType(t) : t; }).join('/');
-        endRound(box, result, j.correct, T('mgTypeOk', label(round.answer.name), tn), T('mgTypeLost', label(round.answer.name), tn, before), renderType, rec);
-      });
-      btns.push({ el: c, mon: mon });
-      grid.appendChild(c);
-    });
-    box.appendChild(grid);
     box.appendChild(result);
+    var locked = false;
+    function submit() {
+      if (locked) return;
+      var j = api.judgeTypeGuess(input.value, round.answer, all);
+      if (!j.known) { result.innerHTML = ''; banner(result, false, T('mgTypeUnknown')); input.focus(); return; }
+      locked = true;
+      input.disabled = true; go.disabled = true;
+      var before = api.load().type.streak;
+      var rec = api.recordType(j.correct);
+      result.innerHTML = '';
+      var tn = round.answer.types.map(function (t) { return A.nType ? A.nType(t) : t; }).join('/');
+      var sp = el('div', { class: 'mg-sprite' });
+      sp.appendChild(sprite(round.answer.name));
+      result.appendChild(sp);
+      endRound(box, result, j.correct, T('mgTypeOk', label(round.answer.name), tn), T('mgTypeLost', label(round.answer.name), tn, before), renderType, rec);
+    }
+    go.addEventListener('click', submit);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
+    input.focus();
   }
 
   function itemLabel(name) {
