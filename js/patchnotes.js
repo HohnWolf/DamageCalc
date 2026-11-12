@@ -8,6 +8,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.22.6',
+      de: ['Teambuilder: Die Typen in den Teamfeldern überlappen nicht mehr, sie sind kleiner und brechen bei Platzmangel um.', 'Capture-Projektor: Die GPU-Aufnahme der Capture-Karte ist unter Windows aus, das sollte das kurze grüne Aufblitzen im Bild beheben.'],
+      en: ['Team builder: the types in the team slots no longer overlap, they are smaller and wrap when space is tight.', 'Capture projector: GPU capture of the capture card is off on Windows, which should fix the brief green flashes in the picture.'] },
     { v: '1.22.5',
       de: ['Typ-Rätsel: Die Effektivitäten stehen gruppiert wie bei den Typ-Schwächen (auch ×1), und du tippst das Pokémon selbst ein. Jedes Pokémon mit denselben Typen zählt als richtig.'],
       en: ['Type puzzle: the effectiveness values are grouped like type weaknesses (including x1), and you type the Pokémon yourself. Any Pokémon with the same types counts as correct.'] },
