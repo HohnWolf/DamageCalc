@@ -8,6 +8,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.22.5',
+      de: ['Typ-Rätsel: Die Effektivitäten stehen gruppiert wie bei den Typ-Schwächen (auch ×1), und du tippst das Pokémon selbst ein. Jedes Pokémon mit denselben Typen zählt als richtig.'],
+      en: ['Type puzzle: the effectiveness values are grouped like type weaknesses (including x1), and you type the Pokémon yourself. Any Pokémon with the same types counts as correct.'] },
     { v: '1.22.4',
       de: ['Minigames: Die Punkte starten nach einem Fehler wieder bei 0, nur der Highscore bleibt.', 'Minigames: Statt Generation und „nur voll entwickelte“ wählst du jetzt, ob nur Pokémon der aktuellen Regulation oder alle Pokémon vorkommen.', 'Schadens-Schätzung: Die Pokémon haben sinnvolle Wesen und SP, beide stehen auf der Karte.', 'Minigames: Fehlende Bilder behoben (Kommo-o, Porygon-Z, Ho-Oh u. a.); Megas ohne eigenes Bild zeigen die Basisart.'],
       en: ['Minigames: points reset to 0 after a mistake, only the high score stays.', 'Minigames: instead of generation and "fully evolved only" you now choose whether only Pokémon of the current regulation or all Pokémon appear.', 'Damage estimate: the Pokémon have sensible natures and SP, both shown on the card.', 'Minigames: missing images fixed (Kommo-o, Porygon-Z, Ho-Oh and others); Megas without their own image show the base species.'] },
