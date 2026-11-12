@@ -30,6 +30,7 @@
     me: 'Mein Team', opp: 'Gegner-Team', tournament: 'Turnier', ladder: 'Ladder', newOpp: 'Neuer Gegner',
     fromBuilder: 'Aus Teambuilder …', fromCalc: 'Aus Calc', nextGame: '↻ KP 100 %', nextGameT: 'Nächstes Spiel: alle KP auf 100 %, K.O. und Mitgebracht-Haken zurücksetzen',
     paste: 'Einfügen', clear: 'Leeren', hide: 'Ausblenden', unhide: 'Einblenden', hideAll: 'Beide aus',
+    ownNameMe: 'Name (ich)', ownNameOpp: 'Name (Gegner)', ownNameT: 'Nur für Eigenes Match, unabhängig vom Aufnahme-Match',
     playerL: 'Spieler 1 (links)', playerR: 'Spieler 2 (rechts)', playerHint: 'Gilt für Teampreview, Matchup-Banner und Startseite',
     pasteTitle: 'Team als Text einfügen', take: 'Übernehmen', cancel: 'Abbrechen',
     hidden: 'Ausgeblendet', live: 'Live: {0} Pokémon', empty: 'Leer',
@@ -64,6 +65,7 @@
     me: 'My team', opp: 'Opponent', tournament: 'Tournament', ladder: 'Ladder', newOpp: 'New opponent',
     fromBuilder: 'From teambuilder …', fromCalc: 'From calc', nextGame: '↻ HP 100%', nextGameT: 'Next game: reset all HP to 100%, clear fainted and brought marks',
     paste: 'Paste', clear: 'Clear', hide: 'Hide', unhide: 'Show', hideAll: 'Hide both',
+    ownNameMe: 'Name (me)', ownNameOpp: 'Name (opponent)', ownNameT: 'Own match only, independent of the recording match',
     playerL: 'Player 1 (left)', playerR: 'Player 2 (right)', playerHint: 'Used for team preview, matchup banner and start screen',
     pasteTitle: 'Paste a team as text', take: 'Apply', cancel: 'Cancel',
     hidden: 'Hidden', live: 'Live: {0} Pokémon', empty: 'Empty',
@@ -101,7 +103,7 @@
   function defaults() {
     return {
       lang: de ? 'de' : 'en', tab: 'team',
-      team: { show: true, mode: 'tournament', me: blankSide(), opp: blankSide() },
+      team: { show: true, mode: 'tournament', nameMe: '', nameOpp: '', me: blankSide(), opp: blankSide() },
       preview: { show: true, bg: 't', bench: false, closed: false, p1: '', p2: '', t1: '', t2: '', b1: '', b2: '' },
       match: { show: true, nameL: '', recL: '', scoreL: 0, nameR: '', recR: '', scoreR: 0, week: '', league: '' }
     };
@@ -111,7 +113,7 @@
     if (!s || typeof s !== 'object') return d;
     var o = { lang: s.lang === 'en' ? 'en' : (s.lang === 'de' ? 'de' : d.lang), tab: ['team', 'preview', 'match'].indexOf(s.tab) >= 0 ? s.tab : 'team' };
     var tm = s.team || {};
-    o.team = { show: tm.show !== false, mode: tm.mode === 'ladder' ? 'ladder' : 'tournament', me: d.team.me, opp: d.team.opp };
+    o.team = { show: tm.show !== false, mode: tm.mode === 'ladder' ? 'ladder' : 'tournament', nameMe: String(tm.nameMe || '').slice(0, 60), nameOpp: String(tm.nameOpp || '').slice(0, 60), me: d.team.me, opp: d.team.opp };
     ['me', 'opp'].forEach(function (k) {
       var sd = tm[k];
       if (!sd || !Array.isArray(sd.slots)) return;
@@ -140,7 +142,14 @@
     else store.match.nameR = store.preview.p2 = val;
   }
   var pushTimer = null;
-  function persist() { A.save('cc_overlay', store); schedulePush(); }
+  function persist() { A.save('cc_overlay', store); schedulePush(); if (window.CCProjector && window.CCProjector.syncTeams) window.CCProjector.syncTeams(); }
+  // Eigenes Match eingeschaltet (Team-Overlay an, mindestens ein Team sichtbar und gefüllt) -> Adressen für den 21:9-Projektor
+  function teamUrls() {
+    var tm = store.team;
+    if (!base || !tm.show) return null;
+    var live = ['me', 'opp'].some(function (k) { return !tm[k].hidden && tm[k].slots.some(function (s) { return String(s.species || '').trim(); }); });
+    return live ? { me: base + '/match/team?side=me', opp: base + '/match/team?side=opp' } : null;
+  }
   function schedulePush() { clearTimeout(pushTimer); pushTimer = setTimeout(push, 150); }
 
   // ======================= names in the overlay language =======================
@@ -438,7 +447,8 @@
     return b;
   }
   function sideLabel(side) {
-    var n = side === 'me' || side === 'L' || side === 1 ? store.match.nameL : store.match.nameR;
+    // eigenes Match: eigene Namen, unabhängig vom Aufnahme-Match
+    var n = side === 'me' ? store.team.nameMe : side === 'opp' ? store.team.nameOpp : (side === 'L' || side === 1) ? store.match.nameL : store.match.nameR;
     var baseLbl = side === 'me' || side === 1 ? t('me') : side === 'opp' || side === 2 ? t('opp') : (side === 'L' ? t('teamMe') : t('teamOpp'));
     return n ? baseLbl + ' · ' + n : baseLbl;
   }
@@ -767,6 +777,14 @@
     var box = el('div', { class: 'panel mo-side ' + side, id: 'moSide_' + side });
     var hd = el('div', { class: 'mo-shead' });
     hd.appendChild(el('b', { id: 'moSideTitle_' + side, text: sideLabel(side) }));
+    var nmIn = el('input', { type: 'text', class: 'mo-pin ' + side, placeholder: t(side === 'me' ? 'ownNameMe' : 'ownNameOpp'), title: t('ownNameT') });
+    nmIn.value = side === 'me' ? store.team.nameMe : store.team.nameOpp;
+    nmIn.addEventListener('input', function () {
+      store.team[side === 'me' ? 'nameMe' : 'nameOpp'] = nmIn.value.slice(0, 60);
+      var ti = document.getElementById('moSideTitle_' + side); if (ti) ti.textContent = sideLabel(side);
+      persist();
+    });
+    hd.appendChild(nmIn);
     hd.appendChild(builderSelect(function (tm) {
       applyMons(side, (tm.mons || []).map(function (m) {
         var s = m.set || {};
@@ -1040,5 +1058,5 @@
     eq(formName('Landorus-Therian', 'en'), 'Landorus (Therian)', 'form en');
     return { ok: ok, fails: fails };
   }
-  window.CCOverlay = { open: open, selectMode: selectMode, render: render, push: push, selfTest: selfTest };
+  window.CCOverlay = { teamUrls: teamUrls, open: open, selectMode: selectMode, render: render, push: push, selfTest: selfTest };
 })();

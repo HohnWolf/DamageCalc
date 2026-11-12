@@ -55,6 +55,8 @@
   var api = {
     video: function () { return video; },
     overlayUrl: function () { return ''; },
+    // Eigenes Match an: 21:9 mit meinem Team links, dem Gegner rechts (js/overlay.js)
+    teamUrls: function () { return window.CCOverlay && window.CCOverlay.teamUrls ? window.CCOverlay.teamUrls() : null; },
     opts: function () { return Object.assign({}, store, { overlay: false }); },
     save: function (patch) {
       patch = patch || {};

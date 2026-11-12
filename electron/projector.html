@@ -7,6 +7,9 @@
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: #e8e9ec;
     font-family: "Segoe UI", system-ui, sans-serif; }
   #view { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+  /* 21:9 (2560×1080): Team links, Spiel (1920×1080) in der Mitte, Gegner rechts. Alles wird als Ganzes in das Fenster eingepasst. */
+  .tm { position: absolute; z-index: 1; width: 320px; height: 1080px; border: 0; background: transparent; transform-origin: 0 0; pointer-events: none; }
+  .tm[hidden] { display: none; }
   #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #9aa0aa; font-size: 18px; pointer-events: none; }
   #empty[hidden] { display: none; }
@@ -48,6 +51,8 @@
 </head>
 <body>
 <video id="view" autoplay playsinline></video>
+<iframe id="tml" class="tm" hidden title="Team" allowtransparency="true"></iframe>
+<iframe id="tmr" class="tm" hidden title="Gegner" allowtransparency="true"></iframe>
 <div id="empty">Keine Aufnahme</div>
 <div id="counter" hidden><iframe id="ov" hidden title="Overlay" allowtransparency="true"></iframe></div>
 <div id="diag" hidden></div>
@@ -152,6 +157,23 @@
     if (v > 300) return 300;
     return v;
   }
+  var wide = false, tml = document.getElementById('tml'), tmr = document.getElementById('tmr');
+  function layoutWide() {
+    if (!wide) return;
+    var W = Math.max(1, window.innerWidth), H = Math.max(1, window.innerHeight);
+    var k = Math.min(W / 2560, H / 1080), ox = (W - 2560 * k) / 2, oy = (H - 1080 * k) / 2;
+    video.style.cssText = 'inset:auto;left:' + (ox + 320 * k) + 'px;top:' + oy + 'px;width:' + (1920 * k) + 'px;height:' + (1080 * k) + 'px';
+    tml.style.left = ox + 'px'; tml.style.top = oy + 'px'; tml.style.transform = 'scale(' + k + ')';
+    tmr.style.left = (ox + 2240 * k) + 'px'; tmr.style.top = oy + 'px'; tmr.style.transform = 'scale(' + k + ')';
+  }
+  function setWide(urls) {
+    wide = !!(urls && urls.me && urls.opp);
+    tml.hidden = tmr.hidden = !wide;
+    if (!wide) { video.style.cssText = ''; tml.removeAttribute('src'); tmr.removeAttribute('src'); return; }
+    if (tml.getAttribute('src') !== urls.me) tml.src = urls.me;
+    if (tmr.getAttribute('src') !== urls.opp) tmr.src = urls.opp;
+    layoutWide();
+  }
   function placeCounter(x, y, scale) {
     scale = clampScale(scale);
     var bw = Math.max(1, frame.offsetWidth || 280), bh = Math.max(1, frame.offsetHeight || 120);
@@ -196,7 +218,7 @@
     placeCounter(opts.counterX, opts.counterY, opts.counterScale * (ev.deltaY < 0 ? 1.08 : 1 / 1.08));
     saveCounter();
   }, { passive: false });
-  window.addEventListener('resize', function () { placeCounter(opts.counterX, opts.counterY, opts.counterScale); });
+  window.addEventListener('resize', function () { layoutWide(); placeCounter(opts.counterX, opts.counterY, opts.counterScale); });
   window.addEventListener('message', function (ev) {
     var d = ev.data;
     if (!d || d.type !== 'rl-ov-box' || !/^http:\/\/127\.0\.0\.1:\d+$/.test(ev.origin || '')) return;
@@ -232,6 +254,7 @@
     if (o.counterX != null) opts.counterX = o.counterX;
     if (o.counterY != null) opts.counterY = o.counterY;
     if (o.counterScale != null) opts.counterScale = o.counterScale;
+    setWide(o.teamUrls);
     var show = !!(o.overlay && o.overlayUrl);
     counter.hidden = !show;
     if (show) {

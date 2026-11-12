@@ -11,6 +11,7 @@ let mainWin = null;
 let proj = null;
 let opts = emptyOpts();
 let overlayUrl = '';
+let teamUrls = null; // 21:9: { me, opp } Team-Overlays links und rechts vom Spielbild (nur reiner Capture-Projektor)
 let theme = 'oled';
 let lang = 'de';
 let saveTimer = null;
@@ -61,6 +62,11 @@ function cleanOpts(o) {
     } : null
   };
 }
+function cleanTeamUrls(v) {
+  if (!v || typeof v !== 'object') return null;
+  const ok = (u) => /^http:\/\/127\.0\.0\.1:\d+\/match\/team\?side=(me|opp)$/.test(String(u || ''));
+  return ok(v.me) && ok(v.opp) ? { me: String(v.me), opp: String(v.opp) } : null;
+}
 function mergeOpts(patch) {
   const n = cleanOpts(Object.assign({}, opts, patch || {}));
   if (patch && Object.prototype.hasOwnProperty.call(patch, 'displayId')) n.displayId = cleanOpts({ displayId: patch.displayId }).displayId;
@@ -68,6 +74,7 @@ function mergeOpts(patch) {
   else if (!patch || !Object.prototype.hasOwnProperty.call(patch, 'bounds')) n.bounds = opts.bounds;
   opts = n;
   if (patch && patch.overlayUrl != null) overlayUrl = String(patch.overlayUrl);
+  if (patch && Object.prototype.hasOwnProperty.call(patch, 'teamUrls')) teamUrls = cleanTeamUrls(patch.teamUrls);
   if (patch && patch.theme) theme = patch.theme === 'light' ? 'light' : 'oled';
   if (patch && patch.lang) lang = patch.lang === 'en' ? 'en' : 'de';
 }
@@ -83,7 +90,7 @@ function viewState() {
   return {
     onTop: opts.onTop, hideCursor: opts.hideCursor, overlay: opts.overlay,
     fullscreen: opts.fullscreen, displayId: opts.displayId,
-    overlayUrl: overlayUrl, theme: theme, lang: lang, open: alive(proj),
+    overlayUrl: overlayUrl, teamUrls: teamUrls, theme: theme, lang: lang, open: alive(proj),
     visible: alive(proj) && proj.isVisible(),
     sound: opts.sound !== false, volume: clampVolume(opts.volume),
     counterX: clampPct(opts.counterX, 2), counterY: clampPct(opts.counterY, 2), counterScale: clampScale(opts.counterScale)

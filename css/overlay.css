@@ -119,6 +119,7 @@
 .mo-shead { display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; min-height: 28px; overflow-x: auto; }
 .mo-shead b { color: var(--c); font-size: 14px; margin-right: 4px; white-space: nowrap; }
 .mo-shead .tbtn, .mo-shead select { height: 26px; font-size: 12px; padding: 0 8px; flex: none; }
+.mo-shead .mo-pin { flex: 0 1 130px; min-width: 80px; }
 .mo-msg { margin-left: auto; font-size: 11.5px; white-space: nowrap; }
 .mo-paste { display: flex; flex-direction: column; gap: 5px; }
 .mo-paste[hidden] { display: none; }

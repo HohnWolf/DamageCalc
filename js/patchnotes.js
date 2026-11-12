@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.23.1',
+      de: ['Capture-Projektor: Ist „Eigenes Match“ eingeschaltet und ein Team eingetragen, zeigt der Projektor 21:9: dein Team links, das Spiel in der Mitte, der Gegner rechts.', 'Eigenes Match: Die beiden Seiten haben eigene Namensfelder, unabhängig von den Namen im Aufnahme-Match.'],
+      en: ['Capture projector: with "Own match" on and a team entered, the projector shows 21:9: your team on the left, the game in the middle, the opponent on the right.', 'Own match: both sides have their own name fields, independent of the names in the recording match.'] },
     { v: '1.23.0',
       de: ['Projektor: Es gibt nur noch den Modus „Neu (schnell)“. „Aktuell“, die Modus-Auswahl im Shiny-Zähler und die M-Taste im Projektor sind weg.', 'Reiner Capture-Projektor: Die Vorschau pausiert, solange der Projektor offen ist. Das sollte die verworfenen Bilder senken.'],
       en: ['Projector: only the "New (fast)" mode is left. The "Current" mode, the mode picker in the shiny counter and the M key in the projector are gone.', 'Pure capture projector: the preview pauses while the projector is open, which should reduce dropped frames.'],

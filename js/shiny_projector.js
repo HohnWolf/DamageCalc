@@ -350,7 +350,8 @@
       fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
       sound: o.sound !== false, volume: clampVolume(o.volume),
       counterX: o.counterX, counterY: o.counterY, counterScale: o.counterScale,
-      theme: api.theme(), lang: api.lang, overlayUrl: api.overlayUrl()
+      theme: api.theme(), lang: api.lang, overlayUrl: api.overlayUrl(),
+      teamUrls: api.teamUrls ? api.teamUrls() : null
     };
   }
   // over: eigene Steuerung (z. B. der reine Capture-Projektor). Ohne sie gilt die des Shiny-Zählers.
@@ -439,6 +440,10 @@
   function syncOverlay(url) {
     if (opened && desktop) desktop.set({ overlayUrl: url });
   }
+  // 21:9 mit Team-Overlays: nur wenn die Steuerung sie anbietet (reiner Capture-Projektor)
+  function syncTeams() {
+    if (opened && desktop && api && api.teamUrls) desktop.set({ teamUrls: api.teamUrls() });
+  }
   function isOpen() { return opened; }
   function isBound() { return !!baseApi; }
 
@@ -448,5 +453,5 @@
     clampVolume: clampVolume, clampScale: clampScale, placeCounter: placeCounter, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
-  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, isOpen: isOpen, isBound: isBound };
+  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, syncTeams: syncTeams, isOpen: isOpen, isBound: isBound };
 })(typeof window !== 'undefined' ? window : globalThis);
