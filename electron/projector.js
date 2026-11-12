@@ -17,7 +17,7 @@ let saveTimer = null;
 let ready = false;
 
 function emptyOpts() {
-  return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null, sound: true, volume: 80, mode: 'classic', counterX: 2, counterY: 2, counterScale: 100 };
+  return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null, sound: true, volume: 80, counterX: 2, counterY: 2, counterScale: 100 };
 }
 function alive(w) { return !!(w && !w.isDestroyed()); }
 function safe(fn) { try { return fn(); } catch (e) { console.error('Projektor', e); return null; } }
@@ -49,7 +49,6 @@ function cleanOpts(o) {
     fullscreen: !!o.fullscreen,
     displayId: displayId,
     sound: o.sound !== false,
-    mode: o.mode === 'fast' ? 'fast' : 'classic',
     volume: clampVolume(o.volume == null ? 80 : o.volume),
     counterX: clampPct(o.counterX, 2),
     counterY: clampPct(o.counterY, 2),
@@ -86,7 +85,7 @@ function viewState() {
     fullscreen: opts.fullscreen, displayId: opts.displayId,
     overlayUrl: overlayUrl, theme: theme, lang: lang, open: alive(proj),
     visible: alive(proj) && proj.isVisible(),
-    sound: opts.sound !== false, volume: clampVolume(opts.volume), mode: opts.mode === 'fast' ? 'fast' : 'classic',
+    sound: opts.sound !== false, volume: clampVolume(opts.volume),
     counterX: clampPct(opts.counterX, 2), counterY: clampPct(opts.counterY, 2), counterScale: clampScale(opts.counterScale)
   };
 }

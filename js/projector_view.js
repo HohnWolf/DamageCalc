@@ -43,7 +43,6 @@
       displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
       sound: o.sound !== false, volume: MIR ? MIR.clampVolume(o.volume) : 80,
       native: o.native !== false, fps: MIR ? MIR.clampFps(o.fps) : 20,
-      mode: o.mode === 'fast' ? 'fast' : 'classic',
       source: o.source && typeof o.source === 'object' ? { kind: o.source.kind === 'camera' ? 'camera' : 'screen', id: String(o.source.id || ''), label: String(o.source.label || '') } : null
     };
   }

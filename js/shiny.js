@@ -47,7 +47,6 @@
     projectorOpenFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
     projectorNoAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
     projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Obergrenze für die Aufnahme, nur wenn „Quelle (nativ)“ aus ist.',
-    projectorMode: 'Modus', projectorModeT: 'Zum Vergleichen: Aktuell oder Neu (weniger Last im Fenster, Overlay per Push, Latenz-Anzeige in der Diagnose). Umschalten geht auch im Projektor mit M.', projectorModeOld: 'Aktuell', projectorModeNew: 'Neu (schnell)',
     projectorNative: 'Quelle (nativ)', projectorNativeN: 'Bildrate der Aufnahme, ohne Extra-Kopie. Ohne Haken gilt die Zahl als Obergrenze.'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
@@ -86,7 +85,6 @@
     projectorOpenFail: 'The projector window could not be opened.',
     projectorNoAudio: 'This source has no audio. The picture is still shown.',
     projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Cap for the capture, only when "Source (native)" is off.',
-    projectorMode: 'Mode', projectorModeT: 'For comparing: Current or New (less work in the window, overlay by push, latency readout in diagnostics). Toggle in the projector with M.', projectorModeOld: 'Current', projectorModeNew: 'New (fast)',
     projectorNative: 'Source (native)', projectorNativeN: 'The capture frame rate, without an extra copy. Uncheck to use the number as a cap.'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
@@ -200,7 +198,6 @@
       fullscreen: !!p.fullscreen, displayId: id,
       fps: window.CCProjectorMirror ? window.CCProjectorMirror.clampFps(p.fps) : 20,
       native: p.native !== false,
-      mode: p.mode === 'fast' ? 'fast' : 'classic',
       sound: p.sound !== false,
       volume: window.CCProjectorMirror ? window.CCProjectorMirror.clampVolume(p.volume) : 80,
       counterX: window.CCProjectorMirror ? window.CCProjectorMirror.placeCounter(p.counterX, p.counterY, p.counterScale, 1, 1, 100, 100).x : 2,
@@ -656,9 +653,6 @@
         getFps: function () { return store.projector.fps; },
         setFps: function (n) { store.projector.fps = window.CCProjectorMirror.clampFps(n); persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
         getNative: function () { return store.projector.native !== false; },
-        getMode: function () { return store.projector.mode === 'fast' ? 'fast' : 'classic'; },
-        setMode: function (m) { store.projector.mode = m === 'fast' ? 'fast' : 'classic'; persist(); if (window.CCProjector && window.CCProjector.syncMode) window.CCProjector.syncMode(); },
-        modeLabel: t('projectorMode'), modeTitle: t('projectorModeT'), modeOld: t('projectorModeOld'), modeNew: t('projectorModeNew'),
         setNative: function (on) { store.projector.native = !!on; persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
         fpsLabel: t('projectorFps'), fpsNumber: t('projectorFpsN'), fpsHint: t('projectorFpsHint'),
         nativeLabel: t('projectorNative'), nativeTitle: t('projectorNativeN') });

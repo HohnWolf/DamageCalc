@@ -1,6 +1,7 @@
 // Patchnotes: nach einem Update zeigt die App beim ersten Start einmal ein Popup mit den Neuerungen seit der zuletzt gesehenen Version.
 // Die zuletzt gesehene Version steht in localStorage "cc_lastver". Ohne gemerkte Version (erstes Update auf eine Version mit Patchnotes) zeigt es nur den aktuellen Eintrag.
-// Neue Version: oben in NOTES eintragen (Version, de, en). Aufruf von Hand: window.RLPatchnotes.show().
+// Neue Version: oben in NOTES eintragen (Version, de, en). Wer auf „Vollversionen“ steht, sieht nur die x.y.0-Einträge (kein Zwischenstand);
+// ein x.y.0-Eintrag kann dafür ein eigenes `full: { de, en }` mit allen Änderungen seit der vorigen Vollversion tragen. Aufruf von Hand: window.RLPatchnotes.show().
 (function () {
   'use strict';
   var A = window.CC;
@@ -8,9 +9,16 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.23.0',
+      de: ['Projektor: Es gibt nur noch den Modus „Neu (schnell)“. „Aktuell“, die Modus-Auswahl im Shiny-Zähler und die M-Taste im Projektor sind weg.', 'Reiner Capture-Projektor: Die Vorschau pausiert, solange der Projektor offen ist. Das sollte die verworfenen Bilder senken.'],
+      en: ['Projector: only the "New (fast)" mode is left. The "Current" mode, the mode picker in the shiny counter and the M key in the projector are gone.', 'Pure capture projector: the preview pauses while the projector is open, which should reduce dropped frames.'],
+      full: {
+        de: ['Neu: Capture-Projektor. Er zeigt das Bild deiner Capture-Karte oder eines Bildschirms in einem eigenen Fenster, ohne Zähler. Der Projektor hat nur noch den schnellen Modus.', 'Neues Minigame „Typ-Rätsel“: Du siehst, wie effektiv jeder Typ gegen ein verstecktes Pokémon ist, und tippst das Pokémon selbst ein.', 'Minigames: Die Punkte starten nach einem Fehler wieder bei 0, nur der Highscore bleibt. Du wählst, ob nur Pokémon der aktuellen Regulation oder alle vorkommen, und fehlende Bilder sind behoben.', 'Basiswerte-Quiz: Zeigt jetzt auch die Summe aller Basiswerte (Gesamt).', 'Schadens-Schätzung: Die Pokémon haben sinnvolle Wesen und SP, beide stehen auf der Karte.', 'Teamsheet: Mit dem Häkchen „SP anzeigen“ stehen die verteilten SP jedes Pokémon im Bild.', 'Teambuilder: Die Typen in den Teamfeldern überlappen nicht mehr.', 'Shiny-Zähler: Der Timer pausiert automatisch, sobald die Anwendung geschlossen wird.'],
+        en: ['New: capture projector. It shows the picture of your capture card or a screen in its own window, without a counter. The projector only has the fast mode now.', 'New minigame "Type Puzzle": you see how effective each type is against a hidden Pokémon and type the Pokémon yourself.', 'Minigames: points reset to 0 after a mistake, only the high score stays. You choose whether only Pokémon of the current regulation or all Pokémon appear, and missing images are fixed.', 'Base stat quiz: now also shows the base stat total.', 'Damage estimate: the Pokémon have sensible natures and SP, both shown on the card.', 'Team sheet: the "Show SP" checkbox adds each Pokémon’s SP spread to the image.', 'Team builder: the types in the team slots no longer overlap.', 'Shiny counter: the timer pauses automatically when the application is closed.']
+      } },
     { v: '1.22.7',
       de: ['Teamsheet: Mit dem Häkchen „SP anzeigen“ stehen die verteilten SP jedes Pokémon im Bild.'],
-      en: ['Team sheet: the "Show SP" checkbox adds each Pokémon's SP spread to the image.'] },
+      en: ['Team sheet: the "Show SP" checkbox adds each Pokémon’s SP spread to the image.'] },
     { v: '1.22.6',
       de: ['Teambuilder: Die Typen in den Teamfeldern überlappen nicht mehr, sie sind kleiner und brechen bei Platzmangel um.', 'Capture-Projektor: Die GPU-Aufnahme der Capture-Karte ist unter Windows aus, das sollte das kurze grüne Aufblitzen im Bild beheben.'],
       en: ['Team builder: the types in the team slots no longer overlap, they are smaller and wrap when space is tight.', 'Capture projector: GPU capture of the capture card is off on Windows, which should fix the brief green flashes in the picture.'] },
@@ -80,9 +88,18 @@
   function get() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
   function set(v) { try { localStorage.setItem(KEY, v); } catch (e) { /* kein Speicher */ } }
   // Einträge, die neuer sind als `since` und nicht neuer als `cur` (since leer: nur der aktuelle)
-  function entries(since, cur) {
-    var l = NOTES.filter(function (n) { return cmp(n.v, cur) <= 0 && (since ? cmp(n.v, since) > 0 : true); });
+  // channel 'full' (Vollversionen): nur x.y.0-Einträge, ersatzweise mit dem Sammeltext `full`; sonst alle dazwischen
+  function entries(since, cur, channel) {
+    var full = channel === 'full';
+    var l = NOTES.filter(function (n) {
+      if (full && !/^\d+\.\d+\.0$/.test(n.v)) return false;
+      return cmp(n.v, cur) <= 0 && (since ? cmp(n.v, since) > 0 : true);
+    }).map(function (n) { return full && n.full ? { v: n.v, de: n.full.de, en: n.full.en } : n; });
     return since ? l.slice(0, MAX) : l.slice(0, 1);
+  }
+  function channel() {
+    var raw = A.setting ? A.setting('updateChannel') : '';
+    return window.RLUpdateChannel ? window.RLUpdateChannel.normalizeChannel(raw) : (raw === 'interim' ? 'interim' : 'full');
   }
   function show(list) {
     if (document.getElementById('patchModal')) return;
@@ -118,7 +135,7 @@
     set(cur);
     // ohne gemerkte Version (Update von einer Version vor den Patchnotes, oder Neuinstallation): nur den aktuellen Eintrag zeigen
     if (last && cmp(cur, last) <= 0) return; // Rückstufung
-    var l = entries(last, cur);
+    var l = entries(last, cur, channel());
     if (l.length) show(l);
   }
   function currentVersion() {

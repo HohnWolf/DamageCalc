@@ -38,9 +38,9 @@
     font: 12px/1.45 Consolas, ui-monospace, monospace; pointer-events: none; white-space: pre; }
   #diag[hidden] { display: none; }
   #menu .mark { width: 1.1em; flex: none; text-align: center; }
-  /* Modus Neu: eigene GPU-Ebenen, das Overlay malt nie das Spielbild mit */
-  body.fast #view { will-change: transform; }
-  body.fast #counter { contain: layout paint style; will-change: transform; }
+  /* eigene GPU-Ebenen, das Overlay malt nie das Spielbild mit */
+  #view { will-change: transform; }
+  #counter { contain: layout paint style; will-change: transform; }
   html[data-theme="light"] #menu { background: #fff; color: #1b1e23; border-color: #d5d8de; box-shadow: 0 10px 28px rgba(0, 0, 0, .18); }
   html[data-theme="light"] #menu button:hover, html[data-theme="light"] #menu button:focus { background: #e8eaee; }
   html[data-theme="light"] #menu .sep { background: #e5e7eb; }
@@ -60,12 +60,12 @@
       cursor: 'Mauszeiger ausblenden', overlay: 'Overlay', sound: 'Ton', volume: 'Lautstärke',
       noAudio: 'Diese Quelle liefert keinen Ton.', diag: 'Diagnose', counter: 'Zähler anzeigen', move: 'Zähler verschieben',
       counterSize: 'Zählergröße', resetPos: 'Position zurücksetzen', close: 'Schließen', mon: 'Monitor {0} · {1}×{2}',
-      diagLine: '{0} Bilder/s\nBild {1}×{2}\nverworfen {3}\nLatenz {4}\nModus {5}', mode: 'Modus: Neu (schnell)', latNone: '–' },
+      diagLine: '{0} Bilder/s\nBild {1}×{2}\nverworfen {3}\nLatenz {4}', latNone: '–' },
     en: { empty: 'No capture', fs: 'Fullscreen', win: 'Windowed', onTop: 'Always on top',
       cursor: 'Hide cursor', overlay: 'Overlay', sound: 'Sound', volume: 'Volume',
       noAudio: 'This source has no audio.', diag: 'Diagnostics', counter: 'Show counter', move: 'Move counter',
       counterSize: 'Counter size', resetPos: 'Reset position', close: 'Close', mon: 'Monitor {0} · {1}×{2}',
-      diagLine: '{0} frames/s\nframe {1}×{2}\ndropped {3}\nlatency {4}\nmode {5}', mode: 'Mode: New (fast)', latNone: '–' }
+      diagLine: '{0} frames/s\nframe {1}×{2}\ndropped {3}\nlatency {4}', latNone: '–' }
   };
   var lang = 'de', opts = { overlay: true, hideCursor: false, onTop: false, fullscreen: false, displayId: null, theme: 'oled', sound: true, volume: 80, counterX: 2, counterY: 2, counterScale: 100 };
   var counter = document.getElementById('counter'), counterEdit = false;
@@ -75,16 +75,14 @@
   var D = window.desktop && window.desktop.projector;
   var lastFrame = 0, diagOn = false, watching = false;
   var stat = { n: 0, fps: 0, w: 0, h: 0, dropped: 0, winT: 0, winN: 0, logged: false, lat: -1, latSum: 0, latN: 0 };
-  function fast() { return opts.mode === 'fast'; }
   window.__projectorFrames = stat;
-  window.__projectorHear = { peak: 0, underruns: 0, playing: false };
 
   function t(k) {
     var s = (S[lang] || S.de)[k] || k, a = arguments;
     for (var i = 1; i < a.length; i++) s = s.split('{' + (i - 1) + '}').join(a[i]);
     return s;
   }
-  function diagText() { return t('diagLine', stat.fps, stat.w || 0, stat.h || 0, stat.dropped || 0, stat.lat >= 0 ? Math.round(stat.lat) + ' ms' : t('latNone'), fast() ? 'neu' : 'aktuell'); }
+  function diagText() { return t('diagLine', stat.fps, stat.w || 0, stat.h || 0, stat.dropped || 0, stat.lat >= 0 ? Math.round(stat.lat) + ' ms' : t('latNone')); }
   function paintDiag() {
     var box = document.getElementById('diag');
     if (!box) return;
@@ -96,33 +94,6 @@
     video.muted = !on;
     var vol = opts.volume == null ? 80 : +opts.volume;
     video.volume = Math.max(0, Math.min(1, vol / 100));
-    window.__projectorHear.playing = on && !video.paused;
-  }
-  function tapAudio(stream) {
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC || tapAudio.done) return;
-    tapAudio.done = true;
-    try {
-      var ctx = new AC({ latencyHint: 'interactive' });
-      tapAudio.stop = function () { try { clearInterval(tapAudio.timer); ctx.close(); } catch (e) { /* schon zu */ } tapAudio.done = false; tapAudio.stop = null; };
-      var src = ctx.createMediaStreamSource(stream);
-      var an = ctx.createAnalyser();
-      an.fftSize = 1024;
-      src.connect(an);
-      var wave = new Uint8Array(an.fftSize), ready = false;
-      ctx.onstatechange = function () {
-        if (ctx.state === 'running') ready = true;
-        else if (ready && (ctx.state === 'interrupted' || ctx.state === 'suspended')) window.__projectorHear.underruns++;
-      };
-      if (ctx.resume) ctx.resume();
-      tapAudio.timer = setInterval(function () {
-        an.getByteTimeDomainData(wave);
-        var peak = 0;
-        for (var i = 0; i < wave.length; i += 8) { var d = wave[i] - 128; if (d < 0) d = -d; if (d > peak) peak = d; }
-        window.__projectorHear.peak = peak;
-        window.__projectorHear.playing = opts.sound !== false && !video.paused && video.volume > 0;
-      }, 80);
-    } catch (e) { console.error('Projektor: Tonmessung', e); }
   }
   function watch(el) {
     if (watching || !el.requestVideoFrameCallback) return;
@@ -132,30 +103,16 @@
       count++; stat.n++; lastFrame = Date.now();
       // Bild bis zur Anzeige: Aufnahmezeit bis erwartete Anzeige (falls die Quelle sie liefert)
       if (meta && meta.captureTime && meta.expectedDisplayTime) { stat.latSum += meta.expectedDisplayTime - meta.captureTime; stat.latN++; }
-      if (fast()) {
-        if (now - t0 >= 500) {
-          stat.w = el.videoWidth || stat.w; stat.h = el.videoHeight || stat.h;
-          var q2 = diagOn && el.getVideoPlaybackQuality && el.getVideoPlaybackQuality();
-          if (q2) stat.dropped = q2.droppedVideoFrames || 0;
-          stat.fps = Math.round(count * 1000 / (now - t0)); count = 0; t0 = now;
-          if (stat.latN) { stat.lat = stat.latSum / stat.latN; stat.latSum = 0; stat.latN = 0; }
-          if (!stat.logged && stat.w) { stat.logged = true; console.info('Projektor: natives Bild', stat.w + '×' + stat.h); }
-          if (diagOn) paintDiag();
-          if (!empty.hidden) empty.hidden = true;
-        }
-        el.requestVideoFrameCallback(onFrame);
-        return;
-      }
-      stat.w = el.videoWidth || stat.w; stat.h = el.videoHeight || stat.h;
-      var q = el.getVideoPlaybackQuality && el.getVideoPlaybackQuality();
-      if (q) stat.dropped = q.droppedVideoFrames || 0;
       if (now - t0 >= 500) {
+        stat.w = el.videoWidth || stat.w; stat.h = el.videoHeight || stat.h;
+        var q2 = diagOn && el.getVideoPlaybackQuality && el.getVideoPlaybackQuality();
+        if (q2) stat.dropped = q2.droppedVideoFrames || 0;
         stat.fps = Math.round(count * 1000 / (now - t0)); count = 0; t0 = now;
         if (stat.latN) { stat.lat = stat.latSum / stat.latN; stat.latSum = 0; stat.latN = 0; }
+        if (!stat.logged && stat.w) { stat.logged = true; console.info('Projektor: natives Bild', stat.w + '×' + stat.h); }
+        if (diagOn) paintDiag();
+        if (!empty.hidden) empty.hidden = true;
       }
-      if (!stat.logged && stat.w) { stat.logged = true; console.info('Projektor: natives Bild', stat.w + '×' + stat.h); }
-      paintDiag();
-      empty.hidden = true;
       el.requestVideoFrameCallback(onFrame);
     }
     el.requestVideoFrameCallback(onFrame);
@@ -170,7 +127,6 @@
       if (!tracks.length) { ahint.hidden = false; ahint.textContent = t('noAudio'); console.warn('Projektor: Quelle ohne Tonspur'); }
       else ahint.hidden = true;
       video.play().catch(function (e) { console.error('Projektor: Wiedergabe', e); });
-      if (!fast()) tapAudio(stream);
       watch(video);
       console.info('Projektor: gleiche Aufnahme, kein zweites Gerät');
     }
@@ -182,7 +138,7 @@
   }, 2000);
 
   // Modus Neu: Overlay per Push (/overlay2, SSE) statt Abfrage alle 0,4 s
-  function modeUrl(url) { return fast() ? String(url || '').replace(/(\/\/[^\/?#]+)\/overlay(?=[?#]|$)/, '$1/overlay2') : url; }
+  function modeUrl(url) { return String(url || '').replace(/(\/\/[^\/?#]+)\/overlay(?=[?#]|$)/, '$1/overlay2'); }
   function transparentOverlay(url) {
     url = modeUrl(url);
     if (!url) return '';
@@ -269,9 +225,6 @@
     document.documentElement.lang = lang;
     document.documentElement.setAttribute('data-theme', o.theme === 'light' ? 'light' : 'oled');
     document.body.classList.toggle('no-cursor', !!o.hideCursor);
-    document.body.classList.toggle('fast', o.mode === 'fast');
-    if (o.mode === 'fast' && tapAudio.stop) tapAudio.stop();
-    else if (o.mode !== 'fast' && !tapAudio.done && video.srcObject) tapAudio(video.srcObject);
     paintDiag();
     empty.textContent = t('empty');
     if (ahint && ahint.hidden) ahint.textContent = t('noAudio');
@@ -327,7 +280,6 @@
       size.appendChild(sizeCap); size.appendChild(sizeRange);
       menu.appendChild(size);
       item(t('resetPos'), false, function () { window.__projectorCounter.reset(); });
-      item(t('mode'), fast(), function () { D.set({ mode: fast() ? 'classic' : 'fast' }); });
       item(t('diag'), diagOn, function () {
         diagOn = !diagOn;
         paintDiag();
@@ -368,12 +320,6 @@
       if (!menu.hidden) { hideMenu(); return; }
       if (counterEdit) { setEdit(false); return; }
       if (D) D.leaveFullscreen();
-      return;
-    }
-    if ((ev.key === 'm' || ev.key === 'M') && !ev.ctrlKey && !ev.altKey && !ev.metaKey && D) {
-      ev.preventDefault();
-      D.set({ mode: fast() ? 'classic' : 'fast' });
-      diagOn = true; paintDiag(); // beim Umschalten die Diagnose zeigen, damit man den Unterschied sieht
       return;
     }
     if ((ev.key === 'h' || ev.key === 'H') && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {

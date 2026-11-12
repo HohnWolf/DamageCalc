@@ -348,7 +348,7 @@
     return {
       onTop: !!o.onTop, hideCursor: !!o.hideCursor, overlay: o.overlay !== false,
       fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
-      sound: o.sound !== false, volume: clampVolume(o.volume), mode: o.mode === 'fast' ? 'fast' : 'classic',
+      sound: o.sound !== false, volume: clampVolume(o.volume),
       counterX: o.counterX, counterY: o.counterY, counterScale: o.counterScale,
       theme: api.theme(), lang: api.lang, overlayUrl: api.overlayUrl()
     };
@@ -418,7 +418,7 @@
       api.save({
         onTop: !!o.onTop, hideCursor: !!o.hideCursor, overlay: o.overlay !== false,
         fullscreen: !!o.fullscreen, displayId: o.displayId == null ? null : o.displayId,
-        sound: o.sound !== false, volume: clampVolume(o.volume), mode: o.mode === 'fast' ? 'fast' : 'classic',
+        sound: o.sound !== false, volume: clampVolume(o.volume),
         counterX: o.counterX, counterY: o.counterY, counterScale: o.counterScale
       });
       if (opened) syncLimit();
@@ -439,7 +439,6 @@
   function syncOverlay(url) {
     if (opened && desktop) desktop.set({ overlayUrl: url });
   }
-  function syncMode() { if (opened && desktop && api) desktop.set({ mode: api.opts().mode === 'fast' ? 'fast' : 'classic' }); }
   function isOpen() { return opened; }
   function isBound() { return !!baseApi; }
 
@@ -449,5 +448,5 @@
     clampVolume: clampVolume, clampScale: clampScale, placeCounter: placeCounter, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
-  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, syncMode: syncMode, isOpen: isOpen, isBound: isBound };
+  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, isOpen: isOpen, isBound: isBound };
 })(typeof window !== 'undefined' ? window : globalThis);

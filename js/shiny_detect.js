@@ -243,19 +243,6 @@
       nat.appendChild(nb);
       nat.appendChild(document.createTextNode(' ' + (api.nativeLabel || 'Quelle (nativ)')));
       wrap.appendChild(nat);
-      if (api.setMode) {
-        var ml = el('label', { class: 'nc-sel', title: api.modeTitle || '' });
-        ml.appendChild(el('span', { text: api.modeLabel || 'Modus' }));
-        var ms = el('select', { id: 'detProjMode' });
-        [['classic', api.modeOld || 'Aktuell'], ['fast', api.modeNew || 'Neu']].forEach(function (x) {
-          var o = el('option', { value: x[0], text: x[1] });
-          if ((api.getMode ? api.getMode() : 'classic') === x[0]) o.selected = true;
-          ms.appendChild(o);
-        });
-        ms.addEventListener('change', function () { api.setMode(ms.value); });
-        ml.appendChild(ms);
-        wrap.appendChild(ml);
-      }
       wrap.appendChild(el('span', { id: 'detFpsLabel', text: api.fpsLabel || 'FPS' }));
       var range = el('input', { type: 'range', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsRange', 'aria-valuemin': '10', 'aria-valuemax': '60', 'aria-valuenow': String(cur), 'aria-describedby': 'detFpsHint' });
       var num = el('input', { type: 'number', min: '10', max: '60', step: '1', value: String(cur), id: 'detFpsNum', inputmode: 'numeric', 'aria-label': api.fpsNumber || api.fpsLabel || 'FPS' });
