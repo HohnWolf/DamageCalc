@@ -5,7 +5,3 @@ __pycache__/
 .DS_Store
 Thumbs.db
 dev-app-update.yml
-dataset.json
-*progress*.json
-*summary*.json
-*replay_buffer*.json

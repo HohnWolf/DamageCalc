@@ -1,4 +1,4 @@
-// Baut mobile/www aus der Desktop-Web-App: gleiche Dateien wie im Electron-Paket (ohne Simulator und Electron-Teil),
+// Baut mobile/www aus der Desktop-Web-App: gleiche Dateien wie im Electron-Paket (ohne Electron-Teil),
 // plus ein Schalter, der die Werkzeuge aus 'Sonstiges' (Shiny-Zähler, Match-Overlay, Fangrechner) ausblendet,
 // und css/mobile.css für Touch-Bedienung und schmale Bildschirme.
 const fs = require('fs'), path = require('path');
@@ -8,7 +8,6 @@ fs.mkdirSync(out, { recursive: true });
 function copy(rel) {
   const src = path.join(root, rel), st = fs.statSync(src);
   if (st.isDirectory()) { fs.readdirSync(src).forEach((f) => copy(rel + '/' + f)); return; }
-  if (/^js\/sim_|^css\/sim\.css$|^data\/(meta_archetypes\.js|ai_weights\.json)$/.test(rel)) return;
   const dst = path.join(out, rel);
   fs.mkdirSync(path.dirname(dst), { recursive: true });
   fs.copyFileSync(src, dst);
