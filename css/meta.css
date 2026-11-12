@@ -1,0 +1,44 @@
+/* Meta-Test, inside the teambuilder. Same surfaces as the rest of the app. */
+.meta-modal .modal-box { width: min(1100px, 96vw); height: min(92vh, 860px); max-height: min(92vh, 860px); display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.meta-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.meta-head h3 { margin: 0; font-size: 16px; }
+.meta-head .hint { margin-left: auto; }
+.meta-body { display: grid; grid-template-columns: 280px 1fr; min-height: 0; flex: 1; }
+.meta-side, .meta-main { min-height: 0; overflow: auto; padding: 10px 12px; }
+.meta-side { border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.meta-main { display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.meta-field { display: flex; flex-direction: column; gap: 3px; }
+.meta-field > span { font-size: 11px; font-weight: 700; color: var(--muted); }
+.meta-seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.meta-seg button, .meta-arch button { height: 26px; padding: 0 8px; }
+.meta-arch { display: flex; flex-wrap: wrap; gap: 4px; }
+.meta-list { display: flex; flex-direction: column; gap: 4px; }
+.meta-team { text-align: left; padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--input); color: var(--text); cursor: pointer; }
+.meta-team.on { border-color: var(--accent-2); background: var(--accent-soft); }
+.meta-team b { display: block; font-size: 12.5px; }
+.meta-team small { color: var(--muted); }
+.meta-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 8px 10px; }
+.meta-card h4 { margin: 0 0 6px; font-size: 13px; }
+.meta-note { color: var(--muted); font-size: 12px; margin: 0; }
+.meta-warn { color: var(--warn); font-size: 12.5px; }
+.meta-bad { color: var(--bad); font-size: 12.5px; }
+.meta-speeds, .meta-matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
+.meta-speeds th, .meta-speeds td, .meta-matrix th, .meta-matrix td { padding: 3px 6px; border-bottom: 1px solid var(--line-soft); text-align: right; }
+.meta-speeds td:first-child, .meta-matrix td:first-child, .meta-speeds th:first-child, .meta-matrix th:first-child { text-align: left; }
+.meta-bar { position: relative; height: 16px; background: var(--input); border-radius: 3px; overflow: hidden; min-width: 90px; }
+.meta-bar > i { position: absolute; top: 0; bottom: 0; background: var(--accent-2); opacity: .85; }
+.meta-bar > b { position: absolute; top: 0; bottom: 0; border-left: 2px solid var(--text); border-right: 2px solid var(--text); opacity: .7; }
+.meta-row { display: grid; grid-template-columns: 1.3fr 120px 70px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line-soft); font-size: 12.5px; }
+.meta-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.meta-progress { height: 8px; background: var(--input); border-radius: 4px; overflow: hidden; }
+.meta-progress > span { display: block; height: 100%; background: var(--accent-2); }
+.ko1 { color: var(--bad); font-weight: 700; }
+.ko2 { color: var(--warn); font-weight: 700; }
+.ko3 { color: var(--muted); }
+.meta-replay .modal-box { width: min(860px, 96vw); height: min(80vh, 720px); display: flex; flex-direction: column; }
+.meta-replay iframe { flex: 1; border: 0; background: #14161a; width: 100%; }
+@media (max-width: 800px) {
+  .meta-body { grid-template-columns: 1fr; }
+  .meta-side { border-right: 0; border-bottom: 1px solid var(--line); max-height: 280px; }
+  .meta-row { grid-template-columns: 1fr 1fr; }
+}
