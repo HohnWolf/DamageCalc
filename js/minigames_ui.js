@@ -1,4 +1,4 @@
-// Screens for the three minigames. Logic lives in js/minigames.js.
+// Screens for the four minigames. Logic lives in js/minigames.js.
 (function () {
   'use strict';
   var A = window.CC;
@@ -192,6 +192,12 @@
       row.appendChild(bar);
       stats.appendChild(row);
     });
+    var total = 0;
+    STATS.forEach(function (s) { total += answer.bs[s[0]]; });
+    var trow = el('div', { class: 'mg-stat mg-total' });
+    trow.appendChild(el('span', { class: 'k', text: T('mgStTotal') }));
+    trow.appendChild(el('span', { class: 'v', text: String(total) }));
+    stats.appendChild(trow);
     box.appendChild(stats);
     var grid = el('div', { class: 'mg-choices' });
     var result = el('div');
@@ -209,6 +215,57 @@
         });
         if (!j.correct) c.classList.add('lose');
         endRound(box, result, j.correct, T('mgQuizOk', label(answer.name)), T('mgQuizLost', label(answer.name), before), renderQuiz, rec);
+      });
+      btns.push({ el: c, mon: mon });
+      grid.appendChild(c);
+    });
+    box.appendChild(grid);
+    box.appendChild(result);
+  }
+
+  function renderType() {
+    var box = shell('mgTypeView');
+    if (!box) return;
+    var st = api.load().type;
+    var top = el('div', { class: 'mg-top' });
+    runMeters(top, st);
+    top.appendChild(optsBar(renderType));
+    box.appendChild(top);
+    var mons = pool();
+    var round = api.makeTypeRound(mons);
+    if (!round) { box.appendChild(el('p', { class: 'mg-empty', text: T('mgEmpty') })); return; }
+    box.appendChild(el('h2', { class: 'mg-ask', text: T('mgTypeAsk') }));
+    var groups = [[4, 'x4'], [2, 'x2'], [0.5, 'x05'], [0.25, 'x025'], [0, 'x0']];
+    var tbl = el('div', { class: 'mg-eff' });
+    groups.forEach(function (g) {
+      var ts = Object.keys(round.effectiveness).filter(function (t) { return round.effectiveness[t] === g[0]; });
+      if (!ts.length) return;
+      var row = el('div', { class: 'mg-eff-row ' + g[1] });
+      row.appendChild(el('span', { class: 'k', text: g[0] === 0.5 ? '½×' : g[0] === 0.25 ? '¼×' : g[0] + '×' }));
+      var w = el('span', { class: 'mg-types' });
+      ts.forEach(function (t) { w.appendChild(A.typeBadge(t)); });
+      row.appendChild(w);
+      tbl.appendChild(row);
+    });
+    box.appendChild(tbl);
+    box.appendChild(el('p', { class: 'mg-meta', text: T('mgTypeNote') }));
+    var grid = el('div', { class: 'mg-choices' });
+    var result = el('div');
+    var locked = false, btns = [];
+    round.choices.forEach(function (mon) {
+      var c = pickCard(mon, function () {
+        if (locked) return;
+        locked = true;
+        var before = api.load().type.streak;
+        var j = api.judgeType(mon.name, round.answer.name, mons);
+        var rec = api.recordType(j.correct);
+        btns.forEach(function (b) {
+          b.el.disabled = true;
+          if (api.judgeType(b.mon.name, round.answer.name, mons).correct) b.el.classList.add('win');
+        });
+        if (!j.correct) c.classList.add('lose');
+        var tn = round.answer.types.map(function (t) { return A.nType ? A.nType(t) : t; }).join('/');
+        endRound(box, result, j.correct, T('mgTypeOk', label(round.answer.name), tn), T('mgTypeLost', label(round.answer.name), tn, before), renderType, rec);
       });
       btns.push({ el: c, mon: mon });
       grid.appendChild(c);
@@ -338,9 +395,10 @@
   }
 
   function open(view) {
-    openGame = view === 'mgquiz' ? 'quiz' : view === 'mgdmg' ? 'damage' : 'speed';
+    openGame = view === 'mgquiz' ? 'quiz' : view === 'mgdmg' ? 'damage' : view === 'mgtype' ? 'type' : 'speed';
     if (openGame === 'speed') renderSpeed();
     else if (openGame === 'quiz') renderQuiz();
+    else if (openGame === 'type') renderType();
     else renderDamage();
   }
   window.CCMinigamesUI = { open: open, api: api };

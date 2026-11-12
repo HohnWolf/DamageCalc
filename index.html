@@ -40,6 +40,7 @@
   <link rel="stylesheet" href="css/pokedex.css?v=86">
   <link rel="stylesheet" href="css/godex.css?v=7">
   <link rel="stylesheet" href="css/goinfo.css?v=1">
+  <link rel="stylesheet" href="css/projector_view.css?v=1">
   <link rel="stylesheet" href="css/randomizer.css?v=3">
   <link rel="stylesheet" href="css/savedit.css?v=8">
   <link rel="stylesheet" href="css/pro.css?v=21">
@@ -222,6 +223,15 @@
           <span class="sc-head"><span class="sc-title" data-t="navMgDmg"></span></span>
           <span class="sc-text" data-t="startMgDmgText"></span>
         </button>
+        <button class="start-card card-mgtype" data-go="mgtype">
+          <span class="sc-art sc-art-mgtype">
+            <span class="sc-dmg">4× · 2× · ½×</span>
+            <span class="sc-bar"><span style="width:60%"></span></span>
+            <span class="sc-ko" data-t="startMgTypeKo"></span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navMgType"></span></span>
+          <span class="sc-text" data-t="startMgTypeText"></span>
+        </button>
           </div>
         </div>
         <div class="start-group sg-rest" data-cat="rest">
@@ -259,6 +269,15 @@
           <span class="sc-head"><span class="sc-title" data-t="navCatch">Fangrechner</span></span>
           <span class="sc-text" data-t="startCatchText"></span>
         </button>
+        <button class="start-card card-projector" data-go="projector">
+          <span class="sc-art sc-art-projector">
+            <span class="sc-dmg">1080p <small>60 fps</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko" data-t="startProjectorKo">Capture-Karte · Vollbild</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navProjector">Capture-Projektor</span></span>
+          <span class="sc-text" data-t="startProjectorText"></span>
+        </button>
           </div>
         </div>
       </div>
@@ -273,6 +292,7 @@
   <main id="matchView" class="wrap match-view"></main>
   <main id="overlayView" class="wrap overlay-view"></main>
   <main id="catchView" class="wrap catch-view"></main>
+  <main id="projectorView" class="wrap projector-view"></main>
   <main id="dexView" class="wrap dex-view"></main>
   <main id="godexView" class="wrap dex-view godex-view"></main>
   <main id="gocounterView" class="wrap dex-view gocounter-view"></main>
@@ -282,6 +302,7 @@
   <main id="mgSpeedView" class="wrap mg-view mgspeed-view"></main>
   <main id="mgQuizView" class="wrap mg-view mgquiz-view"></main>
   <main id="mgDmgView" class="wrap mg-view mgdmg-view"></main>
+  <main id="mgTypeView" class="wrap mg-view mgtype-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -412,5 +433,6 @@
   <script src="js/goinfo.js?v=1"></script>
   <script src="js/minigames.js?v=1"></script>
   <script src="js/minigames_ui.js?v=1"></script>
+  <script src="js/projector_view.js?v=1"></script>
 </body>
 </html>

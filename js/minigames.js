@@ -1,4 +1,4 @@
-// Minigames: Wer ist schneller?, Basiswerte-Quiz, Schadens-Schätzung. Alle drei enden beim ersten Fehler; gezählt wird die Serie.
+// Minigames: Wer ist schneller?, Basiswerte-Quiz, Schadens-Schätzung, Typ-Rätsel. Alle enden beim ersten Fehler; gezählt wird die Serie.
 // Damage totals always come from js/calc.js (Calc.calculate / Calc.calcStat). This file does not reimplement the formula.
 (function (root) {
   'use strict';
@@ -99,7 +99,8 @@
       v: STATE_V,
       speed: { score: 0, streak: 0, high: 0 },
       quiz: { score: 0, streak: 0, high: 0 },
-      damage: { score: 0, streak: 0, high: 0 }
+      damage: { score: 0, streak: 0, high: 0 },
+      type: { score: 0, streak: 0, high: 0 }
     };
   }
   function num(n) { n = +n; return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
@@ -260,6 +261,39 @@
       (pool || []).forEach(function (p) { if (p.name === choiceName) c = p; if (p.name === answerName) a = p; });
       return { correct: sameStats(c, a) };
     }
+    // Typ-Rätsel: Multiplikator jedes Angriffstyps gegen die Typen des Pokémon (ohne Fähigkeiten).
+    function effectivenessOf(types) {
+      var C = deps.calc, out = {};
+      ((C && C.TYPES) || []).forEach(function (t) { out[t] = C.typeEff(t, types, {}); });
+      return out;
+    }
+    function effKey(types) {
+      var e = effectivenessOf(types);
+      return Object.keys(e).map(function (t) { return e[t]; }).join(',');
+    }
+    // Die richtige Antwort plus bis zu 5 Pokémon mit anderem Typ-Profil, gemischt.
+    function makeTypeRound(pool, rng, n) {
+      rng = rng || Math.random;
+      n = n || QUIZ_CHOICES;
+      if (!pool || pool.length < 2) return null;
+      var answer = pool[Math.floor(rng() * pool.length)];
+      var akey = effKey(answer.types), seen = {}, out = [answer];
+      seen[akey] = 1;
+      var rest = shuffle(pool.filter(function (p) { return p.name !== answer.name; }), rng);
+      for (var i = 0; i < rest.length && out.length < n; i++) {
+        var k = effKey(rest[i].types);
+        if (seen[k]) continue;
+        seen[k] = 1; out.push(rest[i]);
+      }
+      return { answer: answer, effectiveness: effectivenessOf(answer.types), choices: shuffle(out, rng) };
+    }
+    // Pokémon mit demselben Typ-Profil (also denselben Typen) zählen als richtig.
+    function judgeType(choiceName, answerName, pool) {
+      if (choiceName === answerName) return { correct: true };
+      var c = null, a = null;
+      (pool || []).forEach(function (p) { if (p.name === choiceName) c = p; if (p.name === answerName) a = p; });
+      return { correct: !!(c && a) && effKey(c.types) === effKey(a.types) };
+    }
     function findMon(pool, name) {
       for (var i = 0; i < pool.length; i++) if (pool[i].name === name) return pool[i];
       return null;
@@ -393,7 +427,7 @@
           e.opts.gen = g >= 1 && g <= 9 ? g : 0;
           e.opts.evolved = !!v.opts.evolved;
         }
-        ['speed', 'quiz', 'damage'].forEach(function (k) {
+        ['speed', 'quiz', 'damage', 'type'].forEach(function (k) {
           if (!v[k] || (k !== 'speed' && v.v !== STATE_V)) return; // alte Quiz-/Schadenspunkte passen nicht zu den Serien
           Object.keys(e[k]).forEach(function (f) { e[k][f] = num(v[k][f]); });
         });
@@ -426,13 +460,14 @@
     return {
       KEY: KEY, STATS: STATS, QUIZ_CHOICES: QUIZ_CHOICES, DMG_TOLERANCE: DMG_TOLERANCE,
       buildPool: buildPool, makeSpeedRound: makeSpeedRound, judgeSpeed: judgeSpeed,
-      makeQuizChoices: makeQuizChoices, judgeQuiz: judgeQuiz, judgeDamage: judgeDamage, germanName: function (name) { return germanName(name, namesDe, formDe); },
+      makeQuizChoices: makeQuizChoices, judgeQuiz: judgeQuiz, makeTypeRound: makeTypeRound, judgeType: judgeType, effectivenessOf: effectivenessOf, judgeDamage: judgeDamage, germanName: function (name) { return germanName(name, namesDe, formDe); },
       damagingMoves: damagingMoves, buildDamageScenario: buildDamageScenario, makeDamageScenario: makeDamageScenario,
       evaluateDamage: evaluateDamage, scoreDamage: scoreDamage,
       load: load, saveOpts: saveOpts,
       recordSpeed: function (correct) { return recordRun('speed', correct); },
       recordQuiz: function (correct) { return recordRun('quiz', correct); },
-      recordDamage: function (correct) { return recordRun('damage', correct); }
+      recordDamage: function (correct) { return recordRun('damage', correct); },
+      recordType: function (correct) { return recordRun('type', correct); }
     };
   }
 

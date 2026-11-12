@@ -8,6 +8,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.22.3',
+      de: ['Neues Minigame „Typ-Rätsel“: Du siehst, wie effektiv jeder Typ gegen ein verstecktes Pokémon ist, und wählst es aus sechs aus.', 'Basiswerte-Quiz: Zeigt jetzt auch die Summe aller Basiswerte (Gesamt).'],
+      en: ['New minigame "Type Puzzle": you see how effective each type is against a hidden Pokémon and pick it from six.', 'Base stat quiz: now also shows the base stat total.'] },
     { v: '1.22.2',
       de: ['Updates: Auf „Vollversionen“ wird nur noch genau die x.y.0 der neuen Linie angeboten, keine Patches. Geladen wird genau die gewählte Fassung.', 'Aufgeräumt: Der nicht mehr genutzte Simulator samt KI-Training ist entfernt.'],
       en: ['Updates: on "Full versions" only the exact x.y.0 of the new line is offered, no patches. Exactly the chosen version is downloaded.', 'Cleanup: the unused simulator and AI training code has been removed.'] },

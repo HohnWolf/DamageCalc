@@ -17,6 +17,7 @@
   --ic-shiny: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203l2.2%205.8L20%2011l-5.8%202.2L12%2019l-2.2-5.8L4%2011l5.8-2.2z%22%2F%3E%3C%2Fsvg%3E");
   --ic-overlay: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2212%22%20rx%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M8%2020h8M12%2016v4%22%2F%3E%3C%2Fsvg%3E");
   --ic-catch: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223.5%22%2F%3E%3Cpath%20d%3D%22M12%202v3M12%2019v3M2%2012h3M19%2012h3%22%2F%3E%3C%2Fsvg%3E");
+  --ic-projector: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222%22%20y%3D%223%22%20width%3D%2220%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M8%2021h8M12%2017v4M10%208.5v4l4-2z%22%2F%3E%3C%2Fsvg%3E");
   --ic-settings: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207h9M17%207h3M4%2017h3M11%2017h9%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%227%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2217%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E");
   --ic-collapse: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M15%206l-6%206%206%206%22%2F%3E%3C%2Fsvg%3E");
   --ic-look: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M2%2012h2M20%2012h2M4.9%204.9l1.4%201.4M17.7%2017.7l1.4%201.4M4.9%2019.1l1.4-1.4M17.7%206.3l1.4-1.4%22%2F%3E%3C%2Fsvg%3E");
@@ -27,6 +28,7 @@
   --ic-mgspeed: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%202L4%2014h7l-1%208%2010-14h-7z%22%2F%3E%3C%2Fsvg%3E");
   --ic-mgquiz: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2020V10M10%2020V4M16%2020v-7M21%2020H3%22%2F%3E%3C%2Fsvg%3E");
   --ic-mgdmg: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%204l6%206-9.5%209.5H4.5V13.5z%22%2F%3E%3C%2Fsvg%3E");
+  --ic-mgtype: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%204l6%206-9.5%209.5H4.5V13.5z%22%2F%3E%3C%2Fsvg%3E");
 }
 html[data-ui-style="pro"] {
   --sb-w: 184px;
@@ -94,6 +96,7 @@ html[data-ui-style="pro"] .sb-foot { flex: none; padding: 6px; border-top: 1px s
 .ic[data-ic="shiny"] { --ic: var(--ic-shiny); }
 .ic[data-ic="overlay"] { --ic: var(--ic-overlay); }
 .ic[data-ic="catch"] { --ic: var(--ic-catch); }
+.ic[data-ic="projector"] { --ic: var(--ic-projector); }
 .ic[data-ic="settings"] { --ic: var(--ic-settings); }
 .ic[data-ic="collapse"] { --ic: var(--ic-collapse); }
 .ic[data-ic="look"] { --ic: var(--ic-look); }
@@ -104,6 +107,7 @@ html[data-ui-style="pro"] .sb-foot { flex: none; padding: 6px; border-top: 1px s
 .ic[data-ic="mgspeed"] { --ic: var(--ic-mgspeed); }
 .ic[data-ic="mgquiz"] { --ic: var(--ic-mgquiz); }
 .ic[data-ic="mgdmg"] { --ic: var(--ic-mgdmg); }
+.ic[data-ic="mgtype"] { --ic: var(--ic-mgtype); }
 html[data-ui-style="pro"] .sb-collapse .ic { transition: transform .15s ease; }
 html.sb-collapsed[data-ui-style="pro"] .sb-collapse .ic { transform: rotate(180deg); }
 html.sb-collapsed[data-ui-style="pro"] .sidebar { width: 46px; }
@@ -183,12 +187,14 @@ html[data-ui-style="pro"] .start-card.card-dex::before { --ic: var(--ic-dex); }
 html[data-ui-style="pro"] .start-card.card-shiny::before { --ic: var(--ic-shiny); }
 html[data-ui-style="pro"] .start-card.card-overlay::before { --ic: var(--ic-overlay); }
 html[data-ui-style="pro"] .start-card.card-catch::before { --ic: var(--ic-catch); }
+html[data-ui-style="pro"] .start-card.card-projector::before { --ic: var(--ic-projector); }
 html[data-ui-style="pro"] .start-card.card-godex::before { --ic: var(--ic-godex); }
 html[data-ui-style="pro"] .start-card.card-gocounter::before { --ic: var(--ic-gocounter); }
 html[data-ui-style="pro"] .start-card.card-goinfo::before { --ic: var(--ic-goinfo); }
 html[data-ui-style="pro"] .start-card.card-mgspeed::before { --ic: var(--ic-mgspeed); }
 html[data-ui-style="pro"] .start-card.card-mgquiz::before { --ic: var(--ic-mgquiz); }
 html[data-ui-style="pro"] .start-card.card-mgdmg::before { --ic: var(--ic-mgdmg); }
+html[data-ui-style="pro"] .start-card.card-mgtype::before { --ic: var(--ic-mgtype); }
 html[data-ui-style="pro"] .sc-head { display: contents; }
 html[data-ui-style="pro"] .sc-title { grid-column: 2; grid-row: 1; font-size: 13px; font-weight: 600; }
 html[data-ui-style="pro"] .sc-key { grid-column: 3; grid-row: 1; }

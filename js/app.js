@@ -179,7 +179,7 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, Shiny-Zähler, Overlays & Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
+      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team-Analyse', catRunsText: 'Soul Link & Nuzlocke-Rechner', catDexText: 'Nationaler Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, Shiny-Zähler, Overlays, Fangrechner & Capture-Projektor', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navProjector: 'Capture-Projektor', startProjectorKo: 'Capture-Karte · Vollbild', startProjectorText: 'Zeigt das Bild deiner Capture-Karte oder eines Bildschirms in einem eigenen Fenster, ohne Zähler und Overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
@@ -243,14 +243,17 @@
       setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Der Update-Kanal gilt auch hier. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
       updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
       updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
-      catPlay: 'Minigames', catPlayText: 'Wer ist schneller?, Basiswerte-Quiz und Schadens-Schätzung',
-      navMgSpeed: 'Wer ist schneller?', navMgQuiz: 'Basiswerte-Quiz', navMgDmg: 'Schadens-Schätzung',
+      catPlay: 'Minigames', catPlayText: 'Wer ist schneller?, Basiswerte-Quiz, Schadens-Schätzung und Typ-Rätsel',
+      navMgSpeed: 'Wer ist schneller?', navMgQuiz: 'Basiswerte-Quiz', navMgDmg: 'Schadens-Schätzung', navMgType: 'Typ-Rätsel',
       startMgSpeedText: 'Zwei Pokémon: welches hat die höhere Basis-Initiative? Bei Gleichstand gibt es „Gleich schnell“.',
       startMgSpeedKo: 'Basis-Initiative · Serie · Highscore',
       startMgQuizText: 'Sechs Basiswerte sehen und das Pokémon erraten. Deutsche und englische Namen gelten.',
       startMgQuizKo: 'Werte · Hinweise · Highscore',
       startMgDmgText: 'Schätze den Schaden in Prozent der KP. Die Spanne rechnet der Damage Calculator.',
       startMgDmgKo: 'Level 50 · Einzel · Damage Calc',
+      startMgTypeText: 'Du siehst, wie effektiv jeder Typ gegen ein verstecktes Pokémon ist. Welches von sechs ist es?', startMgTypeKo: 'Schwächen · Resistenzen · Highscore',
+      mgTypeAsk: 'Gegen welches Pokémon gelten diese Typ-Effektivitäten? Ein Fehler beendet das Spiel.', mgTypeNote: 'Ohne Fähigkeiten. Pokémon mit denselben Typen zählen als richtig.',
+      mgTypeOk: 'Richtig, {0} ({1}).', mgTypeLost: 'Falsch, es war {0} ({1}). Deine Serie: {2}', mgStTotal: 'Gesamt',
       mgScore: 'Punkte', mgStreak: 'Serie', mgHigh: 'Highscore', mgGen: 'Generation', mgGenAll: 'Alle Generationen', mgGenN: 'Generation {0}', mgEvolved: 'Nur voll entwickelte',
       mgNext: 'Weiter', mgVs: 'VS', mgEmpty: 'Zu wenige Pokémon für diese Auswahl.',
       mgSpeedAsk: 'Welches Pokémon ist schneller? Klick es an. Ein Fehler beendet das Spiel.', mgNewGame: 'Neues Spiel', mgLost: 'Verloren. Deine Serie: {0}',
@@ -321,7 +324,7 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, shiny counter, overlays & catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage Calc, Teambuilder & Team analysis', catRunsText: 'Soul Link & Nuzlocke calculator', catDexText: 'National Pokédex (Gen 1–9)', catGo: 'GO', catGoText: 'Pokémon GO Pokédex & Top Counter', catRestText: 'Pokédex, shiny counter, overlays, catch calculator & capture projector', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Capture projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
@@ -386,13 +389,16 @@
       updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
       updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
       catPlay: 'Minigames', catPlayText: 'Who is faster?, base stat quiz and damage estimate',
-      navMgSpeed: 'Who is faster?', navMgQuiz: 'Base Stat Quiz', navMgDmg: 'Damage Estimate',
+      navMgSpeed: 'Who is faster?', navMgQuiz: 'Base Stat Quiz', navMgDmg: 'Damage Estimate', navMgType: 'Type Puzzle',
       startMgSpeedText: 'Two Pokémon: which has the higher base Speed? Ties have their own answer.',
       startMgSpeedKo: 'Base Speed · streak · high score',
       startMgQuizText: 'See the six base stats and name the Pokémon. German and English names both count.',
       startMgQuizKo: 'Stats · hints · high score',
       startMgDmgText: 'Estimate the damage as a percent of HP. The range comes from the damage calculator.',
       startMgDmgKo: 'Level 50 · Singles · damage calc',
+      startMgTypeText: 'See how effective each type is against a hidden Pokémon. Which of the six is it?', startMgTypeKo: 'Weaknesses · resistances · high score',
+      mgTypeAsk: 'Which Pokémon takes these type effectiveness values? One mistake ends the game.', mgTypeNote: 'Abilities are ignored. Pokémon with the same types count as correct.',
+      mgTypeOk: 'Correct, {0} ({1}).', mgTypeLost: 'Wrong, it was {0} ({1}). Your streak: {2}', mgStTotal: 'Total',
       mgScore: 'Score', mgStreak: 'Streak', mgHigh: 'High score', mgGen: 'Generation', mgGenAll: 'All generations', mgGenN: 'Generation {0}', mgEvolved: 'Fully evolved only',
       mgNext: 'Next', mgVs: 'VS', mgEmpty: 'Not enough Pokémon for this filter.',
       mgSpeedAsk: 'Which Pokémon is faster? Click it. One mistake ends the game.', mgNewGame: 'New game', mgLost: 'Lost. Your streak: {0}',
@@ -2635,13 +2641,13 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg']], ['rest', ['dex', 'shiny', 'overlay', 'catch']]];
+  var CATS = [['fight', ['calc', 'builder', 'match']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
-    var REST = ['shiny', 'overlay', 'catch']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
+    var REST = ['shiny', 'overlay', 'catch', 'projector']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
     CATS = CATS.map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; }).filter(function (c) { return c[1].length; });
@@ -2769,11 +2775,12 @@
     if (v === 'match' && window.CCMatch) window.CCMatch.render();
     if (v === 'overlay' && window.CCOverlay) (window.CCOverlay.open || window.CCOverlay.render)();
     if (v === 'catch' && window.CCCatchCalc) window.CCCatchCalc.render();
+    if (v === 'projector' && window.CCProjectorView) window.CCProjectorView.render();
     if (v === 'dex' && window.CCDex) window.CCDex.render();
     if (v === 'godex' && window.CCGoDex) window.CCGoDex.render();
     if (v === 'gocounter' && window.CCGoCounter) window.CCGoCounter.render();
     if (v === 'goinfo' && window.CCGoInfo) window.CCGoInfo.render();
-    if ((v === 'mgspeed' || v === 'mgquiz' || v === 'mgdmg') && window.CCMinigamesUI) window.CCMinigamesUI.open(v);
+    if ((v === 'mgspeed' || v === 'mgquiz' || v === 'mgdmg' || v === 'mgtype') && window.CCMinigamesUI) window.CCMinigamesUI.open(v);
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2977,6 +2984,7 @@
     else if (location.hash === '#match' || location.hash === '#matchtest') v = 'match';
     else if (location.hash === '#overlay') v = 'overlay';
     else if (location.hash === '#catch') v = 'catch';
+    else if (location.hash === '#projector') v = 'projector';
     else if (location.hash === '#dex') v = 'dex';
     else if (location.hash === '#godex') v = 'godex';
     else if (location.hash === '#gocounter') v = 'gocounter';
@@ -2984,6 +2992,7 @@
     else if (location.hash === '#mgspeed') v = 'mgspeed';
     else if (location.hash === '#mgquiz') v = 'mgquiz';
     else if (location.hash === '#mgdmg') v = 'mgdmg';
+    else if (location.hash === '#mgtype') v = 'mgtype';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

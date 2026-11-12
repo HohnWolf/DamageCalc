@@ -151,4 +151,17 @@ assert.strictEqual(api.load().opts.gen, 2);
 assert.strictEqual(api.load().opts.evolved, true);
 assert.strictEqual(api.load().speed.high, 4, 'options do not wipe scores');
 
+// Typ-Raetsel: 6 Pokemon mit verschiedenen Typ-Profilen, die Antwort ist dabei, gleiche Typen zaehlen als richtig
+if (api.makeTypeRound) {
+  const tr = api.makeTypeRound(all, Math.random, 6);
+  assert.ok(tr.choices.some(c => c.name === tr.answer.name), 'Antwort unter den Optionen');
+  const keys = tr.choices.map(c => Object.keys(api.effectivenessOf(c.types)).map(t => api.effectivenessOf(c.types)[t]).join(','));
+  assert.strictEqual(new Set(keys).size, keys.length, 'Typ-Profile unterscheiden sich');
+  assert.strictEqual(api.judgeType(tr.answer.name, tr.answer.name, all).correct, true);
+  assert.strictEqual(api.effectivenessOf(['Water', 'Ground']).Grass, 4, 'Wasser/Boden: Pflanze 4x');
+  assert.strictEqual(api.effectivenessOf(['Flying']).Ground, 0, 'Flug: Boden 0x');
+  api.recordType(true); api.recordType(false);
+  assert.deepStrictEqual(api.load().type, { score: 1, streak: 0, high: 1 }, 'Typ zaehlt Serien');
+}
+
 console.log('Minigames-Test OK');

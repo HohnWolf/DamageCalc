@@ -1,7 +1,8 @@
 /* Minigames. Colours come from the active theme (style.css / pro.css / studio.css). */
 body:not([data-view="mgspeed"]) .mgspeed-view,
 body:not([data-view="mgquiz"]) .mgquiz-view,
-body:not([data-view="mgdmg"]) .mgdmg-view { display: none !important; }
+body:not([data-view="mgdmg"]) .mgdmg-view,
+body:not([data-view="mgtype"]) .mgtype-view { display: none !important; }
 
 .mg-view { overflow: auto; }
 .mg-shell { width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
@@ -84,3 +85,9 @@ body:not([data-view="mgdmg"]) .mgdmg-view { display: none !important; }
 .mg-shell.mg-center .mg-stage { margin-top: clamp(16px, 9vh, 90px); align-items: center; }
 .mg-shell.mg-center .mg-pick { min-height: 240px; }
 .mg-sprite img { object-fit: contain; }
+
+.mg-total { border-top: 1px solid var(--line); padding-top: 7px; }
+.mg-eff { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.mg-eff-row { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+.mg-eff-row .k { font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+.mg-eff-row .mg-types { justify-content: flex-start; flex-wrap: wrap; }
