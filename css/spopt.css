@@ -1,0 +1,50 @@
+/* SP-Optimierer: links Pokémon und Ziele, rechts das Ergebnis. Farben aus dem aktiven Theme. */
+.start-card.card-spopt { --card-accent: #22c55e; --card-glow: rgba(34, 197, 94, 0.22); }
+.spopt-view { display: flex; flex-direction: column; min-height: 0; }
+body:not([data-view="spopt"]) .spopt-view { display: none !important; }
+body[data-view="spopt"] .no-start { display: none !important; }
+.so-shell { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); gap: 12px; width: min(1280px, 100%); margin: 0 auto; }
+.so-left, .so-right { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.so-right { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; align-self: start; position: sticky; top: 0; max-height: 100%; }
+.so-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.so-card h3, .so-right h3, .so-head h3 { margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
+.so-right h4 { margin: 10px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.so-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.so-adds { display: flex; flex-wrap: wrap; gap: 6px; }
+.so-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.so-f { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.so-f.so-grow { flex: 1 1 200px; }
+.so-l { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.so-sub { margin-top: 2px; }
+.so-card select, .so-card input[type="text"], .so-card input[type="number"] { max-width: 100%; box-sizing: border-box; }
+.so-species { flex: 1 1 160px; min-width: 120px; }
+.so-sps .so-f { width: 62px; }
+.so-sps input { width: 100%; }
+.so-chk { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; }
+.so-seg { display: inline-flex; align-self: flex-start; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.so-seg button { border: 0; border-right: 1px solid var(--line); background: transparent; color: inherit; padding: 5px 12px; cursor: pointer; font: inherit; }
+.so-seg button:last-child { border-right: 0; }
+.so-seg button.on { background: var(--btn-on, #2f6fbf); color: var(--on-btn, #fff); }
+.so-mini { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--btn); color: inherit; cursor: pointer; font: inherit; font-size: 12px; }
+.so-mini:hover { background: var(--btn-hover); }
+.so-primary { background: var(--btn-on, #2f6fbf); color: var(--on-btn, #fff); border-color: transparent; }
+.so-goal.so-survive { border-left: 4px solid var(--accent-2, #3a7bd5); }
+.so-goal.so-ko { border-left: 4px solid var(--accent, #c8283c); }
+.so-goal.so-speed { border-left: 4px solid #eab308; }
+.so-natline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-bottom: 8px; font-weight: 700; }
+.so-sp { width: 100%; border-collapse: collapse; }
+.so-sp th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; width: 74px; padding: 4px 0; }
+.so-barcell { width: 100%; padding: 4px 8px; }
+.so-bar { display: block; height: 10px; border-radius: 5px; background: var(--good, #3cb96a); min-width: 2px; }
+.so-num { font-weight: 800; text-align: right; padding: 0 8px; font-variant-numeric: tabular-nums; }
+.so-stat { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.so-cur { color: var(--muted); text-align: right; padding-left: 8px; }
+.so-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.so-ok { color: var(--good, #3cb96a); }
+.so-bad { color: var(--accent, #e5484d); }
+.so-hint, .so-empty { color: var(--muted); font-size: 12px; }
+.so-alts { display: flex; flex-wrap: wrap; gap: 6px; }
+.so-chip { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; }
+.so-chip:hover { background: var(--panel-head); }
+.so-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+@media (max-width: 900px) { .so-shell { grid-template-columns: 1fr; } .so-right { position: static; } }

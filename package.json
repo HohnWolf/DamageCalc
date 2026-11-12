@@ -1,8 +1,8 @@
 {
   "name": "rattata-lab",
   "productName": "Rattata Labs",
-  "version": "1.24.0",
-  "description": "Rattata Labs: Damage Calculator, Teambuilder, Meta-Test, Nationaler Pokédex, Fangrechner, Soul-Link-Planer, Nuzlocke-Rechner (Alpha), Save File Editor (Beta), Shiny-Zähler, Team-Analyse, Minigames und Match-Overlays für OBS",
+  "version": "1.23.3",
+  "description": "Rattata Labs: Damage Calculator, Teambuilder, Meta-Test, Nationaler Pokédex, Fangrechner, Soul-Link-Planer, Nuzlocke-Rechner (Alpha), Save File Editor (Beta), Shiny-Zähler, Team-Analyse, Speed-Tiers, SP-Optimierer, Minigames und Match-Overlays für OBS",
   "author": "HohnWolf",
   "license": "UNLICENSED",
   "private": true,
