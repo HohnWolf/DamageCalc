@@ -111,6 +111,11 @@
     btnProject.textContent = isOpen() ? t('stop') : t('project');
     btnProject.classList.toggle('on', isOpen());
     root.classList.toggle('has-video', on);
+    // Läuft der Projektor, zeichnet die Vorschau dasselbe Bild ein zweites Mal (1080p, 50 fps) und kostet Frames. Der Strom bleibt, nur die Vorschau pausiert.
+    if (on && video) {
+      if (isOpen()) { try { video.pause(); } catch (e) { /* egal */ } }
+      else { var pl = video.play(); if (pl && pl.catch) pl.catch(function () { /* Autoplay */ }); }
+    }
   }
 
   function fillCameras() {
