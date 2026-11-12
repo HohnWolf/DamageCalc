@@ -52,15 +52,10 @@ assert.deepStrictEqual(api.judgeSpeed({ leftSpeed: 110, rightSpeed: 30 }, 'left'
 assert.deepStrictEqual(api.judgeSpeed({ leftSpeed: 30, rightSpeed: 110 }, 'right'), { truth: 'right', correct: true });
 assert.strictEqual(api.judgeSpeed({ leftSpeed: 110, rightSpeed: 30 }, 'tie').correct, false);
 
-const evolved = api.buildPool({ evolved: true });
-assert.ok(evolved.every(function (p) { return !p.canEvolve; }), 'fully evolved');
-assert.ok(!evolved.some(function (p) { return p.name === 'Pikachu' || p.name === 'Slowpoke' || p.name === 'Chikorita'; }));
-assert.ok(evolved.some(function (p) { return p.name === 'Slowbro'; }));
 assert.ok(!api.buildPool({}).some(function (p) { return p.name === 'Totem Dummy'; }), 'unreleased/invalid form skipped');
-const gen2 = api.buildPool({ gen: 2 });
-assert.deepStrictEqual(gen2.map(function (p) { return p.name; }), ['Chikorita', 'Meganium']);
+assert.strictEqual(api.buildPool({ scope: 'reg' }).length, 8, 'reg: nur das Dex der Regulation');
 
-const tiePool = api.buildPool({ evolved: true }).filter(function (p) { return p.name === 'Slowbro' || p.name === 'Snorlax'; });
+const tiePool = api.buildPool({}).filter(function (p) { return p.name === 'Slowbro' || p.name === 'Snorlax'; });
 const tieRound = api.makeSpeedRound(tiePool, function () { return 0; });
 assert.strictEqual(tieRound.leftSpeed, tieRound.rightSpeed);
 assert.strictEqual(api.judgeSpeed(tieRound, 'tie').correct, true);
@@ -129,7 +124,6 @@ assert.ok(rolled.weather === 'None' || rolled.weather === 'Sun' || rolled.weathe
 api.recordSpeed(true);
 api.recordSpeed(true);
 let st = api.load();
-assert.strictEqual(st.speed.score, 2);
 assert.strictEqual(st.speed.streak, 2);
 assert.strictEqual(st.speed.high, 2);
 api.recordSpeed(false);
@@ -138,17 +132,16 @@ assert.strictEqual(st.speed.streak, 0);
 assert.strictEqual(st.speed.high, 2, 'highscore keeps the best streak');
 api.recordQuiz(true); api.recordQuiz(true); api.recordQuiz(true); api.recordQuiz(false); api.recordQuiz(true);
 st = api.load();
-assert.deepStrictEqual(st.quiz, { score: 4, streak: 1, high: 3 }, 'Quiz zaehlt Serien');
+assert.deepStrictEqual(st.quiz, { streak: 1, high: 3 }, 'Quiz zaehlt Serien');
 api.recordDamage(true); api.recordDamage(false);
-assert.deepStrictEqual(api.load().damage, { score: 1, streak: 0, high: 1 }, 'Schaden zaehlt Serien');
+assert.deepStrictEqual(api.load().damage, { streak: 0, high: 1 }, 'Schaden zaehlt Serien');
 assert.strictEqual(JSON.parse(mem[MG.KEY]).quiz.high, 3);
 // alter Spielstand (Punkte statt Serien): Quiz und Schaden starten neu, Speed und Optionen bleiben
 mem[MG.KEY] = JSON.stringify({ opts: { gen: 3, evolved: true }, speed: { score: 5, streak: 1, high: 4 }, quiz: { score: 110, high: 70 }, damage: { score: 300, high: 90 } });
 st = api.load();
-assert.deepStrictEqual([st.quiz.high, st.damage.high, st.speed.high, st.opts.gen], [0, 0, 4, 3], 'Migration alter Spielstaende');
-api.saveOpts({ gen: 2, evolved: true });
-assert.strictEqual(api.load().opts.gen, 2);
-assert.strictEqual(api.load().opts.evolved, true);
+assert.deepStrictEqual([st.quiz.high, st.damage.high, st.speed.high, st.opts.scope], [0, 0, 4, 'reg'], 'Migration alter Spielstaende');
+api.saveOpts({ scope: 'all' });
+assert.strictEqual(api.load().opts.scope, 'all');
 assert.strictEqual(api.load().speed.high, 4, 'options do not wipe scores');
 
 // Typ-Raetsel: 6 Pokemon mit verschiedenen Typ-Profilen, die Antwort ist dabei, gleiche Typen zaehlen als richtig
@@ -161,7 +154,22 @@ if (api.makeTypeRound) {
   assert.strictEqual(api.effectivenessOf(['Water', 'Ground']).Grass, 4, 'Wasser/Boden: Pflanze 4x');
   assert.strictEqual(api.effectivenessOf(['Flying']).Ground, 0, 'Flug: Boden 0x');
   api.recordType(true); api.recordType(false);
-  assert.deepStrictEqual(api.load().type, { score: 1, streak: 0, high: 1 }, 'Typ zaehlt Serien');
+  assert.deepStrictEqual(api.load().type, { streak: 0, high: 1 }, 'Typ zaehlt Serien');
 }
+
+// Wesen und SP: sinnvoll fuer das Pokemon (hier ohne Sets, aus den Basiswerten abgeleitet)
+for (let i = 0; i < 20; i++) {
+  const sc2 = api.makeDamageScenario(all, Math.random);
+  [sc2.attacker, sc2.defender].forEach(function (m) {
+    const tot = Object.keys(m.sps).reduce(function (a, k) { return a + m.sps[k]; }, 0);
+    assert.ok(tot <= 66 && Object.keys(m.sps).every(function (k) { return m.sps[k] <= 32; }), 'SP im Rahmen');
+    assert.ok(Calc.NATURES[m.nature], 'gueltiges Wesen');
+  });
+  const off = sc2.move.category === 'Physical' ? 'at' : 'sa';
+  assert.ok(sc2.attacker.sps[off] === 32 || sc2.attacker.sps[off] === 2, 'Angreifer investiert passend');
+  assert.strictEqual(sc2.attacker.stats.hp >= 1, true);
+}
+const jolt = api.makeDamageScenario(all.filter(function (p) { return p.name === 'Jolteon' || p.name === 'Slowbro'; }), function () { return 0; });
+assert.ok(jolt, 'Szenario mit Builds');
 
 console.log('Minigames-Test OK');

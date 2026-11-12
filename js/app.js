@@ -254,7 +254,7 @@
       startMgTypeText: 'Du siehst, wie effektiv jeder Typ gegen ein verstecktes Pokémon ist. Welches von sechs ist es?', startMgTypeKo: 'Schwächen · Resistenzen · Highscore',
       mgTypeAsk: 'Gegen welches Pokémon gelten diese Typ-Effektivitäten? Ein Fehler beendet das Spiel.', mgTypeNote: 'Ohne Fähigkeiten. Pokémon mit denselben Typen zählen als richtig.',
       mgTypeOk: 'Richtig, {0} ({1}).', mgTypeLost: 'Falsch, es war {0} ({1}). Deine Serie: {2}', mgStTotal: 'Gesamt',
-      mgScore: 'Punkte', mgStreak: 'Serie', mgHigh: 'Highscore', mgGen: 'Generation', mgGenAll: 'Alle Generationen', mgGenN: 'Generation {0}', mgEvolved: 'Nur voll entwickelte',
+      mgScore: 'Punkte', mgStreak: 'Serie', mgHigh: 'Highscore', mgScope: 'Pokémon', mgScopeReg: 'Nur in der aktuellen Regulation erlaubt', mgScopeAll: 'Alle Pokémon',
       mgNext: 'Weiter', mgVs: 'VS', mgEmpty: 'Zu wenige Pokémon für diese Auswahl.',
       mgSpeedAsk: 'Welches Pokémon ist schneller? Klick es an. Ein Fehler beendet das Spiel.', mgNewGame: 'Neues Spiel', mgLost: 'Verloren. Deine Serie: {0}',
       mgSpeedOk: 'Richtig', mgSpeedBad: 'Falsch', mgSpeedStat: 'Initiative {0}',
@@ -264,7 +264,7 @@
       mgDmgAsk: 'Wie viel Prozent der KP verliert der Verteidiger? Mehr als 10 Prozentpunkte daneben beendet das Spiel.', mgDmgGuess: 'Schätzung', mgDmgSubmit: 'Schätzen',
       mgDmgRange: '{0}–{1} Schaden ({2}–{3} %)', mgDmgOff: 'Knapp daneben: {0} Prozentpunkte (erlaubt sind {1}).', mgDmgExact: 'In der Spanne.', mgDmgLost: 'Verloren: {0} Prozentpunkte daneben (erlaubt sind {1}). Deine Serie: {2}',
       mgLevel: 'Level {0}', mgNature: 'Wesen', mgAbility: 'Fähigkeit', mgItem: 'Item', mgWeather: 'Wetter', mgTerrain: 'Terrain',
-      mgNone: 'keins', mgNoItem: 'keins', mgSp: 'SP 0', mgAtk: 'Angreifer', mgDef: 'Verteidiger', mgHp: 'KP {0}', mgPower: 'Stärke {0}',
+      mgNone: 'keins', mgNoItem: 'keins', mgSp: 'SP', mgAtk: 'Angreifer', mgDef: 'Verteidiger', mgHp: 'KP {0}', mgPower: 'Stärke {0}',
       mgPhysical: 'Physisch', mgSpecial: 'Speziell', mgSingles: 'Einzel', mgNoCrit: 'kein Volltreffer',
       updPerm: 'Android braucht einmalig die Erlaubnis „Unbekannte Apps installieren“ für Rattata Labs. Erlauben, zurückgehen und erneut antippen.'
     },
@@ -399,7 +399,7 @@
       startMgTypeText: 'See how effective each type is against a hidden Pokémon. Which of the six is it?', startMgTypeKo: 'Weaknesses · resistances · high score',
       mgTypeAsk: 'Which Pokémon takes these type effectiveness values? One mistake ends the game.', mgTypeNote: 'Abilities are ignored. Pokémon with the same types count as correct.',
       mgTypeOk: 'Correct, {0} ({1}).', mgTypeLost: 'Wrong, it was {0} ({1}). Your streak: {2}', mgStTotal: 'Total',
-      mgScore: 'Score', mgStreak: 'Streak', mgHigh: 'High score', mgGen: 'Generation', mgGenAll: 'All generations', mgGenN: 'Generation {0}', mgEvolved: 'Fully evolved only',
+      mgScore: 'Score', mgStreak: 'Streak', mgHigh: 'High score', mgScope: 'Pokémon', mgScopeReg: 'Only legal in the current regulation', mgScopeAll: 'All Pokémon',
       mgNext: 'Next', mgVs: 'VS', mgEmpty: 'Not enough Pokémon for this filter.',
       mgSpeedAsk: 'Which Pokémon is faster? Click it. One mistake ends the game.', mgNewGame: 'New game', mgLost: 'Lost. Your streak: {0}',
       mgSpeedOk: 'Correct', mgSpeedBad: 'Wrong', mgSpeedStat: 'Speed {0}',
@@ -409,7 +409,7 @@
       mgDmgAsk: 'What percent of HP does the defender lose? More than 10 percentage points off ends the game.', mgDmgGuess: 'Estimate', mgDmgSubmit: 'Guess',
       mgDmgRange: '{0}–{1} damage ({2}–{3}%)', mgDmgOff: 'Close: off by {0} percentage points ({1} allowed).', mgDmgExact: 'Inside the range.', mgDmgLost: 'Lost: {0} percentage points off ({1} allowed). Your streak: {2}',
       mgLevel: 'Level {0}', mgNature: 'Nature', mgAbility: 'Ability', mgItem: 'Item', mgWeather: 'Weather', mgTerrain: 'Terrain',
-      mgNone: 'none', mgNoItem: 'none', mgSp: 'SP 0', mgAtk: 'Attacker', mgDef: 'Defender', mgHp: 'HP {0}', mgPower: 'Power {0}',
+      mgNone: 'none', mgNoItem: 'none', mgSp: 'SP', mgAtk: 'Attacker', mgDef: 'Defender', mgHp: 'HP {0}', mgPower: 'Power {0}',
       mgPhysical: 'Physical', mgSpecial: 'Special', mgSingles: 'Singles', mgNoCrit: 'no critical hit',
       updPerm: 'Android needs the one-time permission "Install unknown apps" for Rattata Labs. Allow it, go back and tap again.'
     }

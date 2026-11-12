@@ -5,7 +5,7 @@
   var Kit = window.CCMinigames;
   if (!A || !Kit) return;
   var api = Kit.create({
-    dex: A.DEX, moves: A.MOVES, learn: window.CHAMP_LEARN, learnParent: window.CHAMP_PARENT, setsFor: A.setsFor,
+    dex: A.DEX, dexAll: window.POKEDEX_ZA_NATDEX, moves: A.MOVES, learn: window.CHAMP_LEARN, learnParent: window.CHAMP_PARENT, setsFor: A.setsFor,
     megaStone: function (name) {
       var lk = window.MEGA_STONE_USER_LOOKUP || {}, base = name.replace(/^Mega (.+?)(?: [XYZ])?$/, '$1'), hit = null;
       Object.keys(lk).some(function (stone) { if (A.megaFormeFor(base, stone) === name) { hit = stone; return true; } return false; });
@@ -32,9 +32,26 @@
     var i = species.indexOf('-');
     return i > 0 ? A.idOf(species.slice(0, i)) + '-' + A.idOf(species.slice(i + 1)) : A.idOf(species);
   }
+  function speciesKnown(name) {
+    return !!((A.DEX && A.DEX[name]) || (window.POKEDEX_ZA_NATDEX && window.POKEDEX_ZA_NATDEX[name]));
+  }
+  // Showdown schreibt Arten mit Bindestrich im Namen ohne ihn (kommoo, porygonz, hooh, nidoranf); Formen behalten ihn (tauros-paldea).
+  function spriteIds(species) {
+    var id = spriteId(species), flat = A.idOf(species), i = species.indexOf('-');
+    if (i <= 0 || id === flat) return [id];
+    return speciesKnown(species.slice(0, i)) ? [id, flat] : [flat, id];
+  }
+  // Home-Sprites; bei neuen Megas fehlt Home, dann das Dex-Sprite, zuletzt Gen 5.
   function sprite(name) {
-    var id = spriteId(name), base = 'https://play.pokemonshowdown.com/sprites/';
-    var chain = [base + 'home/' + id + '.png', base + 'dex/' + id + '.png', base + 'gen5/' + id + '.png'], i = 0;
+    var base = 'https://play.pokemonshowdown.com/sprites/', chain = [];
+    var ids = spriteIds(name), mega = name.match(/^Mega (.+?)(?: [XYZ])?$/), dash = name.indexOf('-');
+    // Fehlt das Bild (neue Megas haben noch keins), folgt das Bild der Basisart.
+    if (mega) ids.push(A.idOf(mega[1]));
+    else if (dash > 0 && speciesKnown(name.slice(0, dash))) ids.push(A.idOf(name.slice(0, dash)));
+    ids.forEach(function (id) {
+      chain.push(base + 'home/' + id + '.png', base + 'dex/' + id + '.png', base + 'gen5/' + id + '.png');
+    });
+    var i = 0;
     var img = el('img', { alt: '', src: chain[0], loading: 'lazy' });
     img.onerror = function () {
       i++;
@@ -60,27 +77,18 @@
     var st = api.load();
     var bar = el('div', { class: 'mg-opts' });
     var lab = el('label');
-    lab.appendChild(document.createTextNode(T('mgGen') + ' '));
+    lab.appendChild(document.createTextNode(T('mgScope') + ' '));
     var sel = el('select');
-    sel.appendChild(el('option', { value: '0', text: T('mgGenAll') }));
-    for (var g = 1; g <= 9; g++) sel.appendChild(el('option', { value: String(g), text: T('mgGenN', g) }));
-    sel.value = String(st.opts.gen || 0);
+    sel.appendChild(el('option', { value: 'reg', text: T('mgScopeReg') }));
+    sel.appendChild(el('option', { value: 'all', text: T('mgScopeAll') }));
+    sel.value = st.opts.scope === 'all' ? 'all' : 'reg';
     lab.appendChild(sel);
     bar.appendChild(lab);
-    var ev = el('label');
-    var cb = el('input', { type: 'checkbox' });
-    cb.checked = !!st.opts.evolved;
-    ev.appendChild(cb);
-    ev.appendChild(document.createTextNode(T('mgEvolved')));
-    bar.appendChild(ev);
-    function emit() { api.saveOpts({ gen: +sel.value || 0, evolved: cb.checked }); onChange(); }
-    sel.addEventListener('change', emit);
-    cb.addEventListener('change', emit);
+    sel.addEventListener('change', function () { api.saveOpts({ scope: sel.value }); onChange(); });
     return bar;
   }
   function pool() {
-    var o = api.load().opts;
-    return api.buildPool({ gen: o.gen, evolved: o.evolved });
+    return api.buildPool({ scope: api.load().opts.scope });
   }
   function shell(id) {
     var root = document.getElementById(id);
@@ -107,11 +115,10 @@
   }
   function paintMeters(box, rec) {
     var bs = box.querySelectorAll('.mg-meters b');
-    if (bs[0]) bs[0].textContent = rec.score;
-    if (bs[1]) bs[1].textContent = rec.streak;
-    if (bs[2]) bs[2].textContent = rec.high;
+    if (bs[0]) bs[0].textContent = rec.streak;
+    if (bs[1]) bs[1].textContent = rec.high;
   }
-  function runMeters(top, st) { meters(top, [[T('mgScore'), st.score], [T('mgStreak'), st.streak], [T('mgHigh'), st.high]]); }
+  function runMeters(top, st) { meters(top, [[T('mgScore'), st.streak], [T('mgHigh'), st.high]]); }
   function pickCard(mon, onPick) {
     var c = el('button', { class: 'mg-card mg-pick', type: 'button' });
     var sp = el('div', { class: 'mg-sprite' });
@@ -320,6 +327,13 @@
       meta.appendChild(document.createElement('br'));
       meta.appendChild(el('b', { text: T('mgItem') + ': ' }));
       meta.appendChild(document.createTextNode(itemLabel(mon.item)));
+      meta.appendChild(document.createElement('br'));
+      meta.appendChild(el('b', { text: T('mgNature') + ': ' }));
+      meta.appendChild(document.createTextNode(A.nNature ? A.nNature(mon.nature) : mon.nature));
+      meta.appendChild(document.createElement('br'));
+      var spt = STATS.filter(function (x) { return mon.sps && mon.sps[x[0]] > 0; }).map(function (x) { return T(x[1]) + ' ' + mon.sps[x[0]]; }).join(' \u00b7 ');
+      meta.appendChild(el('b', { text: T('mgSp') + ': ' }));
+      meta.appendChild(document.createTextNode(spt || T('mgNone')));
       c.appendChild(meta);
       return c;
     }
@@ -330,7 +344,6 @@
     var cat = sc.move.category === 'Physical' ? T('mgPhysical') : T('mgSpecial');
     mid.appendChild(el('p', { class: 'mg-meta', text: cat + ' · ' + T('mgPower', sc.move.bp || 0) }));
     mid.appendChild(el('p', { class: 'mg-meta', text: T('mgLevel', sc.level) + ' · ' + T('mgSingles') }));
-    mid.appendChild(el('p', { class: 'mg-meta', text: T('mgNature') + ': ' + (A.nNature ? A.nNature(sc.nature) : sc.nature) + ' · ' + T('mgSp') }));
     mid.appendChild(el('p', { class: 'mg-meta', text: T('mgNoCrit') }));
     var field = el('p', { class: 'mg-meta' });
     var weatherMap = { Sun: de() ? 'Sonne' : 'Sun', Rain: de() ? 'Regen' : 'Rain', Sand: de() ? 'Sandsturm' : 'Sandstorm', Snow: de() ? 'Schnee' : 'Snow' };

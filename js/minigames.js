@@ -95,12 +95,12 @@
   }
   function emptyState() {
     return {
-      opts: { gen: 0, evolved: false },
+      opts: { scope: 'reg' },
       v: STATE_V,
-      speed: { score: 0, streak: 0, high: 0 },
-      quiz: { score: 0, streak: 0, high: 0 },
-      damage: { score: 0, streak: 0, high: 0 },
-      type: { score: 0, streak: 0, high: 0 }
+      speed: { streak: 0, high: 0 },
+      quiz: { streak: 0, high: 0 },
+      damage: { streak: 0, high: 0 },
+      type: { streak: 0, high: 0 }
     };
   }
   function num(n) { n = +n; return isFinite(n) && n > 0 ? Math.floor(n) : 0; }
@@ -189,15 +189,13 @@
     }
     function buildPool(opts) {
       opts = opts || {};
-      var wantGen = +opts.gen || 0;
-      var evolved = !!opts.evolved;
+      // 'reg': nur Pokémon der aktuellen Regulation (deps.dex); 'all': alle Pokémon (deps.dexAll, sonst deps.dex)
+      var src = (opts.scope === 'all' && deps.dexAll) ? deps.dexAll : (deps.dex || {});
       var pool = [];
-      Object.keys(deps.dex || {}).forEach(function (name) {
-        var entry = deps.dex[name];
+      Object.keys(src).forEach(function (name) {
+        var entry = src[name];
         if (!isPlayable(name, entry)) return;
-        if (evolved && entry.canEvolve) return;
         var g = genOf(name);
-        if (wantGen && g !== wantGen) return;
         var types = [];
         if (entry.t1) types.push(entry.t1);
         if (entry.t2 && entry.t2 !== entry.t1) types.push(entry.t2);
@@ -304,18 +302,59 @@
       for (var i = 0; i < names.length; i++) if (map[names[i]] === type) return names[i];
       return '';
     }
-    function toCalcMon(entry, item, boosts) {
+    // Sinnvolles Wesen und SP (max. 32 je Wert, 66 gesamt): aus einem beliebten Set, sonst aus den Basiswerten abgeleitet.
+    function zeroSps() { var o = {}; STATS.forEach(function (k) { o[k] = 0; }); return o; }
+    function spsOfSet(set) {
+      var o = zeroSps();
+      STATS.forEach(function (k) {
+        if (set.sps) o[k] = Math.max(0, Math.min(32, set.sps[k] | 0));
+        else if (set.evs) { var ev = set.evs[k] | 0; o[k] = ev <= 0 ? 0 : Math.min(32, Math.floor((ev + 4) / 8)); }
+      });
+      return o;
+    }
+    function defaultBuild(entry, off) {
+      var bs = entry.bs;
+      off = off || (bs.at >= bs.sa ? 'at' : 'sa');
+      var other = off === 'at' ? 'sa' : 'at', sps = zeroSps(), nature;
+      var bulky = bs.sp < 80 && (bs.hp + bs.df + bs.sd) / 3 > bs[off] * 1.15;
+      if (bulky) {
+        var def = bs.df >= bs.sd ? 'df' : 'sd';
+        sps.hp = 32; sps[def] = 32; sps[off] = 2;
+        nature = def === 'df' ? (other === 'sa' ? 'Impish' : 'Bold') : (other === 'sa' ? 'Careful' : 'Calm');
+      } else if (bs.sp >= 60) {
+        sps[off] = 32; sps.sp = 32; sps.hp = 2;
+        nature = off === 'at' ? 'Jolly' : 'Timid';
+      } else {
+        sps[off] = 32; sps.hp = 32; sps.df = 2;
+        nature = off === 'at' ? 'Adamant' : 'Modest';
+      }
+      return { nature: nature, sps: sps };
+    }
+    function buildFor(entry, rng, moveName, off) {
+      var list = (deps.setsFor ? (deps.setsFor(entry.name) || []) : []).filter(function (st) {
+        return st && st.nature && deps.calc.NATURES && deps.calc.NATURES[st.nature] && (st.sps || st.evs);
+      });
+      if (list.length) {
+        var withMove = moveName ? list.filter(function (st) { return (st.moves || []).indexOf(moveName) !== -1; }) : [];
+        var from = withMove.length ? withMove : list;
+        var set = from[Math.floor(rng() * from.length)];
+        return { nature: set.nature, sps: spsOfSet(set) };
+      }
+      return defaultBuild(entry, off);
+    }
+    function toCalcMon(entry, item, boosts, build) {
       boosts = boosts || {};
       var C = deps.calc;
-      var nature = 'Hardy';
+      build = build || { nature: 'Hardy', sps: zeroSps() };
+      var nature = build.nature;
       var stats = {};
-      C.STAT_KEYS.forEach(function (s) { stats[s] = C.calcStat(s, entry.bs[s] || 1, 0, nature, entry.name); });
+      C.STAT_KEYS.forEach(function (s) { stats[s] = C.calcStat(s, entry.bs[s] || 1, build.sps[s] | 0, nature, entry.name); });
       return {
         species: entry.name, baseSpecies: baseSpeciesName(entry.name), types: entry.types.slice(),
         stats: stats, boosts: { hp: 0, at: boosts.at || 0, df: boosts.df || 0, sa: boosts.sa || 0, sd: boosts.sd || 0, sp: 0 },
         nature: nature, ability: entry.ability || '', item: item || '(none)', status: 'Healthy',
         curHP: stats.hp, maxHP: stats.hp, weight: entry.weight || 50, canEvolve: !!entry.canEvolve, fainted: 0,
-        sps: { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 }
+        sps: build.sps
       };
     }
     function blankField(weather, terrain) {
@@ -345,8 +384,8 @@
       return {
         attackerName: atk.name, defenderName: def.name, moveName: moveName,
         item: spec.item || '(none)', weather: field.weather, terrain: field.terrain, format: 'Singles',
-        level: deps.calc.LEVEL, nature: 'Hardy', sp: 0,
-        attacker: toCalcMon(atk, spec.item || '(none)', ab), defender: toCalcMon(def, megaStoneOf(def.name) || '(none)', db),
+        level: deps.calc.LEVEL,
+        attacker: toCalcMon(atk, spec.item || '(none)', ab, spec.atkBuild), defender: toCalcMon(def, megaStoneOf(def.name) || '(none)', db, spec.defBuild),
         atkBoost: ab, defBoost: db,
         move: move, field: field, aSide: {}, dSide: {}
       };
@@ -367,7 +406,7 @@
       rng = rng || Math.random;
       if (!deps.calc || typeof deps.calc.calculate !== 'function') throw new Error('Calc.calculate missing');
       var last = null;
-      for (var attempt = 0; attempt < 24; attempt++) {
+      for (var attempt = 0; attempt < 60; attempt++) {
         var pair = pickTwo(pool, rng);
         if (!pair) return null;
         var moveName = pickMove(pair[0], rng);
@@ -397,7 +436,8 @@
           if (rng() < 0.4) atkBoost[phys ? 'at' : 'sa'] = vals[Math.floor(rng() * 4)];
           if (rng() < 0.4) defBoost[phys ? 'df' : 'sd'] = vals[Math.floor(rng() * 4)];
         }
-        var sc = buildDamageScenario({ pool: pool, attacker: pair[0].name, defender: pair[1].name, move: moveName, item: item, weather: weather, terrain: terrain, atkBoost: atkBoost, defBoost: defBoost });
+        var sc = buildDamageScenario({ pool: pool, attacker: pair[0].name, defender: pair[1].name, move: moveName, item: item, weather: weather, terrain: terrain, atkBoost: atkBoost, defBoost: defBoost,
+          atkBuild: buildFor(pair[0], rng, moveName, move.category === 'Physical' ? 'at' : 'sa'), defBuild: buildFor(pair[1], rng, null, null) });
         if (!sc) continue;
         var truth = evaluateDamage(sc);
         last = sc;
@@ -423,9 +463,7 @@
         var v = raw ? JSON.parse(raw) : null;
         if (!v || typeof v !== 'object') return e;
         if (v.opts) {
-          var g = +v.opts.gen;
-          e.opts.gen = g >= 1 && g <= 9 ? g : 0;
-          e.opts.evolved = !!v.opts.evolved;
+          e.opts.scope = v.opts.scope === 'all' ? 'all' : 'reg';
         }
         ['speed', 'quiz', 'damage', 'type'].forEach(function (k) {
           if (!v[k] || (k !== 'speed' && v.v !== STATE_V)) return; // alte Quiz-/Schadenspunkte passen nicht zu den Serien
@@ -440,8 +478,7 @@
     }
     function saveOpts(opts) {
       var s = load();
-      s.opts.gen = +opts.gen || 0;
-      s.opts.evolved = !!opts.evolved;
+      s.opts.scope = opts.scope === 'all' ? 'all' : 'reg';
       return save(s);
     }
     // Eine Runde gewertet: richtig verlängert die Serie, falsch beendet sie.
@@ -449,7 +486,6 @@
       var s = load();
       var r = s[bucket];
       if (correct) {
-        r.score++;
         r.streak++;
         if (r.streak > r.high) r.high = r.streak;
       } else r.streak = 0;
