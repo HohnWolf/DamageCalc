@@ -252,6 +252,59 @@ function chooseTeam(battle, side, level, rng) {
   return 'team ' + best.order.slice(0, size).join('');
 }
 
+const PRIORITY_BLOCK = ['armortail', 'dazzling', 'queenlymajesty'];
+const MOLD_BREAK = ['moldbreaker', 'teravolt', 'turboblaze'];
+
+function effectivePriority(poke, move) {
+  let p = move.priority || 0;
+  const ab = poke.ability;
+  if (ab === 'prankster' && move.category === 'Status') p += 1;
+  if (ab === 'galewings' && move.type === 'Flying' && poke.hp === poke.maxhp) p += 1;
+  if (ab === 'triage' && move.flags && move.flags.heal) p += 3;
+  return p;
+}
+
+// Foes this choice would actually try to hit. Self, ally and side moves return none.
+function foeTargetsOf(poke, move, loc, foes) {
+  const t = move.target;
+  if (!t || t === 'self' || t === 'allySide' || t === 'allyTeam' || t === 'adjacentAlly' || t === 'adjacentAllyOrSelf' || t === 'allies' || t === 'foeSide') return [];
+  if (t === 'allAdjacent' || t === 'allAdjacentFoes' || t === 'all' || t === 'scripted' || t === 'randomNormal') {
+    return foes.filter(function (f) { return f && !f.fainted && f.hp > 0; });
+  }
+  if (loc > 0) {
+    const tgt = poke.getAtLoc(loc);
+    if (!tgt || tgt.fainted || tgt.hp <= 0) return [];
+    if (tgt.side && poke.side && tgt.side.id === poke.side.id) return [];
+    return [tgt];
+  }
+  if (loc < 0) return [];
+  if (t === 'normal' || t === 'any' || t === 'adjacentFoe') {
+    return foes.filter(function (f) { return f && !f.fainted && f.hp > 0; });
+  }
+  return [];
+}
+
+// True when the simulator would accept the choice and then the move would fail.
+// Psychic Terrain blocks priority against grounded foes (Flying, Levitate, Air Balloon
+// and Magnet Rise are not grounded). Armor Tail, Dazzling and Queenly Majesty block
+// priority aimed at that side. Fake Out only works on the first action after switching in.
+function priorityBlocked(battle, poke, move, loc, foes) {
+  if (!move || !poke) return false;
+  if ((move.id === 'fakeout' || move.id === 'firstimpression') && (poke.activeMoveActions || 0) > 0) return true;
+  const pri = effectivePriority(poke, move);
+  // A damaging priority move aimed at the partner only hits that partner (Fake Out flinches it).
+  if (loc < 0 && move.category !== 'Status' && pri > 0.1) return true;
+  if (pri <= 0.1) return false;
+  const tgts = foeTargetsOf(poke, move, loc, foes);
+  if (!tgts.length) return false;
+  const ignore = poke.hasAbility && poke.hasAbility(MOLD_BREAK);
+  if (!ignore && (foes || []).some(function (f) { return f && !f.fainted && f.hasAbility && f.hasAbility(PRIORITY_BLOCK); })) return true;
+  if (battle.field && battle.field.terrain === 'psychicterrain') {
+    if (tgts.some(function (t) { return !!t.isGrounded(); })) return true;
+  }
+  return false;
+}
+
 function slotCandidates(battle, side, slot, level, reqActive) {
   const poke = side.active[slot];
   const info = reqActive && reqActive[slot];
@@ -315,6 +368,7 @@ function slotCandidates(battle, side, slot, level, reqActive) {
 }
 
 function actionOf(battle, poke, ally, foes, move, slot, loc, mega, megaName, level, field) {
+  if (priorityBlocked(battle, poke, move, loc, foes)) return null;
   const id = move.id;
   const cm = toCalcMove(move);
   const dmg = [0, 0];
@@ -618,4 +672,4 @@ function decide(battle, sideId, level, rng) {
   return chooseMoves(battle, side, level, rng);
 }
 
-module.exports = { decide: decide };
+module.exports = { decide: decide, priorityBlocked: priorityBlocked, slotCandidates: slotCandidates };

@@ -12,6 +12,14 @@
 
   function T(deText, enText) { return de ? deText : enText; }
   function pct(x) { return Math.round(x * 1000) / 10; }
+  function decode(s) {
+    if (window.RLMetaText) return window.RLMetaText.decodeEntities(s);
+    return s == null ? '' : String(s);
+  }
+  function normTeam(t) {
+    if (t && window.RLMetaText) window.RLMetaText.normalizeTeam(t);
+    return t;
+  }
   function wrClass(p) { return p >= 0.6 ? 'wr hi' : p >= 0.45 ? 'wr mid' : 'wr lo'; }
   function idOf(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
 
@@ -19,7 +27,8 @@
     var bundled = window.RL_META_TEAMS || { format: '', teams: [] };
     var saved = A.load(KEY, null);
     var user = (saved && saved.teams || []).filter(function (t) { return t && (t.source === 'paste' || t.source === 'pokepaste'); });
-    var teams = (bundled.teams || []).concat(user);
+    user.forEach(normTeam);
+    var teams = (bundled.teams || []).map(function (t) { return normTeam(Object.assign({}, t)); }).concat(user);
     var next = { format: bundled.format, date: bundled.date, source: 'bundle', teams: teams };
     A.save(KEY, next);
     return next;
@@ -27,6 +36,7 @@
   function saveUser(team) {
     var saved = A.load(KEY, { teams: [] }) || { teams: [] };
     saved.teams = (saved.teams || []).filter(function (t) { return t.source === 'paste' || t.source === 'pokepaste'; });
+    normTeam(team);
     saved.teams.push(team);
     A.save(KEY, saved);
   }
@@ -92,7 +102,8 @@
     var store = cache();
     var state = current = {
       entry: entry, scope: 'top8', level: 2, games: 200, arch: '',
-      selected: null, running: false, job: null, rows: []
+      selected: null, running: false, job: null, rows: [],
+      sort: { key: 'wr', dir: -1 }
     };
     modal = el('div', { class: 'modal meta-modal' });
     var box = el('div', { class: 'modal-box' });
@@ -166,10 +177,16 @@
       side.appendChild(archRow);
       var list = el('div', { class: 'meta-list' });
       picked().forEach(function (t) {
-        var b = el('button', { type: 'button', class: 'meta-team' + (state.selected && state.selected.id === t.id ? ' on' : '') });
-        b.appendChild(el('b', { text: t.name }));
-        var sub = (t.archetype || '') + (t.assumed ? (de ? ' · Annahme' : ' · assumed') : '') + ' · ' + (t.species || []).slice(0, 3).join(', ');
-        b.appendChild(el('small', { text: sub }));
+        var name = decode(t.name);
+        var sub = (decode(t.archetype) || '') + (t.assumed ? (de ? ' · Annahme' : ' · assumed') : '');
+        if (t.species && t.species.length) sub += (sub ? ' · ' : '') + t.species.slice(0, 4).join(', ');
+        var b = el('button', {
+          type: 'button',
+          class: 'meta-team' + (state.selected && state.selected.id === t.id ? ' on' : ''),
+          title: sub ? (name + '\n' + sub) : name
+        });
+        b.appendChild(el('span', { class: 'mt-title', text: name }));
+        b.appendChild(el('span', { class: 'mt-sub', text: sub }));
         b.addEventListener('click', function () { state.selected = t; draw(); });
         list.appendChild(b);
       });
@@ -267,41 +284,144 @@
       td.className = hit.ko.n === 1 ? 'ko1' : hit.ko.n === 2 ? 'ko2' : 'ko3';
       return td;
     }
+    function rateOf(row) {
+      var d = (row.winsA || 0) + (row.winsB || 0);
+      return d ? row.winsA / d : -1;
+    }
+    function sortedRows() {
+      var key = state.sort.key, dir = state.sort.dir || 1;
+      return state.rows.slice().sort(function (a, b) {
+        if (key === 'name') {
+          var av = decode(a.name || '').toLowerCase(), bv = decode(b.name || '').toLowerCase();
+          if (av === bv) return 0;
+          return (av < bv ? -1 : 1) * dir;
+        }
+        var av = key === 'turns' ? (a.avgTurns || 0) : key === 'rec' ? (a.winsA || 0) : rateOf(a);
+        var bv = key === 'turns' ? (b.avgTurns || 0) : key === 'rec' ? (b.winsA || 0) : rateOf(b);
+        return (av - bv) * dir;
+      });
+    }
+    function sumCard(label, value, sub) {
+      var d = el('div', { class: 'meta-sum' });
+      d.appendChild(el('span', { text: label }));
+      d.appendChild(el('b', { text: value, title: value }));
+      if (sub) d.appendChild(el('small', { text: sub, title: sub }));
+      return d;
+    }
+    function summary() {
+      var box = el('div', { class: 'meta-summary' });
+      var wins = 0, losses = 0, ties = 0, unfinished = 0, best = null, worst = null;
+      state.rows.forEach(function (r) {
+        wins += r.winsA || 0; losses += r.winsB || 0; ties += r.ties || 0; unfinished += r.unfinished || 0;
+        var p = rateOf(r);
+        if (p < 0) return;
+        var item = { p: p, name: decode(r.name || '') };
+        if (!best || p > best.p) best = item;
+        if (!worst || p < worst.p) worst = item;
+      });
+      var decided = wins + losses;
+      var record = decided ? (wins + '–' + ties + '–' + losses) : '';
+      if (unfinished) record += (record ? ' · ' : '') + (de ? 'unfertig ' : 'unfinished ') + unfinished;
+      box.appendChild(sumCard(T('Gesamt', 'Overall'), decided ? (pct(wins / decided) + '%') : '–', record || T('Keine entschiedenen Spiele', 'No decided games')));
+      box.appendChild(sumCard(T('Bestes Matchup', 'Best matchup'), best ? (pct(best.p) + '%') : '–', best ? best.name : ''));
+      box.appendChild(sumCard(T('Schwächstes Matchup', 'Worst matchup'), worst ? (pct(worst.p) + '%') : '–', worst ? worst.name : ''));
+      return box;
+    }
+    function legend() {
+      var d = el('div', { class: 'meta-legend' });
+      function chip(kind, label) {
+        var s = el('span');
+        s.appendChild(el('i', { class: 'meta-swatch ' + kind }));
+        s.appendChild(document.createTextNode(label));
+        return s;
+      }
+      d.appendChild(chip('hi', T('hohe Siegquote', 'high win rate')));
+      d.appendChild(chip('mid', T('ausgeglichen', 'even')));
+      d.appendChild(chip('lo', T('niedrige Siegquote', 'low win rate')));
+      var ci = el('span');
+      ci.appendChild(el('i', { class: 'meta-ci' }));
+      ci.appendChild(document.createTextNode(T('Konfidenz', 'Confidence')));
+      d.appendChild(ci);
+      d.appendChild(el('span', { text: T('S–U–N = Siege, Unentschieden, Niederlagen', 'W–D–L = wins, draws, losses') }));
+      return d;
+    }
+    function sortHead(key, label, cls) {
+      var mark = state.sort.key === key ? (state.sort.dir < 0 ? ' \u25BC' : ' \u25B2') : '';
+      var cell = el('th', { class: cls, text: label + mark });
+      cell.addEventListener('click', function () {
+        if (state.sort.key === key) state.sort.dir = -state.sort.dir;
+        else state.sort = { key: key, dir: key === 'name' ? 1 : -1 };
+        draw();
+      });
+      return cell;
+    }
     function results() {
-      var card = el('div', { class: 'meta-card', id: 'metaResults' });
+      var card = el('div', { class: 'meta-card', id: 'metaResultsCard' });
       card.appendChild(el('h4', { text: T('Simulation', 'Simulation') }));
-      if (!state.rows.length) {
+      if (!state.rows.length && !state.running) {
         card.appendChild(el('p', { class: 'meta-note', text: T('Noch keine Spiele. Unfertige Partien zählen nicht als Niederlage.', 'No games yet. Unfinished games are not losses.') }));
         return card;
       }
-      state.rows.forEach(function (row) { card.appendChild(resultRow(row)); });
+      card.appendChild(summary());
+      card.appendChild(legend());
+      var wrap = el('div', { class: 'meta-res-wrap' });
+      var table = el('table', { class: 'meta-res' });
+      var head = el('thead');
+      var hr = el('tr');
+      hr.appendChild(sortHead('name', T('Team', 'Team'), 'col-name'));
+      hr.appendChild(sortHead('wr', T('Siegquote', 'Win rate'), 'col-wr'));
+      hr.appendChild(sortHead('rec', T('S–U–N', 'W–D–L'), 'col-rec'));
+      hr.appendChild(sortHead('turns', T('Werte', 'Stats'), 'col-stat'));
+      hr.appendChild(el('th', { class: 'col-act', text: '' }));
+      head.appendChild(hr);
+      table.appendChild(head);
+      var tb = el('tbody', { id: 'metaResults' });
+      sortedRows().forEach(function (row) { tb.appendChild(resultRow(row)); });
+      table.appendChild(tb);
+      wrap.appendChild(table);
+      card.appendChild(wrap);
       return card;
     }
+    function statLine(host, k, v, extra) {
+      host.appendChild(el('span', { text: k }));
+      host.appendChild(el('b', { text: v || '–', title: v || '' }));
+      host.appendChild(el('span', { text: extra || '' }));
+    }
     function resultRow(row) {
-      var line = el('div', { class: 'meta-row' });
-      var name = el('div');
-      name.appendChild(el('b', { text: row.name || '' }));
-      if (row.rough) name.appendChild(el('div', { class: 'meta-warn', text: T('Grobe Prüfung, kein voller Simulator', 'Rough check, not the full simulator') }));
-      if (row.error) name.appendChild(el('div', { class: 'meta-bad', text: row.error }));
-      line.appendChild(name);
-      var ci = row.ci || { p: 0, lo: 0, hi: 0 };
-      var bar = el('div', { class: 'meta-bar ' + wrClass(ci.p || 0) });
+      var tr = el('tr');
+      var name = decode(row.name || '');
+      var tdN = el('td', { class: 'col-name' });
+      tdN.appendChild(el('span', { class: 'meta-nm', text: name, title: name }));
+      if (row.rough) tdN.appendChild(el('div', { class: 'meta-warn', text: T('Grobe Prüfung, kein voller Simulator', 'Rough check, not the full simulator') }));
+      if (row.error) tdN.appendChild(el('div', { class: 'meta-bad', text: row.error }));
+      tr.appendChild(tdN);
+      var decided = (row.winsA || 0) + (row.winsB || 0);
+      var p = decided ? row.winsA / decided : 0;
+      var ci = row.ci || { p: p, lo: p, hi: p };
+      var tdW = el('td', { class: 'col-wr' });
+      var cell = el('div', { class: 'meta-wr-cell' });
+      var bar = el('div', { class: 'meta-bar ' + wrClass(ci.p || 0), title: T('Siegquote, Markierung = Konfidenz', 'Win rate, marks = confidence') });
       var fill = el('i'); fill.style.width = Math.round((ci.p || 0) * 100) + '%';
       var band = el('b');
       band.style.left = Math.round((ci.lo || 0) * 100) + '%';
       band.style.width = Math.max(2, Math.round(((ci.hi || 0) - (ci.lo || 0)) * 100)) + '%';
       bar.appendChild(fill); bar.appendChild(band);
-      line.appendChild(bar);
-      var decided = (row.winsA || 0) + (row.winsB || 0);
-      line.appendChild(el('div', { text: decided ? (pct(row.winsA / decided) + '%') : '–' }));
-      var detail = el('div', { class: 'meta-note' });
-      if (row.leads && row.leads[0]) detail.appendChild(el('div', { text: (de ? 'Lead ' : 'Lead ') + row.leads[0].lead + ' (' + row.leads[0].n + ')' }));
-      if (row.mvp) detail.appendChild(el('div', { text: 'MVP ' + row.mvp.name + ' · ' + row.mvp.kos + ' KO' }));
-      if (row.weakest) detail.appendChild(el('div', { text: (de ? 'Oft besiegt: ' : 'Faints: ') + row.weakest.name }));
-      if (row.avgTurns) detail.appendChild(el('div', { text: (de ? 'Ø Runden ' : 'Avg turns ') + row.avgTurns.toFixed(1) }));
-      if (row.unfinished) detail.appendChild(el('div', { text: (de ? 'Unfertig ' : 'Unfinished ') + row.unfinished }));
-      line.appendChild(detail);
-      var acts = el('div');
+      cell.appendChild(bar);
+      cell.appendChild(el('span', { class: 'meta-wr-pct', text: decided ? (pct(p) + '%') : '–' }));
+      tdW.appendChild(cell);
+      tr.appendChild(tdW);
+      tr.appendChild(el('td', { class: 'col-rec meta-rec', text: (row.winsA || 0) + '–' + (row.ties || 0) + '–' + (row.winsB || 0) }));
+      var tdS = el('td', { class: 'col-stat' });
+      var stats = el('div', { class: 'meta-stats' });
+      statLine(stats, 'MVP', row.mvp ? row.mvp.name : '', row.mvp ? (row.mvp.kos + ' KO') : '');
+      statLine(stats, T('Besiegt', 'Faints'), row.weakest ? row.weakest.name : '', '');
+      var turns = row.avgTurns ? row.avgTurns.toFixed(1) : '';
+      statLine(stats, 'Ø', turns, row.unfinished ? ((de ? 'unfertig ' : 'unfinished ') + row.unfinished) : '');
+      if (row.leads && row.leads[0]) statLine(stats, 'Lead', row.leads[0].lead, String(row.leads[0].n));
+      tdS.appendChild(stats);
+      tr.appendChild(tdS);
+      var tdA = el('td', { class: 'col-act' });
+      var acts = el('div', { class: 'meta-row-acts' });
       if (row.games && row.games[0] && row.games[0].log && window.RLMetaReplay) {
         var b = el('button', { class: 'tbtn', text: 'Replay' });
         b.addEventListener('click', function () { showReplay(row); });
@@ -312,8 +432,9 @@
         k.addEventListener('click', function () { showMatrix(row); });
         acts.appendChild(k);
       }
-      line.appendChild(acts);
-      return line;
+      tdA.appendChild(acts);
+      tr.appendChild(tdA);
+      return tr;
     }
 
     function setMsg(text) { var n = document.getElementById('metaMsg'); if (n) n.textContent = text; }
@@ -331,7 +452,7 @@
         if (!v.ok) { state.running = false; draw(); showErrors(v.errors); return; }
         return window.desktop.meta.start({
           paste: minePaste,
-          opponents: ops.map(function (t) { return { id: t.id, name: t.name, paste: t.paste, archetype: t.archetype }; }),
+          opponents: ops.map(function (t) { return { id: t.id, name: decode(t.name), paste: t.paste, archetype: decode(t.archetype) }; }),
           games: state.games, level: state.level, seed: (Date.now() & 0xfffffff) || 1
         });
       }).then(function (res) {
@@ -343,7 +464,7 @@
     }
     function showErrors(list) {
       setMsg((list || []).join(' '));
-      var box = document.getElementById('metaResults');
+      var box = document.getElementById('metaResultsCard');
       if (!box) return;
       (list || []).forEach(function (e) { box.appendChild(el('p', { class: 'meta-bad', text: e })); });
     }
@@ -387,7 +508,7 @@
         if (msg.type === 'done') {
           worker.terminate();
           var ci = window.RLMetaStats.wilson(msg.wins, msg.wins + msg.losses);
-          state.rows = [{ name: foe.name, rough: true, winsA: msg.wins, winsB: msg.losses, ties: msg.ties, ci: ci, unfinished: 0, avgTurns: 0 }];
+          state.rows = [{ name: decode(foe.name), rough: true, winsA: msg.wins, winsB: msg.losses, ties: msg.ties, ci: ci, unfinished: 0, avgTurns: 0 }];
           state.running = false;
           draw();
         }
@@ -421,7 +542,7 @@
             var parsed = A.parseShowdown(paste);
             var team = {
               id: 'paste-' + Date.now().toString(36),
-              name: T('Eigene Paste', 'Imported paste'),
+              name: decode(T('Eigene Paste', 'Imported paste')),
               source: source, date: new Date().toISOString().slice(0, 10),
               paste: paste, species: (parsed.mons || []).map(function (m) { return m.species; }),
               archetype: 'Import', assumed: false, notes: ''
@@ -484,5 +605,13 @@
   }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
-  window.RLMeta = { open: open };
+  window.RLMeta = {
+    open: open,
+    fill: function (rows) {
+      if (!current) return;
+      current.rows = rows || [];
+      current.running = false;
+      if (current.draw) current.draw();
+    }
+  };
 })();

@@ -196,6 +196,9 @@
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Textformat)', tbMetaTest: 'Gegen Meta testen',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
+      tbFromCalc: 'In Teambuilder übernehmen', tbFromCalcTitle: 'Das bearbeitete Pokémon mit seinen Werten ins Teambuilder-Team schreiben',
+      tbFromCalcUpdate: 'Aktualisieren', tbFromCalcAdd: 'In Slot {0} einsetzen', tbFromCalcReplace: 'Ersetzen', tbFromCalcNew: 'Neues Team anlegen',
+      tbFromCalcFull: 'Dieses Team ist voll. Aktualisiere das passende Pokémon oder ersetze einen Slot.', tbFromCalcDone: 'In „{0}“ übernommen', tbFromCalcEmpty: 'Auf dieser Seite ist kein Pokémon gewählt', tbFromCalcPick: 'Team',
       tbDeleteConfirm: 'Team „{0}“ löschen?', tbName: 'Teamname', tbDefaultName: 'Team {0}', tbCopyName: '{0} (Kopie)',
       tbAddMon: '+ Pokémon', tbChoose: 'Pokémon suchen …', tbPreset: 'Set übernehmen …', tbNick: 'Set-Name', tbRemove: 'Entfernen',
       tbMoves: 'Attacken', tbStats: 'Werte auf Level 50', tbMega: 'Mega', tbSpReset: 'SP leeren', tbTotal: 'Summe',
@@ -345,6 +348,9 @@
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (text format)', tbMetaTest: 'Test vs Meta',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
+      tbFromCalc: 'Copy to teambuilder', tbFromCalcTitle: 'Write this edited Pokémon, with its stats, into a teambuilder team',
+      tbFromCalcUpdate: 'Update', tbFromCalcAdd: 'Put in slot {0}', tbFromCalcReplace: 'Replace', tbFromCalcNew: 'Create a new team',
+      tbFromCalcFull: 'This team is full. Update the matching Pokémon or replace a slot.', tbFromCalcDone: 'Copied into “{0}”', tbFromCalcEmpty: 'No Pokémon is selected on this side', tbFromCalcPick: 'Team',
       tbDeleteConfirm: 'Delete team “{0}”?', tbName: 'Team name', tbDefaultName: 'Team {0}', tbCopyName: '{0} (copy)',
       tbAddMon: '+ Pokémon', tbChoose: 'Search Pokémon …', tbPreset: 'Use set …', tbNick: 'Set name', tbRemove: 'Remove',
       tbMoves: 'Moves', tbStats: 'Stats at level 50', tbMega: 'Mega', tbSpReset: 'Clear SP', tbTotal: 'Total',
@@ -745,6 +751,7 @@
       '<button class="tbtn" id="' + p + 'exportSet" data-t="exportSetShort" data-tt="exportSet"></button>' +
       '<button class="tbtn add" id="' + p + 'addTeam" data-t="addTeamShort" data-tt="addTeam"></button>' +
       '</div>' +
+      '<button type="button" class="to-builder" id="' + p + 'toBuilder" data-t="tbFromCalc" data-tt="tbFromCalcTitle"></button>' +
       '<div class="team-bar" id="' + p + 'team"></div>' +
       '<div class="empty-hint" data-t="emptyHint"></div>' +
       '<div class="grid2">' +
@@ -817,6 +824,12 @@
       if (teams[idx].length >= 6) { toast(T('teamFull')); return; }
       teams[idx].push({ species: side.baseSpecies, setName: side.setName || 'Set', set: readSet(side) });
       save('cc_teams', teams); renderTeam(idx); toast(T('teamAdded'));
+    });
+    $('toBuilder').addEventListener('click', function () {
+      if (!side.baseSpecies || side.empty) { toast(T('tbFromCalcEmpty')); return; }
+      if (!window.CCBuilder || !window.CCBuilder.takeFromCalc) return;
+      var set = readSet(side);
+      window.CCBuilder.takeFromCalc({ species: side.baseSpecies, setName: side.setName || 'Set', set: set });
     });
     applyStatic(root); relabelSelects(root);
     renderTeam(idx);
