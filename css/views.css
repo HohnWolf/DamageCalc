@@ -1244,6 +1244,8 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .ts-box { width: min(1000px, 96vw); max-height: 92vh; display: flex; flex-direction: column; }
 .ts-opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
 .ts-opts input { flex: 1 1 160px; min-width: 0; }
+.ts-chk { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ts-chk input { flex: none; }
 .ts-seg { display: inline-flex; gap: 2px; }
 .ts-seg button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .ts-out { overflow: auto; min-height: 0; }

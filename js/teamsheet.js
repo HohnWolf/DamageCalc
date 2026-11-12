@@ -5,11 +5,11 @@
   if (!A) return;
   var de = A.LANG === 'de';
   var L = {
-    de: { team: 'Teamsheet', player: 'Spieler', nature: 'Wesen', ability: 'Fähigkeit', item: 'Item' },
-    en: { team: 'Team Sheet', player: 'Player', nature: 'Nature', ability: 'Ability', item: 'Item' }
+    de: { team: 'Teamsheet', player: 'Spieler', nature: 'Wesen', ability: 'Fähigkeit', item: 'Item', sp: 'SP' },
+    en: { team: 'Team Sheet', player: 'Player', nature: 'Nature', ability: 'Ability', item: 'Item', sp: 'SP' }
   };
   var FF = '"Segoe UI",system-ui,Arial,sans-serif';
-  var modal = null, ctx = null, lang = 'de', token = 0, timer = 0;
+  var modal = null, ctx = null, lang = 'de', showSp = false, token = 0, timer = 0;
 
   // names in a fixed language, independent of the app language
   function inLang(l, fn) { return A.withLang ? A.withLang(l, fn) : fn(); }
@@ -24,6 +24,7 @@
         nat: s.nature ? A.nNature(s.nature) : '–',
         ab: s.ability ? A.nAbility(s.ability) : '–',
         it: s.item && s.item !== '(none)' ? A.nItem(s.item) : '–',
+        sp: ['hp', 'at', 'df', 'sa', 'sd', 'sp'].filter(function (k) { return s.sps && s.sps[k]; }).map(function (k) { return { k: A.nStat(k), v: s.sps[k] }; }),
         mv: (s.moves || []).filter(function (x) { return x && x !== '(No Move)'; }).slice(0, 4).map(function (x) { return A.nMove(x); })
       };
     });
@@ -60,7 +61,7 @@
   function fit(c, txt, maxW, size, wt) { var s = size; for (;;) { c.font = wt + ' ' + s + 'px ' + FF; if (c.measureText(txt).width <= maxW || s <= 10) break; s--; } }
 
   async function drawSheet(mons, l, team, pl) {
-    var t = L[l], SC = 2, W = 1200, P = 30, CW = 560, CH = 200, G = 20, HH = 80;
+    var t = L[l], SC = 2, W = 1200, P = 30, CW = 560, CH = showSp ? 242 : 200, G = 20, HH = 80;
     var n = mons.length, rows = Math.max(1, Math.ceil(n / 2)), H = P + HH + rows * CH + (rows - 1) * G + P;
     var data = mons.map(function (m) { return monData(m, l); });
     var imgs = await Promise.all(data.map(function (d) { return loadSprite(d.shown); }));
@@ -79,6 +80,15 @@
       var im = imgs[i];
       if (im) { var k = Math.min(150 / im.width, 150 / im.height, 1.6); var w = im.width * k, h = im.height * k; c.drawImage(im, x + 15 + (160 - w) / 2, y + 20 + (160 - h) / 2, w, h); }
       else { c.fillStyle = '#999'; c.font = 'bold 48px ' + FF; c.textAlign = 'center'; c.fillText('?', x + 95, y + 112); c.textAlign = 'left'; }
+      if (showSp) {
+        var sy = y + 200, sx = x + 15;
+        c.fillStyle = '#6b6b66'; c.font = 'bold 14px ' + FF; c.fillText(t.sp, sx, sy + 19); sx += 34;
+        if (!tx.sp.length) { c.font = '15px ' + FF; c.fillText('–', sx, sy + 19); }
+        tx.sp.forEach(function (e) {
+          var lab = e.k + ' ' + e.v; c.font = 'bold 14px ' + FF; var w = c.measureText(lab).width + 16;
+          rr(c, sx, sy, w, 26, 7); c.fillStyle = '#e8e6de'; c.fill(); c.fillStyle = '#1d1d1b'; c.fillText(lab, sx + 8, sy + 18); sx += w + 6;
+        });
+      }
       var X = x + 195;
       c.fillStyle = '#1d1d1b'; fit(c, tx.nm, 350, 26, 'bold'); c.fillText(tx.nm, X, y + 36);
       c.fillStyle = '#6b6b66'; c.font = 'bold 16px ' + FF; c.fillText(t.nature, X, y + 64); c.fillText(t.ability, X, y + 88); c.fillText(t.item, X, y + 112);
@@ -102,6 +112,7 @@
       '<div class="ts-opts">' +
       '<input type="text" data-team spellcheck="false" placeholder="' + A.esc(de ? 'Teamname (optional)' : 'Team name (optional)') + '">' +
       '<input type="text" data-player spellcheck="false" placeholder="' + A.esc(de ? 'Spielername (optional)' : 'Player name (optional)') + '">' +
+      '<label class="ts-chk"><input type="checkbox" data-sp> ' + A.esc(de ? 'SP anzeigen' : 'Show SP') + '</label>' +
       '<span class="ts-seg"><button data-l="de" class="on">Deutsch</button><button data-l="en">English</button><button data-l="both">' + A.esc(de ? 'Beide' : 'Both') + '</button></span>' +
       '</div><div class="ts-out" data-out></div></div>';
     document.body.appendChild(modal);
@@ -111,6 +122,7 @@
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') close(); });
     modal.querySelector('[data-team]').addEventListener('input', refresh);
     modal.querySelector('[data-player]').addEventListener('input', refresh);
+    modal.querySelector('[data-sp]').addEventListener('change', function (ev) { showSp = ev.target.checked; refresh(); });
     modal.querySelector('.ts-seg').addEventListener('click', function (ev) {
       var b = ev.target.closest('button'); if (!b) return;
       lang = b.dataset.l;
