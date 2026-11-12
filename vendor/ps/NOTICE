@@ -1,0 +1,10 @@
+Pokémon Showdown simulator
+https://github.com/smogon/pokemon-showdown
+Pinned commit 965a535ef892d13cd68cf75c076db26f9f32842a (master; includes data/mods/champions and gen9championsvgc2026regmc).
+
+Copyright (c) 2011-2026 Guangcong Luo and other contributors
+Licensed under the MIT License. The full text is in LICENSE next to this file.
+
+Rattata Lab bundles only the simulator (sim/), the data it loads (data/, including
+the champions mod), and lib/utils. The Showdown server, ladder, and replay host
+are not included and are never contacted. Battles run on this machine.

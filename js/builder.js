@@ -258,6 +258,7 @@
       '<span class="tb-acts">' +
       '<button class="tbtn" id="tbExport">' + T('tbExport') + '</button>' +
       '<button class="tbtn" id="tbSheet" title="' + (de ? 'Teamsheet als Bild (Deutsch / Englisch)' : 'Team sheet as image (German / English)') + '">' + (de ? 'Teamsheet' : 'Team sheet') + '</button>' +
+      '<button class="tbtn" id="tbMeta" title="' + (de ? 'Team lokal gegen Meta-Teams testen' : 'Test this team against meta teams, locally') + '">' + (de ? 'Meta-Test' : 'Meta test') + '</button>' +
       '<button class="tbtn" id="tbDup">' + T('tbDuplicate') + '</button>' +
       '<button class="tbtn danger" id="tbDel">' + T('tbDelete') + '</button>' +
       '<span class="tb-sep"></span>' +
@@ -333,6 +334,10 @@
     root.querySelector('#tbSheet').addEventListener('click', function () {
       var tm = team();
       if (window.CCTeamsheet) window.CCTeamsheet.open({ name: tm.name, mons: curVersion(tm).mons });
+    });
+    root.querySelector('#tbMeta').addEventListener('click', function () {
+      var tm = team();
+      if (window.RLMeta) window.RLMeta.open({ name: tm.name, mons: curVersion(tm).mons.slice() });
     });
     root.querySelector('#tbDup').addEventListener('click', function () {
       var tm = team();

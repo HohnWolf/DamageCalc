@@ -2351,7 +2351,8 @@
       var SECS = [
         ['look', de ? 'Darstellung' : 'Appearance', 'look', de ? 'Design, Layout, Skalierung und Sprache der Oberfläche' : 'Theme, layout style, UI scaling and language'],
         ['tools', de ? 'Werkzeuge & Start' : 'Tools & start', 'tools', de ? 'Startbildschirm, obere Leiste und sichtbare Werkzeuge anpassen' : 'Customize startup behavior, top bar and active tools'],
-        ['data', de ? 'Daten & Import' : 'Data & import', 'data', de ? 'Backups verwalten, Online-Daten aktualisieren und Teams importieren' : 'Manage backups, update online data and import teams']
+        ['data', de ? 'Daten & Import' : 'Data & import', 'data', de ? 'Backups verwalten, Online-Daten aktualisieren und Teams importieren' : 'Manage backups, update online data and import teams'],
+        ['about', de ? 'Lizenzen' : 'Licenses', 'data', de ? 'Pokémon Showdown und andere Hinweise' : 'Pokémon Showdown and other notices']
       ];
       if (updApi()) {
         SECS.push(['app', de ? 'App & Updates' : 'App & updates', 'app', de ? 'Versionsstatus prüfen und automatische Updates verwalten' : 'Check version status and manage automatic updates']);
@@ -2555,7 +2556,7 @@
       } else if (settingsTab === 'data') {
         var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
         (function () {
-          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames'];
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames', 'cc_metateams'];
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2639,6 +2640,24 @@
           r.appendChild(g);
           gImp.appendChild(r);
         })();
+      } else if (settingsTab === 'about') {
+        var gLic = makeGroup(de ? 'Pokémon Showdown' : 'Pokémon Showdown');
+        var note = el('div', { class: 'set-row' });
+        var lic = el('div', { class: 'hint', style: 'white-space:pre-wrap' });
+        lic.textContent = (de
+          ? 'Der Meta-Test spielt Kämpfe nur auf diesem Gerät. Es gibt keine Verbindung zu einem Pokémon-Showdown-Server oder zur Ladder.\n\n'
+          : 'The meta test plays battles only on this device. It never connects to a Pokémon Showdown server or the ladder.\n\n')
+          + 'Pokémon Showdown simulator\n'
+          + 'https://github.com/smogon/pokemon-showdown\n'
+          + 'Commit 965a535ef892d13cd68cf75c076db26f9f32842a\n'
+          + 'Copyright (c) 2011-2026 Guangcong Luo and other contributors\n\n'
+          + 'MIT License\n\n'
+          + 'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\n'
+          + 'The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\n'
+          + 'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.';
+        note.appendChild(lic);
+        gLic.appendChild(note);
+        body.appendChild(gLic);
       } else if (settingsTab === 'app' && updApi()) {
         updCard(body);
       }

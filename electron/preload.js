@@ -60,6 +60,15 @@ contextBridge.exposeInMainWorld('desktop', {
     play: () => ipcRenderer.send('match-play'),
     exportPng: (kind) => ipcRenderer.invoke('match-export', String(kind)),
   },
+  // Lokaler Meta-Test (electron/meta_pool.js). Kein Showdown-Server.
+  meta: {
+    validate: (paste) => ipcRenderer.invoke('meta-validate', String(paste || '')),
+    start: (job) => ipcRenderer.invoke('meta-start', job || {}),
+    cancel: () => ipcRenderer.send('meta-cancel'),
+    fetchPaste: (url) => ipcRenderer.invoke('meta-fetch-paste', String(url || '')),
+    onProgress: (cb) => ipcRenderer.on('meta-progress', (e, p) => cb(p || {})),
+    onDone: (cb) => ipcRenderer.on('meta-done', (e, p) => cb(p || {})),
+  },
   // Updates über GitHub-Releases (electron/updater.js)
   update: {
     get: () => ipcRenderer.invoke('update-get'),
