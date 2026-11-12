@@ -34,6 +34,9 @@ process.on('unhandledRejection', (err) => {
 
 // Der Projektor ist ein Kindfenster (window.open). Das darf auch ohne Browser-Geste aufgehen.
 app.commandLine.appendSwitch('disable-popup-blocking');
+// Capture-Karten liefern unter Windows mit der GPU-Aufnahme (Media Foundation + D3D11) kurze grüne Bilder, besonders bei zwei Fenstern auf demselben Stream (Projektor).
+// Die Aufnahme läuft deshalb über den CPU-Weg. Mit RL_D3D11_CAPTURE=1 lässt sich der alte Weg zum Vergleichen wieder einschalten.
+if (process.platform === 'win32' && process.env.RL_D3D11_CAPTURE !== '1') app.commandLine.appendSwitch('disable-features', 'MediaFoundationD3D11VideoCapture');
 const ROOT = path.join(__dirname, '..');
 const projector = require('./projector');
 // Test des Projektors: eigene Nutzerdaten, damit die laufende App nicht blockiert wird

@@ -1,0 +1,15 @@
+/* Capture-Projektor (js/projector_view.js) */
+.start-card.card-projector { --card-accent: #22c55e; --card-glow: rgba(34, 197, 94, 0.22); border-top-color: #22c55e; }
+.start-card.card-projector:hover { border-color: #22c55e; }
+.projector-view { display: flex; flex-direction: column; gap: 12px; max-width: 980px; margin: 0 auto; padding: 16px; }
+.pv-head h2 { margin: 0 0 4px; }
+.pv-sub, .pv-note { margin: 0; opacity: .7; font-size: 13px; }
+.pv-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pv-status { font-size: 13px; opacity: .85; }
+.pv-stage { background: #000; border-radius: 8px; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pv-video { width: 100%; height: 100%; object-fit: contain; display: none; }
+.projector-view.has-video .pv-video { display: block; }
+.pv-go.on { outline: 2px solid #22c55e; }
+.pv-opts { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.pv-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.pv-check input[type="number"] { width: 64px; }

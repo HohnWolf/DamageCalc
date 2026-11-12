@@ -278,7 +278,7 @@
   }
 
   // Steuerung: Fenster auf/zu, Spiegel starten, Optionen merken. api kommt aus js/shiny.js.
-  var api = null, desktop = null, huntId = null, opened = false, stopMirror = null, stopAudio = null, port = null, audioWarned = false;
+  var api = null, baseApi = null, desktop = null, huntId = null, opened = false, stopMirror = null, stopAudio = null, port = null, audioWarned = false;
   function paint() {
     if (!root.document) return;
     var on = opened;
@@ -353,8 +353,12 @@
       theme: api.theme(), lang: api.lang, overlayUrl: api.overlayUrl()
     };
   }
-  function toggle(id) {
+  // over: eigene Steuerung (z. B. der reine Capture-Projektor). Ohne sie gilt die des Shiny-Zählers.
+  function toggle(id, over) {
     try {
+      var want = over || baseApi || api;
+      if (opened && want && want !== api) { if (desktop && desktop.close) desktop.close(); return; }
+      if (!opened && want) api = want;
       if (!api) { console.error('Projektor: nicht bereit'); return; }
       // desktop ist schon die Projektor-Brücke (window.desktop.projector), nicht noch einmal .projector.
       if (!desktop || typeof desktop.open !== 'function') {
@@ -396,7 +400,7 @@
     if (desktop && desktop.close) desktop.close();
   }
   function bind(next) {
-    api = next;
+    api = baseApi = next;
     desktop = root.desktop && root.desktop.projector;
     if (!desktop) return;
     setPortHandler(function (p) { port = p; restart(); });
@@ -437,6 +441,7 @@
   }
   function syncMode() { if (opened && desktop && api) desktop.set({ mode: api.opts().mode === 'fast' ? 'fast' : 'classic' }); }
   function isOpen() { return opened; }
+  function isBound() { return !!baseApi; }
 
   root.CCProjectorMirror = {
     fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror, startAudio: startAudio,
@@ -444,5 +449,5 @@
     clampVolume: clampVolume, clampScale: clampScale, placeCounter: placeCounter, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
-  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, syncMode: syncMode, isOpen: isOpen };
+  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, syncMode: syncMode, isOpen: isOpen, isBound: isBound };
 })(typeof window !== 'undefined' ? window : globalThis);
