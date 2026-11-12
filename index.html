@@ -40,6 +40,8 @@
   <link rel="stylesheet" href="css/pokedex.css?v=86">
   <link rel="stylesheet" href="css/godex.css?v=7">
   <link rel="stylesheet" href="css/goinfo.css?v=1">
+  <link rel="stylesheet" href="css/speedtier.css?v=1">
+  <link rel="stylesheet" href="css/spopt.css?v=1">
   <link rel="stylesheet" href="css/projector_view.css?v=1">
   <link rel="stylesheet" href="css/randomizer.css?v=3">
   <link rel="stylesheet" href="css/savedit.css?v=8">
@@ -74,27 +76,22 @@
         <button class="start-card cat-card cat-fight" data-cat="fight">
           <span class="sc-art sc-art-cat" id="catArt_fight"></span>
           <span class="sc-head"><span class="sc-title" data-t="catFight"></span></span>
-          <span class="sc-text" data-t="catFightText"></span>
         </button>
         <button class="start-card cat-card cat-runs" data-cat="runs">
           <span class="sc-art sc-art-cat" id="catArt_runs"></span>
           <span class="sc-head"><span class="sc-title" data-t="catRuns"></span></span>
-          <span class="sc-text" data-t="catRunsText"></span>
         </button>
         <button class="start-card cat-card cat-go" data-cat="go">
           <span class="sc-art sc-art-cat" id="catArt_go"></span>
           <span class="sc-head"><span class="sc-title" data-t="catGo"></span></span>
-          <span class="sc-text" data-t="catGoText"></span>
         </button>
         <button class="start-card cat-card cat-play" data-cat="play">
           <span class="sc-art sc-art-cat" id="catArt_play"></span>
           <span class="sc-head"><span class="sc-title" data-t="catPlay"></span></span>
-          <span class="sc-text" data-t="catPlayText"></span>
         </button>
         <button class="start-card cat-card cat-rest" data-cat="rest">
           <span class="sc-art sc-art-cat" id="catArt_rest"></span>
           <span class="sc-head"><span class="sc-title" data-t="catRest"></span></span>
-          <span class="sc-text" data-t="catRestText"></span>
         </button>
         <div class="start-group sg-fight"  data-cat="fight">
           <div class="sg-label" data-t="catFight"></div>
@@ -121,6 +118,24 @@
           </span>
           <span class="sc-head"><span class="sc-title">Team-Analyse</span></span>
           <span class="sc-text" data-t="startMatchText"></span>
+        </button>
+        <button class="start-card card-speedtier" data-go="speedtier">
+          <span class="sc-art sc-art-speedtier">
+            <span class="sc-dmg">223 <small>Speed</small></span>
+            <span class="sc-bar"><span style="width:74%"></span></span>
+            <span class="sc-ko" data-t="startSpeedTierKo">Base · Max · Scarf</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navSpeedTier">Speed-Tiers</span></span>
+          <span class="sc-text" data-t="startSpeedTierText"></span>
+        </button>
+        <button class="start-card card-spopt" data-go="spopt">
+          <span class="sc-art sc-art-spopt">
+            <span class="sc-dmg">32 / 20 / 14 <small>SP</small></span>
+            <span class="sc-bar"><span style="width:62%"></span></span>
+            <span class="sc-ko" data-t="startSpOptKo">Überlebt · K.O. · Initiative</span>
+          </span>
+          <span class="sc-head"><span class="sc-title" data-t="navSpOpt">SP-Optimierer</span></span>
+          <span class="sc-text" data-t="startSpOptText"></span>
         </button>
           </div>
         </div>
@@ -297,6 +312,8 @@
   <main id="godexView" class="wrap dex-view godex-view"></main>
   <main id="gocounterView" class="wrap dex-view gocounter-view"></main>
   <main id="goinfoView" class="wrap dex-view goinfo-view"></main>
+  <main id="speedtierView" class="wrap speedtier-view"></main>
+  <main id="spoptView" class="wrap spopt-view"></main>
   <main id="randomizerView" class="wrap randomizer-view"></main>
   <main id="saveView" class="wrap save-view"></main>
   <main id="mgSpeedView" class="wrap mg-view mgspeed-view"></main>
@@ -431,6 +448,8 @@
   <script src="js/godex.js?v=6"></script>
   <script src="js/gocounter.js?v=6"></script>
   <script src="js/goinfo.js?v=1"></script>
+  <script src="js/speedtier.js?v=1"></script>
+  <script src="js/spopt.js?v=1"></script>
   <script src="js/minigames.js?v=1"></script>
   <script src="js/minigames_ui.js?v=1"></script>
   <script src="js/projector_view.js?v=1"></script>

@@ -1445,6 +1445,20 @@
       if (!t || from === to || !t.mons[from] || to < 0 || to >= t.mons.length) return false;
       var mv = t.mons.splice(from, 1)[0]; t.mons.splice(to, 0, mv);
       persist(); return true;
+    },
+    // fuer den SP-Optimierer: Teams lesen und SP/Wesen eines Sets zurueckschreiben
+    teams: function () { store.teams.forEach(ensureVersions); return JSON.parse(JSON.stringify(store.teams)); },
+    setSps: function (teamId, idx, sps, nature) {
+      var t = null;
+      store.teams.some(function (x) { if (x.id === teamId) { t = x; return true; } return false; });
+      if (!t) return false;
+      ensureVersions(t);
+      var m = t.mons[idx];
+      if (!m) return false;
+      m.set = m.set || {};
+      m.set.sps = Object.assign({ hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 }, sps);
+      if (nature) m.set.nature = nature;
+      persist(); return true;
     }
   };
 })();
