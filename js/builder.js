@@ -1442,8 +1442,91 @@
     setTimeout(function () { imp.querySelector('textarea').focus(); }, 30);
   }
 
+  function takeFromCalc(mon) {
+    if (!mon || !mon.species || !DEX[mon.species]) { A.toast(T('tbFromCalcEmpty')); return; }
+    var Adopt = window.RLBuilderAdopt;
+    if (!Adopt) return;
+    var wrap = el('div', { class: 'modal' });
+    var box = el('div', { class: 'modal-box tb-adopt' });
+    box.appendChild(el('h3', { text: T('tbFromCalc') }));
+    var item = mon.set && mon.set.item && mon.set.item !== '(none)' ? A.nItem(mon.set.item) : '';
+    var bits = [A.nSpecies(mon.set && mon.set.forme && String(mon.set.forme).indexOf('Mega ') !== 0 ? mon.set.forme : mon.species), A.nNature((mon.set && mon.set.nature) || 'Hardy')];
+    if (item) bits.push(item);
+    if (mon.set && mon.set.ability) bits.push(A.nAbility(mon.set.ability));
+    box.appendChild(el('p', { class: 'tb-adopt-note', text: bits.join(' · ') }));
+    var pick = el('select', { class: 'tb-adopt-team', 'aria-label': T('tbFromCalcPick') });
+    store.teams.forEach(function (t) {
+      var o = el('option', { value: t.id, text: t.name || T('tbDefaultName', 1) });
+      if (t.id === store.cur) o.selected = true;
+      pick.appendChild(o);
+    });
+    pick.appendChild(el('option', { value: '__new__', text: T('tbFromCalcNew') }));
+    var teamLbl = el('label', { class: 'l', text: T('tbFromCalcPick') });
+    teamLbl.appendChild(pick);
+    box.appendChild(teamLbl);
+    var slots = el('div', { class: 'tb-adopt-slots' });
+    box.appendChild(slots);
+    function close() { wrap.remove(); }
+    function commit(choice) {
+      if (choice.mode === 'new') choice.name = T('tbDefaultName', store.teams.length + 1);
+      var res = Adopt.apply(store, mon, choice, { id: newId, baseOf: A.baseOf });
+      if (!res.ok) {
+        A.toast(res.error === 'full' ? T('teamFull') : T('tbFromCalcEmpty'));
+        return;
+      }
+      var tm = null;
+      store.teams.some(function (t) { if (t.id === res.teamId) { tm = t; return true; } return false; });
+      if (tm) ensureVersions(tm);
+      if (tm && tm.mons[res.index]) fixGender(tm.mons[res.index]);
+      store.cur = res.teamId;
+      sel = res.index;
+      persist();
+      if (document.body.dataset.view === 'builder') render();
+      close();
+      A.toast(T('tbFromCalcDone', res.teamName));
+    }
+    function drawSlots() {
+      slots.innerHTML = '';
+      if (pick.value === '__new__') {
+        var create = el('button', { type: 'button', class: 'primary-btn', text: T('tbFromCalcNew') });
+        create.addEventListener('click', function () { commit({ mode: 'new' }); });
+        slots.appendChild(create);
+        return;
+      }
+      var tm = null;
+      store.teams.some(function (t) { if (t.id === pick.value) { tm = t; return true; } return false; });
+      if (!tm) return;
+      ensureVersions(tm);
+      var found = false;
+      tm.mons.forEach(function (m, i) {
+        var same = Adopt.sameSpecies(m, mon.species, A.baseOf);
+        if (same) found = true;
+        var label = (i + 1) + '  ' + A.nSpecies(m.species) + (m.setName ? ' · ' + m.setName : '') + ' — ' + T(same ? 'tbFromCalcUpdate' : 'tbFromCalcReplace');
+        var b = el('button', { type: 'button', class: 'tbtn' + (same ? ' on' : ''), text: label });
+        b.addEventListener('click', function () { commit({ mode: same ? 'update' : 'replace', teamId: tm.id, index: i }); });
+        slots.appendChild(b);
+      });
+      if (tm.mons.length < 6) {
+        var add = el('button', { type: 'button', class: 'primary-btn', text: T('tbFromCalcAdd', tm.mons.length + 1) });
+        add.addEventListener('click', function () { commit({ mode: 'add', teamId: tm.id }); });
+        slots.appendChild(add);
+      } else if (!found) slots.appendChild(el('p', { class: 'tb-adopt-note', text: T('tbFromCalcFull') }));
+    }
+    pick.addEventListener('change', drawSlots);
+    drawSlots();
+    var foot = el('div', { class: 'meta-actions' });
+    var cancel = el('button', { type: 'button', class: 'tbtn', text: de ? 'Abbrechen' : 'Cancel' });
+    cancel.addEventListener('click', close);
+    foot.appendChild(cancel);
+    box.appendChild(foot);
+    wrap.appendChild(box);
+    wrap.addEventListener('mousedown', function (ev) { if (ev.target === wrap) close(); });
+    document.body.appendChild(wrap);
+  }
+
   window.CCBuilder = {
     render: render,
+    takeFromCalc: takeFromCalc,
     // move a Pokémon of the current team (start screen drag & drop)
     move: function (from, to) {
       var t = team();

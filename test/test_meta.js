@@ -15,6 +15,9 @@ const preview = require('../js/meta/preview');
 const replay = require('../js/meta/replay');
 const variants = require('../js/meta/variants');
 const pasteUrl = require('../js/meta/paste_url');
+const text = require('../js/meta/text');
+const bots = require('../js/meta/bots');
+const Sim = require('../vendor/ps');
 const Calc = require('../js/calc');
 
 eq(fmt.FORMAT_ID, 'gen9championsvgc2026regmc', 'Format ist Reg M-C');
@@ -146,6 +149,141 @@ else ok('SP-Optimierer ist entfernt');
 const builderSrc = fs.readFileSync(path.join(ROOT, 'js/builder.js'), 'utf8');
 if (!builderSrc.includes('id="tbMeta"') || !builderSrc.includes('tb-meta')) fail('Meta-Test-Knopf fehlt im Teambuilder');
 else ok('Meta-Test-Knopf steht im Teambuilder');
+
+eq(text.decodeEntities('angrybook&#x27;s 1st Place'), "angrybook's 1st Place", '&#x27; wird zum Apostroph');
+eq(text.decodeEntities('A &amp; B &quot;C&quot; &#39;D&#39;'), 'A & B "C" \'D\'', 'benannte Entities');
+eq(text.decodeEntities('&amp;#x27;'), "'", 'doppelt kodiertes Apostroph');
+const stored = { name: 'Luke C&#x27;s 1st Place', notes: 'a &amp; b', source: 'paste' };
+text.normalizeTeam(stored);
+eq(stored.name, "Luke C's 1st Place", 'gespeicherter Name wird normalisiert');
+eq(stored.notes, 'a & b', 'gespeicherte Notiz wird normalisiert');
+if (pool.teams.some(function (t) { return /&#|&amp;|&quot;/.test(t.name || ''); })) fail('gebündelte Teamnamen enthalten noch HTML-Entities');
+else ok('gebündelte Teamnamen sind dekodiert');
+const uiSrc = fs.readFileSync(path.join(ROOT, 'js/meta_ui.js'), 'utf8');
+const cssSrc = fs.readFileSync(path.join(ROOT, 'css/meta.css'), 'utf8');
+if (!uiSrc.includes('RLMetaText') || !uiSrc.includes('normalizeTeam')) fail('die Oberfläche normalisiert gespeicherte Teams nicht');
+else ok('Oberfläche dekodiert gespeicherte Teams');
+if (!/height:\s*auto/.test(cssSrc) || !cssSrc.includes('mt-title') || !cssSrc.includes('meta-res')) fail('Teamliste oder Ergebnistabelle ohne festes Layout');
+else ok('Teamliste und Ergebnistabelle haben ein festes Layout');
+
+function teamById(id) { return pool.teams.find(function (t) { return t.id === id; }); }
+function startBattle(idA, teamA, idB, teamB) {
+  const a = engine.validatePaste(teamById(idA).paste);
+  const b = engine.validatePaste(teamById(idB).paste);
+  if (!a.ok || !b.ok) throw new Error('Team illegal');
+  const battle = new Sim.Battle({
+    formatid: fmt.FORMAT_ID, seed: '1,2,3,4',
+    p1: { name: 'P1', team: a.packed }, p2: { name: 'P2', team: b.packed }
+  });
+  if (!battle.choose('p1', teamA) || !battle.choose('p2', teamB)) throw new Error('Teampreview ungültig');
+  return battle;
+}
+function fakeOuts(battle, sideId, level) {
+  const side = battle[sideId];
+  const req = side.activeRequest;
+  const out = [];
+  side.active.forEach(function (p, i) {
+    if (!p || p.fainted) return;
+    bots.slotCandidates(battle, side, i, level, req.active).forEach(function (c) {
+      if (c && c.id === 'fakeout') out.push(c);
+    });
+  });
+  return out;
+}
+function choiceHasFakeOut(battle, sideId, choice) {
+  const req = battle[sideId].activeRequest;
+  return String(choice).split(',').some(function (part, i) {
+    const m = /move\s+(\d+)/.exec(part);
+    if (!m || !req.active || !req.active[i] || !req.active[i].moves) return false;
+    const mv = req.active[i].moves[+m[1] - 1];
+    return !!(mv && mv.id === 'fakeout');
+  });
+}
+const terrainBattle = startBattle('RSZqsn', 'team 3241', 'FW7Oza', 'team 1234');
+eq(terrainBattle.field.terrain, 'psychicterrain', 'Indeedee setzt Psychic Terrain vor der Zugwahl');
+[0, 1, 2, 3].forEach(function (level) {
+  const n = fakeOuts(terrainBattle, 'p1', level).length + fakeOuts(terrainBattle, 'p2', level).length;
+  if (n) fail('L' + level + ' bietet Fake Out unter Psychic Terrain gegen Boden-Pokémon an');
+});
+ok('L0–L3 bieten Fake Out unter Psychic Terrain nicht an');
+const rng = stats.mulberry32(7);
+let picked = 0;
+for (let i = 0; i < 40; i++) {
+  if (choiceHasFakeOut(terrainBattle, 'p1', bots.decide(terrainBattle, 'p1', 0, rng))) picked++;
+  if (choiceHasFakeOut(terrainBattle, 'p2', bots.decide(terrainBattle, 'p2', 0, rng))) picked++;
+}
+[1, 2, 3].forEach(function (level) {
+  ['p1', 'p2'].forEach(function (side) {
+    if (choiceHasFakeOut(terrainBattle, side, bots.decide(terrainBattle, side, level, rng))) picked++;
+  });
+});
+eq(picked, 0, 'keine Stufe wählt Fake Out gegen geerdete Ziele unter Psychic Terrain');
+
+terrainBattle.field.clearTerrain();
+if (!fakeOuts(terrainBattle, 'p1', 2).length) fail('ohne Terrain fehlt Fake Out als Kandidat');
+else ok('ohne Terrain bleibt Fake Out erlaubt');
+terrainBattle.field.setTerrain('psychicterrain', terrainBattle.p1.active[1]);
+if (fakeOuts(terrainBattle, 'p1', 2).length) fail('gesetztes Psychic Terrain blockt Fake Out nicht');
+else ok('auch nachträglich gesetztes Psychic Terrain blockt Fake Out');
+
+function groundedCount(battle) {
+  return battle.p2.active.filter(function (p) { return p && !!p.isGrounded(); }).length;
+}
+terrainBattle.p2.active.forEach(function (p) { if (p) p.setItem('airballoon'); });
+eq(groundedCount(terrainBattle), 0, 'Air Balloon hebt vom Boden ab');
+if (!fakeOuts(terrainBattle, 'p1', 2).length) fail('Fake Out gegen Air Balloon unter Terrain fehlt');
+else ok('Fake Out gegen Air Balloon bleibt erlaubt');
+terrainBattle.p2.active.forEach(function (p) { if (p) { p.setItem(''); p.setAbility('levitate'); } });
+eq(groundedCount(terrainBattle), 0, 'Levitate hebt vom Boden ab');
+if (!fakeOuts(terrainBattle, 'p1', 2).length) fail('Fake Out gegen Levitate unter Terrain fehlt');
+else ok('Fake Out gegen Levitate bleibt erlaubt');
+terrainBattle.p2.active.forEach(function (p) { if (p) { p.setAbility('intimidate'); p.addVolatile('magnetrise'); } });
+eq(groundedCount(terrainBattle), 0, 'Magnet Rise hebt vom Boden ab');
+if (!fakeOuts(terrainBattle, 'p1', 2).length) fail('Fake Out gegen Magnet Rise unter Terrain fehlt');
+else ok('Fake Out gegen Magnet Rise bleibt erlaubt');
+
+const flyBattle = startBattle('RSZqsn', 'team 3241', 'RSZqsn', 'team 4123');
+const flyFoe = flyBattle.p2.active.filter(function (p) { return p && p.hasType('Flying'); })[0];
+if (!flyFoe) fail('Talonflame steht nicht im Lead');
+else {
+  eq(!!flyFoe.isGrounded(), false, 'Flying-Typ ist nicht geerdet');
+  const acts = fakeOuts(flyBattle, 'p1', 2);
+  const atGround = acts.filter(function (c) {
+    const poke = flyBattle.p1.active[0];
+    const tgt = poke.getAtLoc(c.loc);
+    return tgt && !!tgt.isGrounded();
+  });
+  const atAir = acts.filter(function (c) {
+    const poke = flyBattle.p1.active[0];
+    const tgt = poke.getAtLoc(c.loc);
+    return tgt && !tgt.isGrounded();
+  });
+  if (atGround.length) fail('Fake Out zielt unter Terrain auf ein geerdetes Pokémon');
+  else ok('Fake Out zielt unter Terrain nicht auf geerdete Pokémon');
+  if (!atAir.length) fail('Fake Out gegen Flying unter Terrain fehlt');
+  else ok('Fake Out gegen Flying unter Terrain bleibt erlaubt');
+}
+
+terrainBattle.field.clearTerrain();
+terrainBattle.p2.active.forEach(function (p) { if (p) { delete p.volatiles.magnetrise; p.setAbility('armortail'); } });
+if (fakeOuts(terrainBattle, 'p1', 2).length) fail('Armor Tail blockt Fake Out nicht');
+else ok('Armor Tail blockt Fake Out');
+terrainBattle.p2.active[0].setAbility('queenlymajesty');
+terrainBattle.p2.active[1].setAbility('intimidate');
+if (fakeOuts(terrainBattle, 'p1', 2).length) fail('Queenly Majesty blockt Fake Out nicht');
+else ok('Queenly Majesty blockt Fake Out');
+terrainBattle.p2.active[0].setAbility('dazzling');
+if (fakeOuts(terrainBattle, 'p1', 2).length) fail('Dazzling blockt Fake Out nicht');
+else ok('Dazzling blockt Fake Out');
+terrainBattle.p1.active[0].setAbility('moldbreaker');
+if (!fakeOuts(terrainBattle, 'p1', 2).length) fail('Mold Breaker ignoriert Dazzling nicht');
+else ok('Mold Breaker ignoriert Dazzling');
+
+terrainBattle.p1.active[0].setAbility('intimidate');
+terrainBattle.p2.active.forEach(function (p) { if (p) p.setAbility('intimidate'); });
+terrainBattle.p1.active[0].activeMoveActions = 1;
+if (fakeOuts(terrainBattle, 'p1', 2).length) fail('Fake Out bleibt nach der ersten Aktion wählbar');
+else ok('Fake Out nur in der ersten Aktion auf dem Feld');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Meta-Test OK');

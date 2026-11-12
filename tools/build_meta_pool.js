@@ -178,7 +178,7 @@ async function main() {
     const paste = exportPaste(sets);
     kept.push({
       id: String(t.id),
-      name: t.title || t.id,
+      name: require('../js/meta/text').decodeEntities(t.title || t.id),
       source: notes.length ? 'pool+usage' : 'pool',
       date: '2026-11-12',
       paste,

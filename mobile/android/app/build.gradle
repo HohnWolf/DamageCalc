@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// Version kommt aus der package.json der Desktop-App (eine Nummer fuer alles): 1.21.0 -> versionCode 12100.
+// Version kommt aus der package.json der Desktop-App (eine Nummer fuer alles): 1.24.0 -> versionCode 12400, versionName 1.24.0.
 // Ein Vorab-Suffix zaehlt einen Schritt weniger (1.22.0-beta.1 -> 12199), damit die Vollversion 1.22.0 (12200) darueber passt.
 def appVersion = new groovy.json.JsonSlurper().parse(file('../../../package.json')).version as String
 def core = appVersion.split('-')[0]
