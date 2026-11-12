@@ -107,7 +107,7 @@ eq(/\bStabil\b|\bTesting\b/.test(readme), false, 'README nennt die Kanaele nicht
 eq(readme.includes('Vollversionen') && readme.includes('Zwischenversionen'), true, 'README erklaert beide Kanaele');
 eq(readme.includes('beta.yml'), true, 'README erklaert die Vorab-Datei beta.yml');
 eq(html.includes('js/update_channel.js'), true, 'die Kanal-Logik wird von der Seite geladen');
-eq(pkg.version, '1.23.3', 'Version ist 1.23.3');
+eq(pkg.version, '1.23.4', 'Version ist 1.23.4');
 eq(app.includes("updateChannel: 'full'"), true, 'bestehende Installationen fallen auf full zurueck');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }

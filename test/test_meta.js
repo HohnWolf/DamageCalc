@@ -141,6 +141,11 @@ else ok('Lizenz-Abschnitt in den Einstellungen');
 const htmlIndex = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 if (!htmlIndex.includes('js/meta_ui.js') || !htmlIndex.includes('data/meta_teams.js')) fail('Meta-Test ist nicht in der Seite');
 else ok('Meta-Test ist in der Seite');
+if (/spopt|SP-Optimierer|js\/spopt/.test(htmlIndex + fs.readFileSync(path.join(ROOT, 'js/app.js'), 'utf8'))) fail('SP-Optimierer ist noch verdrahtet');
+else ok('SP-Optimierer ist entfernt');
+const builderSrc = fs.readFileSync(path.join(ROOT, 'js/builder.js'), 'utf8');
+if (!builderSrc.includes('id="tbMeta"') || !builderSrc.includes('tb-meta')) fail('Meta-Test-Knopf fehlt im Teambuilder');
+else ok('Meta-Test-Knopf steht im Teambuilder');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Meta-Test OK');
