@@ -1,5 +1,5 @@
 // Update-Kanaele. Die Wahl steht in cc_settings.updateChannel.
-// 'full' (Vollversionen, Standard): nur eine neue Haupt- oder Nebennummer, danach die neueste Fassung dieser Linie.
+// 'full' (Vollversionen, Standard): nur eine neue Haupt- oder Nebennummer, und zwar genau die x.y.0 (keine Patches).
 // 'interim' (Zwischenversionen): jede neuere Fassung, auch Patches und Vorabversionen.
 // Releases muessen dafuer nicht markiert werden; es zaehlt die Versionsnummer.
 (function (root, factory) {
@@ -102,7 +102,8 @@
     var rel = releaseOf(candidate);
     if (!parsed(rel.version) || compare(rel.version, current) <= 0) return false;
     if (normalizeChannel(channel) === 'interim') return true;
-    return !isPre(rel) && fullJump(current, rel.version);
+    // Vollversionen: genau die x.y.0 der neuen Linie, keine Patches.
+    return !isPre(rel) && fullJump(current, rel.version) && parsed(rel.version).patch === 0;
   }
 
   function hasAsset(rel, name) {

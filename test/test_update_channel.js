@@ -61,7 +61,7 @@ eq(offered('full', '1.21.0', ['1.21.2']).update, null, '1.21.0 -> 1.21.2 nur nic
 eq(offered('interim', '1.21.0', ['1.21.2']).update.version, '1.21.2', '1.21.0 -> 1.21.2 auf Zwischenversionen');
 
 var line = offered('full', '1.20.5', ['1.21.0', '1.20.8', '1.21.3']);
-eq(line.update && line.update.version, '1.21.3', 'Vollversionen nimmt die neueste Fassung der neuen Linie');
+eq(line.update && line.update.version, '1.21.0', 'Vollversionen nimmt genau die x.y.0 der neuen Linie');
 eq(offered('interim', '1.20.5', ['1.21.0', '1.21.3', '1.21.2']).update.version, '1.21.3', 'Zwischenversionen nimmt ebenfalls die neueste');
 
 eq(offered('full', '1.21.4', ['2.0.0']).update.version, '2.0.0', 'Hauptnummer-Sprung auf Vollversionen');
@@ -107,7 +107,7 @@ eq(/\bStabil\b|\bTesting\b/.test(readme), false, 'README nennt die Kanaele nicht
 eq(readme.includes('Vollversionen') && readme.includes('Zwischenversionen'), true, 'README erklaert beide Kanaele');
 eq(readme.includes('beta.yml'), true, 'README erklaert die Vorab-Datei beta.yml');
 eq(html.includes('js/update_channel.js'), true, 'die Kanal-Logik wird von der Seite geladen');
-eq(pkg.version, '1.22.1', 'Version bleibt 1.22.1');
+eq(pkg.version, '1.22.2', 'Version bleibt 1.22.2');
 eq(app.includes("updateChannel: 'full'"), true, 'bestehende Installationen fallen auf full zurueck');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }

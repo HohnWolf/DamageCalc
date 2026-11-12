@@ -110,6 +110,8 @@ function versionOf(result) {
 // Erst die aufgeloeste Version pruefen, dann herunterladen.
 async function downloadFromUpdater(my, o) {
   setupAutoUpdater();
+  // genau die gewaehlte Fassung laden (nicht die neueste latest.yml)
+  if (o.tag) autoUpdater.setFeedURL({ provider: 'generic', url: RELEASES + '/download/v' + o.tag });
   autoUpdater.allowDowngrade = !!o.downgrade;
   autoUpdater.allowPrerelease = !!o.prerelease;
   autoUpdater.autoDownload = false;
@@ -159,6 +161,7 @@ async function run(my, opts) {
     }
     await downloadFromUpdater(my, {
       downgrade: true,
+      tag: target.version,
       prerelease: false,
       meta: extra,
       accept: (found) => Channel.compare(found, target.version) === 0
@@ -172,6 +175,7 @@ async function run(my, opts) {
   }
   await downloadFromUpdater(my, {
     prerelease: !!decision.update.prerelease,
+    tag: decision.update.version,
     meta: extra,
     accept: (found) => Channel.allows(channel, app.getVersion(), found)
   });

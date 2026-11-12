@@ -8,6 +8,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.22.2',
+      de: ['Updates: Auf „Vollversionen“ wird nur noch genau die x.y.0 der neuen Linie angeboten, keine Patches. Geladen wird genau die gewählte Fassung.', 'Aufgeräumt: Der nicht mehr genutzte Simulator samt KI-Training ist entfernt.'],
+      en: ['Updates: on "Full versions" only the exact x.y.0 of the new line is offered, no patches. Exactly the chosen version is downloaded.', 'Cleanup: the unused simulator and AI training code has been removed.'] },
     { v: '1.22.1',
       de: ['Shiny-Zähler: Der Timer pausiert automatisch, sobald die Anwendung geschlossen wird, und läuft nicht mehr im Hintergrund weiter.'],
       en: ['Shiny counter: the timer now pauses automatically when the application is closed and no longer keeps running while it is off.'] },

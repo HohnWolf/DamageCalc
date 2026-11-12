@@ -152,8 +152,8 @@ else ok('Diagnose und durchsichtiges Overlay');
 const overlay = fs.readFileSync(path.join(ROOT, 'electron/overlay.html'), 'utf8');
 if (!overlay.includes('transparent=1') || !overlay.includes('color-scheme: normal')) fail('Overlay bleibt im Projektor deckend');
 else ok('Overlay ohne dunkles Schema, wenn es im Projektor liegt');
-if (pkg.version !== '1.22.1') fail('Version ist ' + pkg.version);
-else ok('Version 1.22.1');
+if (pkg.version !== '1.22.2') fail('Version ist ' + pkg.version);
+else ok('Version 1.22.2');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Projektor-Spiegel-Test OK');
