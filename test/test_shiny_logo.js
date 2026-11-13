@@ -103,8 +103,8 @@ if (!/getElementById\('btnHome'\)\.addEventListener\('click'/.test(app) || !/sho
 else ok('Klick nach Hause bleibt');
 if (!app.includes('function wireTeamDrag')) fail('Drag and Drop auf der Startseite fehlt');
 else ok('Drag and Drop bleibt');
-if (!/html\[data-ui-style="pro"\] \.start-logo\s*\{[^}]*display:\s*block/.test(pro) || /\.start-logo[^{]*\{[^}]*display:\s*none/.test(pro)) fail('Pro zeigt das Startlogo nicht');
-else ok('Pro zeigt das Startlogo (normal und Shiny)');
+if (!/html\[data-ui-style="pro"\] \.start-logo\s*\{[^}]*display:\s*none/.test(pro)) fail('Pro blendet das Startlogo nicht aus');
+else ok('Pro blendet das Startlogo aus (alle Tools ohne Scrollen)');
 if (!/html\[data-ui-style="studio"\] \.start-logo\s*\{[^}]*display:\s*block/.test(studio) || /\.start-logo[^{]*\{[^}]*display:\s*none/.test(studio)) fail('Studio zeigt das Startlogo nicht');
 else ok('Studio zeigt das Startlogo (normal und Shiny)');
 if (!/Math\.floor\(Math\.random\(\) \* 8192\) === 0/.test(main) || !main.includes('icon_shiny.ico') || !main.includes("shiny: '1'")) fail('Desktop-App würfelt nicht mehr (8192 / icon_shiny / ?shiny=1)');

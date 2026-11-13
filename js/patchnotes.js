@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.0',
+      de: ['Sidebar-Ansicht: Das große Logo über der Übersicht ist weg, damit alle Tools ohne Scrollen sichtbar sind.'],
+      en: ['Sidebar layout: the large logo above the overview is gone, so all tools are visible without scrolling.'],
+      full: {
+        de: ['Sidebar-Ansicht: Das große Logo über der Übersicht ist weg, damit alle Tools ohne Scrollen sichtbar sind.', 'Teamsheet: Der Knopf im Teambuilder öffnet das Teamsheet wieder.'],
+        en: ['Sidebar layout: the large logo above the overview is gone, so all tools are visible without scrolling.', 'Team sheet: the teambuilder button opens the team sheet again.']
+      } },
     { v: '1.25.1',
       de: ['Teamsheet: Der Knopf im Teambuilder öffnet das Teamsheet wieder (in 1.25.0 war er durch einen Fehler tot).'],
       en: ['Team sheet: the teambuilder button opens the team sheet again (it was dead in 1.25.0 because of a bug).'] },
