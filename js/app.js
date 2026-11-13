@@ -246,6 +246,12 @@
       setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Der Update-Kanal gilt auch hier. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
       updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
       updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
+      catVs: 'Gegen die KI', catVsText: 'Selbst gegen die KI kämpfen',
+      navBtlRandom: 'Random Battle', navBtlChoice: 'Choice Battle',
+      startBtlRandomText: 'Kampf mit zufällig gewürfeltem Team gegen die KI.', startBtlRandomKo: 'Zufallsteam · 6 gegen 6',
+      startBtlChoiceText: 'Kampf mit selbst gewähltem Team gegen die KI.', startBtlChoiceKo: 'Eigenes Team · 6 gegen 6',
+      btlTurn: 'Runde {0}', btlWhatDo: 'Was soll {0} tun?', btlSoon: 'Der Kampf gegen die KI kommt bald.', btlStart: 'Kampf starten', btlMoves: 'Attacken', btlSwitch: 'Wechseln',
+      btlLogWait: 'Warte auf den Kampfbeginn …', btlYou: 'Du', btlAi: 'KI', btlTeamRandom: 'Dein Team wird zufällig gewürfelt.', btlTeamChoice: 'Wähle dein Team (6 Pokémon).',
       catPlay: 'Minigames', catPlayText: 'Quiz und Rätsel rund um Werte und Typen',
       navMgSpeed: 'Wer ist schneller?', navMgQuiz: 'Basiswerte-Quiz', navMgDmg: 'Schadens-Schätzung', navMgType: 'Typ-Rätsel',
       startMgSpeedText: 'Zwei Pokémon: welches hat die höhere Basis-Initiative? Bei Gleichstand gibt es „Gleich schnell“.',
@@ -398,6 +404,12 @@
       setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. The update channel applies here too. To install it, it downloads the file and opens the Android installer.',
       updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
       updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
+      catVs: 'Vs. AI', catVsText: 'Battle the AI yourself',
+      navBtlRandom: 'Random Battle', navBtlChoice: 'Choice Battle',
+      startBtlRandomText: 'Battle the AI with a randomly rolled team.', startBtlRandomKo: 'Random team · 6 vs 6',
+      startBtlChoiceText: 'Battle the AI with a team of your own choice.', startBtlChoiceKo: 'Your team · 6 vs 6',
+      btlTurn: 'Turn {0}', btlWhatDo: 'What will {0} do?', btlSoon: 'Battling the AI is coming soon.', btlStart: 'Start battle', btlMoves: 'Moves', btlSwitch: 'Switch',
+      btlLogWait: 'Waiting for the battle to start …', btlYou: 'You', btlAi: 'AI', btlTeamRandom: 'Your team is rolled at random.', btlTeamChoice: 'Choose your team (6 Pokémon).',
       catPlay: 'Minigames', catPlayText: 'Quizzes and puzzles on stats and types',
       navMgSpeed: 'Who is faster?', navMgQuiz: 'Base Stat Quiz', navMgDmg: 'Damage Estimate', navMgType: 'Type Puzzle',
       startMgSpeedText: 'Two Pokémon: which has the higher base Speed? Ties have their own answer.',
@@ -2681,10 +2693,10 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype', 'btlrandom', 'btlchoice'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType'], ['btlrandom', 'navBtlRandom', 'SOON'], ['btlchoice', 'navBtlChoice', 'SOON']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']]];
+  var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']], ['vs', ['btlrandom', 'btlchoice']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
     var REST = ['shiny', 'overlay', 'catch', 'projector']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
@@ -2723,7 +2735,7 @@
     return out;
   }
   // pictures for the category cards (sprites)
-  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], play: ['Pikachu', 'Jigglypuff', 'Magikarp'], rest: ['Gyarados', 'Charizard', 'Rattata'] };
+  var CAT_ART = { fight: ['Incineroar', 'Garchomp', 'Kingambit'], runs: ['Rattata', '⛓', 'Cyndaquil'], dex: ['Bulbasaur', 'Charmander', 'Squirtle'], go: ['Mewtwo', 'Rayquaza', 'Lucario'], play: ['Pikachu', 'Jigglypuff', 'Magikarp'], rest: ['Gyarados', 'Charizard', 'Rattata'], vs: ['Incineroar', 'ic:calc', 'Garchomp'] };
   function renderCatArt() {
     Object.keys(CAT_ART).forEach(function (k) {
       var box = document.getElementById('catArt_' + k);
@@ -2828,6 +2840,7 @@
     if (v === 'goinfo' && window.CCGoInfo) window.CCGoInfo.render();
     if (v === 'speedtier' && window.CCSpeedTier) window.CCSpeedTier.render();
     if ((v === 'mgspeed' || v === 'mgquiz' || v === 'mgdmg' || v === 'mgtype') && window.CCMinigamesUI) window.CCMinigamesUI.open(v);
+    if ((v === 'btlrandom' || v === 'btlchoice') && window.CCBattleUI) window.CCBattleUI.open(v);
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
@@ -2839,14 +2852,14 @@
   }
 
   // ======================= Pro shell: sidebar + status bar =======================
-  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', play: 'catPlay', rest: 'catRest' };
+  var CAT_LABEL = { fight: 'catFight', runs: 'catRuns', dex: 'catDex', go: 'catGo', play: 'catPlay', rest: 'catRest', vs: 'catVs' };
   function modeLabel(id) {
     if (id === 'start') return T('proOverview');
     var m = MODES.filter(function (x) { return x[0] === id; })[0];
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', play: 'play', rest: window.RL_ANDROID ? 'dex' : 'shiny' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', play: 'play', rest: window.RL_ANDROID ? 'dex' : 'shiny', vs: 'calc' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }
@@ -3050,6 +3063,8 @@
     else if (location.hash === '#mgquiz') v = 'mgquiz';
     else if (location.hash === '#mgdmg') v = 'mgdmg';
     else if (location.hash === '#mgtype') v = 'mgtype';
+    else if (location.hash === '#btlrandom') v = 'btlrandom';
+    else if (location.hash === '#btlchoice') v = 'btlchoice';
     else { try { v = sessionStorage.getItem('cc_view') || setting('start'); } catch (e) { v = setting('start'); } }
     showView(v);
   }

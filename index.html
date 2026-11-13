@@ -48,6 +48,7 @@
   <link rel="stylesheet" href="css/pro.css?v=21">
   <link rel="stylesheet" href="css/studio.css?v=18">
   <link rel="stylesheet" href="css/minigames.css?v=1">
+  <link rel="stylesheet" href="css/battle.css?v=1">
   </head>
 <body data-view="start">
   <aside id="sidebar" class="sidebar" aria-label="Navigation"></aside>
@@ -92,6 +93,10 @@
         <button class="start-card cat-card cat-rest" data-cat="rest">
           <span class="sc-art sc-art-cat" id="catArt_rest"></span>
           <span class="sc-head"><span class="sc-title" data-t="catRest"></span></span>
+        </button>
+        <button class="start-card cat-card cat-vs" data-cat="vs">
+          <span class="sc-art sc-art-cat" id="catArt_vs"></span>
+          <span class="sc-head"><span class="sc-title" data-t="catVs"></span></span>
         </button>
         <div class="start-group sg-fight"  data-cat="fight">
           <div class="sg-label" data-t="catFight"></div>
@@ -249,6 +254,29 @@
         </button>
           </div>
         </div>
+        <div class="start-group sg-vs" data-cat="vs">
+          <div class="sg-label" data-t="catVs"></div>
+          <div class="sg-cards">
+        <button class="start-card card-btlrandom" data-go="btlrandom">
+          <span class="sc-art sc-art-mgspeed">
+            <span class="sc-dmg">6 vs 6 <small>Random</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko" data-t="startBtlRandomKo"></span>
+          </span>
+          <span class="sc-head"><span class="sc-title"><span data-t="navBtlRandom"></span><span class="alpha-badge">SOON</span></span></span>
+          <span class="sc-text" data-t="startBtlRandomText"></span>
+        </button>
+        <button class="start-card card-btlchoice" data-go="btlchoice">
+          <span class="sc-art sc-art-mgspeed">
+            <span class="sc-dmg">6 vs 6 <small>Choice</small></span>
+            <span class="sc-bar"><span style="width:100%"></span></span>
+            <span class="sc-ko" data-t="startBtlChoiceKo"></span>
+          </span>
+          <span class="sc-head"><span class="sc-title"><span data-t="navBtlChoice"></span><span class="alpha-badge">SOON</span></span></span>
+          <span class="sc-text" data-t="startBtlChoiceText"></span>
+        </button>
+          </div>
+        </div>
         <div class="start-group sg-rest" data-cat="rest">
           <div class="sg-label" data-t="catRest"></div>
           <div class="sg-cards">
@@ -319,6 +347,8 @@
   <main id="mgQuizView" class="wrap mg-view mgquiz-view"></main>
   <main id="mgDmgView" class="wrap mg-view mgdmg-view"></main>
   <main id="mgTypeView" class="wrap mg-view mgtype-view"></main>
+  <main id="btlRandomView" class="wrap btl-view btlrandom-view"></main>
+  <main id="btlChoiceView" class="wrap btl-view btlchoice-view"></main>
 
   <main class="wrap calc-view" id="calcView">
     <section class="main-result" id="mainResult">
@@ -459,6 +489,7 @@
   <script src="js/speedtier.js?v=1"></script>
   <script src="js/minigames.js?v=1"></script>
   <script src="js/minigames_ui.js?v=1"></script>
+  <script src="js/battle_ui.js?v=1"></script>
   <script src="js/projector_view.js?v=1"></script>
 </body>
 </html>

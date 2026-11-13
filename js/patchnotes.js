@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.24.1',
+      de: ['Neue Kategorie „Gegen die KI“ mit Random Battle und Choice Battle (Vorbereitung, der Kampf selbst folgt). Die Kampfansicht passt sich der Fenstergröße an.', 'Nach einem installierten Update werden die heruntergeladenen Update-Dateien wieder gelöscht.'],
+      en: ['New category “Vs. AI” with Random Battle and Choice Battle (groundwork, the battle itself follows). The battle view fits the window size.', 'After an update is installed, the downloaded update files are deleted again.'] },
     { v: '1.24.0',
       de: ['Meta-Test: Teamnamen zeigen Apostrophe und andere HTML-Zeichen richtig an. Schon gespeicherte Listen werden dabei mit umgewandelt.', 'Meta-Test: Die Teamliste und die Ergebnisse überlappen nicht mehr. Siegquote mit Legende, S–U–N, Zusammenfassung und sortierbare Spalten.', 'Bots nutzen Fake Out und andere Prioritätsattacken nicht mehr gegen Pokémon am Boden, solange Psychic Terrain liegt. Armor Tail, Dazzling und Queenly Majesty gelten ebenfalls.', 'Damage Calc: „In Teambuilder übernehmen“ schreibt das bearbeitete Pokémon ins gewählte Team, auf das gleiche Pokémon oder in einen Slot.'],
       en: ['Meta test: team names show apostrophes and other HTML characters correctly. Lists already saved are converted too.', 'Meta test: the team list and the results no longer overlap. Win rate with a legend, W–D–L, a summary and sortable columns.', 'Bots no longer use Fake Out or other priority moves against grounded Pokémon while Psychic Terrain is up. Armor Tail, Dazzling and Queenly Majesty count as well.', 'Damage calc: “Copy to teambuilder” writes the edited Pokémon into the chosen team, onto the same species or into a slot.'],

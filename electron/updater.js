@@ -208,6 +208,33 @@ function check(byUser, opts) {
   });
 }
 
+// Heruntergeladene Update-Dateien (Installer, Blockmap, pending/) liegen im Cache-Ordner von electron-updater.
+// Ist die Version darin nicht neuer als die laufende, wurde sie installiert und alles dort kann weg.
+// Ein noch nicht installiertes, neueres Update bleibt liegen.
+function cacheDir() {
+  try {
+    if (!process.env.LOCALAPPDATA) return null;
+    const yml = fs.readFileSync(path.join(process.resourcesPath, 'app-update.yml'), 'utf8');
+    const m = /^updaterCacheDirName:\s*(\S+)/m.exec(yml);
+    return m ? path.join(process.env.LOCALAPPDATA, m[1]) : null;
+  } catch (e) { return null; }
+}
+function cleanStale(dir, current) {
+  if (!dir || !fs.existsSync(dir)) return false;
+  let pendingVer = null;
+  try {
+    const info = JSON.parse(fs.readFileSync(path.join(dir, 'pending', 'update-info.json'), 'utf8'));
+    const m = /(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\.exe$/i.exec(String(info && info.fileName || ''));
+    pendingVer = m ? m[1] : null;
+  } catch (e) { /* kein pending-Eintrag */ }
+  if (pendingVer && Channel.compare(pendingVer, current) > 0) return false;
+  for (const name of ['pending', 'installer.exe', 'current.blockmap']) {
+    try { fs.rmSync(path.join(dir, name), { recursive: true, force: true }); } catch (e) { log('warn', 'cleanup ' + name + ': ' + e.message); }
+  }
+  log('info', 'Update-Dateien entfernt (installiert ' + current + ')');
+  return true;
+}
+
 function init(w) {
   win = w;
   loadChannel();
@@ -235,8 +262,9 @@ function init(w) {
       shell.openExternal(status.url || RELEASES);
     }
   });
+  if (enabled && !portable && app.isPackaged) setTimeout(() => cleanStale(cacheDir(), app.getVersion()), 15000);
   // Die Seite schickt den Kanal aus localStorage. Kommt er nicht, gilt die gespeicherte Wahl (Standard: Vollversionen).
   setTimeout(() => { if (!sawChannel && enabled) check(false); }, 8000);
 }
 
-module.exports = { init };
+module.exports = { init, cleanStale };
