@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.25.0',
+      de: ['Damage Calc: Der Knopf „SP in Teambuilder übernehmen“ sitzt jetzt in der Zeile unter den Werten, zwischen SP-Summe und Initiative. Die Attacken passen wieder ins Fenster.'],
+      en: ['Damage calc: the “Copy SPs to teambuilder” button now sits in the row under the stats, between the SP total and the speed. The moves fit the window again.'],
+      full: {
+        de: ['Neue Kategorie „Gegen die KI“ mit Random Battle und Choice Battle (Vorbereitung, der Kampf selbst folgt).', 'Meta-Test lesbarer: Teamnamen mit Apostroph, feste Teamliste, Siegquote mit Legende und sortierbare Spalten.', 'Bots nutzen unter Psychic Terrain keine Prioritätsattacke gegen Pokémon am Boden.', 'Damage Calc: „In Teambuilder übernehmen“ schreibt das bearbeitete Pokémon ins gewählte Team, und „SP in Teambuilder übernehmen“ ändert nur die SP.', 'Nach einem installierten Update werden die heruntergeladenen Update-Dateien gelöscht.'],
+        en: ['New category “Vs. AI” with Random Battle and Choice Battle (groundwork, the battle itself follows).', 'Meta test more readable: team names with apostrophes, a fixed team list, win rate with a legend and sortable columns.', 'Bots do not use priority moves against grounded Pokémon under Psychic Terrain.', 'Damage calc: “Copy to teambuilder” writes the edited Pokémon into the chosen team, and “Copy SPs to teambuilder” changes only the SPs.', 'After an update is installed, the downloaded update files are deleted.']
+      } },
     { v: '1.24.2',
       de: ['Damage Calc: Der Knopf „SP in Teambuilder übernehmen“ steht jetzt unter den SP und ist nur aktiv, wenn das Pokémon aus einem Teambuilder-Team kommt. Er ändert dort nur die SP.', 'Das Layout passt wieder ins Fenster (die zusätzliche Zeile für den Knopf ist weg).'],
       en: ['Damage calc: the “Copy SPs to teambuilder” button now sits under the SPs and is only active for a Pokémon from a teambuilder team. It only changes the SPs there.', 'The layout fits the window again (the extra row for the button is gone).'] },
