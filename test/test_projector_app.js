@@ -8,11 +8,16 @@ if (!electron || typeof electron !== 'string' || !fs.existsSync(electron)) {
   process.exit(0);
 }
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rl-proj-'));
-const child = cp.spawn('xvfb-run', ['-a', '-s', '-screen 0 1600x900x24', electron, '.', '--projector-test', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'], {
+// Linux (CI): virtueller Bildschirm per xvfb-run. Windows/macOS haben einen echten Bildschirm, dort startet Electron direkt.
+const electronArgs = ['.', '--projector-test', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'];
+const spawnOpts = {
   cwd: ROOT,
   env: Object.assign({}, process.env, { RL_SHOT_DIR: dir, ELECTRON_DISABLE_SECURITY_WARNINGS: '1' }),
   stdio: ['ignore', 'pipe', 'pipe']
-});
+};
+const child = process.platform === 'linux'
+  ? cp.spawn('xvfb-run', ['-a', '-s', '-screen 0 1600x900x24', electron].concat(electronArgs), spawnOpts)
+  : cp.spawn(electron, electronArgs, spawnOpts);
 let out = '';
 child.stdout.on('data', (d) => { out += d; });
 child.stderr.on('data', (d) => { out += d; });
@@ -22,7 +27,7 @@ child.on('exit', (code) => {
   const resultPath = path.join(dir, 'result.json');
   let result = null;
   try { result = JSON.parse(fs.readFileSync(resultPath, 'utf8')); } catch (e) { result = null; }
-  const art = '/opt/cursor/artifacts';
+  const art = process.platform === 'linux' ? '/opt/cursor/artifacts' : path.join(dir, 'artifacts');
   try { fs.mkdirSync(art, { recursive: true }); } catch (e) { /* */ }
   ['projector-main-with-box.png', 'projector-without-box.png', 'projector-context-menu.png'].forEach((f) => {
     const src = path.join(dir, f);

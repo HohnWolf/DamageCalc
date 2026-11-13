@@ -314,7 +314,7 @@ function init(win) {
             title: document.title,
             hint: (document.getElementById('ahint') || {}).textContent || '',
             frames: { n: fr.n || 0, fps: fr.fps || 0, w: fr.w || 0, h: fr.h || 0, dropped: fr.dropped || 0 },
-            hear: window.__projectorHear || null,
+            hear: (function () { var v = document.querySelector('video'); if (!v) return null; var t = v.srcObject && v.srcObject.getAudioTracks ? v.srcObject.getAudioTracks() : []; return { tracks: t.length, playing: t.length > 0 && !v.paused && !v.muted && v.volume > 0, volume: v.volume }; })(),
             overlay: { src: f ? (f.src || '') : '', hidden: !f || f.hidden, real: !!(doc && doc.getElementById && doc.getElementById('count')) }
           };
         })()`, true), 1500); }

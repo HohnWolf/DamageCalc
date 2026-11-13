@@ -81,8 +81,10 @@
           var projMagenta = p && p.center && p.center.r > 170 && p.center.b > 170 && p.center.g < 90;
           // Ein paar gelbe Pixel können vom Skalieren kommen. Der Rahmen im Hauptfenster sind Hunderte.
           var projNoYellow = p && p.yellow < 40;
-          var projBlue = p && p.blue > 0 && p.corner && p.corner.b > 140 && p.corner.r < 80;
-          var menuDark = u && u.spot && u.spot.r < 90 && u.spot.g < 90 && u.spot.b < 110;
+          // Die Markierung liegt im Rohbild; das Fenster zeigt es mit schwarzen Rändern (21:9), also zählen wir die blauen Pixel statt eine feste Ecke zu prüfen.
+          var projBlue = p && p.blue > 20;
+          // Das Menü deckt das magentafarbene Bild an der Probestelle ab (dunkel oder hell, je nach Windows-Design).
+          var menuDark = !!(u && u.spot && !(u.spot.r > 170 && u.spot.b > 170 && u.spot.g < 90) && u.spot.g > 20);
           var ok = !!(mainYellow && projMagenta && projNoYellow && projBlue && menuDark && both.main.file && both.projector.file && menu.file);
           D.testDone({
             ok: ok,
