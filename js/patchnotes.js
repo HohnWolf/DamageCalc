@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.24.2',
+      de: ['Damage Calc: Der Knopf „SP in Teambuilder übernehmen“ steht jetzt unter den SP und ist nur aktiv, wenn das Pokémon aus einem Teambuilder-Team kommt. Er ändert dort nur die SP.', 'Das Layout passt wieder ins Fenster (die zusätzliche Zeile für den Knopf ist weg).'],
+      en: ['Damage calc: the “Copy SPs to teambuilder” button now sits under the SPs and is only active for a Pokémon from a teambuilder team. It only changes the SPs there.', 'The layout fits the window again (the extra row for the button is gone).'] },
     { v: '1.24.1',
       de: ['Neue Kategorie „Gegen die KI“ mit Random Battle und Choice Battle (Vorbereitung, der Kampf selbst folgt). Die Kampfansicht passt sich der Fenstergröße an.', 'Nach einem installierten Update werden die heruntergeladenen Update-Dateien wieder gelöscht.'],
       en: ['New category “Vs. AI” with Random Battle and Choice Battle (groundwork, the battle itself follows). The battle view fits the window size.', 'After an update is installed, the downloaded update files are deleted again.'] },

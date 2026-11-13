@@ -196,7 +196,7 @@
       tbTeams: 'Teams', tbNew: '+ Neues Team', tbImport: 'Importieren', tbImportTitle: 'Team importieren (Textformat)', tbMetaTest: 'Gegen Meta testen',
       tbImportNew: 'Als neues Team', tbImportInto: 'Dieses Team ersetzen', tbExport: 'Exportieren', tbExportTitle: 'Team exportieren',
       tbToCalcYou: 'Ins Damage Calc: Du', tbToCalcFoe: 'Ins Damage Calc: Gegner', tbDuplicate: 'Kopieren', tbDelete: 'Löschen',
-      tbFromCalc: 'In Teambuilder übernehmen', tbFromCalcTitle: 'Das bearbeitete Pokémon mit seinen Werten ins Teambuilder-Team schreiben',
+      tbFromCalc: 'In Teambuilder übernehmen', tbSpToBuilder: 'SP in Teambuilder übernehmen', tbSpToBuilderTitle: 'Nur die SP dieses Pokémon im Team des Teambuilders auf die Werte hier setzen (nur aktiv bei einem Pokémon aus einem Teambuilder-Team)', tbSpDone: 'SP in „{0}“ aktualisiert', tbSpGone: 'Das Pokémon ist im Teambuilder-Team nicht mehr da', tbFromCalcTitle: 'Das bearbeitete Pokémon mit seinen Werten ins Teambuilder-Team schreiben',
       tbFromCalcUpdate: 'Aktualisieren', tbFromCalcAdd: 'In Slot {0} einsetzen', tbFromCalcReplace: 'Ersetzen', tbFromCalcNew: 'Neues Team anlegen',
       tbFromCalcFull: 'Dieses Team ist voll. Aktualisiere das passende Pokémon oder ersetze einen Slot.', tbFromCalcDone: 'In „{0}“ übernommen', tbFromCalcEmpty: 'Auf dieser Seite ist kein Pokémon gewählt', tbFromCalcPick: 'Team',
       tbDeleteConfirm: 'Team „{0}“ löschen?', tbName: 'Teamname', tbDefaultName: 'Team {0}', tbCopyName: '{0} (Kopie)',
@@ -354,7 +354,7 @@
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (text format)', tbMetaTest: 'Test vs Meta',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
       tbToCalcYou: 'To damage calc: You', tbToCalcFoe: 'To damage calc: Foe', tbDuplicate: 'Duplicate', tbDelete: 'Delete',
-      tbFromCalc: 'Copy to teambuilder', tbFromCalcTitle: 'Write this edited Pokémon, with its stats, into a teambuilder team',
+      tbFromCalc: 'Copy to teambuilder', tbSpToBuilder: 'Copy SPs to teambuilder', tbSpToBuilderTitle: 'Set only the SPs of this Pokémon in the teambuilder team to the values here (only active for a Pokémon from a teambuilder team)', tbSpDone: 'SPs updated in “{0}”', tbSpGone: 'This Pokémon is no longer in the teambuilder team', tbFromCalcTitle: 'Write this edited Pokémon, with its stats, into a teambuilder team',
       tbFromCalcUpdate: 'Update', tbFromCalcAdd: 'Put in slot {0}', tbFromCalcReplace: 'Replace', tbFromCalcNew: 'Create a new team',
       tbFromCalcFull: 'This team is full. Update the matching Pokémon or replace a slot.', tbFromCalcDone: 'Copied into “{0}”', tbFromCalcEmpty: 'No Pokémon is selected on this side', tbFromCalcPick: 'Team',
       tbDeleteConfirm: 'Delete team “{0}”?', tbName: 'Team name', tbDefaultName: 'Team {0}', tbCopyName: '{0} (copy)',
@@ -763,7 +763,6 @@
       '<button class="tbtn" id="' + p + 'exportSet" data-t="exportSetShort" data-tt="exportSet"></button>' +
       '<button class="tbtn add" id="' + p + 'addTeam" data-t="addTeamShort" data-tt="addTeam"></button>' +
       '</div>' +
-      '<button type="button" class="to-builder" id="' + p + 'toBuilder" data-t="tbFromCalc" data-tt="tbFromCalcTitle"></button>' +
       '<div class="team-bar" id="' + p + 'team"></div>' +
       '<div class="empty-hint" data-t="emptyHint"></div>' +
       '<div class="grid2">' +
@@ -773,6 +772,7 @@
       '<div class="stats-wrap">' +
       '<table class="stats"><tr><th></th><th data-t="base"></th><th data-t="sp"></th><th data-t="value"></th><th data-t="stage"></th></tr>' + statRows + '</table>' +
       '<div class="stats-foot"><span class="sp-total" id="' + p + 'spTotal"></span><span class="speed-final" id="' + p + 'speedFinal"></span></div>' +
+      '<button type="button" class="to-builder" id="' + p + 'toBuilder" data-t="tbSpToBuilder" data-tt="tbSpToBuilderTitle" disabled></button>' +
       '</div>' +
       '<div class="grid2">' +
       '<label class="cell"><span class="l" data-t="nature"></span><select data-kind="nature" id="' + p + 'nature">' + opt(natureList) + '</select></label>' +
@@ -838,10 +838,10 @@
       save('cc_teams', teams); renderTeam(idx); toast(T('teamAdded'));
     });
     $('toBuilder').addEventListener('click', function () {
-      if (!side.baseSpecies || side.empty) { toast(T('tbFromCalcEmpty')); return; }
-      if (!window.CCBuilder || !window.CCBuilder.takeFromCalc) return;
-      var set = readSet(side);
-      window.CCBuilder.takeFromCalc({ species: side.baseSpecies, setName: side.setName || 'Set', set: set });
+      if (!side.src || side.empty || !window.CCBuilder || !window.CCBuilder.updateSps) return;
+      var sps = readSet(side).sps;
+      var name = window.CCBuilder.updateSps(side.src, side.baseSpecies, sps);
+      toast(name ? T('tbSpDone', name) : T('tbSpGone'));
     });
     applyStatic(root); relabelSelects(root);
     renderTeam(idx);
@@ -955,6 +955,7 @@
     set = set ? JSON.parse(JSON.stringify(set)) : defaultSet(base);
     if (side.empty) setEmpty(side, false);
     side.baseSpecies = base;
+    side.src = null;
     side.setLabel = base + ' (' + (setName || 'Set') + ')';
     side.setName = setName || 'Set';
     $('pick').value = displayLabel(side);
@@ -1140,6 +1141,7 @@
       total += spv;
       $('stat_' + s).textContent = C.calcStat(s, +$('base_' + s).value || 1, spv, nature, side.forme);
     });
+    $('toBuilder').disabled = !side.src || !!side.empty;
     var t = $('spTotal');
     t.textContent = T('spTotal', total, C.SP_TOTAL, C.SP_TOTAL - total);
     t.classList.toggle('over', total > C.SP_TOTAL);
@@ -1176,7 +1178,7 @@
   // ---------- slot state: full snapshot of the editor so A and B can be swapped in and out ----------
   function captureState(side) {
     var $ = side.$, st = {
-      baseSpecies: side.baseSpecies, setLabel: side.setLabel, setName: side.setName, fainted: side.fainted || 0,
+      baseSpecies: side.baseSpecies, src: side.src || null, setLabel: side.setLabel, setName: side.setName, fainted: side.fainted || 0,
       forme: $('forme').value || side.baseSpecies, t1: $('t1').value, t2: $('t2').value,
       base: {}, sps: {}, boosts: {}, nature: $('nature').value, ability: $('ability').value, item: $('item').value,
       status: $('status').value, curHP: parseInt($('curHP').value, 10), pct: side._pct, cond: readConditions(side), moves: []
@@ -1199,6 +1201,7 @@
       moves: st.moves.map(function (m) { return m.name; })
     }, st.setName);
     side.setLabel = st.setLabel || side.setLabel; $('pick').value = displayLabel(side);
+    side.src = st.src || null; $('toBuilder').disabled = !side.src;
     if (st.forme && $('forme').value !== st.forme && formesOf(side.baseSpecies).indexOf(st.forme) !== -1) applyForme(side, st.forme, false);
     $('t1').value = st.t1; $('t2').value = st.t2 || '';
     C.STAT_KEYS.forEach(function (s) {
@@ -1731,9 +1734,9 @@
     teams[idx].forEach(function (m, i) {
       var slot = el('div', { class: 'team-slot' + (current === m.species + ' (' + m.setName + ')' ? ' current' : ''), title: T('teamLoad', nSpecies(m.species) + ' (' + nSetName(m.setName) + ')') });
       slot.appendChild(spriteFit(m.set.look || (m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species), m.set.shiny));
-      slot.addEventListener('click', function () { loadSet(sides[idx], m.species, m.set, m.setName); recalc(); });
+      slot.addEventListener('click', function () { loadSet(sides[idx], m.species, m.set, m.setName); sides[idx].src = m.src || null; sides[idx].$('toBuilder').disabled = !sides[idx].src; recalc(); });
       var toOther = el('button', { class: 'slot-btn other', title: T('toOther'), text: '⇄' });
-      toOther.addEventListener('click', function (ev) { ev.stopPropagation(); loadSet(sides[1 - idx], m.species, m.set, m.setName); recalc(); });
+      toOther.addEventListener('click', function (ev) { ev.stopPropagation(); loadSet(sides[1 - idx], m.species, m.set, m.setName); sides[1 - idx].src = m.src || null; sides[1 - idx].$('toBuilder').disabled = !sides[1 - idx].src; recalc(); });
       var del = el('button', { class: 'slot-btn del', title: T('removeTeam'), text: '✕' });
       del.addEventListener('click', function (ev) { ev.stopPropagation(); var before = teams[idx].slice(); teams[idx].splice(i, 1); save('cc_teams', teams); renderTeam(idx); pushUndo(LANG === 'de' ? 'Pokémon aus Team entfernt' : 'Pokémon removed from team', function () { teams[idx] = before; save('cc_teams', teams); renderTeam(idx); }); });
       slot.appendChild(toOther); slot.appendChild(del);
@@ -3070,16 +3073,20 @@
   }
 
   // puts a team from the teambuilder into a team bar of the calculator; the first two become slot A and B
-  function setCalcTeam(idx, mons) {
+  // src = { team, ver } of the builder team; each Pokémon remembers its place there so the calc can write SPs back
+  function setCalcTeam(idx, mons, src) {
     mons = JSON.parse(JSON.stringify(mons.slice(0, 6)));
+    if (src) mons.forEach(function (m, i) { m.src = { team: src.team, ver: src.ver, i: i }; });
     teams[idx] = mons;
     save('cc_teams', teams);
     var side = sides[idx];
     if (mons.length) {
       side.slots = [null, null];
-      if (mons[1]) { side.active = 1; loadSet(side, mons[1].species, mons[1].set, mons[1].setName); side.slots[1] = captureState(side); }
+      if (mons[1]) { side.active = 1; loadSet(side, mons[1].species, mons[1].set, mons[1].setName); side.src = mons[1].src || null; side.slots[1] = captureState(side); }
       side.active = 0;
       loadSet(side, mons[0].species, mons[0].set, mons[0].setName);
+      side.src = mons[0].src || null;
+      side.$('toBuilder').disabled = !side.src;
     }
     renderTeam(idx);
     recalc();

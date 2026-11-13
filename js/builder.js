@@ -361,7 +361,7 @@
       root.querySelector(b[0]).addEventListener('click', function () {
         var tm = team();
         if (!tm.mons.length) { A.toast(T('tbEmptyTeam')); return; }
-        A.setCalcTeam(b[1], tm.mons);
+        A.setCalcTeam(b[1], tm.mons, { team: tm.id, ver: tm.curVer });
         A.showView('calc');
         A.toast(T(b[2]));
       });
@@ -1524,8 +1524,30 @@
     document.body.appendChild(wrap);
   }
 
+  // writes only the SPs of one Pokémon back into its teambuilder team; returns the team name or ''
+  function updateSps(src, species, sps) {
+    if (!src || !src.team) return '';
+    var tm = null;
+    store.teams.some(function (t) { if (t.id === src.team) { tm = t; return true; } return false; });
+    if (!tm) return '';
+    ensureVersions(tm);
+    var ver = null;
+    (tm.versions || []).some(function (v) { if (v.id === src.ver) { ver = v; return true; } return false; });
+    var mons = (ver || curVersion(tm)).mons;
+    var mon = mons[src.i];
+    if (!mon || !A.baseOf(mon.species) || A.baseOf(mon.species) !== A.baseOf(species)) return '';
+    mon.set = mon.set || {};
+    var out = { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 };
+    Object.keys(out).forEach(function (k) { out[k] = Math.max(0, Math.min(32, parseInt(sps && sps[k], 10) || 0)); });
+    mon.set.sps = out;
+    persist();
+    if (document.body.dataset.view === 'builder') render();
+    return tm.name || '';
+  }
+
   window.CCBuilder = {
     render: render,
+    updateSps: updateSps,
     takeFromCalc: takeFromCalc,
     // move a Pokémon of the current team (start screen drag & drop)
     move: function (from, to) {
