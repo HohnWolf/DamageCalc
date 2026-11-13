@@ -1,0 +1,1598 @@
+/* Kampfansicht (Gegen die KI).
+   Optik: Stylus-Style "Better Showdown" v2.1.0 (userstyles.world/style/30806), mit den Standardwerten
+   (Violet, klassische HP-Farben, Barlow Semi Condensed, Effekte an). Übernommen sind nur die Kampfregeln:
+   Arena, Statusleisten, HP-Balken, Attacken- und Wechselmenü, Kampflog. Alle Selektoren stehen unter .btl-view.
+   Der Block ab "Better Showdown" ist aus dem Style erzeugt, die Regeln davor sind das Grundgerüst, das Showdown selbst mitbringt. */
+body:not([data-view="btlrandom"]) .btlrandom-view,
+body:not([data-view="btlchoice"]) .btlchoice-view { display: none !important; }
+
+.btl-view {
+  overflow: auto; font-family: var(--font); color: var(--ink);
+  background: radial-gradient(63% 55% at 20% -10%, hsl(calc(var(--hue) + 1) calc(60% * var(--sat)) 41.2%) 0%, transparent 60%),
+              linear-gradient(180deg, hsl(calc(var(--hue) - 1) calc(64.1% * var(--sat)) 22.9%), var(--violet-bg));
+}
+.btl-view .btl-shell { width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; }
+.btl-view .btl-top { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; justify-content: space-between; }
+.btl-view .btl-top h2 { margin: 0; font-size: 18px; font-style: italic; font-weight: 700; color: var(--ink); }
+.btl-view .btl-note { margin: 0; font-size: 12px; color: hsl(calc(var(--hue) + 6) calc(100% * var(--sat)) 93.7%); opacity: .85; }
+.btl-view .btl-row { display: flex; align-items: flex-start; gap: 10px; }
+.btl-view .btl-actions { display: flex; gap: 8px; }
+.btl-view .btl-actions button { padding: 6px 16px; font-size: 13px; }
+
+/* Showdown-Grundgerüst: 640 x 360 Spielfeld, Steuerung liegt darüber */
+.btl-view .scrollable-battle-container { position: relative; flex: none; width: 640px; height: 360px; border-radius: 10px; }
+.btl-view .scrollable-battle-container .battle { position: absolute; inset: 0; width: 640px; height: 360px; overflow: hidden; }
+.btl-view .battle .btl-mon { position: absolute; transform: translate(-50%, -100%); pointer-events: none; }
+.btl-view .battle .btl-mon img { display: block; image-rendering: auto; }
+.btl-view .battle .statbar { position: absolute; display: block; }
+.btl-view .battle .statbar strong { display: block; }
+.btl-view .battle .hpbar { display: block; }
+.btl-view .battle .hpbar .prevhp { display: block; }
+.btl-view .battle .hpbar .hp { display: block; }
+.btl-view .battle .status { display: flex; }
+.btl-view .battle .turn { position: absolute; right: 0; top: 0; font-size: 12pt; font-style: italic; font-weight: 800; }
+.btl-view .battle .message { position: absolute; }
+.btl-view .battle-controls .whatdo { display: block; }
+.btl-view .battle-controls .moveselect, .btl-view .battle-controls .switchselect { display: none; }
+.btl-view .picon { display: inline-block; width: 40px; height: 30px; background: no-repeat center / contain; }
+
+/* Kampflog rechts neben dem Feld */
+.btl-view .battle-log {
+  flex: 1 1 0; min-width: 220px; box-sizing: border-box; height: calc(360px * var(--battle-scale, 1)); overflow: auto;
+  padding: 8px 10px; font-size: 10.5pt; line-height: 1.4;
+}
+.btl-view .battle-log .battle-history { padding: 1px 0; }
+.btl-view .battle-log .battle-history.sub { opacity: .75; }
+
+/* ===== Better Showdown (aus dem Style erzeugt) ===== */
+@keyframes kblink { 50% { opacity: .3; } }
+@keyframes home-rings {
+  0%, 100% {
+    background-image:
+      radial-gradient(circle closest-side at 50% 50%,
+        transparent 0 18%, rgba(255, 255, 255, .17) 18% 21%, transparent 21% 28%,
+        rgba(255, 255, 255, .11) 28% 31%, transparent 31% 92%,
+        hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5% / .26) 92% 96%, transparent 96%),
+      linear-gradient(transparent calc(50% - 1.4%), rgba(255, 255, 255, .15) calc(50% - 1.4%) calc(50% + 1.4%), transparent calc(50% + 1.4%)),
+      linear-gradient(115deg, transparent 38%, hsl(calc(var(--foe-hue) - 3) calc(84.9% * var(--sat)) 61% / .20) 38% 46%, transparent 46% 50%, hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5% / .13) 50% 53%, transparent 53%),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--hue) calc(81.7% * var(--sat)) 67.8% / .38), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(calc(var(--foe-hue) - 3) calc(84.9% * var(--sat)) 61% / .24), transparent 70%);
+    background-repeat: no-repeat;
+    background-position: 50% 50%, 50% 50%, 0 0, 0 0, 0 0;
+    background-size: calc((100vh - 57px) * .58) calc((100vh - 57px) * .58), calc((100vh - 57px) * .58) calc((100vh - 57px) * .58), 100% 100%, 100% 100%, 100% 100%;
+    animation-timing-function: ease-in-out;
+  }
+}
+@keyframes home-stripes {
+  from {
+    background-image:
+      linear-gradient(135deg, hsl(var(--hue) calc(80% * var(--sat)) 70% / .13) 25%, transparent 25% 50%, hsl(var(--hue) calc(80% * var(--sat)) 70% / .13) 50% 75%, transparent 75%),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--hue) calc(80% * var(--sat)) 65% / .35), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(var(--foe-hue) calc(80% * var(--sat)) 60% / .22), transparent 70%);
+    background-repeat: repeat, no-repeat, no-repeat;
+    background-size: 90px 90px, 100% 100%, 100% 100%;
+    background-position: 0 0, 0 0, 0 0;
+  }
+  to {
+    background-image:
+      linear-gradient(135deg, hsl(var(--hue) calc(80% * var(--sat)) 70% / .13) 25%, transparent 25% 50%, hsl(var(--hue) calc(80% * var(--sat)) 70% / .13) 50% 75%, transparent 75%),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--hue) calc(80% * var(--sat)) 65% / .35), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(var(--foe-hue) calc(80% * var(--sat)) 60% / .22), transparent 70%);
+    background-repeat: repeat, no-repeat, no-repeat;
+    background-size: 90px 90px, 100% 100%, 100% 100%;
+    background-position: 360px 360px, 0 0, 0 0;
+  }
+}
+@keyframes home-grid {
+  from {
+    background-image:
+      linear-gradient(hsl(var(--hue) calc(60% * var(--sat)) 80% / .12) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--hue) calc(60% * var(--sat)) 80% / .12) 1px, transparent 1px),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--accent-hue) calc(80% * var(--sat)) 60% / .20), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(var(--foe-hue) calc(80% * var(--sat)) 60% / .22), transparent 70%);
+    background-repeat: repeat, repeat, no-repeat, no-repeat;
+    background-size: 48px 48px, 48px 48px, 100% 100%, 100% 100%;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  to {
+    background-image:
+      linear-gradient(hsl(var(--hue) calc(60% * var(--sat)) 80% / .12) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--hue) calc(60% * var(--sat)) 80% / .12) 1px, transparent 1px),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--accent-hue) calc(80% * var(--sat)) 60% / .20), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(var(--foe-hue) calc(80% * var(--sat)) 60% / .22), transparent 70%);
+    background-repeat: repeat, repeat, no-repeat, no-repeat;
+    background-size: 48px 48px, 48px 48px, 100% 100%, 100% 100%;
+    background-position: 0 240px, 240px 0, 0 0, 0 0;
+  }
+}
+@keyframes home-aurora {
+  0%, 50%, 100% {
+    background-image:
+      linear-gradient(180deg, transparent 10%, hsl(var(--hue) calc(65% * var(--sat)) 14% / .92) 100%),
+      linear-gradient(80deg, transparent 0, hsl(var(--accent-hue) calc(100% * var(--sat)) 70% / .55) 5%, transparent 13%, transparent 52%, hsl(var(--hue) calc(100% * var(--sat)) 78% / .45) 57%, transparent 65%, transparent 100%),
+      linear-gradient(100deg, transparent 0, hsl(var(--accent-hue) calc(90% * var(--sat)) 58% / .36) 20%, hsl(var(--hue) calc(90% * var(--sat)) 66% / .42) 44%, transparent 66%, hsl(var(--foe-hue) calc(85% * var(--sat)) 62% / .26) 86%, transparent 100%),
+      linear-gradient(80deg, transparent 0, hsl(var(--foe-hue) calc(85% * var(--sat)) 62% / .30) 28%, transparent 52%, hsl(var(--accent-hue) calc(90% * var(--sat)) 60% / .34) 78%, transparent 100%),
+      radial-gradient(90% 55% at 50% 0%, hsl(var(--hue) calc(90% * var(--sat)) 62% / .34), transparent 72%);
+    background-repeat: no-repeat, repeat-x, repeat-x, repeat-x, no-repeat;
+    animation-timing-function: linear;
+  }
+  0%, 100% {
+    background-size: 100% 100%, 700px 100%, 1100px 100%, 1600px 100%, 100% 100%;
+  }
+  50% {
+    background-size: 100% 100%, 700px 135%, 1100px 115%, 1600px 140%, 100% 100%;
+  }
+  0% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+  50% {
+    background-position: 0 0, 350px 0, 550px 0, -800px 0, 0 0;
+  }
+  100% {
+    background-position: 0 0, 700px 0, 1100px 0, -1600px 0, 0 0;
+  }
+}
+@keyframes home-stars {
+  from {
+    background-image:
+      radial-gradient(circle 2px at 30px 40px, rgba(255, 255, 255, .9), transparent),
+      radial-gradient(circle 1.5px at 80px 110px, rgba(255, 255, 255, .7), transparent),
+      radial-gradient(circle 3px at 140px 60px, hsl(var(--accent-hue) calc(100% * var(--sat)) 75% / .85), transparent),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--hue) calc(80% * var(--sat)) 65% / .30), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(var(--foe-hue) calc(80% * var(--sat)) 60% / .22), transparent 70%);
+    background-repeat: repeat, repeat, repeat, no-repeat, no-repeat;
+    background-size: 120px 120px, 170px 170px, 230px 230px, 100% 100%, 100% 100%;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+  to {
+    background-image:
+      radial-gradient(circle 2px at 30px 40px, rgba(255, 255, 255, .9), transparent),
+      radial-gradient(circle 1.5px at 80px 110px, rgba(255, 255, 255, .7), transparent),
+      radial-gradient(circle 3px at 140px 60px, hsl(var(--accent-hue) calc(100% * var(--sat)) 75% / .85), transparent),
+      radial-gradient(60% 70% at 80% 18%, hsl(var(--hue) calc(80% * var(--sat)) 65% / .30), transparent 70%),
+      radial-gradient(55% 60% at 20% 100%, hsl(var(--foe-hue) calc(80% * var(--sat)) 60% / .22), transparent 70%);
+    background-repeat: repeat, repeat, repeat, no-repeat, no-repeat;
+    background-size: 120px 120px, 170px 170px, 230px 230px, 100% 100%, 100% 100%;
+    background-position: 0 -360px, 0 -510px, 0 -690px, 0 0, 0 0;
+  }
+}
+@keyframes rattfratz-run {
+  0%   { background-position: calc(100% + 25vh) 100%; }
+  8%   { background-position: -25vh 100%; }
+  100% { background-position: -25vh 100%; }
+}
+@keyframes hp-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.6) saturate(1.3); }
+}
+@keyframes bar-alert {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 3px hsl(0 90% 55% / .4)); }
+}
+@keyframes tera-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px #ff7ad9); }
+  33% { filter: drop-shadow(0 0 8px #7affd9); }
+  66% { filter: drop-shadow(0 0 8px #ffe97a); }
+}
+@keyframes fx-rain { to { background-position: 0 90px, 0 130px, 0 70px; } }
+@keyframes fx-snow { to { background-position: 0 61px, 0 97px, 0 113px; } }
+@keyframes fx-sand { to { background-position: 160px 0, 240px 0, 0 0; } }
+@keyframes fx-sun { from { opacity: .55; } to { opacity: 1; } }
+@keyframes fx-heat { from { opacity: .4; } to { opacity: .9; } }
+@keyframes fx-wind { to { background-position: 300px 0, 420px 0; } }
+@keyframes fx-terrain { from { opacity: .5; } to { opacity: 1; } }
+@keyframes fx-trickroom { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 0, 0 -48px, -48px 0; } }
+
+.btl-view {
+  --themeeff: calc(var(--theme, 1) * (1 - var(--usecustom, 0)) + 21 * var(--usecustom, 0));
+  --th1: max(0, 1 - abs(var(--themeeff) - 1));
+  --th2: max(0, 1 - abs(var(--themeeff) - 2));
+  --th3: max(0, 1 - abs(var(--themeeff) - 3));
+  --th4: max(0, 1 - abs(var(--themeeff) - 4));
+  --th5: max(0, 1 - abs(var(--themeeff) - 5));
+  --th6: max(0, 1 - abs(var(--themeeff) - 6));
+  --th7: max(0, 1 - abs(var(--themeeff) - 7));
+  --th8: max(0, 1 - abs(var(--themeeff) - 8));
+  --th9: max(0, 1 - abs(var(--themeeff) - 9));
+  --th10: max(0, 1 - abs(var(--themeeff) - 10));
+  --th11: max(0, 1 - abs(var(--themeeff) - 11));
+  --th12: max(0, 1 - abs(var(--themeeff) - 12));
+  --th13: max(0, 1 - abs(var(--themeeff) - 13));
+  --th14: max(0, 1 - abs(var(--themeeff) - 14));
+  --th15: max(0, 1 - abs(var(--themeeff) - 15));
+  --th16: max(0, 1 - abs(var(--themeeff) - 16));
+  --th17: max(0, 1 - abs(var(--themeeff) - 17));
+  --th18: max(0, 1 - abs(var(--themeeff) - 18));
+  --th19: max(0, 1 - abs(var(--themeeff) - 19));
+  --th20: max(0, 1 - abs(var(--themeeff) - 20));
+  --th21: max(0, 1 - abs(var(--themeeff) - 21));
+  --hue: calc(247*var(--th1) + 228*var(--th2) + 192*var(--th3) + 150*var(--th4) + 355*var(--th5) + 22*var(--th6) + 322*var(--th7) + 220*var(--th8) + 270*var(--th9) + 195*var(--th10) + 165*var(--th11) + 265*var(--th12) + 45*var(--th13) + 335*var(--th14) + 235*var(--th15) + 100*var(--th16) + 8*var(--th17) + 210*var(--th18) + 200*var(--th19) + 285*var(--th20) + var(--chue, 247)*var(--th21));
+  --accent-hue: calc(76*var(--th1) + 48*var(--th2) + 32*var(--th3) + 52*var(--th4) + 45*var(--th5) + 180*var(--th6) + 160*var(--th7) + 45*var(--th8) + 170*var(--th9) + 55*var(--th10) + 330*var(--th11) + 95*var(--th12) + 215*var(--th13) + 55*var(--th14) + 190*var(--th15) + 300*var(--th16) + 170*var(--th17) + 330*var(--th18) + 40*var(--th19) + 60*var(--th20) + var(--cacc, 76)*var(--th21));
+  --foe-hue: calc(338*var(--th1) + 8*var(--th2) + 350*var(--th3) + 15*var(--th4) + 195*var(--th5) + 300*var(--th6) + 205*var(--th7) + 8*var(--th8) + 330*var(--th9) + 345*var(--th10) + 20*var(--th11) + 340*var(--th12) + 350*var(--th13) + 190*var(--th14) + 20*var(--th15) + 25*var(--th16) + 270*var(--th17) + 30*var(--th18) + 10*var(--th19) + 165*var(--th20) + var(--cfoe, 338)*var(--th21));
+  --sat: calc(1*var(--th1) + 1*var(--th2) + 0.95*var(--th3) + 1*var(--th4) + 1*var(--th5) + 1*var(--th6) + 1*var(--th7) + 0.2*var(--th8) + 1.3*var(--th9) + 0.8*var(--th10) + 0.9*var(--th11) + 0.7*var(--th12) + 1*var(--th13) + 0.9*var(--th14) + 0.6*var(--th15) + 1.2*var(--th16) + 0.9*var(--th17) + 0.75*var(--th18) + 0.35*var(--th19) + 1*var(--th20) + 1*var(--th21));
+  --hq1: max(0, 1 - abs(var(--hp, 1) - 1));
+  --hq2: max(0, 1 - abs(var(--hp, 1) - 2));
+  --hq3: max(0, 1 - abs(var(--hp, 1) - 3));
+  --hp-green-1: rgb(calc(182*var(--hq1) + 143*var(--hq2) + 255*var(--hq3)) calc(255*var(--hq1) + 211*var(--hq2) + 255*var(--hq3)) calc(122*var(--hq1) + 255*var(--hq2) + 255*var(--hq3)));
+  --hp-green-2: rgb(calc(47*var(--hq1) + 31*var(--hq2) + 216*var(--hq3)) calc(196*var(--hq1) + 120*var(--hq2) + 216*var(--hq3)) calc(58*var(--hq1) + 200*var(--hq2) + 216*var(--hq3)));
+  --hp-yellow-1: rgb(calc(255*var(--hq1) + 255*var(--hq2) + 255*var(--hq3)) calc(240*var(--hq1) + 240*var(--hq2) + 207*var(--hq3)) calc(138*var(--hq1) + 138*var(--hq2) + 112*var(--hq3)));
+  --hp-yellow-2: rgb(calc(242*var(--hq1) + 242*var(--hq2) + 255*var(--hq3)) calc(184*var(--hq1) + 184*var(--hq2) + 138*var(--hq3)) calc(0*var(--hq1) + 0*var(--hq2) + 0*var(--hq3)));
+  --hp-red-1: rgb(calc(255*var(--hq1) + 255*var(--hq2) + 255*var(--hq3)) calc(154*var(--hq1) + 143*var(--hq2) + 77*var(--hq3)) calc(138*var(--hq1) + 200*var(--hq2) + 77*var(--hq3)));
+  --hp-red-2: rgb(calc(230*var(--hq1) + 194*var(--hq2) + 122*var(--hq3)) calc(46*var(--hq1) + 24*var(--hq2) + 0*var(--hq3)) calc(46*var(--hq1) + 91*var(--hq2) + 0*var(--hq3)));
+}
+.btl-view {
+  --font: var(--fontsel, 'Barlow Semi Condensed', 'Arial Narrow', 'Segoe UI', sans-serif);
+  --round: 1;
+  --hatch-alpha: .14;
+  --pat-none: linear-gradient(transparent, transparent);
+  --pat-stripes: repeating-linear-gradient(135deg, rgba(0, 0, 0, .14) 0 2px, transparent 2px 6px);
+  --pat-wide: repeating-linear-gradient(135deg, rgba(0, 0, 0, .18) 0 4px, transparent 4px 12px);
+  --pat-light: repeating-linear-gradient(135deg, rgba(255, 255, 255, .14) 0 3px, transparent 3px 9px);
+  --pat-lines: repeating-linear-gradient(0deg, rgba(0, 0, 0, .14) 0 1px, transparent 1px 5px);
+  --pat-grid: repeating-linear-gradient(0deg, rgba(0, 0, 0, .13) 0 1px, transparent 1px 7px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .13) 0 1px, transparent 1px 7px);
+  --pat-cross: repeating-linear-gradient(45deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 6px), repeating-linear-gradient(135deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 6px);
+  --hatch: var(--pattern, var(--pat-none));
+  --skew: -12deg;
+  --fx-color: #c9a400;
+  --ui-boost: 1;
+  --ui-ref-w: 1500;
+  --ui-ref-h: 900;
+  --log-font-max: 12pt;
+  --horizon: 30%;
+  --setedit-extra: .88;
+  --hp-anim: .6s;
+  --pulse-speed: calc(1.2s * var(--fx, 1));
+  --weather-fx: var(--fx, 1);
+  --terrain-fx: var(--fx, 1);
+  --chat-bubble: .13;
+  --chat-name-brightness: 1.3;
+  --chat-line: 1.4;
+  --statbar-h: 38px;
+  --hp-h: 9px;
+  --move-h: 26px;
+  --btn-h: 26px;
+  --tile-h: 32px;
+}
+.btl-view {
+  --lime: hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5%);
+  --lime-d: hsl(calc(var(--accent-hue) + 8) calc(76.4% * var(--sat)) 43.1%);
+  --yellow: #ffe83a;
+  --violet: hsl(calc(var(--hue) + 2) calc(63.9% * var(--sat)) 55.5%);
+  --violet-d: hsl(calc(var(--hue) - 2) calc(57.6% * var(--sat)) 38.8%);
+  --violet-dd: hsl(calc(var(--hue) - 1) calc(64.1% * var(--sat)) 22.9%);
+  --violet-bg: hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%);
+  --pink: hsl(calc(var(--foe-hue) - 2) calc(75.2% * var(--sat)) 51%);
+  --pink-d: hsl(calc(var(--foe-hue) - 10) calc(77.2% * var(--sat)) 31%);
+  --ink: hsl(calc(var(--hue) + 9) calc(100% * var(--sat)) 97.1%);
+  --ink-dark: hsl(calc(var(--hue) - 1) calc(64.1% * var(--sat)) 22.9%);
+  --line: hsl(calc(var(--hue) + 4) calc(100% * var(--sat)) 84.3% / .45);
+  --battle-scale: max( .3, min( calc(tan(atan2(100vh - var(--hdr-h), 1px)) / 360), calc(tan(atan2(100vw - var(--log-min), 1px)) / 640) ) );
+  --bg-w: 700px;
+  --bg-x: 0px;
+  --bg-y: 0px;
+  --turn-x: -112px;
+  --ctl-w: 130px;
+  --ctl-x: 440px;
+  --bar-w: 120px;
+  --hdr-h: 57px;
+  --log-min: max(280px, 18vw);
+  --hpzoom: .4;
+  --icon-nudge: 1.4px;
+  --foe-icons-dy: -128px;
+  --icon-squeeze: 5;
+  --tile-menu-shift: 70px;
+  --menu-zoom: calc(var(--ui-scale) * .73);
+  --pm-scale: calc(var(--ui-scale) * 1.1);
+  --tb-zoom: var(--ui-scale);
+  --row-reserve: 50px;
+  --page-zoom: var(--ui-scale);
+  --menu-ref: 1100;
+  --menu-margin: 140px;
+  --ui-base: clamp( .4, min( calc(tan(atan2(100vw, 1px)) / var(--ui-ref-w)), calc(tan(atan2(100vh, 1px)) / var(--ui-ref-h)) ), 4 );
+  --ui-scale: calc(var(--ui-base) * max(1, 1.5 - .5 * var(--ui-base)) * var(--ui-boost));
+  --own-up: 24px;
+  --popup-zoom: calc(var(--ui-scale) * .95);
+  --row-w: 240px;
+  --weather-dy: 12px;
+  --tgt-w: 150px;
+  --wait-w: 112px;
+  --badge-gap-x: 3px;
+  --badge-gap-y: 2px;
+  --badge-lift: 5px;
+  --badge-w: 42px;
+  --badge-h: 12px;
+  --statbar-offset: 32px;
+  --foe-gap: 11px;
+  --msg-bottom: 104px;
+  --msg-w: 330px;
+  --end-w: 190px;
+  --msg-left: 44px;
+}
+.btl-view .scrollable-battle-container { zoom: var(--battle-scale); }
+.btl-view .ps-room:has(.scrollable-battle-container) .battle-log {
+  left: calc(640px * var(--battle-scale)) !important;
+}
+.btl-view .ps-room:has(.scrollable-battle-container) h2.battle-history {
+  background: #5a3a8a !important;
+  color: #fff !important;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-left: 6px solid #f5d538;
+}
+.btl-view .ps-room .battle .weather {
+  background: none !important;
+  padding: 0;
+  opacity: 1 !important;
+}
+.btl-view .ps-room .battle .weather em,
+.btl-view .ps-room .battle .weather > * em {
+  font-style: normal !important;
+  font-weight: bold;
+  opacity: 1 !important;
+  color: var(--fx-color) !important;
+  text-shadow: 0 0 3px #000, 1px 1px 2px #000, -1px -1px 2px #000;
+}
+.btl-view .timerbutton-critical {
+  animation: kblink .6s steps(2, start) infinite;
+  font-weight: bold;
+  outline: 2px solid #ff3030;
+}
+.btl-view .picon { z-index: 2; }
+.btl-view .statbar strong { color: #FFF; text-shadow: 0 0 4px #000; }
+.btl-view .turn {
+  border: none;
+  background: none !important;
+  color: #fff !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 4px #000, 1px 1px 3px #000, -1px -1px 3px #000;
+}
+.btl-view button,
+.btl-view .button { font-family: var(--font) !important; }
+.btl-view button,
+.btl-view .button {
+  background: var(--hatch), linear-gradient(180deg, var(--violet), var(--violet-d)) !important;
+  color: var(--ink) !important;
+  border: 2px solid var(--line) !important;
+  border-radius: calc(16px * var(--round)) calc(6px * var(--round)) calc(16px * var(--round)) calc(6px * var(--round)) !important;
+  font-style: italic; font-weight: 700 !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .35) !important;
+  transition: filter .1s ease;
+}
+.btl-view button:hover:not(:disabled),
+.btl-view .button:hover:not(.disabled) {
+  background: linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime)) !important;
+  color: var(--ink-dark) !important;
+  border-color: #fff !important;
+}
+.btl-view button:active:not(:disabled),
+.btl-view .button:active:not(.disabled) { filter: brightness(.92); }
+.btl-view button:disabled,
+.btl-view .button.disabled,
+.btl-view button.disabled { opacity: .45 !important; filter: grayscale(.5); }
+.btl-view button.big {
+  background: radial-gradient(circle at 30% 25%, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime) 55%, var(--lime-d)) !important;
+  color: var(--ink-dark) !important;
+  border: 3px solid #fff !important;
+  border-radius: 999px !important;
+  font-size: 15pt; font-weight: 800 !important;
+  box-shadow: 0 0 0 3px hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5% / .35), 0 6px 14px rgba(0, 0, 0, .4) !important;
+}
+.btl-view .battle .statbar {
+  font-family: var(--font) !important;
+  font-style: italic;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .5) !important;
+  padding: 2px 6px 3px 18px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  background: var(--hatch), linear-gradient(180deg, hsl(var(--hue) calc(81.7% * var(--sat)) 67.8%), var(--violet-d)) !important;
+  box-shadow: inset 0 0 0 3px hsl(calc(var(--hue) + 1) calc(100% * var(--sat)) 84.1%) !important;
+}
+.btl-view .battle .statbar.rstatbar {
+  background: var(--hatch), linear-gradient(180deg, hsl(var(--hue) calc(81.7% * var(--sat)) 67.8%), var(--violet-d)) !important;
+  box-shadow: inset 0 0 0 3px var(--lime) !important;
+}
+.btl-view .battle .statbar.lstatbar {
+  background: var(--hatch), linear-gradient(180deg, hsl(calc(var(--foe-hue) - 3) calc(86.8% * var(--sat)) 61.4%), var(--pink-d)) !important;
+  box-shadow: inset 0 0 0 3px hsl(calc(var(--foe-hue) - 4) calc(100% * var(--sat)) 85.1%) !important;
+}
+.btl-view .battle .statbar strong { font-weight: 800; font-size: 8pt; color: #fff !important; text-shadow: none !important; background: none !important; }
+.btl-view .battle .statbar small { color: hsl(calc(var(--hue) + 6) calc(100% * var(--sat)) 93.7%); font-weight: 600; }
+.btl-view .battle .hpbar { background: transparent !important; }
+.btl-view .battle .hpbar .prevhp,
+.btl-view .battle .hpbar .hpbar-bg {
+  background: hsl(var(--hue) calc(73.9% * var(--sat)) 9% / .65) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transform: skewX(-20deg);
+  height: 5px !important;
+}
+.btl-view .battle .hpbar .hp {
+  border-radius: 0 !important;
+  border: none !important;
+  background: linear-gradient(90deg, #35d447, var(--lime) 60%, var(--yellow)) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45);
+}
+.btl-view .battle .hpbar .hp-yellow { background: linear-gradient(90deg, #f2b800, var(--yellow)) !important; }
+.btl-view .battle .hpbar .hp-red { background: linear-gradient(90deg, #d4202a, #ff6a4d) !important; }
+.btl-view .battle .hpbar .hptext,
+.btl-view .battle .hpbar .hptextborder {
+  font-weight: 800; font-style: italic; font-size: 9pt !important; line-height: 1.1; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+.btl-view .battle .status { border-radius: 999px !important; font-weight: 800; border: none !important; padding: 0 7px; }
+.btl-view .battle .good { background: var(--lime) !important; color: var(--ink-dark) !important; }
+.btl-view .battle .bad { background: #e62e2e !important; color: #fff !important; }
+.btl-view .battle .neutral { background: hsl(var(--hue) calc(38.9% * var(--sat)) 64.7%) !important; color: #fff !important; }
+.btl-view .battle .message,
+.btl-view .battle .messagebar {
+  background: linear-gradient(90deg, hsl(calc(var(--hue) - 1) calc(65.5% * var(--sat)) 11.4%), hsl(calc(var(--hue) - 1) calc(63.3% * var(--sat)) 33.1%)) !important;
+  color: #fff !important;
+  border-radius: 0 !important;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%);
+  font-style: italic; font-weight: 600;
+  text-shadow: none !important;
+}
+.btl-view .battle-controls,
+.btl-view .battle-controls .controls { background: transparent !important; color: var(--ink) !important; }
+.btl-view .battle-controls .whatdo {
+  font-style: italic;
+  font-weight: 800;
+  color: #fff;
+  display: inline-block;
+  background: linear-gradient(90deg, hsl(calc(var(--hue) - 1) calc(65.5% * var(--sat)) 11.4%), hsl(calc(var(--hue) - 1) calc(63.3% * var(--sat)) 33.1%));
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+.btl-view .battle-controls .movemenu {
+  display: flex !important;
+  flex-direction: column;
+}
+.btl-view .battle-controls .movemenu button {
+  position: relative;
+  display: grid !important;
+  grid-template-rows: auto auto;
+  align-items: center;
+  width: 100% !important;
+  margin: 0 !important;
+  float: none !important;
+  text-align: left !important;
+  color: #fff !important;
+  background: var(--hatch), linear-gradient(180deg, hsl(calc(var(--hue) + 2) calc(74.4% * var(--sat)) 61.8%), var(--violet-d)) !important;
+  border: 3px solid hsl(calc(var(--hue) + 1) calc(100% * var(--sat)) 84.1%) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .4) !important;
+}
+.btl-view .battle-controls .movemenu button br { display: none; }
+.btl-view .battle-controls .movemenu button::before {
+  content: "";
+  grid-row: 1 / span 2;
+  border-radius: 50%;
+  background: #9a96b8;
+  border: 3px solid #fff;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .2);
+}
+.btl-view .battle-controls .movemenu button strong {
+  grid-column: 2;
+  grid-row: 1;
+  font-weight: 700;
+  font-style: normal;
+}
+.btl-view .battle-controls .movemenu button small.type {
+  grid-column: 2;
+  grid-row: 2;
+  font-weight: 600;
+  color: hsl(calc(var(--hue) + 6) calc(100% * var(--sat)) 93.7%);
+}
+.btl-view .battle-controls .movemenu button small.pp {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  font-weight: 800;
+  font-style: italic;
+  color: #fff;
+}
+.btl-view .battle-controls .movemenu button:hover:not(:disabled),
+.btl-view .battle-controls .movemenu button.cur,
+.btl-view .battle-controls .movemenu button:focus {
+  background: linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime)) !important;
+  border-color: #fff !important;
+  color: var(--ink-dark) !important;
+  text-shadow: none !important;
+}
+.btl-view .battle-controls .movemenu button:hover:not(:disabled) small.type,
+.btl-view .battle-controls .movemenu button:hover:not(:disabled) small.pp,
+.btl-view .battle-controls .movemenu button.cur small.type,
+.btl-view .battle-controls .movemenu button.cur small.pp { color: var(--ink-dark); }
+.btl-view .battle-controls .movemenu button:hover:not(:disabled)::after {
+  content: "▶";
+  position: absolute;
+  color: var(--yellow);
+  text-shadow: 0 2px 2px rgba(0, 0, 0, .5);
+}
+.btl-view .battle-controls .movemenu button:disabled,
+.btl-view .battle-controls .movemenu button.disabled { filter: grayscale(.8); opacity: .5; }
+.btl-view .movemenu button.type-Normal::before { background: #a8a77a; }
+.btl-view .movemenu button.type-Fire::before { background: #ee6b2e; }
+.btl-view .movemenu button.type-Water::before { background: #4f8df5; }
+.btl-view .movemenu button.type-Electric::before { background: #f7d02c; }
+.btl-view .movemenu button.type-Grass::before { background: #5cc43c; }
+.btl-view .movemenu button.type-Ice::before { background: #6fd8e0; }
+.btl-view .movemenu button.type-Fighting::before { background: #c22e28; }
+.btl-view .movemenu button.type-Poison::before { background: #a33ea1; }
+.btl-view .movemenu button.type-Ground::before { background: #d9b24d; }
+.btl-view .movemenu button.type-Flying::before { background: #8f9fee; }
+.btl-view .movemenu button.type-Psychic::before { background: #f95587; }
+.btl-view .movemenu button.type-Bug::before { background: #a6b91a; }
+.btl-view .movemenu button.type-Rock::before { background: #b6a136; }
+.btl-view .movemenu button.type-Ghost::before { background: #735797; }
+.btl-view .movemenu button.type-Dragon::before { background: #6f35fc; }
+.btl-view .movemenu button.type-Dark::before { background: #6f5848; }
+.btl-view .movemenu button.type-Steel::before { background: #b7b7ce; }
+.btl-view .movemenu button.type-Fairy::before { background: #f08ccc; }
+.btl-view .movemenu button.type-Stellar::before { background: #3fc9b9; }
+.btl-view .battle-controls .switchmenu button {
+  background: var(--hatch), linear-gradient(180deg, hsl(calc(var(--hue) + 2) calc(74.4% * var(--sat)) 61.8%), var(--violet-d)) !important;
+  border: 3px solid hsl(calc(var(--hue) + 1) calc(100% * var(--sat)) 84.1%) !important;
+  color: #fff !important;
+  font-style: italic;
+  font-weight: 700;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .4) !important;
+}
+.btl-view .battle-controls .switchmenu button:hover:not(:disabled),
+.btl-view .battle-controls .switchmenu button.chosen {
+  background: linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime)) !important;
+  color: var(--ink-dark) !important; border-color: #fff !important;
+}
+.btl-view .battle-controls .switchmenu button.disabled { filter: grayscale(.8); opacity: .5; }
+.btl-view .battle-log,
+.btl-view .battle-log .inner {
+  background: linear-gradient(180deg, hsl(calc(var(--hue) - 1) calc(64.1% * var(--sat)) 22.9%), hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%)) !important;
+  color: var(--ink) !important;
+}
+.btl-view .battle-log { border: 2px solid var(--line) !important; border-radius: calc(14px * var(--round)) calc(6px * var(--round)) calc(14px * var(--round)) calc(6px * var(--round)) !important; }
+.btl-view .battle-log .battle-history { color: var(--ink); }
+.btl-view .battle-log .battle-history strong { color: var(--lime); }
+.btl-view .battle-log-add { background: hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%) !important; border-top: 2px solid var(--line) !important; }
+.btl-view .battle .statbar { width: var(--bar-w) !important; z-index: 4; }
+.btl-view .battle .statbar.rstatbar { top: auto !important; bottom: 3px !important; }
+.btl-view .scrollable-battle-container .battle-controls {
+  overflow: visible;
+  background: transparent !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .controls { padding: 0 !important; margin: 0 !important; }
+.btl-view .battle-controls h3,
+.btl-view .battle-controls .moveselect,
+.btl-view .battle-controls .switchselect { display: none !important; }
+.btl-view .battle-controls .whatdo {
+  font-size: 7pt !important;
+  padding: 1px 10px 1px 6px !important;
+  margin: 0 0 2px 0 !important;
+  max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.btl-view .battle-controls .movemenu { gap: 3px !important; padding: 0 !important; }
+.btl-view .battle-controls .movemenu button {
+  grid-template-columns: 18px 1fr auto !important;
+  column-gap: 4px !important;
+  min-height: 28px !important;
+  padding: 1px 6px 1px 5px !important;
+  border-width: 2px !important;
+  border-radius: calc(14px * var(--round)) calc(6px * var(--round)) calc(6px * var(--round)) calc(14px * var(--round)) !important;
+}
+.btl-view .battle-controls .movemenu button::before { width: 15px !important; height: 15px !important; border-width: 2px !important; }
+.btl-view .battle-controls .movemenu button strong { font-size: 8.5pt !important; line-height: 1; }
+.btl-view .battle-controls .movemenu button small.type { font-size: 6.5pt !important; line-height: 1; }
+.btl-view .battle-controls .movemenu button small.pp { font-size: 8pt !important; }
+.btl-view .battle-controls .movemenu button:hover:not(:disabled)::after { left: -11px !important; font-size: 9pt !important; }
+.btl-view .battle-controls .megaevo,
+.btl-view .battle-controls .ultraburst,
+.btl-view .battle-controls .dynamax,
+.btl-view .battle-controls .terastallize,
+.btl-view .battle-controls .zmove,
+.btl-view .battle-controls .movecontrols label {
+  font-size: 7pt !important;
+  margin: 2px 0 !important;
+  padding: 0 6px !important;
+  color: var(--ink) !important;
+  background: hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5% / .8) !important;
+  border: 2px solid var(--line) !important;
+  border-radius: calc(14px * var(--round)) calc(5px * var(--round)) calc(14px * var(--round)) calc(5px * var(--round)) !important;
+}
+.btl-view .battle-controls .switchmenu,
+.btl-view .battle-controls .team {
+  display: flex !important; flex-wrap: wrap; gap: 2px !important; padding: 0 !important; margin-top: 2px !important;
+}
+.btl-view .battle-controls .switchmenu button {
+  flex: 0 0 calc(33.33% - 2px) !important;
+  width: auto !important; min-width: 0 !important; height: 22px !important;
+  margin: 0 !important; padding: 0 !important;
+  font-size: 0 !important; line-height: 0;
+  overflow: hidden;
+  display: flex !important; align-items: center; justify-content: center;
+  border-width: 2px !important;
+  border-radius: calc(9px * var(--round)) calc(4px * var(--round)) calc(4px * var(--round)) calc(9px * var(--round)) !important;
+}
+.btl-view .battle-controls .switchmenu button .picon { zoom: .55; margin: 0 !important; }
+.btl-view .battle-controls .switchmenu button .hpbar,
+.btl-view .battle-controls .switchmenu button .hp { display: none !important; }
+.btl-view .battle-controls .timerbutton,
+.btl-view .battle-controls .controls > .button { font-size: 6.5pt !important; padding: 0 5px !important; }
+.btl-view .ps-room .battle .statbar strong {
+  display: block; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.btl-view .ps-room .battle .statbar .hpbar {
+  position: relative !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hptext,
+.btl-view .ps-room .battle .statbar .hpbar .hptextborder {
+  position: absolute !important;
+  left: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: right !important;
+  line-height: 1 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button {
+  min-height: 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button::before {
+  border-width: 1.5px !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button strong { font-size: 7.5pt !important; line-height: 1 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button small.type { font-size: 6pt !important; line-height: 1 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button small.pp { font-size: 7.5pt !important; }
+.btl-view .scrollable-battle-container .battle-controls .megaevo-box {
+  position: static !important; height: 0 !important; margin: 0 !important; padding: 0 !important;
+  border: 0 !important; background: none !important; box-shadow: none !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .megaevo,
+.btl-view .scrollable-battle-container .battle-controls label.megaevo {
+  position: absolute !important;
+  left: -32px !important;
+  display: block !important;
+  width: 26px !important;
+  height: 26px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
+  background: url("https://www.pokewiki.de/images/3/3b/Mega-Entwicklung_Icon.png") center / 78% no-repeat, linear-gradient(180deg, var(--violet), var(--violet-d)) !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .4) !important;
+  cursor: pointer;
+}
+.btl-view .scrollable-battle-container .battle-controls .megaevo input {
+  position: absolute !important; inset: 0; width: 100% !important; height: 100% !important;
+  margin: 0 !important; opacity: 0; cursor: pointer;
+}
+.btl-view .scrollable-battle-container .battle-controls .megaevo:has(input:checked) {
+  background: url("https://www.pokewiki.de/images/3/3b/Mega-Entwicklung_Icon.png") center / 78% no-repeat, linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime)) !important;
+  box-shadow: 0 0 0 3px hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5% / .55), 0 2px 0 rgba(0, 0, 0, .4) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .timerbutton {
+  position: absolute !important; left: -32px !important; top: 48px !important; right: auto !important;
+  width: 26px !important; height: 26px !important; margin: 0 !important; padding: 0 !important;
+  font-size: 0 !important; border-radius: 50% !important; overflow: hidden;
+}
+.btl-view .scrollable-battle-container .battle-controls .timerbutton i,
+.btl-view .scrollable-battle-container .battle-controls .timerbutton .fa { font-size: 9pt !important; }
+.btl-view .scrollable-battle-container .battle-controls .switchmenu { flex-wrap: nowrap !important; gap: 2px !important; }
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button {
+  flex: 1 1 0 !important; height: 20px !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button .picon { zoom: .5 !important; }
+.btl-view .ps-room .battle .statbar { box-sizing: border-box !important; }
+.btl-view .ps-room .battle .statbar.lstatbar { top: 3px !important; bottom: auto !important; }
+.btl-view .ps-room .battle .statbar.rstatbar { top: auto !important; bottom: 3px !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button::before {
+  background-color: transparent !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Normal::before { background: url("https://www.pokewiki.de/images/8/85/Typ-Icon_Normal_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Fighting::before { background: url("https://www.pokewiki.de/images/3/3c/Typ-Icon_Kampf_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Flying::before { background: url("https://www.pokewiki.de/images/0/00/Typ-Icon_Flug_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Poison::before { background: url("https://www.pokewiki.de/images/b/b5/Typ-Icon_Gift_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Ground::before { background: url("https://www.pokewiki.de/images/c/cc/Typ-Icon_Boden_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Rock::before { background: url("https://www.pokewiki.de/images/0/0a/Typ-Icon_Gestein_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Bug::before { background: url("https://www.pokewiki.de/images/f/fd/Typ-Icon_K%C3%A4fer_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Ghost::before { background: url("https://www.pokewiki.de/images/c/c0/Typ-Icon_Geist_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Steel::before { background: url("https://www.pokewiki.de/images/2/2b/Typ-Icon_Stahl_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Fire::before { background: url("https://www.pokewiki.de/images/f/f0/Typ-Icon_Feuer_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Water::before { background: url("https://www.pokewiki.de/images/b/b6/Typ-Icon_Wasser_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Grass::before { background: url("https://www.pokewiki.de/images/8/82/Typ-Icon_Pflanze_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Electric::before { background: url("https://www.pokewiki.de/images/a/a9/Typ-Icon_Elektro_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Psychic::before { background: url("https://www.pokewiki.de/images/1/12/Typ-Icon_Psycho_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Ice::before { background: url("https://www.pokewiki.de/images/d/d8/Typ-Icon_Eis_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Dragon::before { background: url("https://www.pokewiki.de/images/6/6f/Typ-Icon_Drache_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Dark::before { background: url("https://www.pokewiki.de/images/5/58/Typ-Icon_Unlicht_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Fairy::before { background: url("https://www.pokewiki.de/images/6/6c/Typ-Icon_Fee_%28Symbol%29_PLA.png") center / contain no-repeat !important; }
+.btl-view .scrollable-battle-container .battle-controls .megaevo,
+.btl-view .scrollable-battle-container .battle-controls label.megaevo { background-size: 74% !important; }
+.btl-view .scrollable-battle-container .battle-controls {
+  top: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 640px !important;
+  height: 360px !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+  padding: 0 6px 4px var(--ctl-x) !important;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.btl-view .scrollable-battle-container .battle-controls .controls { display: contents !important; }
+.btl-view .scrollable-battle-container .battle-controls .controls > * {
+  pointer-events: auto; width: var(--ctl-w) !important; box-sizing: border-box;
+}
+.btl-view .scrollable-battle-container .battle-controls .movecontrols { position: relative !important; }
+.btl-view .scrollable-battle-container .battle-controls .whatdo {
+  position: static !important; width: 0 !important; height: 0 !important;
+  margin: 0 !important; padding: 0 !important; max-width: none !important;
+  font-size: 0 !important; line-height: 0 !important;
+  background: none !important; clip-path: none !important; overflow: visible !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .whatdo .timerbutton {
+  position: absolute !important; top: 2px !important; left: 4px !important; right: auto !important; bottom: auto !important;
+  width: auto !important; height: auto !important; margin: 0 !important; padding: 0 9px !important;
+  font-size: 7pt !important; line-height: 1.2 !important;
+  border-radius: calc(14px * var(--round)) calc(5px * var(--round)) calc(14px * var(--round)) calc(5px * var(--round)) !important; overflow: visible !important;
+  pointer-events: auto;
+}
+.btl-view .scrollable-battle-container .battle-controls .whatdo .timerbutton i,
+.btl-view .scrollable-battle-container .battle-controls .whatdo .timerbutton .fa { font-size: 7pt !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button {
+  grid-template-rows: 1fr !important;
+  align-items: center !important;
+  height: var(--move-h) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button br { display: none !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button::before {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  box-sizing: border-box !important;
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .35) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button strong { grid-column: 2 !important; grid-row: 1 !important; align-self: center !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button small.type { display: none !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button small.pp { grid-column: 3 !important; grid-row: 1 !important; align-self: center !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Normal::before { background-color: #a8a77a !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Fire::before { background-color: #ee6b2e !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Water::before { background-color: #4f8df5 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Electric::before { background-color: #f7d02c !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Grass::before { background-color: #5cc43c !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Ice::before { background-color: #6fd8e0 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Fighting::before { background-color: #c22e28 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Poison::before { background-color: #a33ea1 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Ground::before { background-color: #d9b24d !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Flying::before { background-color: #8f9fee !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Psychic::before { background-color: #f95587 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Bug::before { background-color: #a6b91a !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Rock::before { background-color: #b6a136 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Ghost::before { background-color: #735797 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Dragon::before { background-color: #6f35fc !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Dark::before { background-color: #6f5848 !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Steel::before { background-color: #b7b7ce !important; }
+.btl-view .scrollable-battle-container .battle-controls .movemenu button.type-Fairy::before { background-color: #f08ccc !important; }
+.btl-view .scrollable-battle-container .battle-controls .megaevo,
+.btl-view .scrollable-battle-container .battle-controls label.megaevo {
+  top: auto !important;
+}
+.btl-view .ps-room .battle .statbar {
+  clip-path: none !important;
+  border-radius: calc(14px * var(--round)) !important;
+  border: 3px solid hsl(calc(var(--hue) + 1) calc(100% * var(--sat)) 89.2%) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .35), 0 6px 12px rgba(0, 0, 0, .22) !important;
+  padding: 1px 10px 2px 12px !important;
+  transform: skewX(var(--skew));
+}
+.btl-view .ps-room .battle .statbar.rstatbar {
+  border-color: var(--lime) !important;
+  background: var(--hatch), linear-gradient(180deg, hsl(var(--hue) calc(86.9% * var(--sat)) 70%), hsl(calc(var(--hue) - 2) calc(57.8% * var(--sat)) 43.7%)) !important;
+}
+.btl-view .ps-room .battle .statbar.lstatbar {
+  border-color: hsl(calc(var(--foe-hue) - 4) calc(100% * var(--sat)) 85.1%) !important;
+  background: var(--hatch), linear-gradient(180deg, hsl(calc(var(--foe-hue) - 3) calc(86.8% * var(--sat)) 61.4%), hsl(calc(var(--foe-hue) - 8) calc(77% * var(--sat)) 34.1%)) !important;
+  transform: translateX(20px) skewX(var(--skew));
+}
+.btl-view .ps-room .battle .statbar.lstatbar ~ .statbar.lstatbar {
+  transform: translateX(-20px) skewX(var(--skew));
+}
+.btl-view .ps-room .battle .statbar strong { font-size: 9pt !important; }
+.btl-view .ps-room .battle .statbar .hpbar {
+  height: var(--hp-h) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .prevhp,
+.btl-view .ps-room .battle .statbar .hpbar .hpbar-bg {
+  transform: none !important;
+  height: var(--hp-h) !important;
+  border-radius: 999px !important;
+  background: hsl(var(--hue) calc(73.9% * var(--sat)) 9% / .72) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .4) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hp {
+  border-radius: 999px !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), inset 0 -2px 0 rgba(0, 0, 0, .15) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hptext,
+.btl-view .ps-room .battle .statbar .hpbar .hptextborder {
+  font-weight: 800 !important;
+  font-style: italic !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar {
+  max-width: none !important;
+  margin: 3px 0 0 0 !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .prevhp,
+.btl-view .ps-room .battle .statbar .hpbar .hpbar-bg { width: 100% !important; }
+.btl-view .ps-room .battle .statbar .hpbar .hptext,
+.btl-view .ps-room .battle .statbar .hpbar .hptextborder {
+  right: -34px !important; width: 32px !important; top: -4px !important; font-size: 9pt !important;
+}
+.btl-view .ps-room .battle-controls button[name*="lose"],
+.btl-view .ps-room .battle-controls :is(div, p):has(> button[name*="lose"]:only-child) { display: none !important; }
+.btl-view .scrollable-battle-container .battle-controls { position: absolute !important; z-index: 200 !important; }
+.btl-view .scrollable-battle-container .battle-controls .controls > *,
+.btl-view .scrollable-battle-container .battle-controls .whatdo,
+.btl-view .scrollable-battle-container .battle-controls .movecontrols,
+.btl-view .scrollable-battle-container .battle-controls .switchcontrols,
+.btl-view .scrollable-battle-container .battle-controls button,
+.btl-view .scrollable-battle-container .battle-controls a,
+.btl-view .scrollable-battle-container .battle-controls label,
+.btl-view .scrollable-battle-container .battle-controls input { pointer-events: auto !important; }
+.btl-view .ps-room .battle .statbar .hpbar .hp,
+.btl-view .ps-room .battle .statbar .hpbar .prevhp .hp {
+  max-width: calc(var(--bar-w) - 58px) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .prevhp { overflow: hidden !important; position: relative; }
+.btl-view .ps-room .battle .statbar .hpbar > .hp { position: absolute !important; left: 0; top: 0; }
+.btl-view .scrollable-battle-container .battle-controls :is(button[name="skipTurn"], button:has(.fa-fast-forward)) {
+  position: absolute !important; top: 2px !important; left: 98px !important; right: auto !important; bottom: auto !important;
+  width: auto !important; height: auto !important; margin: 0 !important;
+  padding: 1px 10px !important;
+  display: flex !important; flex-direction: row !important; align-items: center; gap: 4px;
+  font-size: 7pt !important; line-height: 1.2 !important;
+  border-radius: calc(14px * var(--round)) calc(5px * var(--round)) calc(14px * var(--round)) calc(5px * var(--round)) !important;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.btl-view .scrollable-battle-container .battle-controls :is(button[name="skipTurn"], button:has(.fa-fast-forward)) i,
+.btl-view .scrollable-battle-container .battle-controls :is(button[name="skipTurn"], button:has(.fa-fast-forward)) .fa { font-size: 8pt !important; }
+.btl-view .scrollable-battle-container .battle-controls .controls > :is(p, div):has(> button[name="skipTurn"]) {
+  height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar { width: calc(150px * var(--hpzoom)) !important; }
+.btl-view .ps-room .battle .statbar .hpbar .hp,
+.btl-view .ps-room .battle .statbar .hpbar .prevhp .hp,
+.btl-view .ps-room .battle .statbar .hpbar > .hp {
+  zoom: var(--hpzoom) !important;
+  max-width: none !important;
+  min-width: calc(2.5px / var(--hpzoom)) !important;
+  height: calc(var(--hp-h) / var(--hpzoom)) !important;
+  background: linear-gradient(180deg, var(--hp-green-1), var(--hp-green-2)) !important;
+  box-shadow: inset 0 calc(2px / var(--hpzoom)) 0 rgba(255, 255, 255, .5) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hp.hp-yellow { background: linear-gradient(180deg, var(--hp-yellow-1), var(--hp-yellow-2)) !important; }
+.btl-view .ps-room .battle .statbar .hpbar .hp.hp-red { background: linear-gradient(180deg, var(--hp-red-1), var(--hp-red-2)) !important; }
+.btl-view .scrollable-battle-container .battle-controls .controls button[name="chooseMoveTarget"]:not([value^="-"]) {
+  background: var(--hatch), linear-gradient(180deg, hsl(calc(var(--foe-hue) - 3) calc(86.8% * var(--sat)) 61.4%), hsl(calc(var(--foe-hue) - 8) calc(77% * var(--sat)) 34.1%)) !important;
+  border-color: hsl(calc(var(--foe-hue) - 4) calc(100% * var(--sat)) 85.1%) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .controls button[name="chooseMoveTarget"]:not([value^="-"]):hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(calc(var(--foe-hue) - 4) calc(100% * var(--sat)) 73.9%), hsl(calc(var(--foe-hue) - 2) calc(75.2% * var(--sat)) 51%)) !important;
+  border-color: #fff !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button {
+  grid-template-columns: 22px 1fr auto !important;
+  column-gap: 7px !important;
+  padding: 0 10px 0 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button::before {
+  width: 19px !important;
+  height: 19px !important;
+  align-self: center !important;
+  justify-self: center !important;
+  margin: 0 !important;
+  background-position: center center !important;
+  background-size: 68% !important;
+  transform: translateY(var(--icon-nudge)) !important;
+}
+.btl-view .turn { transform: translate(var(--turn-x), 12px) !important; }
+.btl-view .scrollable-battle-container .battle-controls :is(button[name*="imer"], button:has([class*="fa-hourglass"])) {
+  position: absolute !important; top: 2px !important; left: 4px !important; right: auto !important; bottom: auto !important;
+  width: auto !important; height: auto !important; margin: 0 !important; padding: 0 9px !important;
+  display: flex !important; flex-direction: row !important; align-items: center; gap: 4px;
+  font-size: 7pt !important; line-height: 1.2 !important;
+  border-radius: calc(14px * var(--round)) calc(5px * var(--round)) calc(14px * var(--round)) calc(5px * var(--round)) !important;
+  white-space: nowrap; pointer-events: auto;
+}
+.btl-view .scrollable-battle-container .battle-controls :is(button[name*="imer"], button:has([class*="fa-hourglass"])) i,
+.btl-view .scrollable-battle-container .battle-controls :is(button[name*="imer"], button:has([class*="fa-hourglass"])) .fa { font-size: 7pt !important; }
+.btl-view .scrollable-battle-container {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  overscroll-behavior: none;
+}
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button[name="chooseMoveTarget"]:not([value^="-"]),
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button[data-cmd*="move"]:not([data-cmd$=" -1"]):not([data-cmd$=" -2"]):not([data-cmd$=" -3"]),
+.btl-view .scrollable-battle-container .battle-controls .switchcontrols button[data-cmd*="move"]:not([data-cmd$=" -1"]):not([data-cmd$=" -2"]):not([data-cmd$=" -3"]) {
+  background: var(--hatch), linear-gradient(180deg, hsl(calc(var(--foe-hue) - 3) calc(86.8% * var(--sat)) 61.4%), hsl(calc(var(--foe-hue) - 8) calc(77% * var(--sat)) 34.1%)) !important;
+  border-color: hsl(calc(var(--foe-hue) - 4) calc(100% * var(--sat)) 85.1%) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button[name="chooseMoveTarget"]:not([value^="-"]):hover:not(:disabled),
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button[data-cmd*="move"]:not([data-cmd$=" -1"]):not([data-cmd$=" -2"]):not([data-cmd$=" -3"]):hover:not(:disabled),
+.btl-view .scrollable-battle-container .battle-controls .switchcontrols button[data-cmd*="move"]:not([data-cmd$=" -1"]):not([data-cmd$=" -2"]):not([data-cmd$=" -3"]):hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(calc(var(--foe-hue) - 4) calc(100% * var(--sat)) 73.9%), hsl(calc(var(--foe-hue) - 2) calc(75.2% * var(--sat)) 51%)) !important;
+  border-color: #fff !important;
+}
+.btl-view .scrollable-battle-container .battle-controls button:has(.fa-chevron-left) { transform: translateY(-9px); }
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)) {
+  padding-left: calc(var(--ctl-x) - var(--tile-menu-shift)) !important;
+}
+.btl-view .ps-room:has(.scrollable-battle-container) .battle-log {
+  font-size: clamp(8pt, calc((100vw - 640px * var(--battle-scale)) / 28), var(--log-font-max)) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) {
+  padding-bottom: var(--row-reserve) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)) .switchmenu:has(button:nth-of-type(6)) {
+  position: absolute !important;
+  left: calc(var(--ctl-x) - var(--tile-menu-shift)) !important;
+  bottom: 4px !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .movemenu button strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.btl-view .scrollable-battle-container .battle-controls {
+  align-items: stretch !important;
+}
+.btl-view .ps-room .battle img[src*="-back"] {
+  margin-top: calc(-1 * var(--own-up)) !important;
+}
+.btl-view .ps-room .battle .messagebar,
+.btl-view .ps-room .battle .message {
+  z-index: 5;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) {
+  padding-left: calc(640px - var(--row-w) - 6px) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu:has(button:nth-of-type(6)) {
+  left: auto !important;
+  right: 3px !important;
+  width: var(--row-w) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu:not(:has(button:nth-of-type(6))) {
+  width: var(--row-w) !important;
+  margin: 0 0 3px 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu:not(:has(button:nth-of-type(6))) button {
+  height: 36px !important;
+  min-height: 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu { gap: 5px !important; }
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu button {
+  height: 36px !important;
+  border: 2px solid var(--lav, hsl(calc(var(--hue) + 1) calc(100% * var(--sat)) 84.1%)) !important;
+  border-radius: calc(14px * var(--round)) calc(6px * var(--round)) calc(14px * var(--round)) calc(6px * var(--round)) !important;
+  background: var(--hatch), linear-gradient(180deg, hsl(var(--hue) calc(81.7% * var(--sat)) 67.8%), hsl(calc(var(--hue) - 2) calc(57.6% * var(--sat)) 38.8%)) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .4) !important;
+  transform: skewX(-10deg);
+  transition: filter .08s ease;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu button:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5%)) !important;
+  border-color: #fff !important;
+  filter: brightness(1.04);
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu button:disabled,
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu button.disabled {
+  filter: grayscale(.8);
+  opacity: .5;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu button .picon {
+  zoom: .72 !important;
+  transform: skewX(10deg);
+  flex: none !important;
+  margin: 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu)):has(.switchmenu button:nth-of-type(6)) .switchmenu button {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  overflow: visible;
+}
+.btl-view .scrollable-battle-container .battle-controls {
+  padding-right: 10px !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px !important;
+  width: 100% !important;
+  margin-top: 4px !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu button {
+  flex: none !important;
+  width: auto !important; min-width: 0 !important;
+  height: var(--tile-h) !important;
+  padding: 0 !important;
+  display: flex !important; align-items: center; justify-content: center;
+  border: 2px solid hsl(calc(var(--hue) + 1) calc(100% * var(--sat)) 84.1%) !important;
+  border-radius: calc(14px * var(--round)) calc(6px * var(--round)) calc(14px * var(--round)) calc(6px * var(--round)) !important;
+  background: var(--hatch), linear-gradient(180deg, hsl(var(--hue) calc(81.7% * var(--sat)) 67.8%), hsl(calc(var(--hue) - 2) calc(57.6% * var(--sat)) 38.8%)) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .4) !important;
+  transform: skewX(-10deg);
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu button:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), hsl(calc(var(--accent-hue) + 2) calc(88.3% * var(--sat)) 56.5%)) !important;
+  border-color: #fff !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu button:disabled,
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu button.disabled { filter: grayscale(.8); opacity: .5; }
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu button .picon {
+  zoom: .62 !important;
+  transform: skewX(10deg);
+  flex: none !important;
+  margin: 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls .megaevo,
+.btl-view .scrollable-battle-container .battle-controls label.megaevo { bottom: -34px !important; }
+.btl-view .ps-room .battle { --ar-sky1: #1d2230; --ar-sky2: #4b5873; --ar-floor1: #8892a8; --ar-floor2: #3e475c; --ar-line: #ffffff; --ar-a1: #ffcc00; --ar-a2: #ffffff; --ar-glow: #cfd8ff; }
+.btl-view .ps-room .battle {
+  background-color: var(--ar-sky1) !important;
+  background-repeat: no-repeat !important;
+  background-image:
+    radial-gradient(ellipse 38% 13% at 50% 64%, transparent 0 78%, color-mix(in srgb, var(--ar-line) 45%, transparent) 79% 83%, transparent 84%),
+    radial-gradient(ellipse 13% 4.5% at 50% 64%, transparent 0 70%, rgba(255, 255, 255, .24) 71% 77%, transparent 78%),
+    linear-gradient(180deg, transparent calc(var(--horizon) - 2px), color-mix(in srgb, var(--ar-line) 65%, transparent) calc(var(--horizon) - 2px) calc(var(--horizon) + 1px), transparent calc(var(--horizon) + 1px)),
+    linear-gradient(180deg, var(--ar-floor1) 0%, var(--ar-floor2) 100%),
+    linear-gradient(115deg, transparent 22%, color-mix(in srgb, var(--ar-a1) 20%, transparent) 22% 28%, transparent 28% 32%, color-mix(in srgb, var(--ar-a2) 13%, transparent) 32% 34%, transparent 34%),
+    radial-gradient(60% 90% at 50% 0%, color-mix(in srgb, var(--ar-glow) 55%, transparent), transparent 72%),
+    linear-gradient(180deg, var(--ar-sky1) 0%, var(--ar-sky2) 100%) !important;
+  background-size:
+    100% 100%, 100% 100%, 100% 100%,
+    100% calc(100% - var(--horizon)),
+    100% 100%,
+    100% var(--horizon), 100% var(--horizon) !important;
+  background-position:
+    0 0, 0 0, 0 0,
+    0 100%,
+    0 0,
+    0 0, 0 0 !important;
+}
+.btl-view .ps-room .battle .weather {
+  transform: translate(-110px, var(--weather-dy)) !important;
+}
+.btl-view .ps-room .battle .weather em {
+  font-size: 12pt !important;
+  font-style: italic !important;
+  font-weight: 800 !important;
+  color: hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%) !important;
+  text-shadow: 0 0 3px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5% / .95), 1px 1px 2px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5% / .95), -1px -1px 2px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5% / .95) !important;
+}
+.btl-view .ps-room .battle .weather small,
+.btl-view .ps-room .battle .weather em small,
+.btl-view .ps-room .battle .weather > * small {
+  font-size: 9pt !important;
+  font-weight: 600 !important;
+  font-style: normal !important;
+  color: hsl(calc(var(--hue) + 6) calc(100% * var(--sat)) 93.7%) !important;
+  text-shadow: 0 0 3px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5% / .95), 1px 1px 2px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5% / .95) !important;
+}
+.btl-view .ps-room .battle .statbar .status {
+  padding: 0 !important;
+  font-size: 7pt !important;
+  line-height: 1.2;
+}
+.btl-view .ps-room .battle .statbar .status:not(:has(*)) {
+  display: none !important;
+}
+.btl-view .ps-room .battle .statbar .status > * {
+  border-radius: 999px !important;
+}
+.btl-view .ps-room .battle .statbar {
+  height: var(--statbar-h) !important;
+  min-height: 0 !important;
+}
+.btl-view .ps-room .battle .statbar .status {
+  position: absolute !important;
+  left: calc(100% + 6px) !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) skewX(calc(var(--skew) * -1)) !important;
+  white-space: nowrap;
+  right: auto !important;
+  margin: 0 !important;
+  z-index: 6;
+}
+.btl-view .ps-room .battle .statbar.lstatbar .status {
+  left: 10px !important;
+  transform: skewX(calc(var(--skew) * -1)) !important;
+  transform-origin: top left;
+}
+.btl-view .ps-room .battle .statbar .status {
+  max-height: none !important;
+  grid-auto-flow: row !important;
+  grid-template-rows: none !important;
+  align-items: center;
+}
+.btl-view .ps-room .battle .statbar.rstatbar .status {
+  left: 14px !important;
+}
+.btl-view .ps-room .battle .statbar .status {
+  grid-template-columns: repeat(3, max-content) !important;
+  justify-content: start !important;
+  justify-items: start !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-content: flex-start !important;
+  gap: 2px 3px !important;
+  width: calc(var(--badge-w) * 3 + 6px) !important;
+  height: var(--badge-h) !important;
+  min-height: 0 !important;
+}
+.btl-view .ps-room .battle .statbar.rstatbar .status {
+  flex-wrap: wrap-reverse !important;
+}
+.btl-view .ps-room .battle .statbar .status > * {
+  flex: 0 0 var(--badge-w) !important;
+  width: var(--badge-w) !important;
+  height: var(--badge-h) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 6.5pt !important;
+  line-height: 1 !important;
+}
+.btl-view .ps-room .battle .statbar.rstatbar .status {
+  top: auto !important;
+  bottom: calc(var(--statbar-offset) + var(--badge-lift)) !important;
+  transform: skewX(calc(var(--skew) * -1)) !important;
+  transform-origin: left bottom;
+}
+.btl-view .ps-room .battle .statbar.lstatbar .status {
+  bottom: auto !important;
+  top: calc(100% + var(--foe-gap)) !important;
+}
+.btl-view .ps-room .battle .messagebar,
+.btl-view .ps-room .battle .message {
+  pointer-events: none;
+  background: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  clip-path: none !important;
+  top: auto !important;
+  max-width: none !important;
+  padding: 0 !important;
+  color: #fff !important;
+  font-size: 10pt !important;
+  font-style: italic !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  text-shadow: 0 0 4px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%), 1px 1px 3px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%), -1px -1px 3px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%), 0 2px 6px hsl(calc(var(--hue) - 1) calc(64.9% * var(--sat)) 14.5%) !important;
+}
+.btl-view .ps-room .battle .messagebar *,
+.btl-view .ps-room .battle .message * {
+  background: none !important;
+  font-size: inherit !important;
+  color: inherit !important;
+  text-shadow: inherit !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) {
+  padding-left: calc(640px - var(--end-w) - 8px) !important;
+  padding-right: 8px !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-content: flex-end !important;
+  align-items: stretch !important;
+  gap: 4px !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) {
+  position: static !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  line-height: 1.15 !important;
+  text-align: center;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) i,
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) .fa { font-size: 8.5pt !important; margin-right: 4px; }
+.btl-view .ps-room .battle .messagebar,
+.btl-view .ps-room .battle .message {
+  left: var(--msg-left) !important;
+  right: auto !important;
+  bottom: var(--msg-bottom) !important;
+  width: var(--msg-w) !important;
+  text-align: left !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) .controls > :not(button),
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) > :not(button) {
+  display: contents !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 3px 10px !important;
+  font-size: 8pt !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) i,
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) .fa,
+.btl-view .scrollable-battle-container .battle-controls:not(:has(.movemenu, .switchmenu)) :is(button, a.button):not(:has([class*="fa-hourglass"], .fa-fast-forward)) svg {
+  display: inline-block !important;
+  margin: 0 !important;
+  font-size: 8pt !important;
+}
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar {
+  transform: skewX(var(--skew)) !important;
+}
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar[style*="left: 2"],
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar[style*="left:2"] {
+  transform: translateX(-20px) skewX(var(--skew)) !important;
+}
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar[style*="left: 3"],
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar[style*="left: 4"],
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar[style*="left:3"],
+.btl-view .ps-room.ps-room .battle.battle .statbar.lstatbar[style*="left:4"] {
+  transform: translateX(20px) skewX(var(--skew)) !important;
+}
+.btl-view .ps-room:has(.scrollable-battle-container),
+.btl-view .ps-room:has(.scrollable-battle-container) .battle-log,
+.btl-view .ps-room:has(.scrollable-battle-container) .battle-log .inner {
+  overflow-x: hidden !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hp {
+  transition: width var(--hp-anim) ease-out, filter .3s ease;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hp.hp-red {
+  animation: hp-pulse var(--pulse-speed) ease-in-out infinite;
+}
+.btl-view .ps-room .battle .statbar:has(.hp-red) {
+  animation: bar-alert var(--pulse-speed) ease-in-out infinite;
+}
+.btl-view .ps-room .battle .statbar:has(img[alt^="Tera-"]) {
+  animation: tera-glow calc(3s * var(--fx, 1)) linear infinite;
+}
+.btl-view .ps-room .battle .statbar:has(.hp-red):has(img[alt^="Tera-"]) {
+  animation: bar-alert var(--pulse-speed) ease-in-out infinite, tera-glow calc(3s * var(--fx, 1)) linear infinite;
+}
+.btl-view .ps-room .battle:has(.weather[class*="weather"])::after,
+.btl-view .ps-room .battle:has(.weather[class*="terrain"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.btl-view .ps-room .battle:has(.weather.raindanceweather)::after,
+.btl-view .ps-room .battle:has(.weather.primordialseaweather)::after {
+  background-image:
+    radial-gradient(ellipse 1px 24px at 50% 50%, rgba(200, 225, 255, .55), transparent),
+    radial-gradient(ellipse 1px 30px at 50% 50%, rgba(200, 225, 255, .40), transparent),
+    radial-gradient(ellipse 1px 18px at 50% 50%, rgba(200, 225, 255, .50), transparent);
+  background-size: 37px 90px, 53px 130px, 71px 70px;
+  animation: fx-rain .45s linear infinite;
+  opacity: var(--weather-fx);
+}
+.btl-view .ps-room .battle:has(.weather.primordialseaweather)::after {
+  background-color: rgba(30, 90, 200, .18);
+}
+.btl-view .ps-room .battle:has(.weather.sunnydayweather)::after {
+  background-image:
+    radial-gradient(circle at 88% -5%, rgba(255, 200, 90, .65), transparent 55%),
+    linear-gradient(180deg, rgba(255, 170, 50, .20), rgba(255, 110, 0, .10));
+  mix-blend-mode: screen;
+  animation: fx-sun 3.5s ease-in-out infinite alternate;
+  opacity: var(--weather-fx);
+}
+.btl-view .ps-room .battle:has(.weather.desolatelandweather)::after {
+  background-image:
+    radial-gradient(circle at 50% 110%, rgba(255, 70, 20, .55), transparent 60%),
+    linear-gradient(180deg, rgba(255, 60, 20, .18), rgba(120, 10, 0, .22));
+  mix-blend-mode: screen;
+  animation: fx-heat 2.2s ease-in-out infinite alternate;
+  opacity: var(--weather-fx);
+}
+.btl-view .ps-room .battle:has(.weather.sandstormweather)::after {
+  background-color: rgba(205, 150, 70, .20);
+  background-image:
+    radial-gradient(ellipse 30px 1px at 50% 50%, rgba(240, 205, 140, .55), transparent),
+    radial-gradient(ellipse 44px 1px at 50% 50%, rgba(240, 205, 140, .40), transparent),
+    linear-gradient(90deg, rgba(220, 170, 90, .10), rgba(220, 170, 90, .0));
+  background-size: 160px 41px, 240px 67px, 100% 100%;
+  animation: fx-sand .9s linear infinite;
+  opacity: var(--weather-fx);
+}
+.btl-view .ps-room .battle:has(.weather.snowweather)::after,
+.btl-view .ps-room .battle:has(.weather.hailweather)::after {
+  background-image:
+    radial-gradient(circle 2px at 50% 50%, rgba(255, 255, 255, .85), transparent),
+    radial-gradient(circle 3px at 50% 50%, rgba(235, 245, 255, .75), transparent),
+    radial-gradient(circle 1.5px at 50% 50%, rgba(255, 255, 255, .9), transparent);
+  background-size: 47px 61px, 83px 97px, 131px 113px;
+  animation: fx-snow 2.4s linear infinite;
+  opacity: var(--weather-fx);
+}
+.btl-view .ps-room .battle:has(.weather.hailweather)::after {
+  background-color: rgba(140, 190, 230, .12);
+  animation-duration: 1s;
+}
+.btl-view .ps-room .battle:has(.weather.deltastreamweather)::after {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(160, 255, 200, .30), transparent),
+    linear-gradient(90deg, transparent, rgba(160, 255, 200, .20), transparent);
+  background-size: 300px 3px, 420px 5px;
+  background-position: 0 30%, 0 65%;
+  background-repeat: repeat-x;
+  animation: fx-wind 1.4s linear infinite;
+  opacity: var(--weather-fx);
+}
+.btl-view .ps-room .battle:has(.weather.electricterrainweather)::before,
+.btl-view .ps-room .battle:has(.weather.grassyterrainweather)::before,
+.btl-view .ps-room .battle:has(.weather.mistyterrainweather)::before,
+.btl-view .ps-room .battle:has(.weather.psychicterrainweather)::before {
+  top: var(--horizon);
+  animation: fx-terrain 2.4s ease-in-out infinite alternate;
+  opacity: var(--terrain-fx);
+}
+.btl-view .ps-room .battle:has(.weather.electricterrainweather)::before {
+  background-image:
+    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(255, 235, 80, .30), transparent),
+    linear-gradient(180deg, rgba(255, 230, 60, .04), rgba(255, 220, 40, .24));
+}
+.btl-view .ps-room .battle:has(.weather.grassyterrainweather)::before {
+  background-image:
+    radial-gradient(ellipse 60% 45% at 50% 100%, rgba(110, 230, 80, .28), transparent),
+    linear-gradient(180deg, rgba(90, 210, 80, .04), rgba(60, 190, 60, .26));
+}
+.btl-view .ps-room .battle:has(.weather.mistyterrainweather)::before {
+  background-image:
+    radial-gradient(ellipse 55% 45% at 30% 70%, rgba(255, 170, 230, .62), transparent),
+    radial-gradient(ellipse 55% 45% at 75% 55%, rgba(255, 200, 245, .55), transparent),
+    linear-gradient(180deg, rgba(255, 180, 230, .10), rgba(255, 170, 225, .42));
+}
+.btl-view .ps-room .battle:has(.weather.psychicterrainweather)::before {
+  background-image:
+    radial-gradient(ellipse 60% 45% at 50% 100%, rgba(255, 90, 200, .38), transparent),
+    linear-gradient(180deg, rgba(220, 70, 190, .05), rgba(200, 60, 180, .28));
+}
+.btl-view .buttonmenu {
+  border: 2px solid var(--line) !important;
+  border-radius: calc(14px * var(--round)) !important;
+  background: rgba(255, 255, 255, .04) !important;
+}
+.btl-view .buttonmenu legend {
+  padding: 0 8px;
+  color: var(--lime) !important;
+  font-style: italic;
+  font-weight: 800;
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]) {
+  --tera-c: #9fa19f;
+  overflow: visible !important;
+  left: -38px !important;
+  width: 30px !important;
+  height: 36px !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(50% 0, 60% 12%, 78% 20.5%, 100% 20.5%, 90.4% 40.5%, 90.4% 59.7%, 100% 79.6%, 78% 79.6%, 60% 88%, 50% 100%, 40% 88%, 22% 79.6%, 0 79.6%, 9.7% 59.7%, 9.7% 40.5%, 0 20.5%, 22% 20.5%, 40% 12%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, .18) 100%),
+    var(--tera-c);
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"])::after {
+  content: "";
+  position: absolute;
+  inset: 24% 20% 28%;
+  pointer-events: none;
+  background: center / contain no-repeat;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35));
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(input:checked) {
+  filter: drop-shadow(0 0 3px var(--lime)) drop-shadow(0 0 2px var(--lime));
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]) .typeicon { display: none !important; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Rock) { --tera-c: #AFA981; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Rock)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Rock.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Electric) { --tera-c: #FAC000; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Electric)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Electric.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Ice) { --tera-c: #3DCEF3; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Ice)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Ice.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Fighting) { --tera-c: #FF8000; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Fighting)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Fighting.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Dark) { --tera-c: #624D4E; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Dark)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Dark.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Ground) { --tera-c: #915121; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Ground)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Ground.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Fire) { --tera-c: #E62829; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Fire)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Fire.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Poison) { --tera-c: #9141CB; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Poison)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Poison.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Fairy) { --tera-c: #EF70EF; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Fairy)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Fairy.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Water) { --tera-c: #2980EF; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Water)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Water.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Psychic) { --tera-c: #EF4179; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Psychic)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Psychic.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Flying) { --tera-c: #81B9EF; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Flying)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Flying.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Dragon) { --tera-c: #5060E1; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Dragon)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Dragon.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Normal) { --tera-c: #9FA19F; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Normal)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Normal.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Steel) { --tera-c: #60A1B8; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Steel)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Steel.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Ghost) { --tera-c: #704170; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Ghost)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Ghost.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Grass) { --tera-c: #3FA129; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Grass)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Grass.png"); }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Bug) { --tera-c: #91A119; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="tera"]):has(.typeicon-Bug)::after { background-image: url("https://play.pokemonshowdown.com/sprites/typeicons/Bug.png"); }
+.btl-view .ps-room .battle:has(.statbar.lstatbar ~ .statbar.lstatbar) .statbar.lstatbar,
+.btl-view .ps-room .battle:has(.statbar.rstatbar ~ .statbar.rstatbar) .statbar.rstatbar {
+  scale: .86;
+  transform-origin: 0 50%;
+}
+.btl-view .scrollable-battle-container .battle-controls .switchmenu button { overflow: visible !important; }
+.btl-view .scrollable-battle-container .battle-controls .whatdo:has(> button[data-cmd="/cancel"]) > button[data-cmd="/cancel"],
+.btl-view .scrollable-battle-container .battle-controls .whatdo:has(> button[data-cmd="/cancel"]) > button[data-cmd="/cancelone"] {
+  position: absolute !important;
+  right: 8px !important;
+  left: auto !important;
+  top: auto !important;
+  width: var(--wait-w) !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 2px 8px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 8pt !important;
+  line-height: 1.2 !important;
+  transform: none !important;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.btl-view .scrollable-battle-container .battle-controls .whatdo:has(> button[data-cmd="/cancel"]) > button[data-cmd="/cancel"] { bottom: 40px !important; }
+.btl-view .scrollable-battle-container .battle-controls .whatdo:has(> button[data-cmd="/cancel"]) > button[data-cmd="/cancelone"] { bottom: 66px !important; }
+.btl-view .scrollable-battle-container .battle-controls .whatdo:has(> button[data-cmd="/cancel"]) > em {
+  position: absolute;
+  right: 8px;
+  bottom: 92px;
+  width: var(--wait-w);
+  text-align: center;
+  font-size: 7pt !important;
+  line-height: 1.2 !important;
+  color: var(--ink);
+  text-shadow: 0 0 3px #000, 1px 1px 2px #000;
+}
+.btl-view .scrollable-battle-container .battle-controls .inline-controls > .switchcontrols:not(:has(button[data-cmd^="/"])) { display: none !important; }
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="max"]) {
+  background: var(--img-ico1) center / 82% auto no-repeat, linear-gradient(180deg, var(--violet), var(--violet-d)) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="z"]) {
+  background: var(--img-ico2) center / 86% auto no-repeat, linear-gradient(180deg, var(--violet), var(--violet-d)) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="max"]):has(input:checked) {
+  background: var(--img-ico1) center / 82% auto no-repeat, linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime)) !important;
+}
+.btl-view .scrollable-battle-container .battle-controls label.megaevo:has(input[name="z"]):has(input:checked) {
+  background: var(--img-ico2) center / 86% auto no-repeat, linear-gradient(180deg, hsl(calc(var(--accent-hue) + 1) calc(100% * var(--sat)) 70.8%), var(--lime)) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hp:is([style^="width: 0px"], [style^="width:0px"], [style^="width: 0;"], [style^="width:0;"], [style^="width: 0%"], [style^="width:0%"]) {
+  display: none !important;
+  min-width: 0 !important;
+  width: 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .inline-controls,
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchcontrols {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  width: calc(100% + 11px) !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  margin: 4px 0 0 0 !important;
+}
+.btl-view .scrollable-battle-container .battle-controls:has(.movemenu) .switchmenu button {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+.btl-view .battle-controls .movemenu button.type-Normal { --tc: #a8a77a; }
+.btl-view .battle-controls .movemenu button.type-Fire { --tc: #ee6b2e; }
+.btl-view .battle-controls .movemenu button.type-Water { --tc: #4f8df5; }
+.btl-view .battle-controls .movemenu button.type-Electric { --tc: #f7d02c; }
+.btl-view .battle-controls .movemenu button.type-Grass { --tc: #5cc43c; }
+.btl-view .battle-controls .movemenu button.type-Ice { --tc: #6fd8e0; }
+.btl-view .battle-controls .movemenu button.type-Fighting { --tc: #c22e28; }
+.btl-view .battle-controls .movemenu button.type-Poison { --tc: #a33ea1; }
+.btl-view .battle-controls .movemenu button.type-Ground { --tc: #d9b24d; }
+.btl-view .battle-controls .movemenu button.type-Flying { --tc: #8f9fee; }
+.btl-view .battle-controls .movemenu button.type-Psychic { --tc: #f95587; }
+.btl-view .battle-controls .movemenu button.type-Bug { --tc: #a6b91a; }
+.btl-view .battle-controls .movemenu button.type-Rock { --tc: #b6a136; }
+.btl-view .battle-controls .movemenu button.type-Ghost { --tc: #735797; }
+.btl-view .battle-controls .movemenu button.type-Dragon { --tc: #6f35fc; }
+.btl-view .battle-controls .movemenu button.type-Dark { --tc: #6f5848; }
+.btl-view .battle-controls .movemenu button.type-Steel { --tc: #b7b7ce; }
+.btl-view .battle-controls .movemenu button.type-Fairy { --tc: #f08ccc; }
+.btl-view .battle-controls .movemenu button.type-Stellar { --tc: #3fc9b9; }
+.btl-view .battle-controls .movemenu button[class*="type-"]:not(:hover):not(.cur):not(:focus):not(:disabled) {
+  --f1: max(0, 1 - abs(var(--movetint, 0) - 1));
+  --f2: max(0, 1 - abs(var(--movetint, 0) - 2));
+  background:
+    var(--hatch),
+    linear-gradient(180deg, color-mix(in srgb, var(--tc, transparent) calc(100% * var(--f2)), transparent), color-mix(in srgb, color-mix(in srgb, var(--tc, transparent), black 28%) calc(100% * var(--f2)), transparent)),
+    linear-gradient(90deg, color-mix(in srgb, var(--tc, transparent) calc(70% * var(--f1)), transparent), transparent 70%),
+    linear-gradient(180deg, hsl(calc(var(--hue) + 2) calc(74.4% * var(--sat)) 61.8%), var(--violet-d)) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, calc(.55 * var(--f2))) !important;
+}
+.btl-view .ps-room .battle .statbar .hpbar .hptext,
+.btl-view .ps-room .battle .statbar .hpbar .hptextborder {
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .75), 0 0 4px rgba(0, 0, 0, .55) !important;
+}
+.btl-view .ps-room .battle:has(.weather.trickroomweather)::before,
+.btl-view .ps-room .battle:has(.weather.gravityweather)::before,
+.btl-view .ps-room .battle:has(.weather.magicroomweather)::before,
+.btl-view .ps-room .battle:has(.weather.wonderroomweather)::before {
+  top: var(--horizon);
+  animation: fx-terrain 2.4s ease-in-out infinite alternate;
+  opacity: var(--terrain-fx);
+  background-image:
+    radial-gradient(ellipse 60% 45% at 50% 100%, hsl(var(--accent-hue) calc(90% * var(--sat)) 60% / .30), transparent),
+    linear-gradient(180deg, hsl(var(--hue) calc(90% * var(--sat)) 60% / .04), hsl(var(--hue) calc(90% * var(--sat)) 60% / .24));
+}
+.btl-view .battle-log .inner { zoom: var(--chatsize, 1); }
+.btl-view .ps-room .battle:has(.weather.trickroomweather)::before {
+  background-image:
+    radial-gradient(ellipse 65% 50% at 50% 100%, hsl(var(--accent-hue) calc(90% * var(--sat)) 60% / .34), transparent),
+    repeating-linear-gradient(0deg, hsl(var(--accent-hue) calc(90% * var(--sat)) 75% / .22) 0 2px, transparent 2px 48px),
+    repeating-linear-gradient(90deg, hsl(var(--hue) calc(90% * var(--sat)) 75% / .20) 0 2px, transparent 2px 48px);
+  animation: fx-trickroom 3s linear infinite;
+  animation-duration: calc(3s * var(--fx, 1));
+  opacity: var(--terrain-fx);
+}
