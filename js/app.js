@@ -771,8 +771,9 @@
       '</div>' +
       '<div class="stats-wrap">' +
       '<table class="stats"><tr><th></th><th data-t="base"></th><th data-t="sp"></th><th data-t="value"></th><th data-t="stage"></th></tr>' + statRows + '</table>' +
-      '<div class="stats-foot"><span class="sp-total" id="' + p + 'spTotal"></span><span class="speed-final" id="' + p + 'speedFinal"></span></div>' +
+      '<div class="stats-foot"><span class="sp-total" id="' + p + 'spTotal"></span>' +
       '<button type="button" class="to-builder" id="' + p + 'toBuilder" data-t="tbSpToBuilder" data-tt="tbSpToBuilderTitle" disabled></button>' +
+      '<span class="speed-final" id="' + p + 'speedFinal"></span></div>' +
       '</div>' +
       '<div class="grid2">' +
       '<label class="cell"><span class="l" data-t="nature"></span><select data-kind="nature" id="' + p + 'nature">' + opt(natureList) + '</select></label>' +
