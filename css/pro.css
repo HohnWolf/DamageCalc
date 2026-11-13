@@ -152,10 +152,8 @@ html[data-ui-style="pro"] .start-inner { width: min(1100px, 100%); height: auto;
 html[data-ui-style="pro"] .sc-art { display: none !important; }
 /* Startlogo über der Übersicht; js/logo_egg.js tauscht es mit 1:8192 gegen das Shiny-Logo (Klasse is-shiny-logo). */
 html[data-ui-style="pro"] .start-logo {
-  display: block;
-  height: clamp(64px, 12vh, 100px);
-  width: auto;
-  margin: 0 0 12px;
+  /* in der Sidebar-Ansicht ausgeblendet, damit alle Tools ohne Scrollen sichtbar sind */
+  display: none;
 }
 html[data-ui-style="pro"] .pro-start-head { display: none; }
 .pro-start-head { display: none; }

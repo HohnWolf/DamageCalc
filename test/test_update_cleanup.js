@@ -2,7 +2,7 @@
 const fs = require('fs'), os = require('os'), path = require('path'), Module = require('module');
 const origLoad = Module._load;
 Module._load = function (req, ...a) {
-  if (req === 'electron') return { app: { getPath: () => os.tmpdir(), getVersion: () => '1.25.1', isPackaged: false, getAppPath: () => '.' }, ipcMain: {}, shell: {}, net: {} };
+  if (req === 'electron') return { app: { getPath: () => os.tmpdir(), getVersion: () => '1.26.0', isPackaged: false, getAppPath: () => '.' }, ipcMain: {}, shell: {}, net: {} };
   return origLoad.call(this, req, ...a);
 };
 const { cleanStale } = require('../electron/updater.js');
@@ -18,12 +18,12 @@ function make(ver) {
   return d;
 }
 let d = make('1.24.0');
-eq(cleanStale(d, '1.25.1'), true, 'installierte Version: aufgeraeumt');
+eq(cleanStale(d, '1.26.0'), true, 'installierte Version: aufgeraeumt');
 eq(fs.existsSync(path.join(d, 'pending')) || fs.existsSync(path.join(d, 'installer.exe')) || fs.existsSync(path.join(d, 'current.blockmap')), false, 'nichts mehr da');
-d = make('1.25.1');
-eq(cleanStale(d, '1.25.1'), true, 'gleiche Version: aufgeraeumt');
 d = make('1.26.0');
-eq(cleanStale(d, '1.25.1'), false, 'neueres Update bleibt');
+eq(cleanStale(d, '1.26.0'), true, 'gleiche Version: aufgeraeumt');
+d = make('1.26.1');
+eq(cleanStale(d, '1.26.0'), false, 'neueres Update bleibt');
 eq(fs.existsSync(path.join(d, 'installer.exe')), true, 'Installer des neueren Updates bleibt');
-eq(cleanStale(path.join(os.tmpdir(), 'rlupd-gibt-es-nicht'), '1.25.1'), false, 'fehlender Ordner');
+eq(cleanStale(path.join(os.tmpdir(), 'rlupd-gibt-es-nicht'), '1.26.0'), false, 'fehlender Ordner');
 process.exit(bad ? 1 : 0);
