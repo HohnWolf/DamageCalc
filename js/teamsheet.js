@@ -8,8 +8,12 @@
     de: { team: 'Teamsheet', player: 'Spieler', nature: 'Wesen', ability: 'Fähigkeit', item: 'Item', sp: 'SP' },
     en: { team: 'Team Sheet', player: 'Player', nature: 'Nature', ability: 'Ability', item: 'Item', sp: 'SP' }
   };
+  var PAL = {
+    light: { bg: '#ffffff', ink: K.ink, mute: K.mute, accent: '#c8372d', card: '#f5f5f2', line: '#d9d9d2', spr: '#e8e8e2', chip: K.chip, q: '#999' },
+    dark: { bg: '#15171c', ink: '#ecebe6', mute: '#a3a39c', accent: '#e5493d', card: '#21242b', line: '#383c46', spr: '#2c3039', chip: '#32363f', q: '#777' }
+  };
   var FF = '"Segoe UI",system-ui,Arial,sans-serif';
-  var modal = null, ctx = null, lang = 'de', showSp = false, token = 0, timer = 0;
+  var modal = null, ctx = null, lang = 'de', showSp = false, dark = false, token = 0, timer = 0;
 
   // names in a fixed language, independent of the app language
   function inLang(l, fn) { return A.withLang ? A.withLang(l, fn) : fn(); }
@@ -61,45 +65,45 @@
   function fit(c, txt, maxW, size, wt) { var s = size; for (;;) { c.font = wt + ' ' + s + 'px ' + FF; if (c.measureText(txt).width <= maxW || s <= 10) break; s--; } }
 
   async function drawSheet(mons, l, team, pl) {
-    var t = L[l], SC = 2, W = 1200, P = 30, CW = 560, CH = showSp ? 242 : 200, G = 20, HH = 80;
+    var t = L[l], K = dark ? PAL.dark : PAL.light, SC = 2, W = 1200, P = 30, CW = 560, CH = showSp ? 242 : 200, G = 20, HH = 80;
     var n = mons.length, rows = Math.max(1, Math.ceil(n / 2)), H = P + HH + rows * CH + (rows - 1) * G + P;
     var data = mons.map(function (m) { return monData(m, l); });
     var imgs = await Promise.all(data.map(function (d) { return loadSprite(d.shown); }));
     var cv = document.createElement('canvas'); cv.width = W * SC; cv.height = H * SC;
     var c = cv.getContext('2d'); c.scale(SC, SC); c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
-    c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H);
-    c.textBaseline = 'alphabetic'; c.fillStyle = '#1d1d1b'; c.textAlign = 'left';
+    c.fillStyle = K.bg; c.fillRect(0, 0, W, H);
+    c.textBaseline = 'alphabetic'; c.fillStyle = K.ink; c.textAlign = 'left';
     var title = t.team + (team ? ' – ' + team : '');
     fit(c, title, pl ? 760 : W - 2 * P, 36, 'bold'); c.fillText(title, P, P + 36);
-    if (pl) { c.fillStyle = '#6b6b66'; c.textAlign = 'right'; c.font = '20px ' + FF; c.fillText(t.player + ': ' + pl, W - P, P + 36); c.textAlign = 'left'; }
-    c.fillStyle = '#c8372d'; c.fillRect(P, P + 50, W - 2 * P, 3);
+    if (pl) { c.fillStyle = K.mute; c.textAlign = 'right'; c.font = '20px ' + FF; c.fillText(t.player + ': ' + pl, W - P, P + 36); c.textAlign = 'left'; }
+    c.fillStyle = K.accent; c.fillRect(P, P + 50, W - 2 * P, 3);
     data.forEach(function (tx, i) {
       var x = P + (i % 2) * (CW + G), y = P + HH + Math.floor(i / 2) * (CH + G);
-      rr(c, x, y, CW, CH, 14); c.fillStyle = '#f5f5f2'; c.fill(); c.strokeStyle = '#d9d9d2'; c.lineWidth = 1.5; c.stroke();
-      rr(c, x + 15, y + 20, 160, 160, 12); c.fillStyle = '#e8e8e2'; c.fill();
+      rr(c, x, y, CW, CH, 14); c.fillStyle = K.card; c.fill(); c.strokeStyle = K.line; c.lineWidth = 1.5; c.stroke();
+      rr(c, x + 15, y + 20, 160, 160, 12); c.fillStyle = K.spr; c.fill();
       var im = imgs[i];
       if (im) { var k = Math.min(150 / im.width, 150 / im.height, 1.6); var w = im.width * k, h = im.height * k; c.drawImage(im, x + 15 + (160 - w) / 2, y + 20 + (160 - h) / 2, w, h); }
-      else { c.fillStyle = '#999'; c.font = 'bold 48px ' + FF; c.textAlign = 'center'; c.fillText('?', x + 95, y + 112); c.textAlign = 'left'; }
+      else { c.fillStyle = K.q; c.font = 'bold 48px ' + FF; c.textAlign = 'center'; c.fillText('?', x + 95, y + 112); c.textAlign = 'left'; }
       if (showSp) {
         var sy = y + 200, sx = x + 15;
-        c.fillStyle = '#6b6b66'; c.font = 'bold 14px ' + FF; c.fillText(t.sp, sx, sy + 19); sx += 34;
+        c.fillStyle = K.mute; c.font = 'bold 14px ' + FF; c.fillText(t.sp, sx, sy + 19); sx += 34;
         if (!tx.sp.length) { c.font = '15px ' + FF; c.fillText('–', sx, sy + 19); }
         tx.sp.forEach(function (e) {
           var lab = e.k + ' ' + e.v; c.font = 'bold 14px ' + FF; var w = c.measureText(lab).width + 16;
-          rr(c, sx, sy, w, 26, 7); c.fillStyle = '#e8e6de'; c.fill(); c.fillStyle = '#1d1d1b'; c.fillText(lab, sx + 8, sy + 18); sx += w + 6;
+          rr(c, sx, sy, w, 26, 7); c.fillStyle = K.chip; c.fill(); c.fillStyle = K.ink; c.fillText(lab, sx + 8, sy + 18); sx += w + 6;
         });
       }
       var X = x + 195;
-      c.fillStyle = '#1d1d1b'; fit(c, tx.nm, 350, 26, 'bold'); c.fillText(tx.nm, X, y + 36);
-      c.fillStyle = '#6b6b66'; c.font = 'bold 16px ' + FF; c.fillText(t.nature, X, y + 64); c.fillText(t.ability, X, y + 88); c.fillText(t.item, X, y + 112);
-      c.fillStyle = '#1d1d1b';
+      c.fillStyle = K.ink; fit(c, tx.nm, 350, 26, 'bold'); c.fillText(tx.nm, X, y + 36);
+      c.fillStyle = K.mute; c.font = 'bold 16px ' + FF; c.fillText(t.nature, X, y + 64); c.fillText(t.ability, X, y + 88); c.fillText(t.item, X, y + 112);
+      c.fillStyle = K.ink;
       fit(c, tx.nat, 255, 17, 'normal'); c.fillText(tx.nat, X + 96, y + 64);
       fit(c, tx.ab, 255, 17, 'normal'); c.fillText(tx.ab, X + 96, y + 88);
       fit(c, tx.it, 255, 17, 'normal'); c.fillText(tx.it, X + 96, y + 112);
       tx.mv.forEach(function (v, j) {
         var cx = X + (j % 2) * 180, cy = y + 130 + Math.floor(j / 2) * 34;
-        rr(c, cx, cy, 170, 28, 7); c.fillStyle = '#e8e6de'; c.fill();
-        c.fillStyle = '#1d1d1b'; fit(c, v, 154, 15, 'normal'); c.fillText(v, cx + 8, cy + 19);
+        rr(c, cx, cy, 170, 28, 7); c.fillStyle = K.chip; c.fill();
+        c.fillStyle = K.ink; fit(c, v, 154, 15, 'normal'); c.fillText(v, cx + 8, cy + 19);
       });
     });
     return cv;
@@ -113,6 +117,7 @@
       '<input type="text" data-team spellcheck="false" placeholder="' + A.esc(de ? 'Teamname (optional)' : 'Team name (optional)') + '">' +
       '<input type="text" data-player spellcheck="false" placeholder="' + A.esc(de ? 'Spielername (optional)' : 'Player name (optional)') + '">' +
       '<label class="ts-chk"><input type="checkbox" data-sp> ' + A.esc(de ? 'SP anzeigen' : 'Show SP') + '</label>' +
+      '<label class="ts-chk"><input type="checkbox" data-dark> ' + A.esc(de ? 'Dark Mode' : 'Dark mode') + '</label>' +
       '<span class="ts-seg"><button data-l="de" class="on">Deutsch</button><button data-l="en">English</button><button data-l="both">' + A.esc(de ? 'Beide' : 'Both') + '</button></span>' +
       '</div><div class="ts-out" data-out></div></div>';
     document.body.appendChild(modal);
@@ -123,6 +128,7 @@
     modal.querySelector('[data-team]').addEventListener('input', refresh);
     modal.querySelector('[data-player]').addEventListener('input', refresh);
     modal.querySelector('[data-sp]').addEventListener('change', function (ev) { showSp = ev.target.checked; refresh(); });
+    modal.querySelector('[data-dark]').addEventListener('change', function (ev) { dark = ev.target.checked; refresh(); });
     modal.querySelector('.ts-seg').addEventListener('click', function (ev) {
       var b = ev.target.closest('button'); if (!b) return;
       lang = b.dataset.l;
