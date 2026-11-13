@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.25.1',
+      de: ['Teamsheet: Der Knopf im Teambuilder öffnet das Teamsheet wieder (in 1.25.0 war er durch einen Fehler tot).'],
+      en: ['Team sheet: the teambuilder button opens the team sheet again (it was dead in 1.25.0 because of a bug).'] },
     { v: '1.25.0',
       de: ['Damage Calc: Der Knopf „SP in Teambuilder übernehmen“ sitzt jetzt in der Zeile unter den Werten, zwischen SP-Summe und Initiative. Die Attacken passen wieder ins Fenster.', 'Teamsheet: Neues Häkchen „Dark Mode“ erstellt das Bild mit dunklem Hintergrund.'],
       en: ['Damage calc: the “Copy SPs to teambuilder” button now sits in the row under the stats, between the SP total and the speed. The moves fit the window again.', 'Team sheet: the new “Dark mode” checkbox draws the image on a dark background.'],

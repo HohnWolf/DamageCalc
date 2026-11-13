@@ -9,7 +9,7 @@
     en: { team: 'Team Sheet', player: 'Player', nature: 'Nature', ability: 'Ability', item: 'Item', sp: 'SP' }
   };
   var PAL = {
-    light: { bg: '#ffffff', ink: K.ink, mute: K.mute, accent: '#c8372d', card: '#f5f5f2', line: '#d9d9d2', spr: '#e8e8e2', chip: K.chip, q: '#999' },
+    light: { bg: '#ffffff', ink: '#1d1d1b', mute: '#6b6b66', accent: '#c8372d', card: '#f5f5f2', line: '#d9d9d2', spr: '#e8e8e2', chip: '#e8e6de', q: '#999' },
     dark: { bg: '#15171c', ink: '#ecebe6', mute: '#a3a39c', accent: '#e5493d', card: '#21242b', line: '#383c46', spr: '#2c3039', chip: '#32363f', q: '#777' }
   };
   var FF = '"Segoe UI",system-ui,Arial,sans-serif';
