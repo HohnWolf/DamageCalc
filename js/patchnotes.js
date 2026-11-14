@@ -9,55 +9,27 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
-    { v: '1.26.9',
-      de: [
-        'Randomizer: Items auf dem Feld (Itembälle und versteckte Items) jetzt auch für Generation 1 und 2; Attacken-Lehrer in Kristall (mit angepasstem Menü) lassen sich mischen.',
-        'Save-Editor: „Legal machen“ setzt jetzt auch Fundort und Fundlevel passend zu den Begegnungstabellen; Kampfpunkte der Kampf-Subway (Generation 5) bearbeitbar.'
-      ],
-      en: [
-        'Randomizer: field items (item balls and hidden items) are now available for generations 1 and 2; the move tutors in Crystal (with an updated menu) can be shuffled.',
-        'Save editor: “Make legal” now also sets a matching met location and met level based on the encounter tables; Battle Subway points (generation 5) are editable.'
-      ] },
-    { v: '1.26.8',
-      de: [
-        'Randomizer: Attacken-Lehrer von Omega Rubin und Alpha Saphir lassen sich jetzt mischen.'
-      ],
-      en: [
-        'Randomizer: the move tutors of Omega Ruby and Alpha Sapphire can now be shuffled.'
-      ] },
-    { v: '1.26.7',
-      de: [
-        'Randomizer: Neue Option „Rivale und Freunde behalten ihren Starter“ für Generation 3 bis 5 – Rivale, Freunde und Tag-Battle-Partner tragen ihren Starter durchs Spiel und entwickeln ihn nach Level (wie im Universal Pokémon Randomizer ZX).'
-      ],
-      en: [
-        'Randomizer: new option “Rival and friends keep their starter” for generations 3 to 5 – the rival, friends and tag-battle partners carry their starter through the game and evolve it by level (like the Universal Pokémon Randomizer ZX).'
-      ] },
-    { v: '1.26.6',
-      de: [
-        'Save-Editor: Ruhmeshalle für Generation 1 (Teams ansehen und löschen), Spielhallen-Münzen in Gold/Silber/Kristall und Kampfpunkte der Kampfzone in Smaragd bearbeitbar.'
-      ],
-      en: [
-        'Save editor: Hall of Fame for generation 1 (view and clear teams), Game Corner coins in Gold/Silver/Crystal and Battle Frontier points in Emerald are now editable.'
-      ] },
     { v: '1.26.5',
       de: [
-        'Randomizer Gen 3: Option „Nationaler Pokédex ab Spielbeginn“ (Rubin/Saphir, Smaragd, Feuerrot/Blattgrün); in Feuerrot/Blattgrün entwickeln sich Pokémon außerhalb von Kanto nicht mehr falsch, Deoxys und Mew gehorchen.',
-        'Randomizer Gen 6: Statische Begegnungen und Geschenke von X/Y und Omega Rubin/Alpha Saphir werden jetzt mit randomisiert (inkl. verknüpfter Einträge).'
+        'Save-Editor: Showdown-Text-Import/-Export für einzelne Pokémon (Gen 3-7), Geschlecht (♂/♀) und Form-Dropdown mit Namen, Fähigkeiten-Auswahl (Fähigkeit 1/2/Versteckte) für Gen 4-7 und Button „Legal machen“ (Attacken, EP/IP, Fähigkeit, Fundort und Fundlevel).',
+        'Save-Editor Game Boy (Gen 1/2): Schnell-Buttons (DVs 15, Stat-EP), .pk1/.pk2-Import/Export, Hex-Ansicht und Massenbearbeitung; Ruhmeshalle für Generation 1; Spielhallen-Münzen (Gold/Silber/Kristall), Kampfpunkte in Smaragd und der Kampf-Subway (Gen 5).',
+        'Randomizer: Eigene Starter-Auswahl für alle Generationen, Option „Rivale und Freunde behalten ihren Starter“ (Gen 3-5), Option „Nationaler Pokédex ab Spielbeginn“ und korrigierte Entwicklungen in Feuerrot/Blattgrün (Gen 3), Held-Items wilder Pokémon (Gen 4/5), HGSS-Gras-/Radio-/Schwarm-Level, Button „Im Nuzlocke-Rechner öffnen“.',
+        'Randomizer: Statische Begegnungen und Geschenke für X/Y und Omega Rubin/Alpha Saphir, Attacken-Lehrer in Omega Rubin/Alpha Saphir und Kristall, Feld-Items (Itembälle und versteckte Items) für Generation 1 und 2.',
+        'Fangrechner jetzt auch in der Android-App.'
       ],
       en: [
-        'Randomizer gen 3: new “National Pokédex from the start” option (Ruby/Sapphire, Emerald, FireRed/LeafGreen); in FireRed/LeafGreen Pokémon outside Kanto no longer evolve incorrectly, Deoxys and Mew obey.',
-        'Randomizer gen 6: static encounters and gifts of X/Y and Omega Ruby/Alpha Sapphire are now randomized too (including linked entries).'
+        'Save editor: Showdown text import/export for single Pokémon (gen 3-7), gender (♂/♀) and form dropdown with names, ability picker (ability 1/2/hidden) for gen 4-7 and a “Make legal” button (moves, EVs/IVs, ability, met location and level).',
+        'Save editor Game Boy (gen 1/2): quick buttons (DVs 15, stat exp), .pk1/.pk2 import/export, hex view and batch editing; Hall of Fame for generation 1; Game Corner coins (Gold/Silver/Crystal), Battle Frontier points in Emerald and Battle Subway points (gen 5).',
+        'Randomizer: custom starter picks for all generations, option “Rival and friends keep their starter” (gen 3-5), option “National Pokédex from the start” and fixed evolutions in FireRed/LeafGreen (gen 3), held items of wild Pokémon (gen 4/5), HGSS grass/radio/swarm levels, “Open in Nuzlocke calculator” button.',
+        'Randomizer: static encounters and gifts for X/Y and Omega Ruby/Alpha Sapphire, move tutors in Omega Ruby/Alpha Sapphire and Crystal, field items (item balls and hidden items) for generations 1 and 2.',
+        'The catch calculator is now available in the Android app too.'
       ] },
     { v: '1.26.4',
       de: [
-        'Save-Editor: Showdown-Text-Import/-Export für einzelne Pokémon (Gen 3-7), Geschlecht (♂/♀) und Form-Dropdown mit Namen, Fähigkeiten-Auswahl (Fähigkeit 1/2/Versteckte) für Gen 4-7, Button „Legal machen“.',
-        'Save-Editor Game Boy (Gen 1/2): Schnell-Buttons (DVs 15, Stat-EP), .pk1/.pk2-Import/Export, Hex-Ansicht und Massenbearbeitung.',
-        'Randomizer: Eigene Starter-Auswahl für alle Generationen, gehaltene Items wilder Pokémon (Gen 4/5), HGSS-Gras-/Radio-/Schwarm-Level, Button „Im Nuzlocke-Rechner öffnen“; Fangrechner jetzt auch in der Android-App.'
+        'Capture-Projektor: Neue Option „Aufnahme automatisch wieder verbinden“ (direkt im Projektor und unter Einstellungen → Werkzeuge) sowie Schnell-Button „Verbinden: …“ für die zuletzt genutzte Quelle.'
       ],
       en: [
-        'Save editor: Showdown text import/export for single Pokémon (gen 3-7), gender (♂/♀) and form dropdown with names, ability picker (ability 1/2/hidden) for gen 4-7, “Make legal” button.',
-        'Save editor Game Boy (gen 1/2): quick buttons (DVs 15, stat exp), .pk1/.pk2 import/export, hex view and batch editing.',
-        'Randomizer: custom starter picks for all generations, held items of wild Pokémon (gen 4/5), HGSS grass/radio/swarm levels, “Open in Nuzlocke calculator” button; the catch calculator is now available in the Android app too.'
+        'Capture projector: new “Reconnect the capture automatically” option (in the projector view and under Settings → Tools) plus a quick “Connect: …” button for the last used source.'
       ] },
     { v: '1.26.3',
       de: [

@@ -15,6 +15,8 @@
     sub: 'Zeigt das Bild deiner Capture-Karte (oder eines Bildschirms) in einem eigenen Fenster. Ohne Zähler, Quote oder Timer, nur das reine Bild.',
     desktopOnly: 'Den Capture-Projektor gibt es nur in der Desktop-App.',
     source: 'Quelle', camera: 'Capture-Karte / Kamera …', screen: 'Bildschirm / Fenster', cameraN: 'Kamera {0}', refresh: 'Geräte neu suchen',
+    reconnect: 'Verbinden: {0}', autoConnect: 'Aufnahme automatisch wieder verbinden',
+    autoConnectT: 'Verbindet beim Öffnen automatisch wieder mit der zuletzt genutzten Capture-Karte bzw. dem Fenster.',
     connect: 'Verbunden: {0}', none: 'Keine Quelle verbunden.', disconnect: 'Trennen', fail: 'Die Quelle konnte nicht geöffnet werden.',
     project: 'Projizieren', stop: 'Projektor schließen', noVideo: 'Erst eine Quelle verbinden.', openFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
     noAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
@@ -26,6 +28,8 @@
     sub: 'Shows the picture of your capture card (or a screen) in its own window. No counter, odds or timer, just the raw picture.',
     desktopOnly: 'The capture projector is only available in the desktop app.',
     source: 'Source', camera: 'Capture card / camera …', screen: 'Screen / window', cameraN: 'Camera {0}', refresh: 'Rescan devices',
+    reconnect: 'Connect: {0}', autoConnect: 'Reconnect the capture automatically',
+    autoConnectT: 'Reconnects to the last used capture card or window when the capture projector opens.',
     connect: 'Connected: {0}', none: 'No source connected.', disconnect: 'Disconnect', fail: 'The source could not be opened.',
     project: 'Project', stop: 'Close projector', noVideo: 'Connect a source first.', openFail: 'The projector window could not be opened.',
     noAudio: 'This source has no audio. The picture is still shown.',
@@ -43,13 +47,15 @@
       displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
       sound: o.sound !== false, volume: MIR ? MIR.clampVolume(o.volume) : 80,
       native: o.native !== false, fps: MIR ? MIR.clampFps(o.fps) : 20,
+      autoConnect: !!o.autoConnect,
       source: o.source && typeof o.source === 'object' ? { kind: o.source.kind === 'camera' ? 'camera' : 'screen', id: String(o.source.id || ''), label: String(o.source.label || '') } : null
     };
   }
   var store = clean(A.load ? A.load(KEY, {}) : {});
   function persist() { try { A.save(KEY, store); } catch (e) { /* Speicher gesperrt */ } }
 
-  var video = null, stream = null, root = null, statusEl = null, btnProject = null, btnDisc = null, camSel = null;
+  var video = null, stream = null, root = null, statusEl = null, btnProject = null, btnDisc = null, btnRec = null, camSel = null;
+  var autoTried = false, autoPending = false;
 
   // Steuerung für CCProjector: kein Overlay, keine Zählerwerte.
   var api = {
@@ -75,6 +81,42 @@
   }
   function isOpen() { return !!(window.CCProjector && window.CCProjector.isOpen()); }
 
+  var DS = window.desktop && window.desktop.shiny ? window.desktop.shiny : null;
+  function resolveSource(src) {
+    if (!src) return Promise.resolve(null);
+    if (src.kind === 'screen') {
+      if (!DS || !DS.captureSources) return Promise.resolve(src);
+      return DS.captureSources().then(function (list) {
+        var m = list.filter(function (x) { return x.id === src.id; })[0] || list.filter(function (x) { return x.name === src.label; })[0];
+        return m ? { kind: 'screen', id: m.id, label: m.name } : null;
+      }, function () { return src; });
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return Promise.resolve(src);
+    return navigator.mediaDevices.enumerateDevices().then(function (devs) {
+      var cams = devs.filter(function (d) { return d.kind === 'videoinput'; });
+      if (!cams.length) return src;
+      var m = cams.filter(function (d) { return src.id && d.deviceId === src.id; })[0] ||
+        cams.filter(function (d) { return src.label && d.label === src.label; })[0];
+      return m ? { kind: 'camera', id: m.deviceId, label: m.label || src.label } : src;
+    }, function () { return src; });
+  }
+  function autoConnect() {
+    if (stream || autoPending || !store.source || !(store.source.id || store.source.label)) return Promise.resolve(null);
+    autoPending = true;
+    return resolveSource(store.source).then(function (src) {
+      if (!src) throw new Error(store.source.label || '');
+      return connect(src, true);
+    }).then(function (s) {
+      autoPending = false;
+      return s;
+    }, function (err) {
+      autoPending = false;
+      console.warn('Capture-Projektor: Auto-Verbinden fehlgeschlagen', err);
+      paint();
+      return null;
+    });
+  }
+
   function disconnect() {
     if (isOpen() && window.CCProjector.sourceStopped) window.CCProjector.sourceStopped(ID);
     if (stream) { stream.getTracks().forEach(function (tr) { try { tr.onended = null; tr.stop(); } catch (e) { /* schon weg */ } }); }
@@ -82,10 +124,10 @@
     if (video) { try { video.pause(); } catch (e) { /* egal */ } video.srcObject = null; }
     paint();
   }
-  function connect(src) {
+  function connect(src, silent) {
     disconnect();
-    statusEl.textContent = '…';
-    C.openStream(src).then(function (s) {
+    if (statusEl) statusEl.textContent = '…';
+    return C.openStream(src).then(function (s) {
       stream = s;
       video.srcObject = s;
       video.muted = true;
@@ -94,12 +136,18 @@
       s.getVideoTracks().forEach(function (tr) { tr.onended = function () { disconnect(); }; });
       store.source = { kind: src.kind, id: src.id || '', label: src.label || '' };
       persist();
+      if (src.kind === 'camera' && camSel && src.id) camSel.value = src.id;
       paint();
+      return s;
     }, function (err) {
-      console.error('Capture-Projektor: Quelle', err);
       stream = null;
-      A.toast(t('fail'));
+      if (!silent) {
+        console.error('Capture-Projektor: Quelle', err);
+        A.toast(t('fail'));
+      }
       paint();
+      if (silent) throw err;
+      return null;
     });
   }
 
@@ -108,6 +156,11 @@
     var on = !!(stream && video && video.srcObject);
     statusEl.textContent = on ? t('connect', store.source && store.source.label || '') : t('none');
     btnDisc.disabled = !on;
+    if (btnRec) {
+      var hasLast = !on && !!(store.source && store.source.label);
+      btnRec.hidden = !hasLast;
+      if (hasLast) btnRec.textContent = t('reconnect', store.source.label);
+    }
     btnProject.disabled = !on && !isOpen();
     btnProject.textContent = isOpen() ? t('stop') : t('project');
     btnProject.classList.toggle('on', isOpen());
@@ -121,7 +174,7 @@
 
   function fillCameras() {
     if (!camSel) return;
-    var keep = camSel.value;
+    var keep = camSel.value || (stream && store.source && store.source.kind === 'camera' ? store.source.id : '');
     camSel.innerHTML = '';
     camSel.appendChild(el('option', { value: '', text: t('camera') }));
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
@@ -148,13 +201,14 @@
     ctl.native.checked = store.native !== false;
     ctl.fps.value = String(store.fps);
     ctl.fps.disabled = store.native !== false;
+    if (ctl.autoConnect) ctl.autoConnect.checked = !!store.autoConnect;
   }
   function check(key, label, onChange) {
     var inp = el('input', { type: 'checkbox' });
     inp.addEventListener('change', function () {
       var patch = {}; patch[key] = inp.checked;
       api.save(patch);
-      if (isOpen() && D) { var o = {}; o[key] = inp.checked; D.set(o); }
+      if (isOpen() && D && key !== 'native' && key !== 'autoConnect') { var o = {}; o[key] = inp.checked; D.set(o); }
       if (onChange) onChange();
     });
     ctl[key] = inp;
@@ -184,6 +238,13 @@
     var sb = el('button', { class: 'tbtn', type: 'button', text: t('screen') });
     sb.addEventListener('click', function () { C.chooseScreen(connect); });
     row.appendChild(sb);
+    btnRec = el('button', { class: 'tbtn', type: 'button' });
+    btnRec.hidden = true;
+    btnRec.addEventListener('click', function () {
+      if (!store.source) return;
+      resolveSource(store.source).then(function (src) { connect(src || store.source); });
+    });
+    row.appendChild(btnRec);
     btnDisc = el('button', { class: 'tbtn', type: 'button', text: t('disconnect') });
     btnDisc.addEventListener('click', disconnect);
     row.appendChild(btnDisc);
@@ -210,6 +271,14 @@
     root.appendChild(act);
 
     var opt = el('div', { class: 'pv-opts' });
+    var ac = check('autoConnect', t('autoConnect'), function () {
+      if (store.autoConnect && !stream && store.source && (store.source.id || store.source.label)) {
+        autoTried = true;
+        autoConnect();
+      }
+    });
+    ac.title = t('autoConnectT');
+    opt.appendChild(ac);
     opt.appendChild(check('onTop', t('onTop')));
     opt.appendChild(check('hideCursor', t('hideCursor')));
     opt.appendChild(check('fullscreen', t('fullscreen')));
@@ -244,9 +313,30 @@
     if (!root.firstChild) {
       // Das Video bleibt beim Ansichtswechsel am Leben, nur neu bauen, wenn noch nichts da ist.
       build();
-    } else { fillCameras(); paint(); }
+    } else {
+      fillCameras();
+      syncControls();
+      paint();
+    }
+    if (D && store.autoConnect && !stream && !autoTried && store.source && (store.source.id || store.source.label)) {
+      autoTried = true;
+      autoConnect();
+    }
   }
 
   if (D && D.onClosed) D.onClosed(function () { window.setTimeout(paint, 0); });
-  window.CCProjectorView = { render: render, _store: function () { return store; } };
+  window.CCProjectorView = {
+    render: render,
+    getAuto: function (k) { return k === 'connect' || !k ? !!store.autoConnect : false; },
+    setAuto: function (k, v) {
+      if (k && k !== 'connect') return;
+      api.save({ autoConnect: !!v });
+      if (store.autoConnect && !stream && root && document.body && document.body.dataset.view === 'projector') {
+        autoTried = true;
+        autoConnect();
+      }
+    },
+    autoConnect: autoConnect,
+    _store: function () { return store; }
+  };
 })();
