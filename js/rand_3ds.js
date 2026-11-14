@@ -249,9 +249,30 @@
     // (Offsets aus dem Universal Pokémon Randomizer ZX). Die Texte der Auswahl bleiben unverändert.
     if (g.gen === 6 && !scanOnly) {
       try {
-        var G6 = g.type === 'oras' ? { gift: 0xF906C, count: 0x25, size: 0x24, idx: [0, 1, 2, 28, 29, 30, 31, 32, 33, 34, 35, 36], offOff: 0xB8, extra: 0 }
-          : { gift: 0xF805C, count: 0x13, size: 0x18, idx: [0, 1, 2, 3, 4, 5], offOff: 0xB8, extra: 0x10 };
+        var G6 = g.type === 'oras' ? { gift: 0xF906C, count: 0x25, size: 0x24, idx: [0, 1, 2, 28, 29, 30, 31, 32, 33, 34, 35, 36], offOff: 0xB8, extra: 0, stat: 0xF1B20, statCount: 0x3B, links: [[26, 49], [27, 50], [29, 58], [80, 56], [81, 57], [75, 76]] }
+          : { gift: 0xF805C, count: 0x13, size: 0x18, idx: [0, 1, 2, 3, 4, 5], offOff: 0xB8, extra: 0x10, stat: 0xEE46C, statCount: 0xD, links: [[1, 3], [2, 12]] };
         var fieldF = await CTR.readFile(ctx.info, 'DllField.cro'), dispF = await CTR.readFile(ctx.info, 'DllPoke3Select.cro');
+        // Gen 6: statische Begegnungen (0xC Byte je Eintrag: Art +0, Form +2, Level +3) und Geschenke (Art +0, Form +4, Level +5); Nummerierung wie im UPR (erst Statics, dann Geschenke ohne Starter), verknüpfte Einträge werden mitgeändert
+        if (fieldF && G6.stat + G6.statCount * 0xC <= fieldF.data.length && G6.gift + G6.count * G6.size <= fieldF.data.length) {
+          var sf = fieldF.data, list6 = [], addr6 = [];
+          var e6 = function (off, fOff, lOff, size, egg) { return { off: off, fOff: fOff, lOff: lOff, size: size, egg: egg }; };
+          for (var s6 = 0; s6 < G6.statCount; s6++) list6.push(e6(G6.stat + s6 * 0xC, 2, 3, 0xC, false));
+          for (var g6 = 0; g6 < G6.count; g6++) if (G6.idx.indexOf(g6) === -1) list6.push(e6(G6.gift + g6 * G6.size, 4, 5, G6.size, g.type === 'oras' && u16(sf, G6.gift + g6 * G6.size + 18) === 0xEA64));
+          var linked6 = {}; G6.links.forEach(function (l) { linked6[l[0]] = l[1]; });
+          var skip6 = {}; G6.links.forEach(function (l) { skip6[l[1]] = 1; });
+          model.statics = model.statics || [];
+          list6.forEach(function (en, ix) {
+            if (skip6[ix] || !species[u16(sf, en.off)]) return;
+            var targets = [en]; if (linked6[ix] !== undefined && list6[linked6[ix]]) targets.push(list6[linked6[ix]]);
+            var mark = function (t) { patches.push({ off: fieldF.loc.off + t.off, bytes: sf.slice(t.off, t.off + 8) }); };
+            model.statics.push({
+              isEgg: en.egg, level: sf[en.off + en.lOff],
+              get: function () { return u16(sf, en.off); },
+              set: function (n) { targets.forEach(function (t) { w16(sf, t.off, n); sf[t.off + t.fOff] = 0; mark(t); }); },
+              setLevel: function (l) { targets.forEach(function (t) { sf[t.off + t.lOff] = l; mark(t); }); }
+            });
+          });
+        }
         if (fieldF && dispF && G6.gift + G6.count * G6.size <= fieldF.data.length) {
           var fd = fieldF.data, dd = dispF.data, dOff = u16(dd, G6.offOff) + G6.extra, okS = dOff + G6.idx.length * 0x54 <= dd.length;
           G6.idx.forEach(function (gi, j) { if (u16(fd, G6.gift + gi * G6.size) !== u16(dd, dOff + j * 0x54) || !species[u16(fd, G6.gift + gi * G6.size)]) okS = false; });
