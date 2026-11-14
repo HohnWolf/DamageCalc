@@ -39,6 +39,22 @@
     : ['Catch 5 Pokémon', 'Catch 10 Pokémon', 'Make 3 Curveball Throws in a row', 'Make 5 Excellent Throws', 'Win 3 Raids', 'Win a Raid', 'Catch a weather-boosted Pokémon', 'Trade a Pokémon', 'Evolve a Pokémon', 'Hatch an Egg', 'Catch 3 Pokémon of a type', 'Spin 5 PokéStops', 'Send a Gift', 'Win 3 Trainer Battles'];
 
   // ======================= Pokémon-Suche =======================
+  // PokéAPI-IDs der 34 Gigadynamax-Formen
+  var GMAX_IDS = {
+    '3': 10195, '6': 10196, '9': 10197, '12': 10198, '25': 10199, '52': 10200,
+    '68': 10201, '94': 10202, '99': 10203, '131': 10204, '133': 10205, '143': 10206,
+    '569': 10207, '809': 10208, '812': 10209, '815': 10210, '818': 10211, '823': 10212,
+    '826': 10213, '834': 10214, '839': 10215, '841': 10216, '842': 10217, '844': 10218,
+    '849': 10219, '849|Low-Key': 10228, '851': 10220, '858': 10221, '861': 10222,
+    '869': 10223, '879': 10224, '884': 10225, '892': 10226, '892|Rapid-Strike': 10227
+  };
+  function gmaxIdOf(m) {
+    if (!m) return 0;
+    var f = String(m[2] || '').replace(/(^|-)(Gmax|Gigadynamax|Gigantamax)$/i, '');
+    return (f ? GMAX_IDS[m[0] + '|' + f] : 0) || (!f ? GMAX_IDS[String(m[0])] : 0) || 0;
+  }
+  function isGmaxForm(m) { return !!(m && /(^|-)(Gmax|Gigadynamax|Gigantamax)$/i.test(m[2] || '')); }
+
   var byKey = null, speciesNames = null;
   function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, ''); }
   function buildIndex() {
@@ -52,9 +68,23 @@
       byKey[norm(en) + norm(m[2])] = m; byKey[norm(loc) + norm(m[2])] = m;
       if (!m[2]) { if (!byKey[norm(en)]) byKey[norm(en)] = m; if (!byKey[norm(loc)]) byKey[norm(loc)] = m; }
       if (!seen[k]) { seen[k] = 1; speciesNames.push(label); }
+      if (gmaxIdOf(m)) {
+        var gf = m[2] ? m[2] + '-Gmax' : 'Gmax';
+        var gm = [m[0], m[1], gf, m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10]];
+        var gWord = de ? 'Gigadynamax' : 'Gigantamax';
+        var gDisp = m[2] ? m[2] + ' ' + gWord : gWord;
+        var gLabel = (loc || en) + ' (' + gDisp + ')';
+        var gk = norm(m[1]) + '|' + norm(gf);
+        ['gmax', 'gigadynamax', 'gigantamax'].forEach(function (tag) {
+          var sub = norm(m[2]) + tag;
+          byKey[norm(en) + sub] = gm;
+          byKey[norm(loc) + sub] = gm;
+        });
+        if (!seen[gk]) { seen[gk] = 1; speciesNames.push(gLabel); }
+      }
     });
   }
-  // Eingabe wie "Glurak", "Charizard Mega-X", "Mewtu (Mega-Y)" -> Eintrag
+  // Eingabe wie "Glurak", "Charizard Mega-X", "Mewtu (Mega-Y)", "Glurak (Gigadynamax)" -> Eintrag
   function findMon(txt) {
     buildIndex();
     var t = String(txt || '').trim(); if (!t) return null;
@@ -65,17 +95,29 @@
     if (sp.length > 1) { var g = byKey[norm(sp[0]) + norm(sp.slice(1).join(''))] || byKey[norm(sp.slice(0, -1).join('')) + norm(sp[sp.length - 1])]; if (g) return g; }
     return null;
   }
-  function monName(m) { var n = A.nSpecies(m[1]) || m[1]; return m[2] ? n + ' (' + m[2] + ')' : n; }
+  function monName(m, forceGmax) {
+    var n = A.nSpecies(m[1]) || m[1];
+    var f = String(m[2] || '').replace(/(^|-)(Gmax|Gigadynamax|Gigantamax)$/i, '');
+    if (forceGmax || isGmaxForm(m)) {
+      var gw = de ? 'Gigadynamax' : 'Gigantamax';
+      return n + ' (' + (f ? f + ' ' + gw : gw) + ')';
+    }
+    return f ? n + ' (' + f + ')' : n;
+  }
 
   function cpOf(m, lvl, iv) {
     var cpm = G.cpm[String(lvl)]; if (!cpm) return 0;
     return Math.max(10, Math.floor((m[4] + iv) * Math.sqrt(m[5] + iv) * Math.sqrt(m[6] + iv) * cpm * cpm / 10));
   }
-  // Bei Mega-/Primal-Raids und Sonderformen (Zacian/Zamazenta gekrönt, Fusionen, Calyrex-Reiter, Eternamax) fängt man die Normalform
+  // Bei Mega-/Primal-/Gigadynamax-Raids und Sonderformen (Zacian/Zamazenta gekrönt, Fusionen, Calyrex-Reiter, Eternamax) fängt man die Normalform
   function catchMon(m) {
     if (!m || !m[2]) return m;
     var f = m[2], n = m[0];
-    var base = /^(Mega|Primal|Terastal|Eternamax)/.test(f) ||
+    if (isGmaxForm(m)) {
+      var baseF = f.replace(/(^|-)(Gmax|Gigadynamax|Gigantamax)$/i, '');
+      for (var j = 0; j < G.mons.length; j++) if (G.mons[j][0] === n && (G.mons[j][2] || '') === baseF) return G.mons[j];
+    }
+    var base = /^(Mega|Primal|Terastal|Stellar|Eternamax|Complete)/.test(f) ||
       ((n === 888 || n === 889) && f === 'Crowned') ||
       (n === 646 && /^(Black|White)$/.test(f)) ||
       (n === 800 && /^(Dusk-Mane|Dawn-Wings|Ultra)$/.test(f)) ||
@@ -146,7 +188,10 @@
     if (!o.rows.length) o.rows = [{ task: '', rewards: [] }];
     o.mons = (Array.isArray(o.mons) ? o.mons : [{ name: 'Mewtwo', mode: 'raid' }]).map(function (x) {
       if (typeof x === 'string') return { name: x.trim(), mode: 'raid' };
-      if (x && typeof x === 'object') return { name: String(x.name || '').trim(), mode: x.mode === 'dmax' ? 'dmax' : 'raid' };
+      if (x && typeof x === 'object') {
+        var md = x.mode === 'gmax' ? 'gmax' : (x.mode === 'dmax' ? 'dmax' : 'raid');
+        return { name: String(x.name || '').trim(), mode: md };
+      }
       return { name: '', mode: 'raid' };
     }).filter(function (x) { return !!x.name; }).slice(0, 8);
     return o;
@@ -165,8 +210,13 @@
       i.src = url;
     }));
   }
-  function apiId(m) {
-    var IDS = window.POKEAPI_IDS || {}, base = norm(m[1]).replace(/[äöü]/g, ''), f = (m[2] || '').toLowerCase();
+  function apiId(m, forceGmax) {
+    if (!m) return 0;
+    if (forceGmax || isGmaxForm(m)) {
+      var gid = gmaxIdOf(m);
+      if (gid) return gid;
+    }
+    var IDS = window.POKEAPI_IDS || {}, base = norm(m[1]).replace(/[äöü]/g, ''), f = String(m[2] || '').replace(/(^|-)(Gmax|Gigadynamax|Gigantamax)$/i, '').toLowerCase();
     if (f) {
       var suffix = f.replace(/^dusk-mane$/, 'dusk').replace(/^dawn-wings$/, 'dawn').replace(/^mega[- ]?/, 'mega-').replace(/^megax$/, 'mega-x').replace(/^megay$/, 'mega-y').replace(/^(alola|alolan)$/, 'alola').replace(/^(galar|galarian)$/, 'galar').replace(/^(hisui|hisuian)$/, 'hisui').replace(/^paldea.*$/, 'paldea').replace(/-$/, '');
       var slug = String(m[1]).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + suffix;
@@ -174,8 +224,8 @@
     }
     return m[0] || IDS[base] || 0;
   }
-  function loadMon(m, shiny) {
-    var id = apiId(m); if (!id) return Promise.resolve(null);
+  function loadMon(m, shiny, forceGmax) {
+    var id = apiId(m, forceGmax); if (!id) return Promise.resolve(null);
     var sh = shiny ? 'shiny/' : '';
     var urls = [SPR + 'pokemon/other/home/' + sh + id + '.png', JSD + 'pokemon/other/home/' + sh + id + '.png', SPR + 'pokemon/other/official-artwork/' + sh + id + '.png', JSD + 'pokemon/other/official-artwork/' + sh + id + '.png'];
     if (shiny && m[0] && m[0] !== id) urls.push(SPR + 'pokemon/other/home/shiny/' + m[0] + '.png', SPR + 'pokemon/other/official-artwork/shiny/' + m[0] + '.png');
@@ -434,8 +484,9 @@
     var s = P.s;
     var list = (st.mons || []).slice(0, 8).map(function (entry) {
       var name = typeof entry === 'string' ? entry : (entry && entry.name) || '';
-      var mode = (entry && entry.mode === 'dmax') ? 'dmax' : 'raid';
-      return { raw: name, mon: findMon(name), mode: mode };
+      var mon = findMon(name);
+      var mode = (entry && entry.mode === 'gmax') ? 'gmax' : ((entry && entry.mode === 'dmax') ? 'dmax' : (isGmaxForm(mon) ? 'gmax' : 'raid'));
+      return { raw: name, mon: mon, mode: mode };
     }).filter(function (x) { return x.mon || x.raw; });
     var firstTypes = (list[0] && list[0].mon && list[0].mon[3]) || [];
     var tint = list.length === 1 && firstTypes[0] ? TYPE_COL[firstTypes[0]] : '#fbbf24';
@@ -449,7 +500,18 @@
       c.textAlign = 'left';
       return;
     }
-    var imgs = await Promise.all(list.map(function (x) { return x.mon ? loadMon(x.mon, true) : Promise.resolve(null); }));
+    var normImgs = await Promise.all(list.map(function (x) {
+      if (!x.mon) return Promise.resolve(null);
+      var useG = x.mode === 'gmax';
+      var bm = (!useG && isGmaxForm(x.mon)) ? catchMon(x.mon) : x.mon;
+      return loadMon(bm, false, useG);
+    }));
+    var shinyImgs = await Promise.all(list.map(function (x) {
+      if (!x.mon) return Promise.resolve(null);
+      var useG = x.mode === 'gmax';
+      var bm = (!useG && isGmaxForm(x.mon)) ? catchMon(x.mon) : x.mon;
+      return loadMon(bm, true, useG);
+    }));
     var spec = shinyRowSpec(list.length, W, H);
     var R = spec.length;
     var gap = (list.length >= 7 ? 14 : (list.length >= 5 ? 16 : 20)) * s;
@@ -475,14 +537,38 @@
       c.textAlign = 'left';
     }
 
-    function drawCard(x, y, w, h, item, im) {
-      var m = item.mon, isDmax = item.mode === 'dmax';
+    function drawDualStage(sx, sy, sw, sh, nm, imNorm, imShiny, col) {
+      var d = Math.min(sw * 0.47, sh * 0.92);
+      var rad = d * 0.5;
+      var cy = sy + sh * 0.52;
+      var cx1 = sx + sw * 0.26, cx2 = sx + sw * 0.74;
+      // Normal (links)
+      var h1 = c.createRadialGradient(cx1, cy, 0, cx1, cy, rad * 1.05);
+      h1.addColorStop(0, col + '88'); h1.addColorStop(0.7, col + '22'); h1.addColorStop(1, col + '00');
+      c.fillStyle = h1; c.beginPath(); c.arc(cx1, cy, rad * 1.05, 0, Math.PI * 2); c.fill();
+      c.save(); c.fillStyle = 'rgba(0,0,0,0.26)'; c.beginPath(); c.ellipse(cx1, cy + rad * 0.88, rad * 0.58, rad * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
+      drawImg(c, imNorm, cx1 - rad, cy - rad, d, d, nm);
+      // Shiny (rechts)
+      var h2 = c.createRadialGradient(cx2, cy, 0, cx2, cy, rad * 1.08);
+      h2.addColorStop(0, '#fbbf24aa'); h2.addColorStop(0.7, col + '28'); h2.addColorStop(1, col + '00');
+      c.fillStyle = h2; c.beginPath(); c.arc(cx2, cy, rad * 1.08, 0, Math.PI * 2); c.fill();
+      c.save(); c.fillStyle = 'rgba(0,0,0,0.26)'; c.beginPath(); c.ellipse(cx2, cy + rad * 0.88, rad * 0.58, rad * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
+      drawImg(c, imShiny, cx2 - rad, cy - rad, d, d, nm);
+      sparkle(c, cx2 + rad * 0.72, cy - rad * 0.68, Math.max(8 * s, rad * 0.18), '#fbbf24');
+      sparkle(c, cx2 - rad * 0.72, cy - rad * 0.44, Math.max(6 * s, rad * 0.12), '#fde68a');
+    }
+
+    function drawCard(x, y, w, h, item, imNorm, imShiny) {
+      var m = item.mon, cm = catchMon(m), isGmax = item.mode === 'gmax', isDmax = item.mode === 'dmax', isMax = isDmax || isGmax;
+      var maxCol = isGmax ? '#e11d48' : '#ec4899';
+      var maxBadge = isGmax ? (de ? 'GIGADYNAMAX' : 'GIGANTAMAX') : 'DYNAMAX';
+      var maxCpLbl = isGmax ? (de ? 'LV 20 · 100% (GIGADYNAMAX)' : 'LV 20 · 100% (GIGANTAMAX)') : 'LV 20 · 100% (DYNAMAX)';
       var types = m ? m[3] : [];
-      var col = isDmax ? '#ec4899' : ((types[0] && TYPE_COL[types[0]]) || T.acc);
+      var col = isMax ? maxCol : ((types[0] && TYPE_COL[types[0]]) || T.acc);
       var radCard = Math.min(24 * s, Math.min(w, h) * 0.08);
       rr(c, x, y, w, h, radCard);
       c.fillStyle = T.card; c.fill();
-      c.strokeStyle = isDmax ? 'rgba(236,72,153,0.45)' : T.line; c.lineWidth = 2; c.stroke();
+      c.strokeStyle = isGmax ? 'rgba(225,29,72,0.5)' : (isDmax ? 'rgba(236,72,153,0.45)' : T.line); c.lineWidth = 2; c.stroke();
       // Farbiger Akzentstreifen links/oben
       c.save();
       rr(c, x, y, w, h, radCard); c.clip();
@@ -492,49 +578,41 @@
       c.fillStyle = col; c.fillRect(x, y, w, Math.max(4 * s, h * 0.018));
       c.restore();
 
-      var nm = m ? monName(m) : item.raw;
-      var cp20 = m ? String(cpOf(m, 20, 15)) : '–';
-      var cp25 = m ? String(cpOf(m, 25, 15)) : '–';
-      var horiz = w > h * 1.35;
-      var pad = Math.max(12 * s, Math.min(26 * s, Math.min(w, h) * 0.065));
+      var nm = m ? (isGmax ? monName(m, true) : monName(isGmaxForm(m) ? cm : m)) : item.raw;
+      var cp20 = cm ? String(cpOf(cm, 20, 15)) : '–';
+      var cp25 = cm ? String(cpOf(cm, 25, 15)) : '–';
+      var horiz = w > h * 1.65;
+      var pad = Math.max(12 * s, Math.min(24 * s, Math.min(w, h) * 0.06));
 
       if (horiz) {
-        var stageW = Math.min(h - 2 * pad, w * 0.40);
-        var cx = x + pad + stageW * 0.5, cy = y + h * 0.52;
-        var rad = stageW * 0.48;
-        var halo = c.createRadialGradient(cx, cy, 0, cx, cy, rad * 1.08);
-        halo.addColorStop(0, col + 'aa'); halo.addColorStop(0.7, col + '28'); halo.addColorStop(1, col + '00');
-        c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, rad * 1.08, 0, Math.PI * 2); c.fill();
-        c.save(); c.fillStyle = 'rgba(0,0,0,0.26)'; c.beginPath(); c.ellipse(cx, cy + rad * 0.88, rad * 0.6, rad * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
-        drawImg(c, im, cx - rad, cy - rad, rad * 2, rad * 2, nm);
-        sparkle(c, cx + rad * 0.72, cy - rad * 0.68, Math.max(10 * s, rad * 0.17), '#fbbf24');
-        sparkle(c, cx - rad * 0.74, cy - rad * 0.42, Math.max(7 * s, rad * 0.11), '#fde68a');
+        var stageW = w * 0.46;
+        drawDualStage(x + pad, y + pad, stageW, h - 2 * pad, nm, imNorm, imShiny, col);
 
-        var ix = x + pad + stageW + Math.max(14 * s, w * 0.03);
+        var ix = x + pad + stageW + Math.max(12 * s, w * 0.025);
         var iw = x + w - pad - ix;
-        var ny = y + pad + Math.min(44 * s, h * 0.18);
-        var nSz = Math.min(46 * s, Math.max(20 * s, h * 0.16));
+        var ny = y + pad + Math.min(42 * s, h * 0.18);
+        var nSz = Math.min(44 * s, Math.max(18 * s, h * 0.155));
         c.fillStyle = T.fg; c.textAlign = 'left';
-        fit(c, nm, iw, nSz, '800', 14);
+        fit(c, nm, iw, nSz, '800', 13);
         c.fillText(nm, ix, ny);
 
-        var tyY = ny + Math.max(10 * s, h * 0.04);
-        var th = Math.min(34 * s, Math.max(20 * s, h * 0.12));
+        var tyY = ny + Math.max(8 * s, h * 0.038);
+        var th = Math.min(32 * s, Math.max(18 * s, h * 0.115));
         var tx = ix;
         types.forEach(function (t) {
           var tw = chip(c, de ? TYPE_DE[t] : t, tx, tyY, th, TYPE_COL[t], textOn(TYPE_COL[t]), Math.round(th * 0.56));
-          tx += tw + 8 * s;
+          tx += tw + 6 * s;
         });
-        if (isDmax) {
-          chip(c, 'DYNAMAX', tx, tyY, th, '#ec4899', '#ffffff', Math.round(th * 0.54));
+        if (isMax) {
+          chip(c, maxBadge, tx, tyY, th, maxCol, '#ffffff', Math.round(th * 0.54));
         }
 
-        var cpTop = tyY + th + Math.max(12 * s, h * 0.055);
-        var cpH = Math.max(54 * s, Math.min(130 * s, y + h - pad - cpTop));
-        if (isDmax) {
-          drawCpBox(ix, cpTop, iw, cpH, 'LV 20 · 100% (DYNAMAX)', cp20, true, '#ec4899');
+        var cpTop = tyY + th + Math.max(10 * s, h * 0.05);
+        var cpH = Math.max(50 * s, Math.min(130 * s, y + h - pad - cpTop));
+        if (isMax) {
+          drawCpBox(ix, cpTop, iw, cpH, maxCpLbl, cp20, true, maxCol);
         } else {
-          var bGap = Math.max(10 * s, iw * 0.03);
+          var bGap = Math.max(8 * s, iw * 0.03);
           var bw = (iw - bGap) / 2;
           var l20 = bw > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
           var l25 = bw > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
@@ -543,32 +621,24 @@
         }
       } else {
         var innerW = w - 2 * pad, innerH = h - 2 * pad;
-        var stageH = innerH * (list.length === 1 ? 0.52 : 0.47);
-        var cx2 = x + w / 2, cy2 = y + pad + stageH * 0.5;
-        var rad2 = Math.min(innerW * 0.42, stageH * 0.48);
-        var halo2 = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, rad2 * 1.08);
-        halo2.addColorStop(0, col + 'aa'); halo2.addColorStop(0.7, col + '28'); halo2.addColorStop(1, col + '00');
-        c.fillStyle = halo2; c.beginPath(); c.arc(cx2, cy2, rad2 * 1.08, 0, Math.PI * 2); c.fill();
-        c.save(); c.fillStyle = 'rgba(0,0,0,0.26)'; c.beginPath(); c.ellipse(cx2, cy2 + rad2 * 0.88, rad2 * 0.6, rad2 * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
-        drawImg(c, im, cx2 - rad2, cy2 - rad2, rad2 * 2, rad2 * 2, nm);
-        sparkle(c, cx2 + rad2 * 0.72, cy2 - rad2 * 0.68, Math.max(9 * s, rad2 * 0.17), '#fbbf24');
-        sparkle(c, cx2 - rad2 * 0.74, cy2 - rad2 * 0.42, Math.max(6 * s, rad2 * 0.11), '#fde68a');
+        var stageH = innerH * (list.length === 1 ? 0.50 : 0.46);
+        drawDualStage(x + pad, y + pad, innerW, stageH, nm, imNorm, imShiny, col);
 
-        var nSz2 = Math.min(48 * s, Math.max(18 * s, Math.min(innerH * 0.088, innerW * 0.115)));
+        var nSz2 = Math.min(46 * s, Math.max(18 * s, Math.min(innerH * 0.088, innerW * 0.11)));
         var ny2 = y + pad + stageH + nSz2 * 0.95;
         c.fillStyle = T.fg; c.textAlign = 'center';
         fit(c, nm, innerW, nSz2, '800', 13);
-        c.fillText(nm, cx2, ny2);
+        c.fillText(nm, x + w / 2, ny2);
 
-        var th2 = Math.min(34 * s, Math.max(18 * s, innerH * 0.064));
+        var th2 = Math.min(32 * s, Math.max(18 * s, innerH * 0.064));
         var fSz2 = Math.round(th2 * 0.56);
         c.font = 'bold ' + fSz2 + 'px ' + FF;
         var badges = types.map(function (t) { return [de ? TYPE_DE[t] : t, TYPE_COL[t], textOn(TYPE_COL[t])]; });
-        if (isDmax) badges.push(['DYNAMAX', '#ec4899', '#ffffff']);
+        if (isMax) badges.push([maxBadge, maxCol, '#ffffff']);
         var widths = badges.map(function (b) { return c.measureText(b[0]).width + th2 * 0.9; });
         var tGap = 6 * s;
         var sumW = widths.reduce(function (a, b) { return a + b; }, 0) + Math.max(0, badges.length - 1) * tGap;
-        var tx2 = cx2 - sumW / 2, tyY2 = ny2 + Math.max(8 * s, innerH * 0.022);
+        var tx2 = x + w / 2 - sumW / 2, tyY2 = ny2 + Math.max(8 * s, innerH * 0.022);
         badges.forEach(function (b, ti) {
           chip(c, b[0], tx2, tyY2, th2, b[1], b[2], fSz2);
           tx2 += widths[ti] + tGap;
@@ -577,8 +647,8 @@
 
         var cpTop2 = tyY2 + th2 + Math.max(10 * s, innerH * 0.032);
         var cpH2 = Math.max(48 * s, Math.min(140 * s, y + h - pad - cpTop2));
-        if (isDmax) {
-          drawCpBox(x + pad, cpTop2, innerW, cpH2, 'LV 20 · 100% (DYNAMAX)', cp20, true, '#ec4899');
+        if (isMax) {
+          drawCpBox(x + pad, cpTop2, innerW, cpH2, maxCpLbl, cp20, true, maxCol);
         } else {
           var bGap2 = Math.max(8 * s, innerW * 0.03);
           var bw2 = (innerW - bGap2) / 2;
@@ -596,7 +666,7 @@
       var y0 = top + r * (rowH + gap);
       for (var cIdx = 0; cIdx < cols && idx < list.length; cIdx++, idx++) {
         var x0 = P.m + cIdx * (colW + gap);
-        drawCard(x0, y0, colW, rowH, list[idx], imgs[idx]);
+        drawCard(x0, y0, colW, rowH, list[idx], normImgs[idx], shinyImgs[idx]);
       }
     }
   }
@@ -685,23 +755,37 @@
       var mList = el('div', { class: 'gi-mon-list' });
       st.mons.forEach(function (entry, idx) {
         if (typeof entry === 'string') entry = st.mons[idx] = { name: entry, mode: 'raid' };
-        var isDmax = entry.mode === 'dmax';
-        var mon = findMon(entry.name);
-        var item = el('div', { class: 'gi-mon-item' + (isDmax ? ' dmax' : '') });
+        var mon = findMon(entry.name), cm = catchMon(mon);
+        var hasGmax = gmaxIdOf(mon) > 0;
+        var isGmax = entry.mode === 'gmax' || (isGmaxForm(mon) && entry.mode !== 'dmax');
+        var isDmax = !isGmax && entry.mode === 'dmax';
+        var dispName = mon ? (isGmax ? monName(mon, true) : monName(isGmaxForm(mon) ? cm : mon)) : entry.name;
+        var item = el('div', { class: 'gi-mon-item' + (isGmax ? ' gmax' : (isDmax ? ' dmax' : '')) });
         item.appendChild(el('span', { class: 'gi-mon-idx', text: (idx + 1) + '.' }));
         var info = el('div', { class: 'gi-mon-info' });
-        info.appendChild(el('span', { class: 'gi-mon-name', text: mon ? '✨ ' + monName(mon) : entry.name }));
-        if (mon) {
-          info.appendChild(el('span', { class: 'gi-mon-cp', text: isDmax ? ('Lv 20: ' + cpOf(mon, 20, 15)) : ('Lv 20: ' + cpOf(mon, 20, 15) + ' · Lv 25: ' + cpOf(mon, 25, 15)) }));
+        info.appendChild(el('span', { class: 'gi-mon-name', text: mon ? '✨ ' + dispName : entry.name }));
+        if (cm) {
+          info.appendChild(el('span', { class: 'gi-mon-cp', text: (isDmax || isGmax) ? ('Lv 20: ' + cpOf(cm, 20, 15)) : ('Lv 20: ' + cpOf(cm, 20, 15) + ' · Lv 25: ' + cpOf(cm, 25, 15)) }));
         }
         item.appendChild(info);
         var modeWrap = el('div', { class: 'gi-mon-mode' });
-        var bRaid = el('button', { type: 'button', class: 'gi-mode-b' + (!isDmax ? ' on' : ''), text: 'Raid', title: de ? 'Raid: Level 20 und Level 25 CP anzeigen' : 'Raid: show Level 20 and Level 25 CP' });
-        bRaid.addEventListener('click', function () { entry.mode = 'raid'; save(); render(); });
+        var bRaid = el('button', { type: 'button', class: 'gi-mode-b' + (!isDmax && !isGmax ? ' on' : ''), text: 'Raid', title: de ? 'Raid: Level 20 und Level 25 CP anzeigen' : 'Raid: show Level 20 and Level 25 CP' });
+        bRaid.addEventListener('click', function () {
+          if (isGmaxForm(mon) && cm) entry.name = monName(cm);
+          entry.mode = 'raid'; save(); render();
+        });
         var bDmax = el('button', { type: 'button', class: 'gi-mode-b dmax' + (isDmax ? ' on' : ''), text: 'Dynamax', title: de ? 'Dynamax: nur Level 20 CP anzeigen' : 'Dynamax: show Level 20 CP only' });
-        bDmax.addEventListener('click', function () { entry.mode = 'dmax'; save(); render(); });
+        bDmax.addEventListener('click', function () {
+          if (isGmaxForm(mon) && cm) entry.name = monName(cm);
+          entry.mode = 'dmax'; save(); render();
+        });
         modeWrap.appendChild(bRaid);
         modeWrap.appendChild(bDmax);
+        if (hasGmax) {
+          var bGmax = el('button', { type: 'button', class: 'gi-mode-b gmax' + (isGmax ? ' on' : ''), text: 'G-Max', title: de ? 'Gigadynamax: Gigadynamax-Form & Level 20 CP anzeigen' : 'Gigantamax: show Gigantamax form & Level 20 CP' });
+          bGmax.addEventListener('click', function () { entry.mode = 'gmax'; save(); render(); });
+          modeWrap.appendChild(bGmax);
+        }
         item.appendChild(modeWrap);
         if (st.mons.length > 1) {
           var up = el('button', { type: 'button', class: 'gi-pk-b', text: '↑', title: de ? 'Nach oben' : 'Move up' });
@@ -736,7 +820,12 @@
           parts.forEach(function (p) {
             if (st.mons.length >= 8) return;
             var mon = findMon(p);
-            if (mon) { st.mons.push({ name: monName(mon), mode: 'raid' }); added = true; }
+            if (mon) {
+              var g = isGmaxForm(mon);
+              var baseM = g ? catchMon(mon) : mon;
+              st.mons.push({ name: monName(baseM || mon), mode: g ? 'gmax' : 'raid' });
+              added = true;
+            }
           });
           if (!added) { pickM.classList.add('bad'); return; }
           save(); render();
@@ -750,7 +839,7 @@
         addWrap.appendChild(addBtn);
         side.appendChild(addWrap);
       }
-      side.appendChild(el('div', { class: 'hint', text: de ? 'Zeigt für 1 bis 8 Pokémon das Shiny sowie die 100%-IV-CP: bei Raid auf Level 20 und 25 (Wetterbonus), bei Dynamax nur auf Level 20. Das Layout passt sich automatisch der Anzahl an.' : 'Shows the Shiny and 100% IV CP for 1 to 8 Pokémon: Raid shows level 20 and 25 (weather boost), Dynamax shows level 20 only. Layout adapts automatically to the count.' }));
+      side.appendChild(el('div', { class: 'hint', text: de ? 'Zeigt für 1 bis 8 Pokémon die normale und die Shiny-Form sowie die 100%-IV-CP der Fangform: bei Raid auf Level 20 und 25 (Wetterbonus), bei Dynamax und Gigadynamax nur auf Level 20.' : 'Shows the normal and Shiny forms and 100% IV catch CP for 1 to 8 Pokémon: Raid shows level 20 and 25 (weather boost), Dynamax and Gigantamax show level 20 only.' }));
     } else {
       var list = el('div', { class: 'gi-rows' });
       st.rows.forEach(function (r, i) {

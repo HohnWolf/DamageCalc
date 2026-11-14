@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.3',
+      de: [
+        'GO-Infografik („Shiny & 100% CP“): Zeigt bei jedem Pokémon die normale und die Shiny-Form nebeneinander, berechnet die 100%-IV-CP immer aus der Fangform (z. B. bei Kyurem, Zacian/Zamazenta, Necrozma, Calyrex, Mega- und Gigadynamax-Formen) und unterstützt alle 34 Gigadynamax-Formen als Auswahl bzw. eigenen „G-Max“-Modus.'
+      ],
+      en: [
+        'GO infographic (“Shiny & 100% CP”): shows both the normal and Shiny form side by side for each Pokémon, always calculates 100% IV CP from the catchable base form (e.g. for Kyurem, Zacian/Zamazenta, Necrozma, Calyrex, Mega and Gigantamax forms), and supports all 34 Gigantamax forms via search or the dedicated “G-Max” mode.'
+      ] },
     { v: '1.26.2',
       de: [
         'GO-Infografik: Neue Ansicht „Shiny & 100% CP“ für bis zu 8 auswählbare Pokémon mit Shiny-Artwork und adaptivem Kartenlayout; pro Pokémon kann zwischen Raid (Level 20 & 25 CP) und Dynamax (nur Level 20 CP) gewählt werden.'
