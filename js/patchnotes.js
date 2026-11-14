@@ -9,6 +9,27 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.27.0',
+      de: [
+        'Randomizer: Neues Design – ROM-Karte, große Ablagefläche mit Spieleübersicht, Optionen in Karten und Spalten ohne Scrollen, feste Fußleiste und einklappbares Protokoll.'
+      ],
+      en: [
+        'Randomizer: new design – ROM card, large drop area with a game overview, options in cards and columns without scrolling, fixed footer and collapsible log.'
+      ],
+      full: {
+        de: [
+          'Randomizer: Neues Design ohne Scrollen; Eigene Starter für alle Generationen, Rivale und Freunde behalten ihren Starter (Gen 3-5), Nationaldex-Option und korrigierte Entwicklungen in Feuerrot/Blattgrün, Held-Items wilder Pokémon (Gen 4/5), Statics/Geschenke für X/Y und ORAS, Attacken-Lehrer in ORAS und Kristall, Feld-Items für Gen 1/2, Button „Im Nuzlocke-Rechner öffnen“.',
+          'Save-Editor: Showdown-Text-Import/-Export, Geschlecht und Form-Dropdown, Fähigkeiten-Auswahl, „Legal machen“, Game-Boy-Editor mit Schnell-Buttons/Hex/Batch/.pk1/.pk2, Ruhmeshalle Gen 1, Münzen und Kampfpunkte; Gen-5-Team-Pokémon (#494–#649) werden richtig geladen.',
+          'GO-Infografik „Shiny & 100% CP“ (bis zu 8 Pokémon, Raid/Dynamax/G-Max); Capture-Projektor verbindet die Aufnahme automatisch wieder; Fangrechner auch auf Android.',
+          'Damage Calc, Meta-Test, Shiny-Zähler und Performance: EV-Umrechnung in SPs, mehrere Attacken-Fixes, korrigierte K.O.-Zählung, schnelleres Laden.'
+        ],
+        en: [
+          'Randomizer: new design without scrolling; custom starters for all generations, rival and friends keep their starter (gen 3-5), National Pokédex option and fixed evolutions in FireRed/LeafGreen, held items of wild Pokémon (gen 4/5), statics/gifts for X/Y and ORAS, move tutors in ORAS and Crystal, field items for gen 1/2, “Open in Nuzlocke calculator” button.',
+          'Save editor: Showdown text import/export, gender and form dropdown, ability picker, “Make legal”, Game Boy editor with quick buttons/hex/batch/.pk1/.pk2, Hall of Fame gen 1, coins and battle points; gen 5 party Pokémon (#494–#649) load properly.',
+          'GO infographic “Shiny & 100% CP” (up to 8 Pokémon, Raid/Dynamax/G-Max); the capture projector reconnects the capture automatically; catch calculator also on Android.',
+          'Damage calc, meta test, shiny counter and performance: EV to SP conversion, several move fixes, fixed KO attribution, faster loading.'
+        ]
+      } },
     { v: '1.26.6',
       de: [
         'Randomizer: Neues Layout ohne Scrollen – ROM-Karte mit Spielinfo, große Ablagefläche mit Übersicht der unterstützten Spiele, Optionen in Karten und Spalten, feste Fußleiste mit „Randomisieren und speichern“, Voreinstellungen übersichtlich gruppiert und einklappbares Protokoll.'
