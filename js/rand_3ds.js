@@ -347,6 +347,20 @@
             });
           })(tb + t3 * 0x24);
         }
+        // Omega Rubin/Alpha Saphir: 60 Attacken-Lehrer-Attacken im Programmcode (Liste ab Muster, 0x26E = Lücke) und in der Lehrer-Shop-Tabelle (Abstand 8 Byte); Kompatibilitäten bleiben unverändert
+        if (oras) {
+          var tEnd = findCode(hexBytes('C2015701A20012024401BA01')), tShop = findCode(hexBytes('8A02000030000000'));
+          if (tEnd > 0) {
+            var tp = tEnd - 12, tSlots = [], tMoves = [], tv;
+            while (tp + 2 <= code.length && tMoves.length <= 100) { tv = u16(code, tp); tp += 2; if (tv === 0xFFFF) break; if (tv === 0x26E) continue; tMoves.push(tv); tSlots.push(tp - 2); }
+            if (tMoves.length === 60 && tMoves.every(function (m) { return m >= 1 && m <= g.maxMove; }) && (tShop < 0 || tShop + 60 * 8 <= code.length)) {
+              model.tutor = {
+                moves: tMoves.slice(),
+                setMoves: function (list) { list.forEach(function (m, i) { w16(code, tSlots[i], m); if (tShop > 0) w16(code, tShop + i * 8, m); }); codeDirty = true; }
+              };
+            }
+          }
+        }
       }
     }
 
@@ -380,7 +394,7 @@
   async function run(ctx, opts) {
     var model = await buildModel(ctx, false), res = await C.run(model, opts);
     if (model.commitInfo && model.commitInfo.skipped) res.log += '\n\nHinweis: ' + model.commitInfo.skipped + ' Gebiete der wilden Pokémon blieben unverändert (die neuen Daten passten nicht in den vorhandenen Platz).';
-    if (model.commitInfo && model.commitInfo.codeSkipped) res.log += '\n\nHinweis: Die TM-/Tausch-Änderungen im Programmcode wurden nicht gespeichert (der geänderte Code ließ sich nicht klein genug komprimieren).';
+    if (model.commitInfo && model.commitInfo.codeSkipped) res.log += '\n\nHinweis: Die TM-, Lehrer- und Tausch-Änderungen im Programmcode wurden nicht gespeichert (der geänderte Code ließ sich nicht klein genug komprimieren).';
     return res;
   }
   window.CCRand3DS = { CAPS: { moves: true, tm: true, evoFix: true, extra: true, noTutor: true }, DEFAULTS: C.DEFAULTS, open: open, scan: scan, run: run, fileSource: fileSource, GAMES: GAMES, buildModel: buildModel };

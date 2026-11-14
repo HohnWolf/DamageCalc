@@ -39,5 +39,33 @@ cro['DllField.cro'] = { data: fd, loc: { off: 0 } };
   ok(u16(fd, 0xF805C) === 200 && u16(fd, 0xF805C + 5 * 0x18) === 205, 'Starter-Geschenke (Nr. 0-5) unberührt');
   ok(u16(fd, 0xF805C + 6 * 0x18) !== 206 && fd[0xF805C + 6 * 0x18 + 4] === 0, 'Geschenk Nr. 6 neu, Form 0');
   ok(res.data.patches.some(p => p.off === 0xEE46C), 'Änderungen an DllField.cro vorgemerkt');
+  // Omega Rubin: 60 Lehrer-Attacken im Programmcode (Liste ab Muster, 0x26E = Lücke) plus Lehrer-Shop-Tabelle
+  {
+    const go = R.GAMES['CTR-P-ECR'];
+    garcs[go.stats] = mk(721, 0x54, (d) => { for (let k = 0; k < 6; k++) d[k] = 50; d[7] = 10; d[24] = 5; });
+    garcs[go.learn] = mk(721, 8, (d) => { d[0] = 33; d[2] = 1; d[4] = 0xFF; d[5] = 0xFF; d[6] = 0xFF; d[7] = 0xFF; });
+    garcs[go.evo] = mk(721, 48, () => {});
+    garcs[go.move] = mk(621, 36, (d, i) => { d[0] = i % 17; d[3] = 60; d[4] = 100; d[5] = 20; });
+    const code = new Uint8Array(0x2000), LST = 0x100, SHOP = 0x800;
+    const hx = (h) => h.match(/../g).map(x => parseInt(x, 16));
+    const first = [0x1C2, 0x157, 0xA2, 0x212, 0x144, 0x1BA];
+    const list = first.concat(Array.from({ length: 54 }, (_, i) => 20 + i * 5));
+    let pos = LST; list.forEach((m, i) => { if (i === 10) { code[pos] = 0x6E; code[pos + 1] = 0x02; pos += 2; } code[pos] = m & 255; code[pos + 1] = m >> 8; pos += 2; });
+    code[pos] = 0xFF; code[pos + 1] = 0xFF;
+    hx('8A02000030000000').forEach((b, i) => code[SHOP - 8 + i] = b);
+    list.forEach((m, i) => { code[SHOP + i * 8] = m & 255; code[SHOP + i * 8 + 1] = m >> 8; });
+    let outCode = null;
+    window.CTR.readCode = async () => ({ code });
+    window.CTR.buildExefs = async (info, ex, c) => { outCode = c; return { exefs: 1 }; };
+    cro['DllField.cro'] = null;
+    const ctxO = { info: {}, source: { size: 1, read: async () => new Uint8Array(1) }, g: go, code: 'CTR-P-ECR' };
+    const mo = await R.buildModel(ctxO, false);
+    ok(mo.tutor && mo.tutor.moves.length === 60 && mo.tutor.moves[0] === 0x1C2, 'ORAS: 60 Lehrer-Attacken erkannt');
+    await window.CCRandCore.run(mo, { seed: 'tu', wild: 'keep', trainers: 'keep', tutorMoves: 'random' });
+    const rd = (o) => outCode[o] | (outCode[o + 1] << 8);
+    let q = LST, nSame = 0, shopOk = true, holeOk = false;
+    for (let i = 0; i < 60; i++) { if (i === 10) { holeOk = rd(q) === 0x26E; q += 2; } const m = rd(q); if (m === list[i]) nSame++; if (rd(SHOP + i * 8) !== m) shopOk = false; q += 2; }
+    ok(outCode && nSame < 20 && shopOk && holeOk, 'ORAS: Lehrer-Attacken gemischt, Lücke bleibt, Shop-Tabelle gleich (' + nSame + ' unverändert)');
+  }
   console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('Ausnahme', e); process.exit(1); });
