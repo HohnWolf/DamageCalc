@@ -81,7 +81,7 @@
     });
     // Trainer
     rom.trainers.forEach(function (tr) {
-      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [] };
+      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [], tag: window.RIVAL_TAGS && window.RIVAL_TAGS[rom.type] ? window.RIVAL_TAGS[rom.type][tr.id] || null : null };
       tr.party.forEach(function (pm) {
         var po = pm.idx * tr.rec;
         tm.mons.push({

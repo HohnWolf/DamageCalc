@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.7',
+      de: [
+        'Randomizer: Neue Option „Rivale und Freunde behalten ihren Starter“ für Generation 3 bis 5 – Rivale, Freunde und Tag-Battle-Partner tragen ihren Starter durchs Spiel und entwickeln ihn nach Level (wie im Universal Pokémon Randomizer ZX).'
+      ],
+      en: [
+        'Randomizer: new option “Rival and friends keep their starter” for generations 3 to 5 – the rival, friends and tag-battle partners carry their starter through the game and evolve it by level (like the Universal Pokémon Randomizer ZX).'
+      ] },
     { v: '1.26.6',
       de: [
         'Save-Editor: Ruhmeshalle für Generation 1 (Teams ansehen und löschen), Spielhallen-Münzen in Gold/Silber/Kristall und Kampfpunkte der Kampfzone in Smaragd bearbeitbar.'

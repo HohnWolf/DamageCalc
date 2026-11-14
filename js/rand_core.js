@@ -14,7 +14,7 @@
     // Attacken-Daten, TMs/HMs (Modell mit setMove bzw. tm)
     movePower: false, moveAcc: false, movePP: false, moveType: false, moveCat: false,
     tmMoves: 'keep', tmGoodDamaging: false, tmGoodPct: 60, tmKeepField: true, tmCompat: 'keep', tmFollowEvo: false, tmSanity: true,
-    wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', wildHeldItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', itemsBanBad: false, natDexStart: false,
+    wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', wildHeldItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', rivalStarter: false, itemsBanBad: false, natDexStart: false,
     evoImpossible: false, evoNoTime: false, evoEasier: false, expCurve: 'keep', expLegendsSlow: false,
     tutorMoves: 'keep', tutorCompat: 'keep', statics: 'keep', staticLegendSwap: false, staticLevelPct: 0, trades: 'keep', tradeRequested: false,
     // weitere Optionen des UPR: Generationen begrenzen, Typen, Faehigkeiten, Basiswerte, Attacken-Sets, Trainer, Starter
@@ -669,11 +669,47 @@
           if (o.trainers !== 'keep') pm.set(cur);
           if (pct) pm.setLevel(lv);
           if (o.trainers !== 'keep' && pm.refresh) pm.refresh(cur, lv, model.learnsets && model.learnsets[cur]);
+          pm.lvNow = lv;
           line3.push(nameOf(cur) + ' Lv' + lv);
         });
         nTr++;
         L(tr.label + (tTheme !== null ? ' [' + tName(tTheme) + ']' : '') + ': ' + line3.join(', '));
       });
+      // Rivalen (und Freunde) behalten ihren Starter (Logik wie "Rival carries starter" im UPR): Starter des Rivalen = (eigener Starter + Versatz) % 3,
+      // Entwicklung nach Level (zweistufig: ab Lv 16 und Lv 36, einstufig: ab Lv 30); die Arten stammen aus den bereits randomisierten Startern
+      if (o.rivalStarter && o.trainers !== 'keep' && model.starters && model.starters.length >= 3 && model.trainers.some(function (t) { return t.tag; })) {
+        var stNow = model.starters.slice(0, 3).map(function (x) { return x.get(); });
+        var evoTo = function (n) { var r = []; (model.evos || []).forEach(function (ev) { var t = ev.get(); if (ev.from === n && t !== n && sp[t] && r.indexOf(t) === -1) r.push(t); }); return r; };
+        var depth = function (n, d) { if (d <= 0) return 0; var best = 0; evoTo(n).forEach(function (t) { best = Math.max(best, 1 + depth(t, d - 1)); }); return best; };
+        var evoPick = function (n, mustEvolve) { var c = evoTo(n).filter(function (t) { return !mustEvolve || evoTo(t).length; }); return c.length ? rng.pick(c) : n; };
+        var withTag = function (tag) { return model.trainers.filter(function (t) { return t.tag === tag; }); };
+        var highest = function (t) { var best = t.mons[0]; t.mons.forEach(function (m, k) { if (k && m.lvNow + (k === t.mons.length - 1 ? 2 : 0) > best.lvNow) best = m; }); return best; };
+        var levelOf = function (tag) { var t = withTag(tag)[0]; return t && t.mons.length ? highest(t).lvNow : 0; };
+        var setWith = function (tag, nat) { withTag(tag).forEach(function (t) { if (!t.mons.length) return; var m = highest(t); m.set(nat); if (m.refresh) m.refresh(nat, m.lvNow, model.learnsets && model.learnsets[nat]); }); };
+        var rivalLog = [];
+        [['RIVAL', 1], ['FRIEND', 2]].forEach(function (pr) {
+          var prefix = pr[0], hi = 0;
+          model.trainers.forEach(function (t) { if (t.tag && t.tag.indexOf(prefix) === 0) hi = Math.max(hi, parseInt(t.tag.slice(prefix.length, t.tag.indexOf('-')), 10) || 0); });
+          if (!hi) return;
+          for (var i = 0; i < 3; i++) {
+            var cur = stNow[(i + pr[1]) % 3], times = depth(cur, 2), j = 1, tg = function (jj) { return prefix + jj + '-' + i; }, parts = [nameOf(cur)];
+            if (times === 0) { for (; j <= hi; j++) setWith(tg(j), cur); }
+            else if (times === 1) {
+              for (; j <= Math.floor(hi / 2); j++) { if (levelOf(tg(j)) >= 30) break; setWith(tg(j), cur); }
+              cur = evoPick(cur, false); parts.push(nameOf(cur));
+              for (; j <= hi; j++) setWith(tg(j), cur);
+            } else {
+              for (; j <= hi; j++) { if (levelOf(tg(j)) >= 16) break; setWith(tg(j), cur); }
+              cur = evoPick(cur, true); parts.push(nameOf(cur));
+              for (; j <= hi; j++) { if (levelOf(tg(j)) >= 36) break; setWith(tg(j), cur); }
+              cur = evoPick(cur, false); parts.push(nameOf(cur));
+              for (; j <= hi; j++) setWith(tg(j), cur);
+            }
+            rivalLog.push(prefix + ' (wenn du Starter ' + (i + 1) + ' wählst): ' + parts.join(' → '));
+          }
+        });
+        if (rivalLog.length) { L('=== Rivalen behalten ihren Starter ==='); rivalLog.forEach(L); L(''); }
+      }
       summary.trainers = nTr; L('');
     }
 

@@ -129,5 +129,18 @@ assert.equal(new Set([gi(B0 + 0x8000), gi(B0 + 0x8002), gi(B0 + 0x8004)]).size, 
   const nn = await R.run(u8, rom, { seed: 'nd', wild: 'keep', trainers: 'keep', starters: 'random' });
   assert.ok(nn.data[PTR_LOC] === u8[PTR_LOC] && !/Pokédex/.test(nn.log), 'ohne Option bleibt der Pokédex-Zeiger unverändert');
 }
+// Rivalen behalten ihren Starter: Trainer 1-4 (Tabellenindex) tragen die Tags RIVAL1-0, RIVAL1-1, RIVAL2-0, RIVAL2-1
+{
+  window.RIVAL_TAGS = { E: { 1: 'RIVAL1-0', 2: 'RIVAL1-1', 3: 'RIVAL2-0', 4: 'RIVAL2-1' } };
+  window.GEN3_OFFS.BPEE0.tr = 0xE0000;
+  const rv = await R.run(u8, rom, { seed: 'rv', wild: 'keep', trainers: 'random', starters: 'keep', rivalStarter: true });
+  // höchstes Level (Lv 12 + 2 Bonus für den letzten Platz) = Platz 3 des Trainers; Starter des Rivalen = (eigener Starter + 1) % 3 -> Starter 2 bzw. 3 (interne IDs 280 / 283)
+  const monSp = (t, j) => rv.data[trainers[t].partyOff + j * trainers[t].partySize + 4] | (rv.data[trainers[t].partyOff + j * trainers[t].partySize + 5] << 8);
+  assert.equal(monSp(1, 2), 280, 'RIVAL1-0: Starter 2'); assert.equal(monSp(2, 2), 283, 'RIVAL1-1: Starter 3');
+  assert.equal(monSp(3, 2), 280, 'RIVAL2-0: Starter 2'); assert.equal(monSp(4, 2), 283, 'RIVAL2-1: Starter 3');
+  assert.ok(/=== Rivalen behalten ihren Starter ===/.test(rv.log), 'Rivalen im Protokoll');
+  const rn = await R.run(u8, rom, { seed: 'rv', wild: 'keep', trainers: 'random', starters: 'keep' });
+  assert.ok(!/Rivalen behalten/.test(rn.log), 'ohne Option keine Rivalen-Logik');
+}
 console.log(a.log.split('\n').slice(0, 12).join('\n')); console.log('OK');
 })().catch(e => { console.log(e); process.exit(1); });

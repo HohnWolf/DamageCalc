@@ -20,7 +20,7 @@
     o_moveTypePct: 'Level-Attacken: Anteil gleicher Typ (%)', o_evoSameType: 'Entwicklungen: neues Ziel teilt einen Typ mit der Vorstufe', o_evoForceChange: 'Entwicklungen: Ziel muss sich ändern',
     o_evoLimit3: 'Entwicklungen: höchstens drei Stufen', o_starterTwoEvo: 'Starter: nur Arten mit zwei Entwicklungen', o_starterSameType: 'Starter: alle drei vom gleichen Typ',
     o_wildAreaType: 'Wild: jedes Gebiet hat einen Typ (Typ-Thema)', o_wildArea1to1: 'Wild: pro Gebiet wird jede Art gleich ersetzt (1:1)', o_wildCatchAll: 'Wild: jede Art kommt mindestens einmal vor („Catch ’em all“)',
-    o_trainerTypeTheme: 'Trainer: jeder Trainer hat ein Typ-Thema', o_trainerNoDup: 'Trainer: keine doppelten Arten im Team',
+    o_rivalStarter: 'Rivale und Freunde behalten ihren Starter (entwickelt sich mit)', o_trainerTypeTheme: 'Trainer: jeder Trainer hat ein Typ-Thema', o_trainerNoDup: 'Trainer: keine doppelten Arten im Team',
     o_movePower: 'Attacken: Stärke zufällig', o_moveAcc: 'Attacken: Genauigkeit zufällig', o_movePP: 'Attacken: AP zufällig', o_moveType: 'Attacken: Typ zufällig', o_moveCat: 'Attacken: Art zufällig (physisch/speziell)',
     tmMoves: 'TM-Attacken', tmCompat: 'TM/HM-Kompatibilität', tmRandom: 'Zufällig', tmType: 'Zufällig, bevorzugt eigener Typ', tmFull: 'Alle können alles',
     o_tmGoodDamaging: 'TMs: Anteil guter Schadensattacken erzwingen', o_tmKeepField: 'TMs: Feldattacken-TMs behalten', o_tmFollowEvo: 'Kompatibilität: Weiterentwicklungen erben von der Vorstufe', o_tmSanity: 'Kompatibilität: Level-Attacken, die es als TM gibt, immer erlauben',
@@ -60,7 +60,7 @@
     o_moveTypePct: 'Level-up moves: share of same type (%)', o_evoSameType: 'Evolutions: new target shares a type with the previous stage', o_evoForceChange: 'Evolutions: target must change',
     o_evoLimit3: 'Evolutions: at most three stages', o_starterTwoEvo: 'Starters: only species with two evolutions', o_starterSameType: 'Starters: all three of the same type',
     o_wildAreaType: 'Wild: each area has a type theme', o_wildArea1to1: 'Wild: each species is replaced the same way within an area (1:1)', o_wildCatchAll: 'Wild: every species appears at least once (catch em all)',
-    o_trainerTypeTheme: 'Trainers: each trainer has a type theme', o_trainerNoDup: 'Trainers: no duplicate species in a team',
+    o_rivalStarter: 'Rival and friends keep their starter (evolves along)', o_trainerTypeTheme: 'Trainers: each trainer has a type theme', o_trainerNoDup: 'Trainers: no duplicate species in a team',
     o_movePower: 'Moves: random power', o_moveAcc: 'Moves: random accuracy', o_movePP: 'Moves: random PP', o_moveType: 'Moves: random type', o_moveCat: 'Moves: random category (physical/special)',
     tmMoves: 'TM moves', tmCompat: 'TM/HM compatibility', tmRandom: 'Random', tmType: 'Random, prefer own type', tmFull: 'Everything can learn everything',
     o_tmGoodDamaging: 'TMs: force a share of good damaging moves', o_tmKeepField: 'TMs: keep field-move TMs', o_tmFollowEvo: 'Compatibility: evolutions inherit from the previous stage', o_tmSanity: 'Compatibility: always allow level-up moves that exist as a TM',
@@ -328,6 +328,7 @@
     g5.appendChild(modeRow('trainers', S.trainers, ['keep', 'random', 'similar'], mode));
     g5.appendChild(numRow('trainerLevel', S.trainerLevel + ' (%)', -50, 100, 5));
     ['trainerTypeTheme', 'trainerNoDup'].forEach(function (k) { pt.appendChild(check(k, S['o_' + k])); });
+    if (curMaxGen() >= 3 && curMaxGen() <= 5 && st.opts.trainers !== 'keep') pt.appendChild(check('rivalStarter', S.o_rivalStarter));
     pt.appendChild(check('trainerFullyEvolved', S.o_trainerFullyEvolved));
     grid(pt).appendChild(numRow('trainerFullyEvolvedLevel', S.o_trainerFullyEvolvedLevel, 1, 100, 1));
     if (caps.items) grid(pt).appendChild(modeRow('trainerItems', S.trainerItems, ['keep', 'random'], { keep: S.keep, random: S.random }));

@@ -193,11 +193,13 @@
           scale: function (p) { var C = window.CCRandCore; u8[eo - 2] = C.scaleLv(u8[eo - 2], p); u8[eo - 1] = C.scaleLv(u8[eo - 1], p); } });
       })(a.off + i * 4 + 2);
     });
-    // Trainer
+    // Trainer (Rivalen-Tag aus der UPR-Tabelle; Trainer-Nr. = Index in der Trainertabelle des Spiels)
+    var rvKey = { BPR: 'FRLG', BPG: 'FRLG', BPE: 'E', AXV: 'RS', AXP: 'RS' }[rom.code.slice(0, 3)], rvTab = window.RIVAL_TAGS && window.RIVAL_TAGS[rvKey], trBase = window.GEN3_OFFS && window.GEN3_OFFS[rom.code + u8[0xBC]];
+    function rivalTag(tr) { if (!rvTab || !trBase || !trBase.tr) return null; var n = (tr.off - trBase.tr) / 40; return Number.isInteger(n) ? rvTab[n] || null : null; }
     rom.trainers.forEach(function (tr) {
       if (tr.partyOff < 0 || !tr.party.length) return;
       var flags = u8[tr.off], hasItem = !!(flags & 2), custom = !!(flags & 1);
-      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [] };
+      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [], tag: rivalTag(tr) };
       tr.party.forEach(function (pm, j) {
         var mo = tr.partyOff + j * tr.partySize;
         tm.mons.push({
