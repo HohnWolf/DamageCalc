@@ -354,7 +354,7 @@
       g7.appendChild(modeRow('tmCompat', S.tmCompat, ['keep', 'random', 'type', 'full'], { keep: S.keep, random: S.tmRandom, type: S.tmType, full: S.tmFull }));
       ['tmGoodDamaging', 'tmKeepField', 'tmFollowEvo', 'tmSanity'].forEach(function (k) { pa.appendChild(check(k, S['o_' + k])); });
     }
-    if (caps.extra && (!caps.noTutor || (st.ctx && st.ctx.g && st.ctx.g.type === 'oras'))) {
+    if (caps.extra && (!caps.noTutor || (st.ctx && st.ctx.g && st.ctx.g.type === 'oras') || (st.rom && st.rom.crystal))) {
       head(pa, S.tutorMoves);
       var g8 = grid(pa);
       g8.appendChild(modeRow('tutorMoves', S.tutorMoves, ['keep', 'random'], { keep: S.keep, random: S.tmRandom }));

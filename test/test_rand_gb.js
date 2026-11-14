@@ -48,8 +48,9 @@ function mkGen1() {
     return mk2();
   }).catch(e => { console.log('Ausnahme', e); process.exit(1); });
 }
-function mk2() {
-  const e = E.g2[0], u = new Uint8Array(0x200000); // Gold (U)
+function mk2(idx) {
+  idx = idx || 0;
+  const e = E.g2[idx], u = new Uint8Array(0x200000); // Gold (U) bzw. Kristall (U)
   u[0x143] = 0x80; Buffer.from(e.Game).forEach((c, i) => u[0x13F + i] = c); u[0x14C] = e.Version; u[0x14A] = e.NonJapanese;
   for (let n = 1; n <= 251; n++) { const o = e.PokemonStatsOffset + (n - 1) * 32; u[o] = n; for (let k = 1; k <= 6; k++) u[o + k] = 40 + k * 5; u[o + 7] = 0; u[o + 8] = 20; }
   const tbl = e.PokemonMovesetsTableOffset, bank = Math.floor(tbl / 0x4000);
@@ -68,12 +69,27 @@ function mk2() {
     for (let k = 0; k < 10; k++) { u[E + 16 + k * 13 + 7] = 1; wp(E + 16 + k * 13 + 9, 0x4400 + k * 4); u[0xC0400 + k * 4] = 20 + k; }
   }
   const rom = RG.parseRom(u);
-  ok(rom.gen === 2 && /Gold/.test(rom.game), 'Gen 2: Gold (U) erkannt');
+  if (e.MoveTutorMoves) { // Kristall: Attacken-Namen (Byte-Folgen, Ende 0x50), drei Lehrer-Attacken, Kompatibilitäts-Bits 1-3
+    const nm = (m) => [0x80 + (m % 26), 0x80 + ((m * 7) % 26), 0x80 + ((m * 13) % 26)];
+    let np = e.MoveNamesOffset; for (let m = 1; m <= 251; m++) { nm(m).forEach(b => u[np++] = b); u[np++] = 0x50; }
+    [118, 120, 122].forEach((m, k) => u[e.MoveTutorMoves[k]] = m);
+    for (let n = 1; n <= 251; n++) u[e.PokemonStatsOffset + (n - 1) * 32 + 31] = n % 2 ? 0x0F : 0x01;
+  }
+  ok(rom.gen === 2 && (idx === 0 ? /Gold/ : /Crystal/).test(rom.game), 'Gen 2: ' + rom.game + ' erkannt');
   const info = RG.scan(rom, u); ok(info.wildSlots >= 21 && info.evo && info.starters, 'Gen 2: Scan (' + JSON.stringify(info) + ')');
-  return RG.run(u, rom, { seed: 'y', fieldItems: 'random', wild: 'random', trainers: 'random', evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random' }).then(res => {
-    ok(res.log.indexOf('Trainer') > 0, 'Gen 2: Lauf');
+  return RG.run(u, rom, { seed: 'y', fieldItems: 'random', tutorMoves: 'random', tutorCompat: 'random', wild: idx ? 'keep' : 'random', trainers: idx ? 'keep' : 'random', evo: 'random', stats: 'random', types: 'random', moves: idx ? 'keep' : 'random', starters: 'random' }).then(res => {
+    ok(idx || res.log.indexOf('Trainer') > 0, 'Gen 2: Lauf');
     { const hid = [0xC0302, 0xC0312].map(o => res.data[o]), balls = Array.from({ length: 10 }, (_, k) => res.data[0xC0400 + k * 4]);
       ok(/=== Items auf dem Feld \(12\)/.test(res.log) && (hid[0] !== 18 || hid[1] !== 19 || balls.some((v, k) => v !== 20 + k)), 'Gen 2: Feld-Items (versteckt + Itembälle) gefunden und gewürfelt (' + hid.join(',') + ' | ' + balls.join(',') + ')'); }
+    if (e.MoveTutorMoves) {
+      const mv = e.MoveTutorMoves.map(o => res.data[o]), ptr = res.data[e.MoveTutorMenuOffset] | (res.data[e.MoveTutorMenuOffset + 1] << 8), ns = e.MoveTutorMenuNewSpace;
+      ok(mv.every(m => m >= 1 && m <= 251) && mv.join() !== '118,120,122', 'Kristall: Lehrer-Attacken gemischt (' + mv.join(',') + ')');
+      ok(ptr === 0x4000 + (ns % 0x4000) && res.data[ns] === 0x80 && res.data[ns + 1] === 4, 'Kristall: Menü-Zeiger auf neuen Bereich');
+      const nm = (m) => [0x80 + (m % 26), 0x80 + ((m * 7) % 26), 0x80 + ((m * 13) % 26)];
+      const exp = [0x80, 4].concat(...mv.map(m => nm(m).concat([0x50])), [0x82, 0x80, 0x8D, 0x82, 0x84, 0x8B, 0x50]);
+      ok(exp.every((b, i) => res.data[ns + i] === b), 'Kristall: Menü enthält die neuen Attackennamen und CANCEL' + (exp.every((b, i) => res.data[ns + i] === b) ? '' : ' exp=' + exp.join() + ' got=' + Array.from(res.data.slice(ns, ns + exp.length)).join()));
+    }
+    if (idx === 0) return mk2(E.g2.findIndex(r => r.MoveTutorMoves && r.MoveTutorMenuNewSpace));
     console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);
   });
 }

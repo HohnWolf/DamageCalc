@@ -4,7 +4,7 @@ import re, sys, json, os
 cfg = sys.argv[1]
 KEYS = {
  1: ['Game','Version','NonJapanese','Type','CRCInHeader','InternalPokemonCount','PokedexOrder','PokemonStatsOffset','MewStatsOffset','WildPokemonTableOffset','OldRodOffset','GoodRodOffset','SuperRodTableOffset','MoveCount','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets','TMMovesOffset','TradeTableOffset','TradeTableSize','TradeNameLength','TradesUnused','MapBanks','MapAddresses','SpecialMapList','SpecialMapPointerTable','HiddenItemRoutine'],
- 2: ['Game','Version','NonJapanese','Type','CRCInHeader','PokemonStatsOffset','WildPokemonOffset','FishingWildsOffset','HeadbuttWildsOffset','HeadbuttTableSize','BCCWildsOffset','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerClassAmount','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets','TMMovesOffset','TradeTableOffset','TradeTableSize','TradeNameLength','TradeOTLength','TradesUnused','MapHeaders'],
+ 2: ['Game','Version','NonJapanese','Type','CRCInHeader','PokemonStatsOffset','WildPokemonOffset','FishingWildsOffset','HeadbuttWildsOffset','HeadbuttTableSize','BCCWildsOffset','MoveDataOffset','PokemonMovesetsTableOffset','StarterOffsets1','StarterOffsets2','StarterOffsets3','TrainerClassAmount','TrainerDataTableOffset','TrainerDataClassCounts','StarterTextOffsets','TMMovesOffset','TradeTableOffset','TradeTableSize','TradeNameLength','TradeOTLength','TradesUnused','MapHeaders','MoveTutorMoves','MoveTutorMenuOffset','MoveTutorMenuNewSpace','MoveNamesOffset'],
 }
 def val(v):
     v = v.split('//')[0].strip()

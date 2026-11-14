@@ -276,6 +276,27 @@
         };
       }
     }
+    // Kristall: 3 Attacken-Lehrer (je ein Byte) plus Menü mit den Attackennamen (neu in freiem Bereich aufgebaut, Zeiger umgebogen); Kompatibilität = Bits 1-3 im Byte +31 der Basiswerte
+    if (!g1 && rom.crystal && e.MoveTutorMoves && e.MoveTutorMoves.length === 3 && e.MoveTutorMenuOffset && e.MoveTutorMenuNewSpace && e.MoveNamesOffset) {
+      var tutMoves = e.MoveTutorMoves.map(function (o) { return u8[o]; }), nsp = e.MoveTutorMenuNewSpace, nspFree = true, ti2;
+      for (ti2 = 0; ti2 < 40; ti2++) if (u8[nsp + ti2] !== u8[nsp]) nspFree = false;
+      if (nspFree && (u8[nsp] === 0 || u8[nsp] === 0xFF) && tutMoves.every(function (m) { return m >= 1 && m <= mc; })) {
+        var tutCp = [];
+        for (i = 1; i <= max; i++) { var so4 = statOff(i), mb = u8[so4 + 31]; tutCp.push({ key: i, nat: i, types: species[i].types, flags: [false, !!(mb & 2), !!(mb & 4), !!(mb & 8)], off: so4 + 31 }); }
+        var nameBytes = function (m) { var p = e.MoveNamesOffset, k; for (k = 1; k < m; k++) { while (u8[p] !== 0x50 && p < u8.length) p++; p++; } var b = []; while (u8[p] !== 0x50 && b.length < 14 && p < u8.length) b.push(u8[p++]); return b; };
+        model.tutor = {
+          moves: tutMoves.slice(),
+          compat: tutCp,
+          setMoves: function (list) {
+            list.forEach(function (m, k) { u8[e.MoveTutorMoves[k]] = m; });
+            var mp = nsp; u8[mp++] = 0x80; u8[mp++] = 4;
+            list.map(nameBytes).concat([[0x82, 0x80, 0x8D, 0x82, 0x84, 0x8B]]).forEach(function (nb) { nb.forEach(function (b) { u8[mp++] = b; }); u8[mp++] = 0x50; });
+            var ptr = 0x4000 + (nsp % 0x4000); u8[e.MoveTutorMenuOffset] = ptr & 255; u8[e.MoveTutorMenuOffset + 1] = ptr >> 8;
+          },
+          commit: function () { tutCp.forEach(function (c) { var v = u8[c.off] & 1; for (var j = 1; j <= 3; j++) if (c.flags[j]) v |= 1 << j; u8[c.off] = v; }); }
+        };
+      }
+    }
     // Statische Begegnungen und Geschenke (feste Offsets aus data/gb_roms.js): Art als Byte (Gen 1: interne Nummer), Level als Byte
     if (e.statics && e.statics.length) {
       model.statics = [];
