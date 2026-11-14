@@ -202,6 +202,8 @@
       cn.push({ k: 'coins', max: 50000, get: function () { return u16(data, tr4 + 0x20); }, set: function (v) { w16(data, tr4 + 0x20, Math.min(50000, v)); } });
       cn.push({ k: 'bp', max: 9999, get: function () { return u16(data, sv.gbase + bpo); }, set: function (v) { w16(data, sv.gbase + bpo, Math.min(9999, v)); } });
     }
+    // Gen 5: Kampfpunkte der Kampf-Subway (Block "Battle Subway Score Info": BW 0x21D00, B2W2 0x21B00, u16 am Blockanfang; PKHeX BattleSubway5)
+    if (gen === 5) { var bo5 = key === 'BW' ? 0x21D00 : 0x21B00; cn.push({ k: 'bp', max: 9999, get: function () { return u16(data, bo5); }, set: function (v) { w16(data, bo5, Math.min(9999, v)); } }); }
     if (gen === 6) { var bo6 = sv.blocks[11][0] + (key === 'XY' ? 0x3C : 0x30); cn.push({ k: 'bp', max: 9999, get: function () { return u16(data, bo6); }, set: function (v) { w16(data, bo6, Math.min(9999, v)); } }); }
     if (gen === 7) { var bo7 = sv.blocks[9][0] + 0x11C; cn.push({ k: 'bp', max: 9999, get: function () { return u32(data, bo7); }, set: function (v) { w32(data, bo7, Math.min(9999, v)); } }); }
     sv.counters = cn;

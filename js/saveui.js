@@ -680,6 +680,9 @@
         if (!valid && a1) { F.set(d, 'ability', a1); if (gen === 5) F.set(d, 'hiddenAbility', 0); else if (gen >= 6) F.set(d, 'abilityNum', 1); }
       }
     }
+    // Fundort/Fundlevel nach den Begegnungstabellen (nur wenn die Prüfung sonst "keine passende Begegnung" meldet)
+    var sg = window.CCLegal && window.CCLegal.suggest ? window.CCLegal.suggest(sv, d, { P: P, S: S, de: de }) : null;
+    if (sg) { F.set(d, 'metLoc', sg.loc); F.set(d, 'metLevel', sg.level); }
   }
   function exportMon() {
     if (!st.mon) return;

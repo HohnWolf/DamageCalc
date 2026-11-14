@@ -230,5 +230,46 @@
     }
   }
 
-  window.CCLegal = { check: check, version: 2 };
+  // Vorschlag für Fundort und Fundlevel ("Legal machen"): null, wenn nichts zu ändern ist oder sich nichts Passendes findet (Eier, Übertragene, Event-Pokémon).
+  // Nutzt dieselben Begegnungstabellen wie die Prüfung; bevorzugt Gebiete, in denen genau diese Art vorkommt, und das niedrigste passende Level.
+  function suggest(sv, d, env) {
+    var F = sv.fmt, gen = sv.gen, E = window.PKENC, P = env.P, S = env.S;
+    if (!E || sv.gb || gen < 3 || !d) return null;
+    var nat = sv.natOf(F.get(d, 'species')), egg = !!F.get(d, 'egg'), pt = (P['g' + gen] || [])[nat];
+    if (egg || !pt || nat < 1) return null;
+    var ver, fateful;
+    if (gen === 3) { ver = (u16(d, 70) >> 7) & 15; fateful = d[79] >> 7; }
+    else if (gen <= 5) { ver = d[0x5F]; fateful = d[0x40] & 1; }
+    else { ver = d[0xDF]; fateful = d[0x1D] & 1; }
+    var og = ver >= 1 && ver <= 5 ? 3 : (ver === 7 || ver === 8 || (ver >= 10 && ver <= 12)) ? 4 : (ver >= 20 && ver <= 23) ? 5 : (ver >= 24 && ver <= 27) ? 6 : (ver >= 30 && ver <= 33) ? 7 : 0;
+    if (og !== gen || fateful) return null;
+    if (gen >= 4 && F.get(d, 'eggLoc')) return null;
+    var lv = S.levelFor(pt[6], F.get(d, 'exp')), ml = F.get(d, 'metLevel'), loc = F.get(d, 'metLoc'), fam = [nat].concat(E.anc[nat] || []), i, j;
+    var wl = E.wild[ver] || {}, st = E.stat[ver] || [];
+    var okNow = function (l, m) {
+      var w = wl[l];
+      if (w) for (var a = 0; a < w.length; a += 3) if (fam.indexOf(w[a]) >= 0 && m >= w[a + 1] && m <= w[a + 2]) return true;
+      for (var b = 0; b < st.length; b++) { var e = st[b]; if (fam.indexOf(e[0]) < 0 || m < e[2] || m > e[3]) continue; if (e[1] === l || (e[5] & 1)) return true; }
+      return false;
+    };
+    if (okNow(loc, ml) || (gen === 3 && ml === 5)) return null;
+    var best = null;
+    Object.keys(wl).forEach(function (k) {
+      var w = wl[k];
+      for (var a = 0; a < w.length; a += 3) {
+        if (fam.indexOf(w[a]) < 0 || w[a + 1] > lv) continue;
+        var rank = (w[a] === nat ? 0 : 1000) + w[a + 1];
+        if (!best || rank < best.rank) best = { rank: rank, loc: +k, level: Math.max(w[a + 1], Math.min(w[a + 2], lv)) };
+      }
+    });
+    for (j = 0; j < st.length; j++) {
+      var e2 = st[j];
+      if (fam.indexOf(e2[0]) < 0 || e2[2] > lv) continue;
+      var r2 = 500 + (e2[0] === nat ? 0 : 1000) + e2[2];
+      if (!best || r2 < best.rank) best = { rank: r2, loc: e2[1], level: Math.max(e2[2], Math.min(e2[3], lv)) };
+    }
+    return best ? { loc: best.loc, level: best.level } : null;
+  }
+
+  window.CCLegal = { check: check, suggest: suggest, version: 3 };
 })();
