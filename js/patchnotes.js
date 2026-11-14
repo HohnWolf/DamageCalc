@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.6',
+      de: [
+        'Randomizer: Neues Layout ohne Scrollen – ROM-Karte mit Spielinfo, große Ablagefläche mit Übersicht der unterstützten Spiele, Optionen in Karten und Spalten, feste Fußleiste mit „Randomisieren und speichern“, Voreinstellungen übersichtlich gruppiert und einklappbares Protokoll.'
+      ],
+      en: [
+        'Randomizer: new layout without scrolling – ROM card with game info, large drop area listing the supported games, options in cards and columns, fixed footer with “Randomize and save”, neatly grouped presets and a collapsible log.'
+      ] },
     { v: '1.26.5',
       de: [
         'Save-Editor: Showdown-Text-Import/-Export für einzelne Pokémon (Gen 3-7), Geschlecht (♂/♀) und Form-Dropdown mit Namen, Fähigkeiten-Auswahl (Fähigkeit 1/2/Versteckte) für Gen 4-7 und Button „Legal machen“ (Attacken, EP/IP, Fähigkeit, Fundort und Fundlevel).',

@@ -31,7 +31,8 @@
     expCurve: 'EP-Kurve vereinheitlichen', cMediumFast: 'Mittelschnell', cMediumSlow: 'Mittellangsam', cFast: 'Schnell', cSlow: 'Langsam', cErratic: 'Unregelmäßig', cFluctuating: 'Schwankend', o_expLegendsSlow: 'EP-Kurve: Legendäre bleiben langsam',
     fieldItems: 'Items auf dem Feld (inkl. versteckte)', shops: 'Shop-Inhalte', trainerItems: 'Trainer-Items', o_fieldTMShuffle: 'Feld-TMs untereinander mischen', o_shopBanRegular: 'Shops: normale Shop-Items ausschließen', o_shopBanOP: 'Shops: sehr starke Items ausschließen', o_itemsBanBad: 'Items: keine schlechten Items (Beeren, Briefe, Spezial-Items …)',
     itemsNote: 'Schwarz/Weiß (Teil 1) hat keine änderbaren Shops; Trainer-Items ändern nur Trainer, die schon ein Item tragen.',
-    logShow: 'Protokoll anzeigen', toNuz: 'Im Nuzlocke-Rechner öffnen', pickupItems: 'Pickup-Items', wildHeldItems: 'Gehaltene Items wilder Pokémon',
+    logShow: 'Protokoll anzeigen', rivalHead: 'Rivale & Freunde', wildAssign: 'Zuordnung', itemsFilter: 'Filter', dropTitle: 'ROM hierher ziehen', changeRom: 'Andere ROM wählen …', chipAreas: 'Gebiete', chipTrainers: 'Trainer', chipStarters: 'Starter', chipEvos: 'Entwicklungen', chipYes: 'ja', chipNo: 'nein', randomHead: 'Zufall & Auswahl',
+    genList: [['Gen 1', 'Rot · Blau · Gelb'], ['Gen 2', 'Gold · Silber · Kristall'], ['Gen 3', 'Rubin · Saphir · Smaragd · Feuerrot · Blattgrün'], ['Gen 4', 'Diamant · Perl · Platin · HeartGold · SoulSilver'], ['Gen 5', 'Schwarz · Weiß · Schwarz 2 · Weiß 2'], ['Gen 6', 'X · Y · Omega Rubin · Alpha Saphir'], ['Gen 7', 'Sonne · Mond · Ultra Sonne · Ultra Mond']], toNuz: 'Im Nuzlocke-Rechner öffnen', pickupItems: 'Pickup-Items', wildHeldItems: 'Gehaltene Items wilder Pokémon',
     o_updateStats: 'Basiswerte auf eine spätere Generation aktualisieren (Änderungen bis Gen …)', o_updateMoves: 'Attacken auf eine spätere Generation aktualisieren (Stärke, AP, Genauigkeit, Typ)',
     o_natDexStart: 'Nationaler Pokédex ab Spielbeginn (Entwicklungen und Fangen außerhalb von Kanto/Hoenn)', o_starterHeldItem: 'Starter trägt ein zufälliges Item', o_tradeIVs: 'Tausche: zufällige IVs', o_tradeItems: 'Tausche: zufälliges Item',
     tabGeneral: 'Allgemein', tabMon: 'Pokémon', tabStart: 'Starter & Statische', tabWild: 'Wilde Pokémon', tabTrainer: 'Trainer', tabMoves: 'Attacken', tabItems: 'Items',
@@ -71,7 +72,8 @@
     expCurve: 'Standardize EXP curve', cMediumFast: 'Medium Fast', cMediumSlow: 'Medium Slow', cFast: 'Fast', cSlow: 'Slow', cErratic: 'Erratic', cFluctuating: 'Fluctuating', o_expLegendsSlow: 'EXP curve: legendaries stay slow',
     fieldItems: 'Field items (incl. hidden)', shops: 'Shop contents', trainerItems: 'Trainer items', o_fieldTMShuffle: 'Shuffle field TMs among themselves', o_shopBanRegular: 'Shops: exclude regular shop items', o_shopBanOP: 'Shops: exclude very strong items', o_itemsBanBad: 'Items: no bad items (berries, mail, special items …)',
     itemsNote: 'Black/White (part 1) has no editable shops; trainer items only change trainers that already hold an item.',
-    logShow: 'Show log', toNuz: 'Open in Nuzlocke calculator', pickupItems: 'Pickup items', wildHeldItems: 'Held items of wild Pokémon',
+    logShow: 'Show log', rivalHead: 'Rival & friends', wildAssign: 'Assignment', itemsFilter: 'Filter', dropTitle: 'Drop a ROM here', changeRom: 'Choose another ROM …', chipAreas: 'Areas', chipTrainers: 'Trainers', chipStarters: 'Starters', chipEvos: 'Evolutions', chipYes: 'yes', chipNo: 'no', randomHead: 'Randomness & selection',
+    genList: [['Gen 1', 'Red · Blue · Yellow'], ['Gen 2', 'Gold · Silver · Crystal'], ['Gen 3', 'Ruby · Sapphire · Emerald · FireRed · LeafGreen'], ['Gen 4', 'Diamond · Pearl · Platinum · HeartGold · SoulSilver'], ['Gen 5', 'Black · White · Black 2 · White 2'], ['Gen 6', 'X · Y · Omega Ruby · Alpha Sapphire'], ['Gen 7', 'Sun · Moon · Ultra Sun · Ultra Moon']], toNuz: 'Open in Nuzlocke calculator', pickupItems: 'Pickup items', wildHeldItems: 'Held items of wild Pokémon',
     o_updateStats: 'Update base stats to a later generation (changes up to gen …)', o_updateMoves: 'Update moves to a later generation (power, PP, accuracy, type)',
     o_natDexStart: 'National Pokédex from the start (evolutions and catching beyond Kanto/Hoenn)', o_starterHeldItem: 'Starter holds a random item', o_tradeIVs: 'Trades: random IVs', o_tradeItems: 'Trades: random item',
     tabGeneral: 'General', tabMon: 'Pokémon', tabStart: 'Starters & statics', tabWild: 'Wild Pokémon', tabTrainer: 'Trainers', tabMoves: 'Moves', tabItems: 'Items',
@@ -164,15 +166,15 @@
     d.seed = keepSeed; if (pk) d.starterPick = pk; st.opts = d; st.msg = ''; st.err = ''; render();
   }
   function presetBar() {
-    var w = el('div', { class: 'rd-presets' });
-    w.appendChild(el('span', { class: 'rd-lbl', text: S.presets + ':' }));
-    ['pStd', 'pCasual', 'pChaos', 'pNone'].forEach(function (k) { var b = el('button', { class: 'rd-logbtn', text: S[k] }); b.onclick = function () { applyPreset(k); }; w.appendChild(b); });
+    var w = el('div', { class: 'rd-presets' }), pr = el('div', { class: 'rd-seg' }), cr = el('div', { class: 'rd-coderow' });
+    ['pStd', 'pCasual', 'pChaos', 'pNone'].forEach(function (k) { var b = el('button', { type: 'button', class: 'rd-segbtn', text: S[k] }); b.onclick = function () { applyPreset(k); }; pr.appendChild(b); });
+    w.appendChild(pr); w.appendChild(cr);
     var inp = el('input', { type: 'text', class: 'rd-seed rd-code', placeholder: S.code });
     var cp = el('button', { class: 'rd-logbtn', text: S.codeCopy });
     cp.onclick = function () { inp.value = encodeCode(); try { navigator.clipboard.writeText(inp.value); } catch (e) { inp.select(); } };
     var ld = el('button', { class: 'rd-logbtn', text: S.codeLoad });
     ld.onclick = function () { if (decodeCode(inp.value)) { st.msg = ''; st.err = ''; render(); } else { st.err = S.codeBad; render(); } };
-    w.appendChild(inp); w.appendChild(cp); w.appendChild(ld);
+    cr.appendChild(inp); cr.appendChild(cp); cr.appendChild(ld);
     return w;
   }
   function encodeCode() {
@@ -245,7 +247,9 @@
 
     // Allgemein
     var pg = panel('gen');
+    head(pg, S.presets);
     pg.appendChild(presetBar());
+    head(pg, S.randomHead);
     var g0 = grid(pg);
     var seed = el('input', { type: 'text', class: 'rd-seed', placeholder: '…' }); seed.value = st.opts.seed || '';
     seed.oninput = function () { st.opts.seed = seed.value; };
@@ -315,23 +319,26 @@
 
     // Wilde Pokémon
     var pw = panel('wild');
+    head(pw, S.tabWild);
     var g4 = grid(pw);
     g4.appendChild(modeRow('wild', S.wild, ['keep', 'random', 'similar'], mode));
     g4.appendChild(numRow('wildLevelPct', S.wildLevelPct, -50, 100, 5));
     g4.appendChild(modeRow('catchRate', S.catchRate, ['keep', '1', '2', '3', '4'], { keep: S.keep, 1: S.cr1, 2: S.cr2, 3: S.cr3, 4: S.cr4 }));
+    head(pw, S.wildAssign);
     pw.appendChild(check('wildGlobal', S.wildGlobal));
     ['wildAreaType', 'wildArea1to1', 'wildCatchAll'].forEach(function (k) { pw.appendChild(check(k, S['o_' + k])); });
 
     // Trainer
     var pt = panel('trainer');
+    head(pt, S.tabTrainer);
     var g5 = grid(pt);
     g5.appendChild(modeRow('trainers', S.trainers, ['keep', 'random', 'similar'], mode));
     g5.appendChild(numRow('trainerLevel', S.trainerLevel + ' (%)', -50, 100, 5));
     ['trainerTypeTheme', 'trainerNoDup'].forEach(function (k) { pt.appendChild(check(k, S['o_' + k])); });
-    if (curMaxGen() >= 3 && curMaxGen() <= 5 && st.opts.trainers !== 'keep') pt.appendChild(check('rivalStarter', S.o_rivalStarter));
     pt.appendChild(check('trainerFullyEvolved', S.o_trainerFullyEvolved));
     grid(pt).appendChild(numRow('trainerFullyEvolvedLevel', S.o_trainerFullyEvolvedLevel, 1, 100, 1));
-    if (caps.items && !caps.fieldOnly) grid(pt).appendChild(modeRow('trainerItems', S.trainerItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
+    if (caps.items && !caps.fieldOnly) { head(pt, S.trainerItems); grid(pt).appendChild(modeRow('trainerItems', S.trainerItems, ['keep', 'random'], { keep: S.keep, random: S.random })); }
+    if (curMaxGen() >= 3 && curMaxGen() <= 5 && st.opts.trainers !== 'keep') { head(pt, S.rivalHead); pt.appendChild(check('rivalStarter', S.o_rivalStarter)); }
 
     // Attacken
     var pa = panel('moves');
@@ -365,11 +372,13 @@
     var tabs = [['gen', S.tabGeneral, P.gen], ['mon', S.tabMon, P.mon], ['start', S.tabStart, P.start], ['wild', S.tabWild, P.wild], ['trainer', S.tabTrainer, P.trainer], ['moves', S.tabMoves, P.moves]];
     if (caps.items) {
       var pi = panel('items');
+      head(pi, S.tabItems);
       var g9 = grid(pi);
       g9.appendChild(modeRow('fieldItems', S.fieldItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
       if (!caps.fieldOnly) g9.appendChild(modeRow('pickupItems', S.pickupItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
       if (st.ext === 'nds') g9.appendChild(modeRow('wildHeldItems', S.wildHeldItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
       if (!caps.fieldOnly) g9.appendChild(modeRow('shops', S.shops, ['keep', 'random'], { keep: S.keep, random: S.random }));
+      head(pi, S.itemsFilter);
       (caps.fieldOnly ? ['fieldTMShuffle', 'itemsBanBad'] : ['fieldTMShuffle', 'shopBanRegular', 'shopBanOP', 'itemsBanBad']).forEach(function (k) { pi.appendChild(check(k, S['o_' + k])); });
       note(pi, S.itemsNote);
       tabs.push(['items', S.tabItems, pi]);
@@ -382,7 +391,8 @@
       bar.appendChild(b);
     });
     wrap.appendChild(bar);
-    wrap.appendChild(tabs.filter(function (t) { return t[0] === st.rtab; })[0][2]);
+    var curPanel = tabs.filter(function (t) { return t[0] === st.rtab; })[0][2]; sectionize(curPanel);
+    wrap.appendChild(curPanel);
     return wrap;
   }
   function run() {
@@ -402,49 +412,86 @@
     }, 30);
   }
 
+  function chip(label, val, ok) { return el('span', { class: 'rd-chip' + (ok === false ? ' off' : ''), html: '<b>' + esc(String(val)) + '</b> ' + esc(label) }); }
+  var UPLOAD_SVG = '<svg viewBox="0 0 48 48" width="46" height="46" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 33V9m0 0L14 19m10-10 10 10"/><path d="M8 31v6a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3v-6"/></svg>';
   function render() {
     root = document.getElementById('randomizerView'); if (!root) return;
     root.innerHTML = '';
     var box = el('div', { class: 'panel rd-box' });
     box.appendChild(el('h2', { text: S.title }));
-    var body = el('div', { class: 'rd-body' }), head = el('div', { class: 'rd-head' }), foot = el('div', { class: 'rd-foot' });
+    var body = el('div', { class: 'rd-body' + (st.rom ? '' : ' empty') }), head = el('div', { class: 'rd-head' }), foot = el('div', { class: 'rd-foot' });
     body.appendChild(head);
-    if (!st.rom) { head.appendChild(el('p', { class: 'hint', text: S.sub })); head.appendChild(el('p', { class: 'hint', text: S.gens })); }
     var inp = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : '.gba,.gb,.gbc,.nds,.3ds,.cxi', style: 'display:none' });
     inp.onchange = function () { if (inp.files[0]) load(inp.files[0]); };
     var pick = el('button', { class: 'primary-btn rd-pick', text: S.pick }); pick.onclick = function () { inp.click(); };
-    var dz = el('div', { class: 'rd-drop' }); dz.appendChild(pick); dz.appendChild(el('span', { class: 'hint', text: S.drop })); dz.appendChild(inp);
+    var errEl = st.err ? el('div', { class: 'rd-err', text: st.err }) : null;
+    var dz;
+    if (!st.rom) {
+      dz = el('div', { class: 'rd-drop rd-drop-big' });
+      dz.appendChild(el('div', { class: 'rd-drop-ic', html: UPLOAD_SVG }));
+      dz.appendChild(el('h3', { class: 'rd-drop-title', text: S.dropTitle }));
+      dz.appendChild(el('p', { class: 'hint', text: S.drop }));
+      dz.appendChild(pick); dz.appendChild(inp);
+      dz.appendChild(el('p', { class: 'hint rd-drop-sub', text: S.sub }));
+      var gl = el('div', { class: 'rd-genlist' });
+      S.genList.forEach(function (g) { var c = el('div', { class: 'rd-genchip' }); c.appendChild(el('b', { text: g[0] })); c.appendChild(el('span', { text: g[1] })); gl.appendChild(c); });
+      dz.appendChild(gl);
+      if (errEl) head.appendChild(errEl);
+      head.appendChild(dz);
+    } else {
+      var i = st.info, hasSt = i.starterOff >= 0 || i.starters, hasEvo = st.ext === 'gba' ? i.evoOff >= 0 : i.evo;
+      dz = el('div', { class: 'rd-gamecard' });
+      var gt = el('div', { class: 'rd-gametext' });
+      gt.appendChild(el('div', { class: 'rd-game', html: '<b>' + esc((de ? st.rom.game : st.rom.gameEn) || st.rom.title) + '</b> <span class="rd-gamecode">' + esc(st.rom.code) + '</span>' }));
+      gt.appendChild(el('div', { class: 'hint', text: st.name }));
+      dz.appendChild(gt);
+      var ch = el('div', { class: 'rd-chips' });
+      ch.appendChild(chip(S.chipAreas, i.wildMaps || 0)); ch.appendChild(chip(S.chipTrainers, i.trainers || 0));
+      ch.appendChild(chip(S.chipStarters, hasSt ? S.chipYes : S.chipNo, !!hasSt)); ch.appendChild(chip(S.chipEvos, hasEvo ? S.chipYes : S.chipNo, !!hasEvo));
+      dz.appendChild(ch);
+      pick.className = 'rd-logbtn rd-change'; pick.textContent = S.changeRom;
+      dz.appendChild(pick); dz.appendChild(inp);
+      if (errEl) head.appendChild(errEl);
+      head.appendChild(dz);
+    }
     root.ondragover = function (e) { e.preventDefault(); dz.classList.add('on'); };
     root.ondragleave = function () { dz.classList.remove('on'); };
     root.ondrop = function (e) { e.preventDefault(); dz.classList.remove('on'); if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); };
-    head.appendChild(dz);
-    if (st.err) head.appendChild(el('div', { class: 'rd-err', text: st.err }));
     if (st.rom) {
-      var i = st.info;
-      head.appendChild(el('div', { class: 'rd-game', html: '<b>' + esc(S.game) + '</b> ' + esc((de ? st.rom.game : st.rom.gameEn) || st.rom.title) + ' (' + esc(st.rom.code) + ') – ' + esc(st.name) }));
-      head.appendChild(el('div', { class: 'hint', text: S.scan.replace('{0}', i.wildMaps).replace('{1}', i.trainers).replace('{2}', (i.starterOff >= 0 || i.starters ? S.yes : S.no)).replace('{3}', (st.ext === 'gba' ? i.evoOff >= 0 : i.evo) ? S.yes : S.no) }));
-      var main = el('div', { class: 'rd-main' }); main.appendChild(optionTabs(i)); body.appendChild(main);
+      var main = el('div', { class: 'rd-main' }); main.appendChild(optionTabs(st.info)); body.appendChild(main);
       var goRow = el('div', { class: 'rd-gorow' });
       var go = el('button', { class: 'primary-btn rd-go', text: S.go }); go.disabled = st.busy; go.onclick = run;
       goRow.appendChild(go); goRow.appendChild(el('span', { class: 'hint rd-warn', text: S.warn })); foot.appendChild(goRow);
     }
-    if (st.msg) foot.appendChild(el('div', { class: 'rd-ok', text: st.msg + ' – ' + S.again }));
-    if (st.msg && st.last && window.CCNuzCalc && A.showView) {
-      var nb = el('button', { type: 'button', class: 'rd-pick', text: S.toNuz });
-      nb.onclick = function () {
-        var dd = st.last, go = function (u8) { window.CCNuzCalc.loadRom(u8); A.showView('nuz'); };
-        if (dd && dd.arrayBuffer) dd.arrayBuffer().then(function (b) { go(new Uint8Array(b)); }); else if (dd) go(dd);
-      };
-      foot.appendChild(nb);
+    if (st.msg || st.log) {
+      var okRow = el('div', { class: 'rd-okrow' }), acts = el('span', { class: 'rd-acts' });
+      if (st.msg) okRow.appendChild(el('span', { class: 'rd-ok', text: st.msg + ' – ' + S.again }));
+      if (st.msg && st.last && window.CCNuzCalc && A.showView) {
+        var nb = el('button', { type: 'button', class: 'rd-logbtn', text: S.toNuz });
+        nb.onclick = function () {
+          var dd = st.last, go2 = function (u8) { window.CCNuzCalc.loadRom(u8); A.showView('nuz'); };
+          if (dd && dd.arrayBuffer) dd.arrayBuffer().then(function (b) { go2(new Uint8Array(b)); }); else if (dd) go2(dd);
+        };
+        acts.appendChild(nb);
+      }
+      if (st.log) { var lb = el('button', { type: 'button', class: 'rd-logbtn', text: S.log }); lb.onclick = function () { download('randomizer-log.txt', st.log, 'text/plain'); }; acts.appendChild(lb); }
+      okRow.appendChild(acts); foot.appendChild(okRow);
     }
     if (st.log) {
-      var lb = el('button', { class: 'rd-logbtn', text: S.log }); lb.onclick = function () { download('randomizer-log.txt', st.log, 'text/plain'); };
       var ld = el('details', { class: 'rd-logbox' }); ld.appendChild(el('summary', { text: S.logShow }));
       ld.appendChild(el('pre', { class: 'rd-log', text: st.log.split(String.fromCharCode(10)).slice(0, 400).join(String.fromCharCode(10)) }));
-      var lr = el('div', { class: 'rd-logrow' }); lr.appendChild(lb); lr.appendChild(ld); foot.appendChild(lr);
+      foot.appendChild(ld);
     }
     body.appendChild(foot);
     box.appendChild(body); root.appendChild(box);
   }
-  window.CCRandomizer = { render: render, _dev: function (eng, rom, info, ext, name) { setup(eng, rom, info, ext, name); render(); }, _tab: function (t) { st.rtab = t; render(); } }; // _dev/_tab: nur für Tests und Screenshots
+  // Optionen eines Tabs in Karten gruppieren: jede Überschrift beginnt eine neue Karte
+  function sectionize(p) {
+    var kids = Array.prototype.slice.call(p.children), cur = null;
+    kids.forEach(function (k) {
+      if (!cur || k.classList.contains('rd-sub')) { cur = el('div', { class: 'rd-sec' }); p.insertBefore(cur, k); }
+      cur.appendChild(k);
+    });
+  }
+  window.CCRandomizer = { render: render, _dev: function (eng, rom, info, ext, name) { setup(eng, rom, info, ext, name); render(); }, _tab: function (t) { st.rtab = t; render(); }, _set: function (o) { Object.keys(o).forEach(function (k) { st[k] = o[k]; }); render(); } }; // _dev/_tab: nur für Tests und Screenshots
 })();
