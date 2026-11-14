@@ -2268,7 +2268,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.26.3') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.26.4') + (s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2409,7 +2409,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.26.3';
+      var ver = (updStatus && updStatus.current) || '1.26.4';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2538,6 +2538,13 @@
             de ? 'Startet die Erkennung, sobald der Timer startet, und stoppt sie beim Pausieren.' : 'Starts detection when the timer starts and stops it when the timer is paused.',
             onOff, window.CCShiny.getAuto('detect') ? '1' : '0', function (v) { window.CCShiny.setAuto('detect', v === '1'); });
         }
+        if (window.CCProjectorView && window.CCProjectorView.setAuto) {
+          var gPv = makeGroup(de ? 'Capture-Projektor' : 'Capture projector');
+          var onOffPv = [['1', de ? 'An' : 'On'], ['0', de ? 'Aus' : 'Off']];
+          row(gPv, de ? 'Aufnahme automatisch wieder verbinden' : 'Reconnect the capture automatically',
+            de ? 'Verbindet beim Öffnen des Capture-Projektors die zuletzt genutzte Capture Card oder das Fenster erneut.' : 'Reconnects the last used capture card or window when the capture projector is opened.',
+            onOffPv, window.CCProjectorView.getAuto('connect') ? '1' : '0', function (v) { window.CCProjectorView.setAuto('connect', v === '1'); });
+        }
         var gTools = makeGroup(T('setTools'));
         var r = el('div', { class: 'set-row set-row-stack' });
         var lab = el('div', { class: 'set-label set-tools-head' });
@@ -2584,7 +2591,7 @@
       } else if (settingsTab === 'data') {
         var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
         (function () {
-          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_state', 'cc_field', 'cc_speedtier', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames', 'cc_metateams'];
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_state', 'cc_field', 'cc_speedtier', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_projector', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames', 'cc_metateams'];
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2593,7 +2600,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.26.3', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.26.4', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2938,7 +2945,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.26.3';
+    var ver = (updStatus && updStatus.current) || '1.26.4';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));

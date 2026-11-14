@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.4',
+      de: [
+        'Capture-Projektor: Neue Option „Aufnahme automatisch wieder verbinden“ (direkt im Projektor und unter Einstellungen → Werkzeuge) sowie Schnell-Button „Verbinden: …“ für die zuletzt genutzte Quelle.'
+      ],
+      en: [
+        'Capture projector: new “Reconnect the capture automatically” option (in the projector view and under Settings → Tools) plus a quick “Connect: …” button for the last used source.'
+      ] },
     { v: '1.26.3',
       de: [
         'GO-Infografik („Shiny & 100% CP“): Zeigt bei jedem Pokémon die normale und die Shiny-Form nebeneinander, berechnet die 100%-IV-CP immer aus der Fangform (z. B. bei Kyurem, Zacian/Zamazenta, Necrozma, Calyrex, Mega- und Gigadynamax-Formen) und unterstützt alle 34 Gigadynamax-Formen als Auswahl bzw. eigenen „G-Max“-Modus.'
