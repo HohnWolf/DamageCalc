@@ -439,16 +439,11 @@
       for (var cq = 0; cq < 6; cq++) (function (cq) { row6.appendChild(field(X.contest[cq], num(F.get(d, 'contest', cq), 0, 255, function (v) { F.set(d, 'contest', v, cq); }), 'sm')); })(cq);
       PN.ot.appendChild(row6);
     }
-    // Bänder (Gen 3-5, Bit-Lage aus PKHeX)
+    // Bänder (Gen 3-7, Bit-Lage aus PKHeX)
     (function () {
       var rl = window.PKHEX && window.PKHEX.ribbons && window.PKHEX.ribbons['gen' + sv.gen];
       PN.rib = el('div', { class: 'sv-pane' });
       var names = (window.PKHEX && window.PKHEX.ribbons && window.PKHEX.ribbons.names[de ? 'de' : 'en']) || {};
-      if ((!rl || !rl.length) && sv.gen === 3) {
-        // Gen 3: Band-Bits im Misc-Block (u32 bei Offset 72, Bit 0-14 sind die Wettbewerbs-Ränge, Bit 31 der Fähigkeits-Slot)
-        var G3R = [['Champion', 'Champion', 'Champion', 15], ['Winning', 'Siegerband', 'Winning', 16], ['Victory', 'Triumphband', 'Victory', 17], ['Artist', 'Künstlerband', 'Artist', 18], ['Effort', 'Kraftband', 'Effort', 19], ['Marine', 'Marineband', 'Marine', 20], ['Land', 'Landband', 'Land', 21], ['Sky', 'Himmelsband', 'Sky', 22], ['Country', 'Länderband', 'Country', 23], ['National', 'Nationalband', 'National', 24], ['Earth', 'Erdband', 'Earth', 25], ['World', 'Weltband', 'World', 26]];
-        rl = G3R.map(function (r) { names['G3' + r[0]] = de ? r[1] : r[2]; return ['G3' + r[0], 72 + (r[3] >> 3), r[3] & 7]; });
-      }
       if (!rl || !rl.length) { PN.rib.appendChild(el('div', { class: 'hint', text: X.ribNone })); return; }
       var bar2 = el('div', { class: 'sv-row sv-quick' });
       [[X.ribAll, 1], [X.ribClear, 0]].forEach(function (c) { var bt = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); bt.onclick = function () { rl.forEach(function (r) { d[r[1]] = c[1] ? (d[r[1]] | (1 << r[2])) : (d[r[1]] & ~(1 << r[2])); }); changed(); }; bar2.appendChild(bt); });

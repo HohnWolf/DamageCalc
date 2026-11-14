@@ -1,4 +1,4 @@
-// Save File Editor – Ruhmeshalle (Hall of Fame) nach PKHeX (GPLv3): Gen 3, 4 und 6 lesen und die Einträge löschen.
+// Save File Editor – Ruhmeshalle (Hall of Fame) nach PKHeX (GPLv3): Gen 1, 3, 4 und 6 lesen und die Einträge löschen.
 // sv.hof = { clears, entries(): [{ date, n, team: [{ species, level, nick, shiny, moves }] }], clear() }  (neueste zuerst)
 (function () {
   'use strict';
@@ -11,6 +11,36 @@
 
   window.CCSaveHof = function (sv) {
     var data = sv.data, gen = sv.gen, G3 = window.GEN3, NDS = window.NDS;
+    if (gen === 1 && sv.decStr && window.PKGB && data.length >= 0x2900) {
+      // Gen 1 (PKHeX HallOfFameReader1): 50 Teams x 6 Plätze x 0x10 Byte ab 0x598 (Art intern, Level, Spitzname 11 Byte); Zähler bei 0x284E, älteste Teams zuerst
+      var HB1 = 0x598, EN1 = 0x10, TEAM1 = 6 * EN1, CNT1 = 0x284E;
+      sv.hof = {
+        entries: function () {
+          var clears = data[CNT1], used = Math.min(clears, 50), out = [];
+          for (var t = used - 1; t >= 0; t--) {
+            var team = [];
+            for (var m = 0; m < 6; m++) {
+              var o = HB1 + t * TEAM1 + m * EN1, sp = data[o];
+              if (sp === 0xFF || sp === 0) break;
+              var nat = window.PKGB.toNat[sp] || 0;
+              if (!nat) continue;
+              team.push({ species: nat, level: data[o + 1], nick: sv.decStr(o + 2, 11), shiny: false, moves: null });
+            }
+            if (team.length) out.push({ n: clears > 50 ? clears - (used - 1 - t) : t + 1, date: '', team: team });
+          }
+          return out;
+        },
+        clear: function () {
+          for (var t = 0; t < 50; t++) for (var m = 0; m < 6; m++) {
+            var o = HB1 + t * TEAM1 + m * EN1;
+            for (var i = 0; i < EN1; i++) data[o + i] = 0;
+            data[o] = 0xFF; for (var k = 2; k < 13; k++) data[o + k] = 0x50;
+          }
+          data[CNT1] = 0;
+        }
+      };
+      return;
+    }
     if (gen === 3 && data.length >= 0x1E000) {
       var US = 0xF80, SZ = 0x14, TEAM = 6 * SZ;
       // Zwei Sektoren bilden einen zusammenhängenden Puffer (je 0xF80 Bytes)

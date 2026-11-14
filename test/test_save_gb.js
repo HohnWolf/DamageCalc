@@ -22,6 +22,15 @@ const ok = (c, m) => { if (!c) { fails++; console.log('FEHLER:', m); } else cons
   ok(GB.PK1.stats(p)[0] === st[0] && GB.PK1.get(p, 'move', 1) === 85, 'Gen 1 Werte/Attacke');
   ok(sv2.getBoxMon(0, 0) && GB.PK1.get(sv2.getBoxMon(0, 0), 'species') === 1, 'Gen 1 Box');
   ok(out[0x2F2C + 1] === 0x54, 'Gen 1: interne ID von Pikachu = 0x54');
+  // Ruhmeshalle Gen 1: 2 Teams, das neuere mit Pikachu (0x54) und Bisasam (0x99)
+  require('../js/savhof.js');
+  const u2 = new Uint8Array(out);
+  const put = (t, m, id, lv, nick) => { const o = 0x598 + t * 96 + m * 16; u2[o] = id; u2[o + 1] = lv; for (let i = 0; i < 11; i++) u2[o + 2 + i] = 0x50; for (let i = 0; i < nick.length; i++) u2[o + 2 + i] = 0x80 + nick.charCodeAt(i) - 65; u2[o + 16 > 0 ? o + 13 : 0] = 0x50; };
+  put(0, 0, 0xB1, 40, 'AB'); put(0, 1, 0xFF, 0, ''); put(1, 0, 0x54, 55, 'PIKA'); put(1, 1, 0x99, 50, 'BISA'); put(1, 2, 0xFF, 0, ''); u2[0x284E] = 2;
+  const sv3 = GB.open1(u2); window.CCSaveHof(sv3);
+  const hf = sv3.hof && sv3.hof.entries();
+  ok(hf && hf.length === 2 && hf[0].team.length === 2 && hf[0].team[0].species === 25 && hf[0].team[0].level === 55 && hf[0].team[0].nick === 'PIKA' && hf[0].team[1].species === 1, 'Gen 1 Ruhmeshalle: neueste zuerst, Arten national, Spitzname');
+  sv3.hof.clear(); ok(sv3.hof.entries().length === 0, 'Gen 1 Ruhmeshalle löschen');
 }
 // Gen 2 (Kristall)
 {

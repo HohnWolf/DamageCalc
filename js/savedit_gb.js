@@ -206,6 +206,7 @@
     };
     // Gen 1 kennt keine freien Plätze in der Box: neue Pokémon rutschen ans Ende der Liste
     sv.getBoxName = function (b) { return ''; };
+    sv.decStr = function (off, len) { return decStr(data, off, len); };
     sv.growthOf = function (sp) { var e = P.g1[sp]; return e ? e[6] : 0; };
     sv.baseOf = function (sp) { var e = P.g1[sp]; return e ? e.slice(0, 5) : [50, 50, 50, 50, 50]; };
     sv.natOf = function (n) { return n; }; sv.speciesFromNat = function (n) { return n; };

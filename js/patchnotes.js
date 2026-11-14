@@ -20,12 +20,12 @@
       ] },
     { v: '1.26.4',
       de: [
-        'Save-Editor: Showdown-Text-Import/-Export für einzelne Pokémon (Gen 3-7), Geschlecht (♂/♀) und Form-Dropdown mit Namen, Fähigkeiten-Auswahl (Fähigkeit 1/2/Versteckte) für Gen 4-7, Button „Legal machen“, Bänder für Gen 3.',
+        'Save-Editor: Showdown-Text-Import/-Export für einzelne Pokémon (Gen 3-7), Geschlecht (♂/♀) und Form-Dropdown mit Namen, Fähigkeiten-Auswahl (Fähigkeit 1/2/Versteckte) für Gen 4-7, Button „Legal machen“.',
         'Save-Editor Game Boy (Gen 1/2): Schnell-Buttons (DVs 15, Stat-EP), .pk1/.pk2-Import/Export, Hex-Ansicht und Massenbearbeitung.',
         'Randomizer: Eigene Starter-Auswahl für alle Generationen, gehaltene Items wilder Pokémon (Gen 4/5), HGSS-Gras-/Radio-/Schwarm-Level, Button „Im Nuzlocke-Rechner öffnen“; Fangrechner jetzt auch in der Android-App.'
       ],
       en: [
-        'Save editor: Showdown text import/export for single Pokémon (gen 3-7), gender (♂/♀) and form dropdown with names, ability picker (ability 1/2/hidden) for gen 4-7, “Make legal” button, ribbons for gen 3.',
+        'Save editor: Showdown text import/export for single Pokémon (gen 3-7), gender (♂/♀) and form dropdown with names, ability picker (ability 1/2/hidden) for gen 4-7, “Make legal” button.',
         'Save editor Game Boy (gen 1/2): quick buttons (DVs 15, stat exp), .pk1/.pk2 import/export, hex view and batch editing.',
         'Randomizer: custom starter picks for all generations, held items of wild Pokémon (gen 4/5), HGSS grass/radio/swarm levels, “Open in Nuzlocke calculator” button; the catch calculator is now available in the Android app too.'
       ] },
