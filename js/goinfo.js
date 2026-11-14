@@ -127,7 +127,8 @@
   var DEF = {
     kind: 'raid', theme: 'night', size: 'post', title: '', sub: '', date: '', note: '', shinyOk: true, brand: true,
     boss: 'Mewtwo', tier: '5', counters: '', cmode: 'auto', ccount: 6, rday: false,
-    rows: [{ task: '', rewards: [] }]
+    rows: [{ task: '', rewards: [] }],
+    mons: ['Mewtwo']
   };
   var st = (function () {
     var s = {};
@@ -143,6 +144,9 @@
       return { task: r.task || '', rewards: Array.isArray(rw) ? rw : [] };
     });
     if (!o.rows.length) o.rows = [{ task: '', rewards: [] }];
+    o.mons = (Array.isArray(o.mons) ? o.mons : ['Mewtwo']).map(function (x) {
+      return typeof x === 'string' ? x.trim() : (x && x.name ? String(x.name).trim() : '');
+    }).filter(Boolean).slice(0, 8);
     return o;
   })();
   function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* voll: egal */ } }
@@ -171,7 +175,9 @@
   function loadMon(m, shiny) {
     var id = apiId(m); if (!id) return Promise.resolve(null);
     var sh = shiny ? 'shiny/' : '';
-    var urls = [SPR + 'pokemon/other/home/' + sh + id + '.png', JSD + 'pokemon/other/home/' + sh + id + '.png', SPR + 'pokemon/other/official-artwork/' + sh + id + '.png'];
+    var urls = [SPR + 'pokemon/other/home/' + sh + id + '.png', JSD + 'pokemon/other/home/' + sh + id + '.png', SPR + 'pokemon/other/official-artwork/' + sh + id + '.png', JSD + 'pokemon/other/official-artwork/' + sh + id + '.png'];
+    if (shiny && m[0] && m[0] !== id) urls.push(SPR + 'pokemon/other/home/shiny/' + m[0] + '.png', SPR + 'pokemon/other/official-artwork/shiny/' + m[0] + '.png');
+    if (shiny) urls.push(SPR + 'pokemon/other/home/' + id + '.png', SPR + 'pokemon/other/official-artwork/' + id + '.png');
     return urls.reduce(function (p, u) { return p.then(function (im) { return im || loadImg(u); }); }, Promise.resolve(null));
   }
 
@@ -409,12 +415,182 @@
     return H;
   }
 
+  // ======================= Shiny & 100% CP (bis zu 8 Pokémon) =======================
+  function shinyRowSpec(n, W, H) {
+    var wide = W > H * 1.2, sq = Math.abs(W - H) < 50;
+    if (n <= 1) return [1];
+    if (n === 2) return wide ? [2] : [1, 1];
+    if (n === 3) return wide ? [3] : [1, 1, 1];
+    if (n === 4) return [2, 2];
+    if (n === 5) return (wide || sq) ? [3, 2] : [2, 2, 1];
+    if (n === 6) return wide ? [3, 3] : [2, 2, 2];
+    if (n === 7) return wide ? [4, 3] : (sq ? [3, 2, 2] : [2, 2, 2, 1]);
+    return (wide || sq) ? [4, 4] : [2, 2, 2, 2];
+  }
+
+  async function drawShinyCp(c, W, H, P, T) {
+    var s = P.s;
+    var list = (st.mons || []).slice(0, 8).map(function (name) {
+      return { raw: name, mon: findMon(name) };
+    }).filter(function (x) { return x.mon || x.raw; });
+    var firstTypes = (list[0] && list[0].mon && list[0].mon[3]) || [];
+    var tint = list.length === 1 && firstTypes[0] ? TYPE_COL[firstTypes[0]] : '#fbbf24';
+    background(c, W, H, T, tint);
+    var top = header(c, W, P, P.m, T, de ? 'SHINY & 100% IV CP' : 'SHINY & 100% IV CP', '#fbbf24');
+    var fr = P.m * 1.3;
+    var availH = H - top - fr, W0 = W - 2 * P.m;
+    if (!list.length) {
+      c.fillStyle = T.mut; c.textAlign = 'center'; c.font = '600 ' + (30 * s) + 'px ' + FF;
+      c.fillText(de ? 'Wähle links bis zu 8 Pokémon aus' : 'Pick up to 8 Pokémon on the left', W / 2, top + availH / 2);
+      c.textAlign = 'left';
+      return;
+    }
+    var imgs = await Promise.all(list.map(function (x) { return x.mon ? loadMon(x.mon, true) : Promise.resolve(null); }));
+    var spec = shinyRowSpec(list.length, W, H);
+    var R = spec.length;
+    var gap = (list.length >= 7 ? 14 : (list.length >= 5 ? 16 : 20)) * s;
+    var rowH = (availH - (R - 1) * gap) / R;
+    var idx = 0;
+
+    function drawCpBox(bx, by, bw, bh, lbl, val, isBoost, acCol) {
+      rr(c, bx, by, bw, bh, Math.min(16 * s, bh * 0.24));
+      c.fillStyle = isBoost ? (acCol + '22') : 'rgba(0,0,0,0.20)';
+      c.fill();
+      c.strokeStyle = isBoost ? (acCol + '88') : T.line;
+      c.lineWidth = isBoost ? 2.2 : 1.5;
+      c.stroke();
+      c.textAlign = 'center';
+      var lSz = Math.min(20 * s, Math.max(10 * s, bh * 0.24));
+      c.fillStyle = isBoost ? acCol : T.mut;
+      fit(c, lbl, bw - 12 * s, lSz, '700', 9);
+      c.fillText(lbl, bx + bw / 2, by + bh * 0.34);
+      var vSz = Math.min(48 * s, Math.max(16 * s, bh * 0.46));
+      c.fillStyle = T.fg;
+      fit(c, val, bw - 12 * s, vSz, '800', 13);
+      c.fillText(val, bx + bw / 2, by + bh * 0.82);
+      c.textAlign = 'left';
+    }
+
+    function drawCard(x, y, w, h, item, im) {
+      var m = item.mon;
+      var types = m ? m[3] : [];
+      var col = (types[0] && TYPE_COL[types[0]]) || T.acc;
+      var radCard = Math.min(24 * s, Math.min(w, h) * 0.08);
+      rr(c, x, y, w, h, radCard);
+      c.fillStyle = T.card; c.fill();
+      c.strokeStyle = T.line; c.lineWidth = 2; c.stroke();
+      // Farbiger Akzentstreifen links/oben
+      c.save();
+      rr(c, x, y, w, h, radCard); c.clip();
+      var g = c.createRadialGradient(x + w * 0.28, y + h * 0.38, 0, x + w * 0.28, y + h * 0.38, Math.max(w, h) * 0.65);
+      g.addColorStop(0, col + '44'); g.addColorStop(1, col + '00');
+      c.fillStyle = g; c.fillRect(x, y, w, h);
+      c.fillStyle = col; c.fillRect(x, y, w, Math.max(4 * s, h * 0.018));
+      c.restore();
+
+      var nm = m ? monName(m) : item.raw;
+      var cp20 = m ? String(cpOf(m, 20, 15)) : '–';
+      var cp25 = m ? String(cpOf(m, 25, 15)) : '–';
+      var horiz = w > h * 1.35;
+      var pad = Math.max(12 * s, Math.min(26 * s, Math.min(w, h) * 0.065));
+
+      if (horiz) {
+        var stageW = Math.min(h - 2 * pad, w * 0.40);
+        var cx = x + pad + stageW * 0.5, cy = y + h * 0.52;
+        var rad = stageW * 0.48;
+        var halo = c.createRadialGradient(cx, cy, 0, cx, cy, rad * 1.08);
+        halo.addColorStop(0, col + 'aa'); halo.addColorStop(0.7, col + '28'); halo.addColorStop(1, col + '00');
+        c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, rad * 1.08, 0, Math.PI * 2); c.fill();
+        c.save(); c.fillStyle = 'rgba(0,0,0,0.26)'; c.beginPath(); c.ellipse(cx, cy + rad * 0.88, rad * 0.6, rad * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
+        drawImg(c, im, cx - rad, cy - rad, rad * 2, rad * 2, nm);
+        sparkle(c, cx + rad * 0.72, cy - rad * 0.68, Math.max(10 * s, rad * 0.17), '#fbbf24');
+        sparkle(c, cx - rad * 0.74, cy - rad * 0.42, Math.max(7 * s, rad * 0.11), '#fde68a');
+
+        var ix = x + pad + stageW + Math.max(14 * s, w * 0.03);
+        var iw = x + w - pad - ix;
+        var ny = y + pad + Math.min(44 * s, h * 0.18);
+        var nSz = Math.min(46 * s, Math.max(20 * s, h * 0.16));
+        c.fillStyle = T.fg; c.textAlign = 'left';
+        fit(c, nm, iw, nSz, '800', 14);
+        c.fillText(nm, ix, ny);
+
+        var tyY = ny + Math.max(10 * s, h * 0.04);
+        var th = Math.min(34 * s, Math.max(20 * s, h * 0.12));
+        var tx = ix;
+        types.forEach(function (t) {
+          var tw = chip(c, de ? TYPE_DE[t] : t, tx, tyY, th, TYPE_COL[t], textOn(TYPE_COL[t]), Math.round(th * 0.56));
+          tx += tw + 8 * s;
+        });
+
+        var cpTop = tyY + th + Math.max(12 * s, h * 0.055);
+        var cpH = Math.max(54 * s, Math.min(130 * s, y + h - pad - cpTop));
+        var bGap = Math.max(10 * s, iw * 0.03);
+        var bw = (iw - bGap) / 2;
+        var l20 = bw > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
+        var l25 = bw > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
+        drawCpBox(ix, cpTop, bw, cpH, l20, cp20, false, T.acc);
+        drawCpBox(ix + bw + bGap, cpTop, bw, cpH, l25, cp25, true, '#fbbf24');
+      } else {
+        var innerW = w - 2 * pad, innerH = h - 2 * pad;
+        var stageH = innerH * (list.length === 1 ? 0.52 : 0.47);
+        var cx2 = x + w / 2, cy2 = y + pad + stageH * 0.5;
+        var rad2 = Math.min(innerW * 0.42, stageH * 0.48);
+        var halo2 = c.createRadialGradient(cx2, cy2, 0, cx2, cy2, rad2 * 1.08);
+        halo2.addColorStop(0, col + 'aa'); halo2.addColorStop(0.7, col + '28'); halo2.addColorStop(1, col + '00');
+        c.fillStyle = halo2; c.beginPath(); c.arc(cx2, cy2, rad2 * 1.08, 0, Math.PI * 2); c.fill();
+        c.save(); c.fillStyle = 'rgba(0,0,0,0.26)'; c.beginPath(); c.ellipse(cx2, cy2 + rad2 * 0.88, rad2 * 0.6, rad2 * 0.10, 0, 0, Math.PI * 2); c.fill(); c.restore();
+        drawImg(c, im, cx2 - rad2, cy2 - rad2, rad2 * 2, rad2 * 2, nm);
+        sparkle(c, cx2 + rad2 * 0.72, cy2 - rad2 * 0.68, Math.max(9 * s, rad2 * 0.17), '#fbbf24');
+        sparkle(c, cx2 - rad2 * 0.74, cy2 - rad2 * 0.42, Math.max(6 * s, rad2 * 0.11), '#fde68a');
+
+        var nSz2 = Math.min(48 * s, Math.max(18 * s, Math.min(innerH * 0.088, innerW * 0.115)));
+        var ny2 = y + pad + stageH + nSz2 * 0.95;
+        c.fillStyle = T.fg; c.textAlign = 'center';
+        fit(c, nm, innerW, nSz2, '800', 13);
+        c.fillText(nm, cx2, ny2);
+
+        var th2 = Math.min(34 * s, Math.max(18 * s, innerH * 0.064));
+        var fSz2 = Math.round(th2 * 0.56);
+        c.font = 'bold ' + fSz2 + 'px ' + FF;
+        var widths = types.map(function (t) { return c.measureText(de ? TYPE_DE[t] : t).width + th2 * 0.9; });
+        var tGap = 6 * s;
+        var sumW = widths.reduce(function (a, b) { return a + b; }, 0) + Math.max(0, types.length - 1) * tGap;
+        var tx2 = cx2 - sumW / 2, tyY2 = ny2 + Math.max(8 * s, innerH * 0.022);
+        types.forEach(function (t, ti) {
+          chip(c, de ? TYPE_DE[t] : t, tx2, tyY2, th2, TYPE_COL[t], textOn(TYPE_COL[t]), fSz2);
+          tx2 += widths[ti] + tGap;
+        });
+        c.textAlign = 'left';
+
+        var cpTop2 = tyY2 + th2 + Math.max(10 * s, innerH * 0.032);
+        var cpH2 = Math.max(48 * s, Math.min(140 * s, y + h - pad - cpTop2));
+        var bGap2 = Math.max(8 * s, innerW * 0.03);
+        var bw2 = (innerW - bGap2) / 2;
+        var l20v = bw2 > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
+        var l25v = bw2 > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
+        drawCpBox(x + pad, cpTop2, bw2, cpH2, l20v, cp20, false, T.acc);
+        drawCpBox(x + pad + bw2 + bGap2, cpTop2, bw2, cpH2, l25v, cp25, true, '#fbbf24');
+      }
+    }
+
+    for (var r = 0; r < R; r++) {
+      var cols = spec[r];
+      var colW = (W0 - (cols - 1) * gap) / cols;
+      var y0 = top + r * (rowH + gap);
+      for (var cIdx = 0; cIdx < cols && idx < list.length; cIdx++, idx++) {
+        var x0 = P.m + cIdx * (colW + gap);
+        drawCard(x0, y0, colW, rowH, list[idx], imgs[idx]);
+      }
+    }
+  }
+
   async function renderCanvas() {
     var sz = SIZES[st.size] || SIZES.post, T = THEMES[st.theme] || THEMES.night, SC = 1;
     var W = sz[0], H = sz[1], P = { s: W > H * 1.2 ? H / 1080 * 1.05 : W / 1080, m: Math.round(W * (W > H * 1.2 ? 0.04 : 0.055)) };
     var cv = document.createElement('canvas'); cv.width = W * SC; cv.height = H * SC;
     var c = cv.getContext('2d'); c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high'; c.textBaseline = 'alphabetic';
     if (st.kind === 'raid') { await drawRaid(c, W, H, P, T); footer(c, W, H, P, T); }
+    else if (st.kind === 'shiny') { await drawShinyCp(c, W, H, P, T); footer(c, W, H, P, T); }
     else { await drawResearch(c, W, H, P, T, cv); }
     return cv;
   }
@@ -459,8 +635,8 @@
     var dl = el('datalist', { id: 'giMons' }); dl.innerHTML = speciesNames.map(function (n) { return '<option value="' + esc(n) + '">'; }).join(''); side.appendChild(dl);
     var dt = el('datalist', { id: 'giTasks' }); dt.innerHTML = TASKS.map(function (n) { return '<option value="' + esc(n) + '">'; }).join(''); side.appendChild(dt);
 
-    side.appendChild(seg([['raid', 'Raid'], ['research', de ? 'Feldforschung' : 'Field Research']], st.kind, function (v) { st.kind = v; save(); render(); }));
-    side.appendChild(field(de ? 'Titel' : 'Title', input('title', st.kind === 'raid' ? (de ? 'z. B. Raid-Stunde' : 'e.g. Raid Hour') : (de ? 'z. B. Community Day Forschung' : 'e.g. Community Day research'))));
+    side.appendChild(seg([['raid', 'Raid'], ['research', de ? 'Feldforschung' : 'Field Research'], ['shiny', de ? 'Shiny & 100% CP' : 'Shiny & 100% CP']], st.kind, function (v) { st.kind = v; save(); render(); }));
+    side.appendChild(field(de ? 'Titel' : 'Title', input('title', st.kind === 'raid' ? (de ? 'z. B. Raid-Stunde' : 'e.g. Raid Hour') : (st.kind === 'shiny' ? (de ? 'z. B. Raid-Bosse · Shiny & 100% IV' : 'e.g. Raid Bosses · Shiny & 100% IV') : (de ? 'z. B. Community Day Forschung' : 'e.g. Community Day research')))));
     side.appendChild(field(de ? 'Untertitel' : 'Subtitle', input('sub', '')));
     side.appendChild(field(de ? 'Datum / Zeit' : 'Date / time', input('date', de ? 'z. B. Mi, 18–19 Uhr' : 'e.g. Wed, 6–7 PM')));
 
@@ -478,6 +654,76 @@
         side.appendChild(ta);
       }
       side.appendChild(check(de ? 'Shiny möglich' : 'Shiny possible', 'shinyOk'));
+    } else if (st.kind === 'shiny') {
+      if (!Array.isArray(st.mons)) st.mons = [];
+      var headRow = el('div', { class: 'gi-mon-head' });
+      headRow.appendChild(el('span', { class: 'gi-l', text: 'Pokémon (' + st.mons.length + ' / 8)' }));
+      if (st.mons.length > 0) {
+        var clr = el('button', { type: 'button', class: 'gi-link-btn', text: de ? 'Alle entfernen' : 'Clear all' });
+        clr.addEventListener('click', function () { st.mons = []; save(); render(); });
+        headRow.appendChild(clr);
+      }
+      side.appendChild(headRow);
+
+      var mList = el('div', { class: 'gi-mon-list' });
+      st.mons.forEach(function (name, idx) {
+        var mon = findMon(name);
+        var item = el('div', { class: 'gi-mon-item' });
+        item.appendChild(el('span', { class: 'gi-mon-idx', text: (idx + 1) + '.' }));
+        var info = el('div', { class: 'gi-mon-info' });
+        info.appendChild(el('span', { class: 'gi-mon-name', text: mon ? '✨ ' + monName(mon) : name }));
+        if (mon) {
+          info.appendChild(el('span', { class: 'gi-mon-cp', text: 'Lv 20: ' + cpOf(mon, 20, 15) + ' · Lv 25: ' + cpOf(mon, 25, 15) }));
+        }
+        item.appendChild(info);
+        if (st.mons.length > 1) {
+          var up = el('button', { type: 'button', class: 'gi-pk-b', text: '↑', title: de ? 'Nach oben' : 'Move up' });
+          if (idx === 0) up.disabled = true;
+          up.addEventListener('click', function () {
+            if (idx > 0) { var tmp = st.mons[idx - 1]; st.mons[idx - 1] = st.mons[idx]; st.mons[idx] = tmp; save(); render(); }
+          });
+          var dn = el('button', { type: 'button', class: 'gi-pk-b', text: '↓', title: de ? 'Nach unten' : 'Move down' });
+          if (idx === st.mons.length - 1) dn.disabled = true;
+          dn.addEventListener('click', function () {
+            if (idx < st.mons.length - 1) { var tmp = st.mons[idx + 1]; st.mons[idx + 1] = st.mons[idx]; st.mons[idx] = tmp; save(); render(); }
+          });
+          item.appendChild(up);
+          item.appendChild(dn);
+        }
+        var rm = el('button', { type: 'button', class: 'gi-pk-b', text: '✕', title: de ? 'Entfernen' : 'Remove' });
+        rm.addEventListener('click', function () { st.mons.splice(idx, 1); save(); render(); });
+        item.appendChild(rm);
+        mList.appendChild(item);
+      });
+      side.appendChild(mList);
+
+      if (st.mons.length < 8) {
+        var addWrap = el('div', { class: 'gi-row-top' });
+        var pickM = el('input', { type: 'text', placeholder: de ? '+ Pokémon wählen (max. 8) …' : '+ Pick a Pokémon (max. 8) …', spellcheck: 'false' });
+        pickM.setAttribute('list', 'giMons');
+        var addMonFn = function () {
+          var raw = pickM.value.trim();
+          if (!raw) return;
+          var parts = raw.split(/[,;\n]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+          var added = false;
+          parts.forEach(function (p) {
+            if (st.mons.length >= 8) return;
+            var mon = findMon(p);
+            if (mon) { st.mons.push(monName(mon)); added = true; }
+          });
+          if (!added) { pickM.classList.add('bad'); return; }
+          save(); render();
+        };
+        pickM.addEventListener('change', addMonFn);
+        pickM.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); addMonFn(); } });
+        pickM.addEventListener('input', function () { pickM.classList.remove('bad'); });
+        var addBtn = el('button', { type: 'button', class: 'tbtn', text: '+', title: de ? 'Pokémon hinzufügen' : 'Add Pokémon' });
+        addBtn.addEventListener('click', addMonFn);
+        addWrap.appendChild(pickM);
+        addWrap.appendChild(addBtn);
+        side.appendChild(addWrap);
+      }
+      side.appendChild(el('div', { class: 'hint', text: de ? 'Zeigt für 1 bis 8 Pokémon das Shiny sowie die 100%-IV-CP auf Level 20 (Raid / Ei) und Level 25 (Wetterbonus). Das Layout passt sich automatisch der Anzahl an.' : 'Shows the Shiny and 100% IV CP at level 20 (raid / egg) and level 25 (weather boost) for 1 to 8 Pokémon. Layout adapts automatically to the count.' }));
     } else {
       var list = el('div', { class: 'gi-rows' });
       st.rows.forEach(function (r, i) {
@@ -537,7 +783,7 @@
     });
     sv.addEventListener('click', function () {
       if (!lastCv) return;
-      var fn = 'go-' + (st.kind === 'raid' ? 'raid-' + norm(st.boss) : 'forschung') + '.png';
+      var fn = 'go-' + (st.kind === 'raid' ? 'raid-' + norm(st.boss) : (st.kind === 'shiny' ? 'shiny-cp' : 'forschung')) + '.png';
       blobOf().then(function (bl) { if (bl) A.saveFile(fn, bl, 'image/png'); }); // Android: Teilen-Dialog, Desktop: Download
     });
     bar.appendChild(cp); bar.appendChild(sv); bar.appendChild(msg); main.appendChild(bar);

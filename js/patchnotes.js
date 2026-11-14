@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.2',
+      de: [
+        'GO-Infografik: Neue Ansicht „Shiny & 100% CP“ für bis zu 8 auswählbare Pokémon mit Shiny-Artwork sowie Level-20- und Level-25-100%-CP; das Kartenlayout passt sich automatisch an jede Pokémon-Anzahl (1 bis 8) an.'
+      ],
+      en: [
+        'GO infographic: new “Shiny & 100% CP” view for up to 8 selectable Pokémon showing the Shiny artwork plus level 20 and level 25 100% CP, with an adaptive card layout for every count (1 to 8).'
+      ] },
     { v: '1.26.1',
       de: [
         'Save-Editor: Gen-5-Team-Pokémon (#494–#649) werden richtig geladen und überschreiben beim Speichern nicht mehr den nächsten Slot.',

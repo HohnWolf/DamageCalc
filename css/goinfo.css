@@ -26,3 +26,13 @@
 .gi-pk-b:hover { opacity: 1; }
 .gi-pk.sh .gi-pk-b:first-of-type { opacity: 1; }
 .gi-side input.bad { outline: 2px solid #ef4444; }
+.gi-mon-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.gi-link-btn { border: 0; background: transparent; color: var(--card-accent, #f59e0b); font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 0; opacity: .85; }
+.gi-link-btn:hover { opacity: 1; text-decoration: underline; }
+.gi-mon-list { display: flex; flex-direction: column; gap: 5px; }
+.gi-mon-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 9px; border: 1px solid rgba(251, 191, 36, .35); background: rgba(251, 191, 36, .08); font-size: 12.5px; }
+.gi-mon-idx { font-size: 11px; font-weight: 800; opacity: .65; width: 16px; flex: none; font-variant-numeric: tabular-nums; }
+.gi-mon-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.gi-mon-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gi-mon-cp { font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
+.gi-mon-item .gi-pk-b:disabled { opacity: .2; cursor: default; }
