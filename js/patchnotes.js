@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.6',
+      de: [
+        'Save-Editor: Ruhmeshalle für Generation 1 (Teams ansehen und löschen), Spielhallen-Münzen in Gold/Silber/Kristall und Kampfpunkte der Kampfzone in Smaragd bearbeitbar.'
+      ],
+      en: [
+        'Save editor: Hall of Fame for generation 1 (view and clear teams), Game Corner coins in Gold/Silver/Crystal and Battle Frontier points in Emerald are now editable.'
+      ] },
     { v: '1.26.5',
       de: [
         'Randomizer Gen 3: Option „Nationaler Pokédex ab Spielbeginn“ (Rubin/Saphir, Smaragd, Feuerrot/Blattgrün); in Feuerrot/Blattgrün entwickeln sich Pokémon außerhalb von Kanto nicht mehr falsch, Deoxys und Mew gehorchen.',

@@ -194,6 +194,9 @@
     var cn = [];
     if (gen === 1) cn.push({ k: 'coins', max: 9999, get: function () { return ((data[0x2850] >> 4) * 1000) + ((data[0x2850] & 15) * 100) + ((data[0x2851] >> 4) * 10) + (data[0x2851] & 15); }, set: function (v) { v = Math.min(9999, v); data[0x2850] = ((Math.floor(v / 1000) % 10) << 4) | (Math.floor(v / 100) % 10); data[0x2851] = ((Math.floor(v / 10) % 10) << 4) | (v % 10); } });
     if (gen === 3) { var co = key === 'FRLG' ? 0x294 : 0x494, ck = (key !== 'RS' && sv.key3) ? sv.key3() & 0xFFFF : 0; cn.push({ k: 'coins', max: 9999, get: function () { return (data[sv.addr(1, co)] | (data[sv.addr(1, co + 1)] << 8)) ^ ck; }, set: function (v) { var x = (Math.min(9999, v) ^ ck) & 0xFFFF; data[sv.addr(1, co)] = x & 255; data[sv.addr(1, co + 1)] = x >> 8; } }); }
+    // Gen 2: Spielhallen-Münzen (Big-Endian u16 bei Geld + 7, wie in PKHeX); Gen 3 Smaragd: Kampfpunkte der Kampfzone (u16 im kleinen Block bei 0xEB8)
+    if (gen === 2) { var co2 = (key === 'C' ? 0x23DC : 0x23DB) + 7; cn.push({ k: 'coins', max: 9999, get: function () { return (data[co2] << 8) | data[co2 + 1]; }, set: function (v) { v = Math.min(9999, v); data[co2] = v >> 8; data[co2 + 1] = v & 255; } }); }
+    if (gen === 3 && key === 'E') cn.push({ k: 'bp', max: 9999, get: function () { return data[sv.addr(0, 0xEB8)] | (data[sv.addr(0, 0xEB9)] << 8); }, set: function (v) { v = Math.min(9999, v); data[sv.addr(0, 0xEB8)] = v & 255; data[sv.addr(0, 0xEB9)] = v >> 8; } });
     if (gen === 4) {
       var tr4 = sv.gbase + ({ DP: 0x64, Pt: 0x68, HGSS: 0x64 })[key], bpo = ({ DP: 0x65F8, Pt: 0x7234, HGSS: 0x5BB8 })[key];
       cn.push({ k: 'coins', max: 50000, get: function () { return u16(data, tr4 + 0x20); }, set: function (v) { w16(data, tr4 + 0x20, Math.min(50000, v)); } });
