@@ -11,10 +11,10 @@
   var NOTES = [
     { v: '1.26.2',
       de: [
-        'GO-Infografik: Neue Ansicht „Shiny & 100% CP“ für bis zu 8 auswählbare Pokémon mit Shiny-Artwork sowie Level-20- und Level-25-100%-CP; das Kartenlayout passt sich automatisch an jede Pokémon-Anzahl (1 bis 8) an.'
+        'GO-Infografik: Neue Ansicht „Shiny & 100% CP“ für bis zu 8 auswählbare Pokémon mit Shiny-Artwork und adaptivem Kartenlayout; pro Pokémon kann zwischen Raid (Level 20 & 25 CP) und Dynamax (nur Level 20 CP) gewählt werden.'
       ],
       en: [
-        'GO infographic: new “Shiny & 100% CP” view for up to 8 selectable Pokémon showing the Shiny artwork plus level 20 and level 25 100% CP, with an adaptive card layout for every count (1 to 8).'
+        'GO infographic: new “Shiny & 100% CP” view for up to 8 selectable Pokémon with Shiny artwork and adaptive card layout; each Pokémon can be switched between Raid (level 20 & 25 CP) and Dynamax (level 20 CP only).'
       ] },
     { v: '1.26.1',
       de: [

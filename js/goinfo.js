@@ -128,7 +128,7 @@
     kind: 'raid', theme: 'night', size: 'post', title: '', sub: '', date: '', note: '', shinyOk: true, brand: true,
     boss: 'Mewtwo', tier: '5', counters: '', cmode: 'auto', ccount: 6, rday: false,
     rows: [{ task: '', rewards: [] }],
-    mons: ['Mewtwo']
+    mons: [{ name: 'Mewtwo', mode: 'raid' }]
   };
   var st = (function () {
     var s = {};
@@ -144,9 +144,11 @@
       return { task: r.task || '', rewards: Array.isArray(rw) ? rw : [] };
     });
     if (!o.rows.length) o.rows = [{ task: '', rewards: [] }];
-    o.mons = (Array.isArray(o.mons) ? o.mons : ['Mewtwo']).map(function (x) {
-      return typeof x === 'string' ? x.trim() : (x && x.name ? String(x.name).trim() : '');
-    }).filter(Boolean).slice(0, 8);
+    o.mons = (Array.isArray(o.mons) ? o.mons : [{ name: 'Mewtwo', mode: 'raid' }]).map(function (x) {
+      if (typeof x === 'string') return { name: x.trim(), mode: 'raid' };
+      if (x && typeof x === 'object') return { name: String(x.name || '').trim(), mode: x.mode === 'dmax' ? 'dmax' : 'raid' };
+      return { name: '', mode: 'raid' };
+    }).filter(function (x) { return !!x.name; }).slice(0, 8);
     return o;
   })();
   function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* voll: egal */ } }
@@ -430,8 +432,10 @@
 
   async function drawShinyCp(c, W, H, P, T) {
     var s = P.s;
-    var list = (st.mons || []).slice(0, 8).map(function (name) {
-      return { raw: name, mon: findMon(name) };
+    var list = (st.mons || []).slice(0, 8).map(function (entry) {
+      var name = typeof entry === 'string' ? entry : (entry && entry.name) || '';
+      var mode = (entry && entry.mode === 'dmax') ? 'dmax' : 'raid';
+      return { raw: name, mon: findMon(name), mode: mode };
     }).filter(function (x) { return x.mon || x.raw; });
     var firstTypes = (list[0] && list[0].mon && list[0].mon[3]) || [];
     var tint = list.length === 1 && firstTypes[0] ? TYPE_COL[firstTypes[0]] : '#fbbf24';
@@ -472,13 +476,13 @@
     }
 
     function drawCard(x, y, w, h, item, im) {
-      var m = item.mon;
+      var m = item.mon, isDmax = item.mode === 'dmax';
       var types = m ? m[3] : [];
-      var col = (types[0] && TYPE_COL[types[0]]) || T.acc;
+      var col = isDmax ? '#ec4899' : ((types[0] && TYPE_COL[types[0]]) || T.acc);
       var radCard = Math.min(24 * s, Math.min(w, h) * 0.08);
       rr(c, x, y, w, h, radCard);
       c.fillStyle = T.card; c.fill();
-      c.strokeStyle = T.line; c.lineWidth = 2; c.stroke();
+      c.strokeStyle = isDmax ? 'rgba(236,72,153,0.45)' : T.line; c.lineWidth = 2; c.stroke();
       // Farbiger Akzentstreifen links/oben
       c.save();
       rr(c, x, y, w, h, radCard); c.clip();
@@ -521,15 +525,22 @@
           var tw = chip(c, de ? TYPE_DE[t] : t, tx, tyY, th, TYPE_COL[t], textOn(TYPE_COL[t]), Math.round(th * 0.56));
           tx += tw + 8 * s;
         });
+        if (isDmax) {
+          chip(c, 'DYNAMAX', tx, tyY, th, '#ec4899', '#ffffff', Math.round(th * 0.54));
+        }
 
         var cpTop = tyY + th + Math.max(12 * s, h * 0.055);
         var cpH = Math.max(54 * s, Math.min(130 * s, y + h - pad - cpTop));
-        var bGap = Math.max(10 * s, iw * 0.03);
-        var bw = (iw - bGap) / 2;
-        var l20 = bw > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
-        var l25 = bw > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
-        drawCpBox(ix, cpTop, bw, cpH, l20, cp20, false, T.acc);
-        drawCpBox(ix + bw + bGap, cpTop, bw, cpH, l25, cp25, true, '#fbbf24');
+        if (isDmax) {
+          drawCpBox(ix, cpTop, iw, cpH, 'LV 20 · 100% (DYNAMAX)', cp20, true, '#ec4899');
+        } else {
+          var bGap = Math.max(10 * s, iw * 0.03);
+          var bw = (iw - bGap) / 2;
+          var l20 = bw > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
+          var l25 = bw > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
+          drawCpBox(ix, cpTop, bw, cpH, l20, cp20, false, T.acc);
+          drawCpBox(ix + bw + bGap, cpTop, bw, cpH, l25, cp25, true, '#fbbf24');
+        }
       } else {
         var innerW = w - 2 * pad, innerH = h - 2 * pad;
         var stageH = innerH * (list.length === 1 ? 0.52 : 0.47);
@@ -552,24 +563,30 @@
         var th2 = Math.min(34 * s, Math.max(18 * s, innerH * 0.064));
         var fSz2 = Math.round(th2 * 0.56);
         c.font = 'bold ' + fSz2 + 'px ' + FF;
-        var widths = types.map(function (t) { return c.measureText(de ? TYPE_DE[t] : t).width + th2 * 0.9; });
+        var badges = types.map(function (t) { return [de ? TYPE_DE[t] : t, TYPE_COL[t], textOn(TYPE_COL[t])]; });
+        if (isDmax) badges.push(['DYNAMAX', '#ec4899', '#ffffff']);
+        var widths = badges.map(function (b) { return c.measureText(b[0]).width + th2 * 0.9; });
         var tGap = 6 * s;
-        var sumW = widths.reduce(function (a, b) { return a + b; }, 0) + Math.max(0, types.length - 1) * tGap;
+        var sumW = widths.reduce(function (a, b) { return a + b; }, 0) + Math.max(0, badges.length - 1) * tGap;
         var tx2 = cx2 - sumW / 2, tyY2 = ny2 + Math.max(8 * s, innerH * 0.022);
-        types.forEach(function (t, ti) {
-          chip(c, de ? TYPE_DE[t] : t, tx2, tyY2, th2, TYPE_COL[t], textOn(TYPE_COL[t]), fSz2);
+        badges.forEach(function (b, ti) {
+          chip(c, b[0], tx2, tyY2, th2, b[1], b[2], fSz2);
           tx2 += widths[ti] + tGap;
         });
         c.textAlign = 'left';
 
         var cpTop2 = tyY2 + th2 + Math.max(10 * s, innerH * 0.032);
         var cpH2 = Math.max(48 * s, Math.min(140 * s, y + h - pad - cpTop2));
-        var bGap2 = Math.max(8 * s, innerW * 0.03);
-        var bw2 = (innerW - bGap2) / 2;
-        var l20v = bw2 > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
-        var l25v = bw2 > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
-        drawCpBox(x + pad, cpTop2, bw2, cpH2, l20v, cp20, false, T.acc);
-        drawCpBox(x + pad + bw2 + bGap2, cpTop2, bw2, cpH2, l25v, cp25, true, '#fbbf24');
+        if (isDmax) {
+          drawCpBox(x + pad, cpTop2, innerW, cpH2, 'LV 20 · 100% (DYNAMAX)', cp20, true, '#ec4899');
+        } else {
+          var bGap2 = Math.max(8 * s, innerW * 0.03);
+          var bw2 = (innerW - bGap2) / 2;
+          var l20v = bw2 > 190 * s ? (de ? 'LV 20 · 100% (RAID)' : 'LV 20 · 100% (RAID)') : 'LV 20 · 100%';
+          var l25v = bw2 > 190 * s ? (de ? 'LV 25 · 100% (WETTER ☁)' : 'LV 25 · 100% (BOOST ☁)') : 'LV 25 · 100% ☁';
+          drawCpBox(x + pad, cpTop2, bw2, cpH2, l20v, cp20, false, T.acc);
+          drawCpBox(x + pad + bw2 + bGap2, cpTop2, bw2, cpH2, l25v, cp25, true, '#fbbf24');
+        }
       }
     }
 
@@ -666,16 +683,26 @@
       side.appendChild(headRow);
 
       var mList = el('div', { class: 'gi-mon-list' });
-      st.mons.forEach(function (name, idx) {
-        var mon = findMon(name);
-        var item = el('div', { class: 'gi-mon-item' });
+      st.mons.forEach(function (entry, idx) {
+        if (typeof entry === 'string') entry = st.mons[idx] = { name: entry, mode: 'raid' };
+        var isDmax = entry.mode === 'dmax';
+        var mon = findMon(entry.name);
+        var item = el('div', { class: 'gi-mon-item' + (isDmax ? ' dmax' : '') });
         item.appendChild(el('span', { class: 'gi-mon-idx', text: (idx + 1) + '.' }));
         var info = el('div', { class: 'gi-mon-info' });
-        info.appendChild(el('span', { class: 'gi-mon-name', text: mon ? '✨ ' + monName(mon) : name }));
+        info.appendChild(el('span', { class: 'gi-mon-name', text: mon ? '✨ ' + monName(mon) : entry.name }));
         if (mon) {
-          info.appendChild(el('span', { class: 'gi-mon-cp', text: 'Lv 20: ' + cpOf(mon, 20, 15) + ' · Lv 25: ' + cpOf(mon, 25, 15) }));
+          info.appendChild(el('span', { class: 'gi-mon-cp', text: isDmax ? ('Lv 20: ' + cpOf(mon, 20, 15)) : ('Lv 20: ' + cpOf(mon, 20, 15) + ' · Lv 25: ' + cpOf(mon, 25, 15)) }));
         }
         item.appendChild(info);
+        var modeWrap = el('div', { class: 'gi-mon-mode' });
+        var bRaid = el('button', { type: 'button', class: 'gi-mode-b' + (!isDmax ? ' on' : ''), text: 'Raid', title: de ? 'Raid: Level 20 und Level 25 CP anzeigen' : 'Raid: show Level 20 and Level 25 CP' });
+        bRaid.addEventListener('click', function () { entry.mode = 'raid'; save(); render(); });
+        var bDmax = el('button', { type: 'button', class: 'gi-mode-b dmax' + (isDmax ? ' on' : ''), text: 'Dynamax', title: de ? 'Dynamax: nur Level 20 CP anzeigen' : 'Dynamax: show Level 20 CP only' });
+        bDmax.addEventListener('click', function () { entry.mode = 'dmax'; save(); render(); });
+        modeWrap.appendChild(bRaid);
+        modeWrap.appendChild(bDmax);
+        item.appendChild(modeWrap);
         if (st.mons.length > 1) {
           var up = el('button', { type: 'button', class: 'gi-pk-b', text: '↑', title: de ? 'Nach oben' : 'Move up' });
           if (idx === 0) up.disabled = true;
@@ -709,7 +736,7 @@
           parts.forEach(function (p) {
             if (st.mons.length >= 8) return;
             var mon = findMon(p);
-            if (mon) { st.mons.push(monName(mon)); added = true; }
+            if (mon) { st.mons.push({ name: monName(mon), mode: 'raid' }); added = true; }
           });
           if (!added) { pickM.classList.add('bad'); return; }
           save(); render();
@@ -723,7 +750,7 @@
         addWrap.appendChild(addBtn);
         side.appendChild(addWrap);
       }
-      side.appendChild(el('div', { class: 'hint', text: de ? 'Zeigt für 1 bis 8 Pokémon das Shiny sowie die 100%-IV-CP auf Level 20 (Raid / Ei) und Level 25 (Wetterbonus). Das Layout passt sich automatisch der Anzahl an.' : 'Shows the Shiny and 100% IV CP at level 20 (raid / egg) and level 25 (weather boost) for 1 to 8 Pokémon. Layout adapts automatically to the count.' }));
+      side.appendChild(el('div', { class: 'hint', text: de ? 'Zeigt für 1 bis 8 Pokémon das Shiny sowie die 100%-IV-CP: bei Raid auf Level 20 und 25 (Wetterbonus), bei Dynamax nur auf Level 20. Das Layout passt sich automatisch der Anzahl an.' : 'Shows the Shiny and 100% IV CP for 1 to 8 Pokémon: Raid shows level 20 and 25 (weather boost), Dynamax shows level 20 only. Layout adapts automatically to the count.' }));
     } else {
       var list = el('div', { class: 'gi-rows' });
       st.rows.forEach(function (r, i) {

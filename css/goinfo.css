@@ -31,8 +31,14 @@
 .gi-link-btn:hover { opacity: 1; text-decoration: underline; }
 .gi-mon-list { display: flex; flex-direction: column; gap: 5px; }
 .gi-mon-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 9px; border: 1px solid rgba(251, 191, 36, .35); background: rgba(251, 191, 36, .08); font-size: 12.5px; }
+.gi-mon-item.dmax { border-color: rgba(236, 72, 153, .45); background: rgba(236, 72, 153, .10); }
 .gi-mon-idx { font-size: 11px; font-weight: 800; opacity: .65; width: 16px; flex: none; font-variant-numeric: tabular-nums; }
 .gi-mon-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .gi-mon-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gi-mon-cp { font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
+.gi-mon-mode { display: inline-flex; border-radius: 6px; border: 1px solid var(--line, rgba(128,128,128,.35)); overflow: hidden; flex: none; }
+.gi-mode-b { border: 0; background: transparent; color: inherit; font-size: 10.5px; font-weight: 700; padding: 3px 6px; cursor: pointer; opacity: .65; }
+.gi-mode-b:hover { opacity: 1; }
+.gi-mode-b.on { background: #fbbf24; color: #111; opacity: 1; }
+.gi-mode-b.dmax.on { background: #ec4899; color: #fff; opacity: 1; }
 .gi-mon-item .gi-pk-b:disabled { opacity: .2; cursor: default; }
