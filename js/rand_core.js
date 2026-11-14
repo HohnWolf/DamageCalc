@@ -14,7 +14,7 @@
     // Attacken-Daten, TMs/HMs (Modell mit setMove bzw. tm)
     movePower: false, moveAcc: false, movePP: false, moveType: false, moveCat: false,
     tmMoves: 'keep', tmGoodDamaging: false, tmGoodPct: 60, tmKeepField: true, tmCompat: 'keep', tmFollowEvo: false, tmSanity: true,
-    wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', wildHeldItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', itemsBanBad: false,
+    wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', wildHeldItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', itemsBanBad: false, natDexStart: false,
     evoImpossible: false, evoNoTime: false, evoEasier: false, expCurve: 'keep', expLegendsSlow: false,
     tutorMoves: 'keep', tutorCompat: 'keep', statics: 'keep', staticLegendSwap: false, staticLevelPct: 0, trades: 'keep', tradeRequested: false,
     // weitere Optionen des UPR: Generationen begrenzen, Typen, Faehigkeiten, Basiswerte, Attacken-Sets, Trainer, Starter
@@ -677,6 +677,8 @@
       summary.trainers = nTr; L('');
     }
 
+    if (model.patchEvoDex && (o.starters !== 'keep' || o.wild !== 'keep' || o.statics !== 'keep' || o.trades !== 'keep')) model.patchEvoDex();
+    if (o.natDexStart && model.patchNatDex) { L(model.patchNatDex() ? '=== Nationaler Pokédex ab Spielbeginn: gepatcht ===' : '=== Nationaler Pokédex: Patch nicht möglich (Muster nicht gefunden) ==='); L(''); }
     return Promise.resolve(model.commit()).then(function (data) { return { data: data, log: log.join('\n'), seed: seed, summary: summary }; });
   }
 

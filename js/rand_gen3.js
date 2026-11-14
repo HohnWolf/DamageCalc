@@ -379,6 +379,64 @@
         model.shops.push({ name: 'Shop ' + i, isMain: tbl.shops[2].indexOf(i) !== -1, items: list, set: function (items) { items.forEach(function (it, k) { w16(u8, so3 + k * 2, it); }); } });
       });
     }
+    // ---- ROM-Patches (Byte-Muster-Suche wie im UPR, daher unabhängig von der ROM-Version) ----
+    function hexB(h) { var o = []; for (var i = 0; i < h.length; i += 2) o.push(parseInt(h.substr(i, 2), 16)); return o; }
+    function findAll(h, first) {
+      var pat = hexB(h), res = [], n = pat.length, last = u8.length - n;
+      for (var i = 0; i <= last; i++) {
+        if (u8[i] !== pat[0]) continue;
+        var k = 1; while (k < n && u8[i + k] === pat[k]) k++;
+        if (k === n) { res.push(i); if (first) break; }
+      }
+      return res;
+    }
+    function findOne(h) { var r = findAll(h, true); return r.length ? r[0] : -1; }
+    function writeHex(h, off) { hexB(h).forEach(function (b, i) { u8[off + i] = b; }); }
+    function ptrHex(off) { var v = (off + 0x08000000) >>> 0; return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255].map(function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join(''); }
+    function readPtr(off) { return (u32(u8, off) - 0x08000000) >>> 0; }
+    function writePtr(off, p) { var v = (p + 0x08000000) >>> 0; u8[off] = v & 255; u8[off + 1] = (v >>> 8) & 255; u8[off + 2] = (v >>> 16) & 255; u8[off + 3] = (v >>> 24) & 255; }
+    function freeAt(n, from) {
+      var need = n + 5, run = 0;
+      for (var i = from; i < u8.length; i++) { if (u8[i] === 0xFF) { if (++run >= need) return ((i - need + 1) + 5) & ~3; } else run = 0; }
+      return -1;
+    }
+    var gbaCode = rom.code.slice(0, 3), isFrlg = gbaCode === 'BPR' || gbaCode === 'BPG', isEm = gbaCode === 'BPE', isRs = gbaCode === 'AXV' || gbaCode === 'AXP';
+    // Gehorsam (Deoxys/Mew) und FRLG-Entwicklungen: Entwicklung nicht mehr auf das Kanto-Pokédex-Limit (#151) beschränken
+    model.patchEvoDex = function () {
+      var d = findOne('CD21490088420FD0');
+      if (d > 0) {
+        u8[d] = 0; u8[d + 1] = 0x21; u8[d + 2] = 0; u8[d + 3] = 0x21; // MOVS R1, 0 (zweimal, 2. wirkt als Nop)
+        if (u16(u8, d + 0x16) === ((0x28 << 8) | 151)) w16(u8, d + 0x16, 0x2800);
+      }
+      if (isFrlg) {
+        var lv = findOne('972814DD'); if (lv > 0) { w16(u8, lv, 0x46C0); w16(u8, lv + 2, (0xE0 << 8) | 0x14); }
+        var st = findOne('972808D9'); if (st > 0) { w16(u8, st, 0x46C0); w16(u8, st + 2, (0xE0 << 8) | 0x08); }
+      }
+    };
+    // Nationaler Pokédex ab Spielbeginn. Rückgabe: true bei Erfolg
+    model.patchNatDex = function () {
+      var fso = tbl && tbl.free || 0x700000, p1 = '31720167';
+      if (isRs || isEm) {
+        var ident = isRs ? '326629010803' : '3229610825F00129E40816CD40010003', part2 = isRs ? '32662901082B00801102006B02021103016B020211DABE4E020211675A6A02022A008003' : '3229610825F00129E40825F30116CD40010003';
+        var pk = findOne(ident); if (pk < 0) return false;
+        var textPtr = readPtr(pk - 4), pl = findOne(ptrHex(pk - 8)); if (pl < 0) return false;
+        var ws = freeAt(isRs ? 44 : 27, fso); if (ws < fso) return false;
+        writePtr(pl, ws); writeHex(p1, ws); writePtr(ws + 4, textPtr); writeHex(part2, ws + 8);
+        return true;
+      }
+      if (isFrlg) {
+        var pd = findOne('292908258101'); if (pd < 0) return false;
+        var ws2 = freeAt(10, fso); if (ws2 < fso) return false;
+        u8[pd] = 4; writePtr(pd + 1, ws2); u8[pd + 5] = 0;
+        writeHex('292908258101256F0103', ws2);
+        findAll('260D809301210D800100').forEach(function (o) { writeHex('2B2C0800000000000000', o); });
+        var ol = findOne('257D011604800000260D80D400'); if (ol > 0) writeHex('257D011604800100', ol);
+        var oh = findOne('1604800000260D80D4001908800580190980068083000880830109802109803C'); if (oh > 0) writeHex('1604800100', oh);
+        var oa = findOne('00B5064800880028'); if (oa > 0) u8[oa + 8 + 1] = 0xE0;
+        return true;
+      }
+      return false;
+    };
     model.commit = function () { return u8; };
     return model;
   }

@@ -108,5 +108,26 @@ const gi = (o) => it.data[o] | (it.data[o + 1] << 8);
 assert.ok(gi(B0 + 0x7003) >= 1 && gi(B0 + 0x6008) >= 1 && gi(B0 + 0x6008) <= 60, 'Feld-Item gesetzt');
 assert.ok([0x8000, 0x8002, 0x8004].every(o => gi(B0 + o) >= 1 && gi(B0 + o) <= 60 && gi(B0 + o) !== 4 && gi(B0 + o) !== 5), 'Shop: Items ohne Standard-Items');
 assert.equal(new Set([gi(B0 + 0x8000), gi(B0 + 0x8002), gi(B0 + 0x8004)]).size, 3, 'Shop-Items verschieden');
+// Nationaler Pokédex (Smaragd-Skript) und Gehorsam/Entwicklungs-Patch per Byte-Muster
+{
+  const hx = (h) => h.match(/../g).map(x => parseInt(x, 16));
+  const IDENT = 0x300100, PTR_LOC = 0x300200, OBEY = 0x300300, FS = 0x340000;
+  u8.fill(0xFF, FS, FS + 0x1000);
+  hx('3229610825F00129E40816CD40010003').forEach((b, i) => u8[IDENT + i] = b);
+  w32(IDENT - 4, P(0x350000)); // Zeiger auf den Text
+  w32(PTR_LOC, P(IDENT - 8)); // Zeiger auf das Skript
+  hx('CD21490088420FD0').forEach((b, i) => u8[OBEY + i] = b); w16(OBEY + 0x16, 0x2897);
+  window.GEN3_OFFS.BPEE0.free = 0x340000;
+  const nd = await R.run(u8, rom, { seed: 'nd', wild: 'keep', trainers: 'keep', starters: 'random', natDexStart: true });
+  const ws = (nd.data[PTR_LOC] | (nd.data[PTR_LOC + 1] << 8) | (nd.data[PTR_LOC + 2] << 16)) - 0 ; // Low-Teil des Zeigers
+  assert.ok(ws >= FS && ws < FS + 0x1000, 'Pokédex-Skript zeigt in den freien Bereich');
+  assert.ok(hx('31720167').every((b, i) => nd.data[ws + i] === b), 'neues Skript beginnt mit Teil 1');
+  assert.ok(hx('3229610825F00129E40825F30116CD40010003').every((b, i) => nd.data[ws + 8 + i] === b), 'neues Skript Teil 2');
+  assert.ok(/Nationaler Pokédex ab Spielbeginn: gepatcht/.test(nd.log), 'Pokédex-Patch im Protokoll');
+  assert.ok(nd.data[OBEY] === 0 && nd.data[OBEY + 1] === 0x21 && nd.data[OBEY + 2] === 0 && nd.data[OBEY + 3] === 0x21, 'Gehorsam-Patch');
+  assert.ok(nd.data[OBEY + 0x16] === 0 && nd.data[OBEY + 0x17] === 0x28, 'Mew-Vergleich entfernt');
+  const nn = await R.run(u8, rom, { seed: 'nd', wild: 'keep', trainers: 'keep', starters: 'random' });
+  assert.ok(nn.data[PTR_LOC] === u8[PTR_LOC] && !/Pokédex/.test(nn.log), 'ohne Option bleibt der Pokédex-Zeiger unverändert');
+}
 console.log(a.log.split('\n').slice(0, 12).join('\n')); console.log('OK');
 })().catch(e => { console.log(e); process.exit(1); });

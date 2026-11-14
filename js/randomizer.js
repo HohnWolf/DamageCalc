@@ -33,7 +33,7 @@
     itemsNote: 'Schwarz/Weiß (Teil 1) hat keine änderbaren Shops; Trainer-Items ändern nur Trainer, die schon ein Item tragen.',
     toNuz: 'Im Nuzlocke-Rechner öffnen', pickupItems: 'Pickup-Items', wildHeldItems: 'Gehaltene Items wilder Pokémon',
     o_updateStats: 'Basiswerte auf eine spätere Generation aktualisieren (Änderungen bis Gen …)', o_updateMoves: 'Attacken auf eine spätere Generation aktualisieren (Stärke, AP, Genauigkeit, Typ)',
-    o_starterHeldItem: 'Starter trägt ein zufälliges Item', o_tradeIVs: 'Tausche: zufällige IVs', o_tradeItems: 'Tausche: zufälliges Item',
+    o_natDexStart: 'Nationaler Pokédex ab Spielbeginn (Entwicklungen und Fangen außerhalb von Kanto/Hoenn)', o_starterHeldItem: 'Starter trägt ein zufälliges Item', o_tradeIVs: 'Tausche: zufällige IVs', o_tradeItems: 'Tausche: zufälliges Item',
     tabGeneral: 'Allgemein', tabMon: 'Pokémon', tabStart: 'Starter & Statische', tabWild: 'Wilde Pokémon', tabTrainer: 'Trainer', tabMoves: 'Attacken', tabItems: 'Items',
     genWord: 'Gen', genNote: 'Die Generationen begrenzen, welche Arten beim Zufall vorkommen dürfen. Ohne Haken (oder mit allen) gibt es keine Begrenzung.', noStarters: 'Für diese ROM lassen sich die Starter nicht ändern.',
     moveData: 'Attacken-Daten',
@@ -73,7 +73,7 @@
     itemsNote: 'Black/White (part 1) has no editable shops; trainer items only change trainers that already hold an item.',
     toNuz: 'Open in Nuzlocke calculator', pickupItems: 'Pickup items', wildHeldItems: 'Held items of wild Pokémon',
     o_updateStats: 'Update base stats to a later generation (changes up to gen …)', o_updateMoves: 'Update moves to a later generation (power, PP, accuracy, type)',
-    o_starterHeldItem: 'Starter holds a random item', o_tradeIVs: 'Trades: random IVs', o_tradeItems: 'Trades: random item',
+    o_natDexStart: 'National Pokédex from the start (evolutions and catching beyond Kanto/Hoenn)', o_starterHeldItem: 'Starter holds a random item', o_tradeIVs: 'Trades: random IVs', o_tradeItems: 'Trades: random item',
     tabGeneral: 'General', tabMon: 'Pokémon', tabStart: 'Starters & statics', tabWild: 'Wild Pokémon', tabTrainer: 'Trainers', tabMoves: 'Moves', tabItems: 'Items',
     genWord: 'Gen', genNote: 'Generations limit which species can appear in random choices. With none ticked (or all ticked) there is no limit.', noStarters: 'The starters of this ROM cannot be changed.',
     moveData: 'Move data',
@@ -296,6 +296,7 @@
       }
       ['starterTwoEvo', 'starterSameType', 'starterMax600'].forEach(function (k) { ps.appendChild(check(k, S['o_' + k])); });
       if (st.ext === 'nds' && st.rom && st.rom.gen === 4 && st.rom.type !== 'HGSS') ps.appendChild(check('starterHeldItem', S.o_starterHeldItem));
+      if (isGba) ps.appendChild(check('natDexStart', S.o_natDexStart));
     } else note(ps, S.noStarters);
     if (caps.extra) {
       head(ps, S.statics);
