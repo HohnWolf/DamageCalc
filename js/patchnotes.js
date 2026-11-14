@@ -9,6 +9,15 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.9',
+      de: [
+        'Randomizer: Items auf dem Feld (Itembälle und versteckte Items) jetzt auch für Generation 1 und 2; Attacken-Lehrer in Kristall (mit angepasstem Menü) lassen sich mischen.',
+        'Save-Editor: „Legal machen“ setzt jetzt auch Fundort und Fundlevel passend zu den Begegnungstabellen; Kampfpunkte der Kampf-Subway (Generation 5) bearbeitbar.'
+      ],
+      en: [
+        'Randomizer: field items (item balls and hidden items) are now available for generations 1 and 2; the move tutors in Crystal (with an updated menu) can be shuffled.',
+        'Save editor: “Make legal” now also sets a matching met location and met level based on the encounter tables; Battle Subway points (generation 5) are editable.'
+      ] },
     { v: '1.26.8',
       de: [
         'Randomizer: Attacken-Lehrer von Omega Rubin und Alpha Saphir lassen sich jetzt mischen.'
