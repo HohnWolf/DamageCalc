@@ -195,6 +195,12 @@
     if (window.CC_ITEMS) {
       var IT = window.CC_ITEMS[5];
       model.itemData = { allowed: IT.allowed.items, tms: IT.allowed.tms, nonBad: (rom.type === 'B2W2' ? IT.nonBad2 : IT.nonBad).items, shop: IT.shop, op: IT.op };
+      // Gehaltene Items wilder Pokémon (Personal-Daten): nur Plätze, die im Original ein Item haben
+      model.heldItems = [];
+      if (F.personal) for (var hp = 1; hp <= 649; hp++) (function (d) {
+        if (!d || d.length < 18) return;
+        [12,14,16].forEach(function (o) { model.heldItems.push({ get: function () { return d[o] | (d[o + 1] << 8); }, set: function (n) { d[o] = n & 255; d[o + 1] = (n >> 8) & 255; } }); });
+      })(F.personal[hp]);
     }
     model.field = [];
     if (scripts && offs) {

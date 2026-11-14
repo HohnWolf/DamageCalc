@@ -3,13 +3,13 @@
   'use strict';
   var A = window.CC, R3 = window.CCRand3, RN = window.CCRandNds, N = window.NDS, G = window.GEN3, R5 = window.CCRandGen5, R67 = window.CCRand3DS, RGB = window.CCRandGB;
   if (!A || !R3 || !G) return;
-  var R = R3;
+  var R = R3, CR = window.CCRandCore;
   var el = A.el, esc = A.esc, de = A.LANG === 'de';
   var S = de ? {
     title: 'Randomizer', sub: 'Mischt wilde Pokémon, Trainer, Starter, Entwicklungen, Werte, Typen, Fähigkeiten und Attacken einer Spiel-ROM. Die Originaldatei bleibt unverändert, du bekommst eine neue Datei.',
     gens: 'Unterstützt: Generation 1 (Rot, Blau, Gelb), 2 (Gold, Silber, Kristall), 3 (Rubin, Saphir, Smaragd, Feuerrot, Blattgrün), 4 (Diamant, Perl, Platin, HeartGold, SoulSilver), 5 (Schwarz, Weiß, Schwarz 2, Weiß 2) und 6/7 (X, Y, Omega Rubin, Alpha Saphir, Sonne, Mond, Ultra Sonne, Ultra Mond; entschlüsselte .cxi).',
     pick: 'ROM wählen …', drop: 'oder eine .gb- / .gbc- / .gba- / .nds- / .cxi-Datei hierher ziehen', enc: 'Diese 3DS-Datei ist verschlüsselt. Gebraucht wird eine entschlüsselte .cxi (oder .3ds).', big: 'Große Datei, bitte kurz warten …', game: 'Erkannt:', scan: 'Gefunden: {0} Karten mit wilden Pokémon, {1} Trainer, Starter {2}, Entwicklungen {3}',
-    yes: 'ja', no: 'nein', bad: 'Diese Datei wird nicht unterstützt. Gebraucht wird eine unveränderte GBA-ROM der 3. Generation.',
+    yes: 'ja', no: 'nein', bad: 'Diese Datei wird nicht unterstützt. Gebraucht wird eine unveränderte ROM der Generation 1–7 (.gb/.gbc/.gba/.nds) oder eine entschlüsselte .cxi/.3ds.',
     wild: 'Wilde Pokémon', trainers: 'Trainer-Pokémon', starters: 'Starter', evo: 'Entwicklungen', stats: 'Basiswerte', types: 'Typen', abilities: 'Fähigkeiten', moves: 'Level-Attacken',
     keep: 'Unverändert', random: 'Zufällig', similar: 'Zufällig, ähnlich stark', custom: 'Eigene Auswahl', shuffle: 'Werte mischen', randomStats: 'Zufällig (gleiche Summe)',
     wildGlobal: 'Jede Art wird überall gleich ersetzt (1:1)', noLegend: 'Keine legendären Pokémon', trainerLevel: 'Trainer-Level ändern um', seed: 'Seed (leer = zufällig)',
@@ -31,7 +31,7 @@
     expCurve: 'EP-Kurve vereinheitlichen', cMediumFast: 'Mittelschnell', cMediumSlow: 'Mittellangsam', cFast: 'Schnell', cSlow: 'Langsam', cErratic: 'Unregelmäßig', cFluctuating: 'Schwankend', o_expLegendsSlow: 'EP-Kurve: Legendäre bleiben langsam',
     fieldItems: 'Items auf dem Feld (inkl. versteckte)', shops: 'Shop-Inhalte', trainerItems: 'Trainer-Items', o_fieldTMShuffle: 'Feld-TMs untereinander mischen', o_shopBanRegular: 'Shops: normale Shop-Items ausschließen', o_shopBanOP: 'Shops: sehr starke Items ausschließen', o_itemsBanBad: 'Items: keine schlechten Items (Beeren, Briefe, Spezial-Items …)',
     itemsNote: 'Schwarz/Weiß (Teil 1) hat keine änderbaren Shops; Trainer-Items ändern nur Trainer, die schon ein Item tragen.',
-    pickupItems: 'Pickup-Items',
+    toNuz: 'Im Nuzlocke-Rechner öffnen', pickupItems: 'Pickup-Items', wildHeldItems: 'Gehaltene Items wilder Pokémon',
     o_updateStats: 'Basiswerte auf eine spätere Generation aktualisieren (Änderungen bis Gen …)', o_updateMoves: 'Attacken auf eine spätere Generation aktualisieren (Stärke, AP, Genauigkeit, Typ)',
     o_starterHeldItem: 'Starter trägt ein zufälliges Item', o_tradeIVs: 'Tausche: zufällige IVs', o_tradeItems: 'Tausche: zufälliges Item',
     tabGeneral: 'Allgemein', tabMon: 'Pokémon', tabStart: 'Starter & Statische', tabWild: 'Wilde Pokémon', tabTrainer: 'Trainer', tabMoves: 'Attacken', tabItems: 'Items',
@@ -49,7 +49,7 @@
     title: 'Randomizer', sub: 'Shuffles wild Pokémon, trainers, starters, evolutions, stats, types, abilities and moves of a game ROM. The original file stays untouched, you get a new file.',
     gens: 'Supported: generation 1 (Red, Blue, Yellow), 2 (Gold, Silver, Crystal), 3 (Ruby, Sapphire, Emerald, FireRed, LeafGreen), 4 (Diamond, Pearl, Platinum, HeartGold, SoulSilver), 5 (Black, White, Black 2, White 2) and 6/7 (X, Y, Omega Ruby, Alpha Sapphire, Sun, Moon, Ultra Sun, Ultra Moon; decrypted .cxi).',
     pick: 'Choose ROM …', drop: 'or drag a .gb / .gbc / .gba / .nds / .cxi file here', enc: 'This 3DS file is encrypted. A decrypted .cxi (or .3ds) is required.', big: 'Large file, please wait …', game: 'Detected:', scan: 'Found: {0} maps with wild Pokémon, {1} trainers, starters {2}, evolutions {3}',
-    yes: 'yes', no: 'no', bad: 'This file is not supported. An unmodified generation 3 GBA ROM is required.',
+    yes: 'yes', no: 'no', bad: 'This file is not supported. An unmodified generation 1–7 ROM (.gb/.gbc/.gba/.nds) or a decrypted .cxi/.3ds is required.',
     wild: 'Wild Pokémon', trainers: 'Trainer Pokémon', starters: 'Starters', evo: 'Evolutions', stats: 'Base stats', types: 'Types', abilities: 'Abilities', moves: 'Level-up moves',
     keep: 'Unchanged', random: 'Random', similar: 'Random, similar strength', custom: 'Custom', shuffle: 'Shuffle stats', randomStats: 'Random (same total)',
     wildGlobal: 'Each species is replaced the same everywhere (1:1)', noLegend: 'No legendary Pokémon', trainerLevel: 'Change trainer levels by', seed: 'Seed (empty = random)',
@@ -71,7 +71,7 @@
     expCurve: 'Standardize EXP curve', cMediumFast: 'Medium Fast', cMediumSlow: 'Medium Slow', cFast: 'Fast', cSlow: 'Slow', cErratic: 'Erratic', cFluctuating: 'Fluctuating', o_expLegendsSlow: 'EXP curve: legendaries stay slow',
     fieldItems: 'Field items (incl. hidden)', shops: 'Shop contents', trainerItems: 'Trainer items', o_fieldTMShuffle: 'Shuffle field TMs among themselves', o_shopBanRegular: 'Shops: exclude regular shop items', o_shopBanOP: 'Shops: exclude very strong items', o_itemsBanBad: 'Items: no bad items (berries, mail, special items …)',
     itemsNote: 'Black/White (part 1) has no editable shops; trainer items only change trainers that already hold an item.',
-    pickupItems: 'Pickup items',
+    toNuz: 'Open in Nuzlocke calculator', pickupItems: 'Pickup items', wildHeldItems: 'Held items of wild Pokémon',
     o_updateStats: 'Update base stats to a later generation (changes up to gen …)', o_updateMoves: 'Update moves to a later generation (power, PP, accuracy, type)',
     o_starterHeldItem: 'Starter holds a random item', o_tradeIVs: 'Trades: random IVs', o_tradeItems: 'Trades: random item',
     tabGeneral: 'General', tabMon: 'Pokémon', tabStart: 'Starters & statics', tabWild: 'Wild Pokémon', tabTrainer: 'Trainers', tabMoves: 'Moves', tabItems: 'Items',
@@ -98,6 +98,9 @@
     if (ext === 'gba' && eng.makePool) {
       var pool = eng.makePool(rom, false), first = pool.filter(function (s) { return rom.species[s].nat === (rom.frlg ? 1 : 252); })[0] || pool[0];
       st.opts.starterPick = [first, first, first];
+    } else {
+      var g = curMaxGen(), dflt = { 1: [1, 4, 7], 2: [152, 155, 158], 4: [387, 390, 393], 5: [495, 498, 501], 6: [650, 653, 656], 7: [722, 725, 728] };
+      st.opts.starterPick = (dflt[g] || [1, 4, 7]).slice();
     }
   }
   function load(file) {
@@ -199,6 +202,12 @@
     if (ch.length < 2) return el('span');
     return modeRow(key, label, ch, lb);
   }
+  function starterPool() {
+    if (st.ext === 'gba' || st.ext === 'nds') { if (st.eng.makePool) return st.eng.makePool(st.rom, false); }
+    var mx = { 1: 151, 2: 251, 4: 493, 5: 649, 6: 721, 7: 807 }[curMaxGen()] || 151, a = [];
+    for (var i = 1; i <= mx; i++) a.push(i);
+    return a;
+  }
   function curMaxGen() {
     var isGb = st.ext === 'gb' || st.ext === 'gbc';
     if (isGb) return st.rom && st.rom.gen === 1 ? 1 : 2;
@@ -276,11 +285,11 @@
     var g2 = grid(ps);
     var hasStarters = isGba || isGb || info.starters;
     if (hasStarters) {
-      g2.appendChild(modeRow('starters', S.starters, isGba ? ['keep', 'random', 'custom'] : ['keep', 'random'], { keep: S.keep, random: S.random, custom: S.custom }));
-      if (st.opts.starters === 'custom' && isGba) {
-        var sr = el('div', { class: 'rd-starters' }), pool = st.eng.makePool(st.rom, false);
+      g2.appendChild(modeRow('starters', S.starters, ['keep', 'random', 'custom'], { keep: S.keep, random: S.random, custom: S.custom }));
+      if (st.opts.starters === 'custom') {
+        var sr = el('div', { class: 'rd-starters' }), pool = starterPool(), lbl = function (p) { return isGba ? '#' + st.rom.species[p].nat + ' ' + esc(st.rom.species[p].name) : '#' + p + ' ' + esc(CR.nameOf(p)); };
         for (var k = 0; k < 3; k++) (function (k) {
-          var s = el('select', { class: 'rd-sel' }, pool.map(function (p) { return '<option value="' + p + '"' + (st.opts.starterPick[k] === p ? ' selected' : '') + '>#' + st.rom.species[p].nat + ' ' + esc(st.rom.species[p].name) + '</option>'; }).join(''));
+          var s = el('select', { class: 'rd-sel' }, pool.map(function (p) { return '<option value="' + p + '"' + (st.opts.starterPick[k] === p ? ' selected' : '') + '>' + lbl(p) + '</option>'; }).join(''));
           s.onchange = function () { st.opts.starterPick[k] = +s.value; }; sr.appendChild(s);
         })(k);
         g2.appendChild(sr);
@@ -357,6 +366,7 @@
       var g9 = grid(pi);
       g9.appendChild(modeRow('fieldItems', S.fieldItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
       g9.appendChild(modeRow('pickupItems', S.pickupItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
+      if (st.ext === 'nds') g9.appendChild(modeRow('wildHeldItems', S.wildHeldItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
       g9.appendChild(modeRow('shops', S.shops, ['keep', 'random'], { keep: S.keep, random: S.random }));
       ['fieldTMShuffle', 'shopBanRegular', 'shopBanOP', 'itemsBanBad'].forEach(function (k) { pi.appendChild(check(k, S['o_' + k])); });
       note(pi, S.itemsNote);
@@ -383,6 +393,7 @@
         st.log = res.log;
         var base = st.name.replace(/\.[^.]*$/, '');
         download(base + ' (Randomizer ' + res.seed + ').' + st.ext, res.data);
+        st.last = (st.ext === 'gba' || st.ext === 'nds') ? res.data : null;
         st.msg = S.done + ' ' + res.seed;
         st.opts.seed = res.seed;
       }).catch(function (e) { st.err = String((e && e.message) || e); }).then(function () { st.busy = false; render(); });
@@ -416,6 +427,14 @@
       body.appendChild(el('p', { class: 'hint', text: S.warn }));
     }
     if (st.msg) body.appendChild(el('div', { class: 'rd-ok', text: st.msg + ' – ' + S.again }));
+    if (st.msg && st.last && window.CCNuzCalc && A.showView) {
+      var nb = el('button', { type: 'button', class: 'rd-pick', text: S.toNuz });
+      nb.onclick = function () {
+        var dd = st.last, go = function (u8) { window.CCNuzCalc.loadRom(u8); A.showView('nuz'); };
+        if (dd && dd.arrayBuffer) dd.arrayBuffer().then(function (b) { go(new Uint8Array(b)); }); else if (dd) go(dd);
+      };
+      body.appendChild(nb);
+    }
     if (st.log) {
       var lb = el('button', { class: 'rd-logbtn', text: S.log }); lb.onclick = function () { download('randomizer-log.txt', st.log, 'text/plain'); };
       body.appendChild(lb);

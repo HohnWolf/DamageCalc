@@ -10,27 +10,27 @@
     pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 1 und 2 (Game Boy), 3 (GBA), 4 und 5 (DS) sowie 6 und 7 (3DS, die "main"-Datei).',
     game: 'Erkannt:', save: 'Spielstand speichern', saved: 'Gespeichert. Mach vorher immer eine Sicherungskopie deines echten Spielstands.', trainer: 'Trainer', party: 'Team', box: 'Box',
     name: 'Name', money: 'Geld', gender: 'Geschlecht', male: 'Männlich', female: 'Weiblich', time: 'Spielzeit (Std : Min)', empty: 'Leer', apply: 'Übernehmen', remove: 'Entfernen', create: 'Neues Pokémon',
-    species: 'Pokémon', nick: 'Spitzname', level: 'Level', exp: 'Erfahrung', item: 'Item', none: '–', nature: 'Wesen', shiny: 'Shiny', friendship: 'Freundschaft', egg: 'Ei', ability: 'Fähigkeit',
+    formName: 'Form', hiddenAb: 'VF', allAb: 'Alle Fähigkeiten (Cheat)', species: 'Pokémon', nick: 'Spitzname', level: 'Level', exp: 'Erfahrung', item: 'Item', none: '–', nature: 'Wesen', shiny: 'Shiny', friendship: 'Freundschaft', egg: 'Ei', ability: 'Fähigkeit',
     slot2: 'Zweite Fähigkeit', moves: 'Attacken', pp: 'AP', ppups: 'AP-Ups', ev: 'EP', iv: 'IP', stats: 'Werte', ot: 'Ursprungstrainer', stat: ['KP', 'Angr', 'Vert', 'Init', 'SpA', 'SpV'],
     dv: 'DVs', statexp: 'Erfahrungswerte (EP)', gbstat: ['KP', 'Angr', 'Vert', 'Init', 'Spezial'], edit: 'Pokémon bearbeiten', ok: 'Pokémon übernommen (noch nicht gespeichert).', evsum: 'EP-Summe', delconfirm: 'Dieses Pokémon entfernen?', all: 'Maximal', self: 'Eigenes Team'
   } : {
-    title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generation 3, 4 and 5 (.sav, .dsv).',
+    title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generations 1 to 7 (.sav, .dsv).',
     pick: 'Choose save file …', drop: 'or drag a .sav / .dsv file here', bad: 'This file is not recognized. Generation 1 and 2 (Game Boy), 3 (GBA), 4 and 5 (DS) and 6 and 7 (3DS, the "main" file) saves are supported.',
     game: 'Detected:', save: 'Save file', saved: 'Saved. Always keep a backup of your real save first.', trainer: 'Trainer', party: 'Party', box: 'Box',
     name: 'Name', money: 'Money', gender: 'Gender', male: 'Male', female: 'Female', time: 'Play time (h : min)', empty: 'Empty', apply: 'Apply', remove: 'Remove', create: 'New Pokémon',
-    species: 'Pokémon', nick: 'Nickname', level: 'Level', exp: 'Experience', item: 'Item', none: '–', nature: 'Nature', shiny: 'Shiny', friendship: 'Friendship', egg: 'Egg', ability: 'Ability',
+    formName: 'Form', hiddenAb: 'HA', allAb: 'All abilities (cheat)', species: 'Pokémon', nick: 'Nickname', level: 'Level', exp: 'Experience', item: 'Item', none: '–', nature: 'Nature', shiny: 'Shiny', friendship: 'Friendship', egg: 'Egg', ability: 'Ability',
     slot2: 'Second ability', moves: 'Moves', pp: 'PP', ppups: 'PP Ups', ev: 'EVs', iv: 'IVs', stats: 'Stats', ot: 'Original trainer', stat: ['HP', 'Atk', 'Def', 'Spe', 'SpA', 'SpD'],
     dv: 'DVs', statexp: 'Stat experience', gbstat: ['HP', 'Atk', 'Def', 'Spe', 'Special'], edit: 'Edit Pokémon', ok: 'Pokémon applied (not saved yet).', evsum: 'EV total', delconfirm: 'Remove this Pokémon?', all: 'Max', self: 'Own party'
   };
 
   var X = de ? {
-    tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Haupt', tStats: 'Werte', tMoves: 'Attacken', tOt: 'Herkunft', set: 'Setzen', del: 'Löschen', exp2: 'Exportieren (.pk)', imp: 'Importieren (.pk)',
+    tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Haupt', tStats: 'Werte', tMoves: 'Attacken', tOt: 'Herkunft', set: 'Setzen', del: 'Löschen', exp2: 'Exportieren (.pk)', sdBtn: 'Showdown-Text', sdCopy: 'Kopieren', sdApply: 'Übernehmen', sdClose: 'Schließen', sdBad: 'Pokémon im Text nicht erkannt', imp: 'Importieren (.pk)',
     boxPrev: 'Vorherige Box', boxNext: 'Nächste Box', sortSp: 'Nach Dex-Nr. sortieren', sortLv: 'Nach Level sortieren', clearBox: 'Box leeren', clearConfirm: 'Alle Pokémon dieser Box entfernen?',
-    maxIv: 'Alle IP 31', zeroEv: 'Alle EP 0', maxEv: 'EP 252/252/6', hint: 'Ziehen zum Verschieben oder Tauschen, Strg beim Ablegen kopiert. Entf löscht das markierte Pokémon.',
+    legalize: 'Legal machen', maxDv: 'Alle DVs 15', zeroSe: 'Alle Stat-EP 0', maxSe: 'Stat-EP max', maxIv: 'Alle IP 31', zeroEv: 'Alle EP 0', maxEv: 'EP 252/252/6', hint: 'Ziehen zum Verschieben oder Tauschen, Strg beim Ablegen kopiert. Entf löscht das markierte Pokémon.',
     fShiny: 'Nur Shiny', fEgg: 'Nur Eier',
     boxName: 'Box-Name', batchRun: 'Anwenden', batchAsk: 'Diese Änderung auf alle gewählten Pokémon anwenden?', batchDone: '{0} Pokémon bearbeitet (noch nicht gespeichert).',
     scope_box: 'Aktuelle Box', scope_boxes: 'Alle Boxen', scope_party: 'Team',
-    act_lv100: 'Level 100', act_iv31: 'Alle IP 31', act_ev0: 'Alle EP 0', act_ev252: 'EP 252/252/6', act_noitem: 'Items entfernen', act_shiny: 'Shiny machen', act_unshiny: 'Shiny entfernen', act_heal: 'Heilen (Team)',
+    act_dv15: 'Alle DVs 15', act_se0: 'Alle Stat-EP 0', act_semax: 'Stat-EP max', act_lv100: 'Level 100', act_iv31: 'Alle IP 31', act_ev0: 'Alle EP 0', act_ev252: 'EP 252/252/6', act_noitem: 'Items entfernen', act_shiny: 'Shiny machen', act_unshiny: 'Shiny entfernen', act_heal: 'Heilen (Team)',
     metDate: 'Fangdatum', eggDate: 'Ei-Datum', otGender: 'Geschlecht des Trainers', form: 'Form (Nr.)',
     hours: 'Stunden', minutes: 'Minuten', seconds: 'Sekunden', coins: 'Münzen', bp: 'Kampfpunkte (BP)',
     badges: 'Orden', badge: 'Orden', badgeA: 'Region 1', badgeB: 'Region 2',
@@ -46,13 +46,13 @@
     cEv: 'EP-Summe über 510', cMove: 'Doppelte Attacke', cNoMove: 'Keine Attacke', cNick: 'Spitzname zu lang', cLv: 'Level außerhalb 1–100', cIv: 'IP über 31', cEmpty: 'Leerer Name des Ursprungstrainers', cShinyLock: 'Shiny, Ei oder Zustand prüfen',
     dirty: 'Ungespeicherte Änderungen', impBad: 'Datei passt nicht zu diesem Spielstand.', nothing: 'Kein Pokémon ausgewählt.', ball: 'Ball', metLv: 'Level beim Fang'
   } : {
-    tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Main', tStats: 'Stats', tMoves: 'Moves', tOt: 'OT / Misc', set: 'Set', del: 'Delete', exp2: 'Export (.pk)', imp: 'Import (.pk)',
+    tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Main', tStats: 'Stats', tMoves: 'Moves', tOt: 'OT / Misc', set: 'Set', del: 'Delete', exp2: 'Export (.pk)', sdBtn: 'Showdown text', sdCopy: 'Copy', sdApply: 'Apply', sdClose: 'Close', sdBad: 'Pokémon in the text not recognized', imp: 'Import (.pk)',
     boxPrev: 'Previous box', boxNext: 'Next box', sortSp: 'Sort by Dex no.', sortLv: 'Sort by level', clearBox: 'Clear box', clearConfirm: 'Remove all Pokémon in this box?',
-    maxIv: 'All IVs 31', zeroEv: 'All EVs 0', maxEv: 'EVs 252/252/6', hint: 'Drag to move or swap, hold Ctrl when dropping to copy. Delete removes the selected Pokémon.',
+    legalize: 'Make legal', maxDv: 'All DVs 15', zeroSe: 'All stat exp 0', maxSe: 'Max stat exp', maxIv: 'All IVs 31', zeroEv: 'All EVs 0', maxEv: 'EVs 252/252/6', hint: 'Drag to move or swap, hold Ctrl when dropping to copy. Delete removes the selected Pokémon.',
     fShiny: 'Shiny only', fEgg: 'Eggs only',
     boxName: 'Box name', batchRun: 'Apply', batchAsk: 'Apply this change to all selected Pokémon?', batchDone: '{0} Pokémon edited (not saved yet).',
     scope_box: 'Current box', scope_boxes: 'All boxes', scope_party: 'Party',
-    act_lv100: 'Level 100', act_iv31: 'All IVs 31', act_ev0: 'All EVs 0', act_ev252: 'EVs 252/252/6', act_noitem: 'Remove items', act_shiny: 'Make shiny', act_unshiny: 'Remove shiny', act_heal: 'Heal (party)',
+    act_dv15: 'All DVs 15', act_se0: 'All stat exp 0', act_semax: 'Max stat exp', act_lv100: 'Level 100', act_iv31: 'All IVs 31', act_ev0: 'All EVs 0', act_ev252: 'EVs 252/252/6', act_noitem: 'Remove items', act_shiny: 'Make shiny', act_unshiny: 'Remove shiny', act_heal: 'Heal (party)',
     metDate: 'Met date', eggDate: 'Egg date', otGender: 'OT gender', form: 'Form (no.)',
     hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds', coins: 'Coins', bp: 'Battle Points (BP)',
     badges: 'Badges', badge: 'Badge', badgeA: 'region 1', badgeB: 'region 2',
@@ -81,8 +81,14 @@
   function pers(species) { var e = P['g' + st.sv.gen][st.sv.natOf(species)]; return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0]; }
   function isShiny(d) { var F = st.sv.fmt; if (F.gb) return F.shiny(d); var p = F.get(d, 'pid'); return ((F.get(d, 'tid') ^ F.get(d, 'sid') ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8); }
   // neue PID mit gewünschtem Wesen / Shiny-Status (Geschlecht und Fähigkeits-Slot bleiben erhalten)
-  function newPid(d, nature, shiny) {
+  // gender (optional): 0 = männlich, 1 = weiblich -> Low-Byte der PID wird passend zum Geschlechterverhältnis gewählt
+  function newPid(d, nature, shiny, gender) {
     var F = st.sv.fmt, old = F.get(d, 'pid'), tid = F.get(d, 'tid'), sid = F.get(d, 'sid'), low = old & 0xFF, bit = old & 1;
+    if (gender !== undefined && st.sv.gen <= 5) {
+      var ratio = pers(F.get(d, 'species'))[7], cand = [], c;
+      for (c = 0; c < 256; c++) if ((c < ratio ? 1 : 0) === gender && (st.sv.gen !== 3 || (c & 1) === bit)) cand.push(c);
+      if (cand.length) low = cand[Math.floor(Math.random() * cand.length)];
+    }
     for (var i = 0; i < 600000; i++) {
       var p = ((Math.random() * 0x10000) << 16 | (Math.random() * 0x10000)) >>> 0;
       p = ((p & 0xFFFFFF00) | low) >>> 0;
@@ -220,7 +226,7 @@
       var row2 = el('div', { class: 'sv-row' });
       var sh = el('input', { type: 'checkbox' }); sh.checked = F.shiny(d); sh.onchange = function () { F.setShiny(d, sh.checked); changed(); };
       var shl = el('label', { class: 'sv-check' }); shl.appendChild(sh); shl.appendChild(el('span', { text: L.shiny })); row2.appendChild(shl);
-      var eg = el('input', { type: 'checkbox' }); eg.checked = !!F.get(d, 'egg'); eg.onchange = function () { F.set(d, 'egg', eg.checked ? 1 : 0); };
+    var eg = el('input', { type: 'checkbox' }); eg.checked = !!F.get(d, 'egg'); eg.onchange = function () { F.set(d, 'egg', eg.checked ? 1 : 0); };
       var egl = el('label', { class: 'sv-check' }); egl.appendChild(eg); egl.appendChild(el('span', { text: L.egg })); row2.appendChild(egl);
       box.appendChild(row2);
     }
@@ -252,8 +258,26 @@
     row3.appendChild(field(L.ot, ot));
     row3.appendChild(field('TID', num(F.get(d, 'tid'), 0, 65535, function (v) { F.set(d, 'tid', v); }), 'sm'));
     box.appendChild(row3);
+    (function () {
+      var lines = [], NL = String.fromCharCode(10);
+      for (var o = 0; o < d.length; o += 16) {
+        var hx = '', ac = '';
+        for (var q = 0; q < 16 && o + q < d.length; q++) { var bv = d[o + q]; hx += (bv < 16 ? '0' : '') + bv.toString(16).toUpperCase() + ' '; ac += bv >= 32 && bv < 127 ? String.fromCharCode(bv) : '.'; }
+        lines.push(('000' + o.toString(16).toUpperCase()).slice(-4) + '  ' + (hx + '                                                ').slice(0, 48) + ' ' + ac);
+      }
+      var det = el('details', { class: 'sv-hexbox' }); det.appendChild(el('summary', { text: X.tHex }));
+      det.appendChild(el('div', { class: 'hint', text: X.hexNote })); det.appendChild(el('pre', { class: 'sv-hex', text: lines.join(NL) }));
+      box.appendChild(det);
+    })();
+    var gqb = el('div', { class: 'sv-row sv-quick' });
+    [[X.maxDv, function () { for (var q = 0; q < 4; q++) F.set(d, 'dv', 15, q); }], [X.zeroSe, function () { for (var q = 0; q < 5; q++) F.set(d, 'ev', 0, q); }], [X.maxSe, function () { for (var q = 0; q < 5; q++) F.set(d, 'ev', 65535, q); }]].forEach(function (c) {
+      var b2 = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); b2.onclick = function () { c[1](); gbRefresh(d); changed(); render(); }; gqb.appendChild(b2);
+    });
+    box.appendChild(gqb);
     var bar = el('div', { class: 'sv-bar' });
     var ap = el('button', { class: 'primary-btn', text: L.apply }); ap.onclick = apply; bar.appendChild(ap);
+    var gex = el('button', { type: 'button', class: 'sv-mini', text: X.exp2 }); gex.onclick = exportMon; bar.appendChild(gex);
+    var gim = el('button', { type: 'button', class: 'sv-mini', text: X.imp }); gim.onclick = function () { importMon(); }; bar.appendChild(gim);
     var rm = el('button', { class: 'sv-del', text: L.remove }); rm.onclick = remove; bar.appendChild(rm);
     box.appendChild(bar);
     return box;
@@ -298,6 +322,22 @@
     var sh = el('input', { type: 'checkbox' }); sh.checked = isShiny(d);
     sh.onchange = function () { F.set(d, 'pid', newPid(d, F.nature(d), sh.checked)); changed(); };
     var shl = el('label', { class: 'sv-check' }); shl.appendChild(sh); shl.appendChild(el('span', { text: L.shiny })); row2.appendChild(shl);
+    var fn = sv.gen >= 4 ? formNames(sv.natOf(F.get(d, 'species')), sv.gen) : null;
+    if (fn) {
+      var fcur = F.get(d, 'form') || 0, fo = fn.map(function (n, i) { return '<option value="' + i + '"' + (i === fcur ? ' selected' : '') + '>' + esc(n || 'Normal') + '</option>'; }).join('');
+      if (fcur >= fn.length) fo += '<option value="' + fcur + '" selected>' + fcur + '</option>';
+      row2.appendChild(field(L.formName, select2(fo, function (v) { F.set(d, 'form', v); if (party) refreshParty(d); changed(); })));
+    }
+    var ratio0 = pers(F.get(d, 'species'))[7];
+    if (ratio0 !== 255) {
+      var curG = sv.gen >= 4 && F.get(d, 'gender') !== undefined ? F.get(d, 'gender') : (ratio0 === 254 ? 1 : ratio0 === 0 ? 0 : ((F.get(d, 'pid') & 0xFF) < ratio0 ? 1 : 0));
+      var gsel = (ratio0 === 0 || ratio0 === 254) ? null : select2('<option value="0"' + (curG === 0 ? ' selected' : '') + '>♂</option><option value="1"' + (curG === 1 ? ' selected' : '') + '>♀</option>', function (v) {
+        if (sv.gen <= 5) F.set(d, 'pid', newPid(d, F.nature(d), isShiny(d), v));
+        if (sv.gen >= 4) F.set(d, 'gender', v);
+        if (party) refreshParty(d); changed();
+      });
+      if (gsel) row2.appendChild(field(L.gender, gsel));
+    }
     var eg = el('input', { type: 'checkbox' }); eg.checked = !!F.get(d, 'egg'); eg.onchange = function () { F.set(d, 'egg', eg.checked ? 1 : 0); };
     var egl = el('label', { class: 'sv-check' }); egl.appendChild(eg); egl.appendChild(el('span', { text: L.egg })); row2.appendChild(egl);
     PN.main.appendChild(row2);
@@ -306,7 +346,29 @@
       var a1 = nm(T.abilities, g[8]), a2 = nm(T.abilities, g[9]), slot = F.get(d, 'abilitySlot');
       var ab = select2('<option value="0"' + (!slot ? ' selected' : '') + '>' + esc(a1) + '</option>' + (g[9] && g[9] !== g[8] ? '<option value="1"' + (slot ? ' selected' : '') + '>' + esc(a2) + '</option>' : ''), function (v) { F.set(d, 'abilitySlot', v); });
       PN.main.appendChild(field(L.ability, ab));
-    } else PN.main.appendChild(field(L.ability, select2(opts(T.abilities, maxAbility(), F.get(d, 'ability')), function (v) { F.set(d, 'ability', v); })));
+    } else {
+      var cur = F.get(d, 'ability'), a3 = g[10] || 0, sl = [];
+      [[g[8], 1, 0], [g[9], 2, 0], [a3, 4, 1]].forEach(function (x) { if (x[0] && !sl.some(function (y) { return y[0] === x[0] && y[2] === x[2]; }) && (x[1] !== 4 || sv.gen >= 5) && (x[1] !== 2 || sv.gen >= 4)) sl.push(x); });
+      var hidNow = sv.gen === 5 ? F.get(d, 'hiddenAbility') : (sv.gen >= 6 && F.get(d, 'abilityNum') === 4 ? 1 : 0);
+      var setAb = function (v, num, hid) {
+        F.set(d, 'ability', v);
+        if (sv.gen === 5) F.set(d, 'hiddenAbility', hid ? 1 : 0);
+        else if (sv.gen >= 6) F.set(d, 'abilityNum', num);
+      };
+      var cheat = el('input', { type: 'checkbox' }), abBox = el('span'), build = function () {
+        abBox.innerHTML = '';
+        if (!cheat.checked && sl.length) {
+          var idx = -1; sl.forEach(function (x, i) { if (x[0] === cur && x[2] === hidNow) idx = i; });
+          var o2 = (idx < 0 ? '<option value="-1" selected>' + esc(nm(T.abilities, cur)) + ' (?)</option>' : '') + sl.map(function (x, i) { return '<option value="' + i + '"' + (i === idx ? ' selected' : '') + '>' + esc(nm(T.abilities, x[0])) + (x[2] ? ' (' + L.hiddenAb + ')' : '') + '</option>'; }).join('');
+          abBox.appendChild(select2(o2, function (v) { if (v < 0) return; var x = sl[v]; cur = x[0]; hidNow = x[2]; setAb(x[0], x[1], x[2]); changed(); }));
+        } else {
+          abBox.appendChild(select2(opts(T.abilities, maxAbility(), cur), function (v) { cur = v; var k2 = sl.filter(function (x) { return x[0] === v; })[0]; setAb(v, k2 ? k2[1] : 1, k2 ? k2[2] : 0); hidNow = k2 ? k2[2] : 0; }));
+        }
+      };
+      cheat.onchange = build; build();
+      var cl = el('label', { class: 'sv-check' }); cl.appendChild(cheat); cl.appendChild(el('span', { text: L.allAb }));
+      var fw = field(L.ability, abBox); PN.main.appendChild(fw); PN.main.appendChild(cl);
+    }
     // Attacken
     var mt = el('div', { class: 'sv-moves' });
     for (var m = 0; m < 4; m++) (function (m) {
@@ -377,12 +439,17 @@
       for (var cq = 0; cq < 6; cq++) (function (cq) { row6.appendChild(field(X.contest[cq], num(F.get(d, 'contest', cq), 0, 255, function (v) { F.set(d, 'contest', v, cq); }), 'sm')); })(cq);
       PN.ot.appendChild(row6);
     }
-    // Bänder (Gen 4/5, Bit-Lage aus PKHeX)
+    // Bänder (Gen 3-5, Bit-Lage aus PKHeX)
     (function () {
       var rl = window.PKHEX && window.PKHEX.ribbons && window.PKHEX.ribbons['gen' + sv.gen];
       PN.rib = el('div', { class: 'sv-pane' });
+      var names = (window.PKHEX && window.PKHEX.ribbons && window.PKHEX.ribbons.names[de ? 'de' : 'en']) || {};
+      if ((!rl || !rl.length) && sv.gen === 3) {
+        // Gen 3: Band-Bits im Misc-Block (u32 bei Offset 72, Bit 0-14 sind die Wettbewerbs-Ränge, Bit 31 der Fähigkeits-Slot)
+        var G3R = [['Champion', 'Champion', 'Champion', 15], ['Winning', 'Siegerband', 'Winning', 16], ['Victory', 'Triumphband', 'Victory', 17], ['Artist', 'Künstlerband', 'Artist', 18], ['Effort', 'Kraftband', 'Effort', 19], ['Marine', 'Marineband', 'Marine', 20], ['Land', 'Landband', 'Land', 21], ['Sky', 'Himmelsband', 'Sky', 22], ['Country', 'Länderband', 'Country', 23], ['National', 'Nationalband', 'National', 24], ['Earth', 'Erdband', 'Earth', 25], ['World', 'Weltband', 'World', 26]];
+        rl = G3R.map(function (r) { names['G3' + r[0]] = de ? r[1] : r[2]; return ['G3' + r[0], 72 + (r[3] >> 3), r[3] & 7]; });
+      }
       if (!rl || !rl.length) { PN.rib.appendChild(el('div', { class: 'hint', text: X.ribNone })); return; }
-      var names = window.PKHEX.ribbons.names[de ? 'de' : 'en'] || {};
       var bar2 = el('div', { class: 'sv-row sv-quick' });
       [[X.ribAll, 1], [X.ribClear, 0]].forEach(function (c) { var bt = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); bt.onclick = function () { rl.forEach(function (r) { d[r[1]] = c[1] ? (d[r[1]] | (1 << r[2])) : (d[r[1]] & ~(1 << r[2])); }); changed(); }; bar2.appendChild(bt); });
       PN.rib.appendChild(bar2);
@@ -430,6 +497,8 @@
     var rm = el('button', { class: 'sv-del', text: X.del }); rm.onclick = remove; bar.appendChild(rm);
     var ex = el('button', { type: 'button', class: 'sv-mini', text: X.exp2 }); ex.onclick = exportMon; bar.appendChild(ex);
     var im = el('button', { type: 'button', class: 'sv-mini', text: X.imp }); im.onclick = function () { importMon(); }; bar.appendChild(im);
+    if (!sv.gb) { var sdb = el('button', { type: 'button', class: 'sv-mini', text: X.sdBtn }); sdb.onclick = showdownDialog; bar.appendChild(sdb); }
+    var lg = el('button', { type: 'button', class: 'sv-mini', text: X.legalize }); lg.onclick = function () { legalize(d); changed(); }; bar.appendChild(lg);
     box.appendChild(bar);
     return box;
   }
@@ -481,6 +550,141 @@
       else { putAt(loc, a); putAt(src, b); }
       st.dirty = true; st.sel = loc; var m = getAt(loc); st.mon = m ? new Uint8Array(m) : null; render();
     };
+  }
+
+  // ---- Showdown-Text (Einzel-Pokémon, Gen 3-7)
+  var SDN = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'], SDK = { hp: 0, atk: 1, def: 2, spa: 4, spd: 5, spe: 3 };
+  // Showdown-Reihenfolge (HP, Atk, Def, SpA, SpD, Spe) -> interne Stat-Indizes (KP, Angr, Vert, Init, SpAngr, SpVert)
+  var SDORD = [0, 1, 2, 4, 5, 3];
+  function enT() { return (T0 && T0.en) || T; }
+  function sdNorm(x) { return String(x || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function sdFind(list, name) { var n = sdNorm(name); if (!n || !list) return 0; for (var i = 1; i < list.length; i++) if (sdNorm(list[i]) === n) return i; return 0; }
+  function sdExport(d) {
+    var sv = st.sv, F = sv.fmt, E = enT(), sp = F.get(d, 'species'), nat = sv.natOf(sp), lines = [], itm = F.get(d, 'item');
+    var lv = S.levelFor(pers(sp)[6], F.get(d, 'exp'));
+    lines.push(nm(E.species, nat) + (itm ? ' @ ' + nm(E.items, itm) : ''));
+    var ab = F.get(d, 'ability'); if (sv.gen === 3) ab = pers(sp)[8 + (F.get(d, 'abilitySlot') ? 1 : 0)] || pers(sp)[8];
+    if (ab) lines.push('Ability: ' + nm(E.abilities, ab));
+    lines.push('Level: ' + lv);
+    if (isShiny(d)) lines.push('Shiny: Yes');
+    var ev = [], iv = [];
+    SDORD.forEach(function (k, i) { var e = F.get(d, 'ev', k), v = F.get(d, 'iv', k); if (e) ev.push(e + ' ' + SDN[i]); if (v !== 31) iv.push(v + ' ' + SDN[i]); });
+    if (ev.length) lines.push('EVs: ' + ev.join(' / '));
+    lines.push(nm(E.natures, F.nature(d)) + ' Nature');
+    if (iv.length) lines.push('IVs: ' + iv.join(' / '));
+    for (var m = 0; m < 4; m++) { var mv = F.get(d, 'move', m); if (mv) lines.push('- ' + nm(E.moves, mv)); }
+    return lines.join('\n');
+  }
+  function sdImport(text, party) {
+    var sv = st.sv, F = sv.fmt, E = enT(), ls = text.replace(/\r/g, '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!ls.length) return null;
+    var head = ls[0].split('@'), nameRaw = head[0].replace(/\((M|F)\)\s*$/, '').trim(), pm = nameRaw.match(/\(([^)]+)\)\s*$/);
+    if (pm && sdFind(E.species, pm[1])) nameRaw = pm[1];
+    nameRaw = nameRaw.replace(/-(Mega|Alola|Galar|Hisui)(-[XY])?$/i, '');
+    var nat = sdFind(E.species, nameRaw);
+    if (!nat) return null;
+    var sp = sv.speciesFromNat(nat);
+    if (!sp) return null;
+    var d = blank(sp, party), lv = 50, nature = -1, shiny = false, mvi = 0, i;
+    if (head[1]) { var it = sdFind(E.items, head[1]); if (it) F.set(d, 'item', it); }
+    for (var k = 0; k < 4; k++) { F.set(d, 'move', 0, k); F.set(d, 'pp', 0, k); }
+    ls.slice(1).forEach(function (l) {
+      var m;
+      if ((m = l.match(/^Ability:\s*(.+)$/i))) {
+        var a = sdFind(E.abilities, m[1]);
+        if (a) { if (sv.gen === 3) F.set(d, 'abilitySlot', pers(sp)[9] && pers(sp)[9] === a ? 1 : 0); else F.set(d, 'ability', a); }
+      } else if ((m = l.match(/^Level:\s*(\d+)/i))) lv = Math.max(1, Math.min(100, +m[1]));
+      else if (/^Shiny:\s*Yes/i.test(l)) shiny = true;
+      else if ((m = l.match(/^(EVs|IVs):\s*(.+)$/i))) {
+        var isEv = /^EV/i.test(m[1]);
+        if (isEv) for (i = 0; i < 6; i++) F.set(d, 'ev', 0, i);
+        m[2].split('/').forEach(function (part) {
+          var q = part.trim().match(/^(\d+)\s*(\w+)$/), idx = q ? SDK[q[2].toLowerCase()] : undefined;
+          if (idx !== undefined) F.set(d, isEv ? 'ev' : 'iv', Math.min(+q[1], isEv ? 252 : 31), idx);
+        });
+      } else if ((m = l.match(/^(\w+)\s+Nature$/i))) { for (i = 0; i < 25; i++) if (sdNorm(E.natures[i]) === sdNorm(m[1])) nature = i; }
+      else if (l.charAt(0) === '-' && mvi < 4) {
+        var mo = sdFind(E.moves, l.replace(/^-\s*/, '').replace(/\s*\[.*$/, ''));
+        if (mo) { F.set(d, 'move', mo, mvi); F.set(d, 'pp', 10, mvi); mvi++; }
+      }
+    });
+    F.set(d, 'exp', S.expFor(pers(sp)[6], lv));
+    var prev = st.mon; st.mon = d;
+    if (nature >= 0 || shiny) {
+      var nat2 = nature >= 0 ? nature : F.nature(d);
+      if (F.natureIsPid) F.set(d, 'pid', newPid(d, nat2, shiny));
+      else { F.set(d, 'nature', nat2); if (shiny) F.set(d, 'pid', newPid(d, nat2, true)); }
+    }
+    st.mon = prev;
+    if (party) refreshParty(d);
+    return d;
+  }
+  function showdownDialog() {
+    if (!st.mon || document.getElementById('svSdDlg')) return;
+    var wrap = el('div', { class: 'modal cc-dlg-wrap', id: 'svSdDlg' }), box2 = el('div', { class: 'modal-box cc-dlg' });
+    var ta = el('textarea', { style: 'width:100%;min-height:220px;font-family:monospace;box-sizing:border-box' }); ta.value = sdExport(st.mon);
+    var msg = el('div', { class: 'hint', text: '' }), row3 = el('div', { class: 'sv-bar' });
+    var close = function () { wrap.remove(); };
+    var cp = el('button', { type: 'button', class: 'sv-mini', text: X.sdCopy });
+    cp.onclick = function () { ta.select(); if (navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(function () { document.execCommand('copy'); }); else document.execCommand('copy'); };
+    var ap2 = el('button', { type: 'button', class: 'primary-btn', text: X.sdApply });
+    ap2.onclick = function () {
+      var party = st.sel && st.sel.kind === 'party', d = sdImport(ta.value, party);
+      if (!d) { msg.textContent = X.sdBad; return; }
+      st.mon = d; if (!st.sel) st.sel = { kind: 'box', box: st.box, slot: 0 }; close(); render();
+    };
+    var cl = el('button', { type: 'button', class: 'sv-mini', text: X.sdClose }); cl.onclick = close;
+    [cp, ap2, cl].forEach(function (b) { row3.appendChild(b); });
+    box2.appendChild(el('h3', { text: X.sdBtn })); box2.appendChild(ta); box2.appendChild(msg); box2.appendChild(row3);
+    wrap.appendChild(box2); wrap.onclick = function (e) { if (e.target === wrap) close(); };
+    document.body.appendChild(wrap); ta.focus();
+  }
+  // Form-Namen nach Nationaldex-Nr. (Index = Form-Nr. im Spielstand), nur Arten mit dauerhaft speicherbaren Formen
+  var AL = ['', 'Alola'], FORMS = {
+    201: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!?'.split(''), 386: ['Normal', 'Angriff', 'Verteidigung', 'Initiative'], 412: ['Pflanzenumhang', 'Sandumhang', 'Lumpenumhang'], 413: ['Pflanzenumhang', 'Sandumhang', 'Lumpenumhang'],
+    421: ['Wolkenform', 'Sonnenform'], 422: ['Westliches Meer', 'Östliches Meer'], 423: ['Westliches Meer', 'Östliches Meer'], 479: ['Normal', 'Hitze', 'Wasch', 'Frost', 'Wirbel', 'Schneid'],
+    487: ['Wandelform', 'Urform'], 492: ['Landform', 'Zenitform'], 493: ['Normal', 'Kampf', 'Flug', 'Gift', 'Boden', 'Gestein', 'Käfer', 'Geist', 'Stahl', '???', 'Feuer', 'Wasser', 'Pflanze', 'Elektro', 'Psycho', 'Eis', 'Drache', 'Unlicht'],
+    550: ['Rotstreifen', 'Blaustreifen'], 555: ['Standard', 'Trance'], 585: ['Frühling', 'Sommer', 'Herbst', 'Winter'], 586: ['Frühling', 'Sommer', 'Herbst', 'Winter'],
+    641: ['Inkarnation', 'Tiergeist'], 642: ['Inkarnation', 'Tiergeist'], 645: ['Inkarnation', 'Tiergeist'], 646: ['Normal', 'Weiß', 'Schwarz'], 647: ['Standard', 'Resolut'], 648: ['Gesangsform', 'Tanzform'],
+    649: ['Normal', 'Aqua-Modul', 'Blitz-Modul', 'Flammen-Modul', 'Frost-Modul'],
+    666: ['Eis', 'Polar', 'Tundra', 'Kontinental', 'Garten', 'Elegant', 'Wiese', 'Modern', 'Marine', 'Archipel', 'Hochland', 'Sand', 'Fluss', 'Monsun', 'Savanne', 'Sonne', 'Ozean', 'Dschungel', 'Fantasie', 'Pokéball'],
+    669: ['Rot', 'Gelb', 'Orange', 'Blau', 'Weiß'], 670: ['Rot', 'Gelb', 'Orange', 'Blau', 'Weiß'], 671: ['Rot', 'Gelb', 'Orange', 'Blau', 'Weiß'],
+    676: ['Natürlich', 'Herz', 'Stern', 'Diamant', 'Fräulein', 'Matrone', 'Dandy', 'Madame', 'Kabuki', 'Pharao'], 678: ['Männchen', 'Weibchen'], 681: ['Schild', 'Klinge'],
+    710: ['Klein', 'Normal', 'Groß', 'Super'], 711: ['Klein', 'Normal', 'Groß', 'Super'], 720: ['Gebannt', 'Entfesselt'],
+    741: ['Flamenco', 'Cheerleading', 'Hula', 'Buyo'], 745: ['Tag', 'Nacht', 'Dämmerung'], 746: ['Solo', 'Schwarm'], 778: ['Getarnt', 'Entdeckt'], 800: ['Normal', 'Abendmähne', 'Morgenschwingen', 'Ultra']
+  };
+  [19, 20, 26, 27, 28, 37, 38, 50, 51, 52, 53, 74, 75, 76, 88, 89, 103, 105].forEach(function (n) { FORMS[n] = ['Normal', 'Alola']; });
+  function formNames(nat, gen) {
+    var l = FORMS[nat]; if (!l) return null;
+    var max = { 4: 493, 5: 649, 6: 721, 7: 807 }[gen] || 0;
+    if (nat > max || (nat < 150 && gen < 7) || (nat >= 741 && gen < 7)) return null;
+    return l;
+  }
+  // "Legal machen": behebt erkennbar Unzulässiges (nicht erlernbare/doppelte Attacken, PP, EP, IP, Fähigkeit). Fundort/Herkunft bleiben unverändert.
+  function legalize(d) {
+    var sv = st.sv, F = sv.fmt, gen = sv.gen, sp = F.get(d, 'species'), nat = sv.natOf(sp), q, i;
+    var tab = window.PKLEARN && window.PKLEARN[nat], lim = (1 << gen) - 1, pp = window.PKHEX && window.PKHEX.pp && window.PKHEX.pp['gen' + gen];
+    var formed = !sv.gb && (F.get(d, 'form') || 0) > 0, ok = function (mv) { if (!mv || mv > sv.maxMove) return false; if (!tab || formed || mv === 165) return true; for (var k = 0; k < tab.length; k += 2) if (tab[k] === mv) return !!(tab[k + 1] & lim); return false; };
+    var keep = [];
+    for (q = 0; q < 4; q++) { var mv = F.get(d, 'move', q); if (ok(mv) && keep.indexOf(mv) < 0) keep.push(mv); }
+    if (!keep.length && tab) for (i = 0; i < tab.length && keep.length < 4; i += 2) if ((tab[i + 1] & lim) && tab[i] <= sv.maxMove && tab[i] !== 165) keep.push(tab[i]);
+    for (q = 0; q < 4; q++) {
+      var m2 = keep[q] || 0; F.set(d, 'move', m2, q); F.set(d, 'pp', m2 ? ((pp && pp[m2]) || 10) : 0, q);
+      if (gen !== 3) F.set(d, 'ppups', 0, q);
+    }
+    if (gen === 3) F.set(d, 'ppups', 0);
+    var sum = 0;
+    if (!sv.gb) {
+      for (i = 0; i < 6; i++) { var e = Math.min(252, F.get(d, 'ev', i)); F.set(d, 'ev', e, i); sum += e; }
+      for (i = 5; i >= 0 && sum > 510; i--) { var cut = Math.min(F.get(d, 'ev', i), sum - 510); F.set(d, 'ev', F.get(d, 'ev', i) - cut, i); sum -= cut; }
+      for (i = 0; i < 6; i++) if (F.get(d, 'iv', i) > 31) F.set(d, 'iv', 31, i);
+      var g = pers(sp), a1 = g[8] || 0, a2 = g[9] || 0, a3 = g[10] || 0;
+      if (gen === 3) { if (F.get(d, 'abilitySlot') && (!a2 || a2 === a1)) F.set(d, 'abilitySlot', 0); }
+      else {
+        var ab = F.get(d, 'ability'), hid = gen === 5 ? F.get(d, 'hiddenAbility') : (gen >= 6 && F.get(d, 'abilityNum') === 4 ? 1 : 0), valid = hid ? (a3 && ab === a3) : (ab === a1 || ab === a2);
+        if (!valid && a1) { F.set(d, 'ability', a1); if (gen === 5) F.set(d, 'hiddenAbility', 0); else if (gen >= 6) F.set(d, 'abilityNum', 1); }
+      }
+    }
   }
   function exportMon() {
     if (!st.mon) return;
@@ -677,10 +881,24 @@
   }
 
   // ---------- Massenbearbeitung (einfacher Batch-Editor) ----------
-  var BATCH = ['lv100', 'iv31', 'ev0', 'ev252', 'noitem', 'shiny', 'unshiny', 'heal'];
+  var BATCH = ['lv100', 'iv31', 'ev0', 'ev252', 'noitem', 'shiny', 'unshiny', 'heal'], BATCH_GB = ['lv100', 'dv15', 'se0', 'semax', 'noitem', 'shiny', 'unshiny'];
   function batchApply(scope, act) {
     var sv = st.sv, F = sv.fmt, n = 0;
+    function gbEdit(d, party) {
+      var q, sp = F.get(d, 'species');
+      switch (act) {
+        case 'lv100': F.set(d, 'exp', S.expFor(sv.growthOf(sp), 100)); break;
+        case 'dv15': for (q = 0; q < 4; q++) F.set(d, 'dv', 15, q); break;
+        case 'se0': for (q = 0; q < 5; q++) F.set(d, 'ev', 0, q); break;
+        case 'semax': for (q = 0; q < 5; q++) F.set(d, 'ev', 65535, q); break;
+        case 'noitem': if (sv.gen === 2) F.set(d, 'item', 0); break;
+        case 'shiny': if (sv.gen === 2) F.setShiny(d, true); break;
+        case 'unshiny': if (sv.gen === 2) F.setShiny(d, false); break;
+      }
+      gbRefresh(d, party); n++;
+    }
     function edit(d, party) {
+      if (sv.gb) return gbEdit(d, party);
       var sp = F.get(d, 'species'), g = pers(sp), q;
       switch (act) {
         case 'lv100': F.set(d, 'exp', S.expFor(g[6], 100)); break;
@@ -862,10 +1080,10 @@
       var tools = el('div', { class: 'sv-row sv-tools' });
       [[X.sortSp, function () { sortBox('sp'); }], [X.sortLv, function () { sortBox('lv'); }], [X.maxBox, maxBoxIvs], [X.clearBox, clearBox]].forEach(function (c) { var tb = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); tb.onclick = c[1]; tools.appendChild(tb); });
       bt.appendChild(tools);
-      if (!sv.gb) {
+      {
         var brow = el('div', { class: 'sv-row sv-tools sv-batch' });
         var bs = select2(['box', 'boxes', 'party'].map(function (k) { return '<option value="' + k + '">' + esc(X['scope_' + k]) + '</option>'; }).join(''), function () {});
-        var ba = select2(BATCH.map(function (k) { return '<option value="' + k + '">' + esc(X['act_' + k]) + '</option>'; }).join(''), function () {});
+        var ba = select2((sv.gb ? BATCH_GB : BATCH).map(function (k) { return '<option value="' + k + '">' + esc(X['act_' + k]) + '</option>'; }).join(''), function () {});
         var bgo = el('button', { type: 'button', class: 'sv-mini', text: X.batchRun }); bgo.onclick = function () { if (window.confirm(X.batchAsk)) batchApply(bs.value, ba.value); };
         brow.appendChild(bs); brow.appendChild(ba); brow.appendChild(bgo); bt.appendChild(brow);
       }

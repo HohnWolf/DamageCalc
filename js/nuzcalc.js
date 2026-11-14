@@ -657,6 +657,8 @@
 
   window.CCNuzCalc = {
     render: render,
+    // Übergabe aus dem Randomizer: ROM-Daten direkt laden
+    loadRom: function (u8) { loadRom(u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength)); },
     // for tests
     _load: function (romBuf, saveBuf) { if (romBuf) loadRom(romBuf); if (saveBuf) loadSave(saveBuf); },
     _state: function () { return { rom: rom, save: save, st: st }; }

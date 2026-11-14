@@ -2268,7 +2268,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.26.3') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.26.4') + (s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2409,7 +2409,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.26.3';
+      var ver = (updStatus && updStatus.current) || '1.26.4';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2593,7 +2593,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.26.3', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.26.4', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2703,7 +2703,7 @@
   var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']], ['vs', ['btlrandom', 'btlchoice']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
-    var REST = ['shiny', 'overlay', 'catch', 'projector']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
+    var REST = ['shiny', 'overlay', 'projector']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
     CATS = CATS.map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; }).filter(function (c) { return c[1].length; });
@@ -2938,7 +2938,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.26.3';
+    var ver = (updStatus && updStatus.current) || '1.26.4';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -3095,6 +3095,7 @@
 
   // shared helpers for js/builder.js (teambuilder)
   window.CC = {
+    showView: function (v) { showView(v); },
     C: C, DEX: DEX, MOVES: MOVES, ITEMS: ITEMS, ABILITIES: ABILITIES, SPECIES: SPECIES, NATURE_NAMES: NATURE_NAMES, LANG: LANG,
     TYPE_COLORS: TYPE_COLORS, DARK_TEXT_TYPES: DARK_TEXT_TYPES,
     baseOf: baseOf, formesOf: formesOf, megaFormeFor: megaFormeFor, legalMoves: legalMoves, legalAbilities: legalAbilities,

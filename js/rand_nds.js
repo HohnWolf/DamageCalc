@@ -29,13 +29,13 @@
   function wildSlots(rom) {
     var files = rom.files.wild, out = [];
     if (!files) return out;
-    function add(i, off, size, kind) { out.push({ file: files[i], off: off, size: size, map: i, kind: kind }); }
+    function add(i, off, size, kind, lv) { out.push({ file: files[i], off: off, size: size, map: i, kind: kind, lvOff: lv }); }
     var i, j, b;
     if (rom.type === 'HGSS') {
       for (i = 0; i < files.length; i++) {
         b = files[i];
         if (b.length < 196) continue;
-        if (b[0]) for (j = 0; j < 36; j++) add(i, 20 + j * 2, 2, 'Gras');
+        if (b[0]) for (j = 0; j < 36; j++) add(i, 20 + j * 2, 2, 'Gras', 8 + (j % 12));
         for (j = 0; j < 4; j++) add(i, 92 + j * 2, 2, 'Radio');
         for (j = 0; j < 5; j++) if (b[1]) add(i, 102 + j * 4, 2, 'Surfen');
         for (j = 0; j < 2; j++) if (b[2]) add(i, 122 + j * 4, 2, 'Felsbrecher');
@@ -115,16 +115,18 @@
       if (ch.acc !== undefined) d[5] = ch.acc;
       if (ch.pp !== undefined) d[6] = ch.pp;
     };
-    // Wilde Pokémon
+    // Wilde Pokémon (HGSS: die 12 Gras-Level gelten auch für Radio und Schwärme; je Level-Byte nur einmal skalieren)
+    var lvDone = {};
     wildSlots(rom).forEach(function (x) {
       model.wild.push({
         key: 'Karte ' + x.map + ' (' + x.kind + ')',
         get: function () { return x.size === 2 ? u16(x.file, x.off) : u32(x.file, x.off); },
         set: function (n) { if (x.size === 2) w16(x.file, x.off, n); else w32(x.file, x.off, n); },
-        // Level: DPPt Gras = u32 vor der Art; Wasser = Min/Max vor der Art; HGSS Wasser/Angeln = Min/Max vor der Art (Gras, Radio und Schwärme bleiben unverändert)
+        // Level: DPPt Gras = u32 vor der Art; Wasser = Min/Max vor der Art; HGSS Gras = 12 Level-Bytes am Anfang (gelten auch für Radio und Schwärme), Wasser/Angeln = Min/Max vor der Art
         scale: function (p) {
           var Cc = window.CCRandCore, b = x.file;
-          if (x.size === 4 && x.kind === 'Gras') b[x.off - 4] = Cc.scaleLv(b[x.off - 4], p);
+          if (x.size === 2 && x.kind === 'Gras' && x.lvOff) { var dk = x.map + ':' + x.lvOff; if (!lvDone[dk]) { lvDone[dk] = 1; b[x.lvOff] = Cc.scaleLv(b[x.lvOff], p); } }
+          else if (x.size === 4 && x.kind === 'Gras') b[x.off - 4] = Cc.scaleLv(b[x.off - 4], p);
           else if (x.size === 4 && x.kind === 'Wasser') { b[x.off - 4] = Cc.scaleLv(b[x.off - 4], p); b[x.off - 3] = Cc.scaleLv(b[x.off - 3], p); }
           else if (x.size === 2 && ['Surfen', 'Felsbrecher', 'Alte Angel', 'Profi-Angel', 'Super-Angel'].indexOf(x.kind) !== -1) { b[x.off - 2] = Cc.scaleLv(b[x.off - 2], p); b[x.off - 1] = Cc.scaleLv(b[x.off - 1], p); }
         }
@@ -351,6 +353,13 @@
     if (window.CC_ITEMS) {
       var IT = window.CC_ITEMS[4];
       model.itemData = { allowed: IT.allowed.items, tms: IT.allowed.tms, nonBad: IT.nonBad.items, shop: IT.shop, op: IT.op };
+
+      // Gehaltene Items wilder Pokémon (Personal-Daten): nur Plätze, die im Original ein Item haben
+      model.heldItems = [];
+      if (F.personal) for (var hp = 1; hp <= MAXNAT; hp++) (function (d) {
+        if (!d || d.length < 16) return;
+        [12,14].forEach(function (o) { model.heldItems.push({ get: function () { return d[o] | (d[o + 1] << 8); }, set: function (n) { d[o] = n & 255; d[o + 1] = (n >> 8) & 255; } }); });
+      })(F.personal[hp]);
     }
     model.field = [];
     if (scripts && offs && offs.ball !== undefined && scripts[offs.ball]) {

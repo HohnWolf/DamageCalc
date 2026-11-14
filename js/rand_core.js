@@ -14,7 +14,7 @@
     // Attacken-Daten, TMs/HMs (Modell mit setMove bzw. tm)
     movePower: false, moveAcc: false, movePP: false, moveType: false, moveCat: false,
     tmMoves: 'keep', tmGoodDamaging: false, tmGoodPct: 60, tmKeepField: true, tmCompat: 'keep', tmFollowEvo: false, tmSanity: true,
-    wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', itemsBanBad: false,
+    wildLevelPct: 0, catchRate: 'keep', pickupItems: 'keep', wildHeldItems: 'keep', fieldItems: 'keep', fieldTMShuffle: true, shops: 'keep', shopBanRegular: false, shopBanOP: false, trainerItems: 'keep', itemsBanBad: false,
     evoImpossible: false, evoNoTime: false, evoEasier: false, expCurve: 'keep', expLegendsSlow: false,
     tutorMoves: 'keep', tutorCompat: 'keep', statics: 'keep', staticLegendSwap: false, staticLevelPct: 0, trades: 'keep', tradeRequested: false,
     // weitere Optionen des UPR: Generationen begrenzen, Typen, Faehigkeiten, Basiswerte, Attacken-Sets, Trainer, Starter
@@ -596,6 +596,11 @@
         var pk = (o.itemsBanBad ? ID.nonBad : ID.allowed).filter(function (i) { return model.pickupTMs || !tmSet[i]; });
         model.pickup.forEach(function (sl) { var old5 = sl.get(), nw5 = rng.pick(pk); sl.set(nw5); L(itemName(old5) + ' → ' + itemName(nw5)); });
         L('');
+      }
+      if (o.wildHeldItems !== 'keep' && model.heldItems && model.heldItems.length) {
+        var hpool = (o.itemsBanBad ? ID.nonBad : ID.allowed).filter(function (i) { return !tmSet[i]; }), hn = 0;
+        model.heldItems.forEach(function (sl) { if (sl.get()) { sl.set(rng.pick(hpool)); hn++; } });
+        L('=== Gehaltene Items wilder Pokémon (' + hn + ' Plätze) ==='); L('');
       }
       if (o.shops !== 'keep' && model.shops && model.shops.length) {
         L('=== Shops (' + model.shops.length + ') ===');
