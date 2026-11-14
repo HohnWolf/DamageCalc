@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.8',
+      de: [
+        'Randomizer: Attacken-Lehrer von Omega Rubin und Alpha Saphir lassen sich jetzt mischen.'
+      ],
+      en: [
+        'Randomizer: the move tutors of Omega Ruby and Alpha Sapphire can now be shuffled.'
+      ] },
     { v: '1.26.7',
       de: [
         'Randomizer: Neue Option „Rivale und Freunde behalten ihren Starter“ für Generation 3 bis 5 – Rivale, Freunde und Tag-Battle-Partner tragen ihren Starter durchs Spiel und entwickeln ihn nach Level (wie im Universal Pokémon Randomizer ZX).'
