@@ -1,6 +1,6 @@
 // Rauchtest für den Gen-1/2-Randomizer mit künstlichen ROMs (nur Kopf + ein paar Datensätze): node test/test_rand_gb.js
 global.window = {}; global.document = {};
-['js/rand_gen3.js', 'js/rand_core.js', 'data/pk_gb.js', 'data/gb_roms.js', 'data/pk_text.js', 'js/rand_gb.js'].forEach(f => require('../' + f));
+['js/rand_gen3.js', 'js/rand_core.js', 'data/items_data.js', 'data/pk_gb.js', 'data/gb_roms.js', 'data/pk_text.js', 'js/rand_gb.js'].forEach(f => require('../' + f));
 const RG = window.CCRandGB, E = window.GBROMS; let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log('FEHLER:', m); } else console.log('ok:', m); };
 function mkGen1() {
@@ -20,15 +20,27 @@ function mkGen1() {
   for (let q = 0; q < 55; q++) u[e.TMMovesOffset + q] = 10 + q; // 50 TMs + 5 HMs
   u[0x49320] = 0x85; u[0x4931F] = 5; u[0x71B7B] = 0x70; u[0x71B7B + 1] = 0x71; // Magikarp (statisch) und ein Tausch
   for (let n = 1; n <= 151; n++) { const o = n === 151 ? e.MewStatsOffset : e.PokemonStatsOffset + (n - 1) * 28; u[o + 20] = 0x0F; }
+  { // Karte 0: Bank 1, Kopf bei 0x4100 (keine Verbindungen), Objekte bei 0x80200
+    const ORIG = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 29, 30];
+    u[e.MapBanks] = 0x20; u[e.MapAddresses] = 0x00; u[e.MapAddresses + 1] = 0x41;
+    u[0x80100 + 9] = 0; u[0x80100 + 10] = 0x00; u[0x80100 + 11] = 0x42;
+    u[0x80200 + 1] = 0; u[0x80200 + 2] = 0; u[0x80200 + 3] = 14; // keine Warps, keine Schilder, 14 Objekte
+    let p = 0x80200 + 4;
+    for (let i = 0; i < 12; i++) { u[p + 5] = 0x80; u[p + 6] = ORIG[i]; p += 7; } // Itembälle (ohne die gesperrten Orden 21-28)
+    u[p + 5] = 0x40; p += 8; // Trainer
+    u[p + 5] = 0x00; p += 6; // normale Person
+    u[e.SpecialMapList] = 0xFF;
+  }
   return u;
 }
 {
   const u = mkGen1(), rom = RG.parseRom(u);
   ok(rom.gen === 1 && /Red/.test(rom.game), 'Gen 1: Rot (U) erkannt');
   const info = RG.scan(rom, u); ok(info.wildSlots >= 10 && info.evo && info.starters, 'Gen 1: Scan (' + JSON.stringify(info) + ')');
-  RG.run(u, rom, { seed: 'x', wild: 'random', trainers: 'random', trainerLevel: 10, evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random', tmMoves: 'random', tmCompat: 'random', movePower: true, moveType: true, expCurve: 'fast', evoImpossible: true, statics: 'random', staticLevelPct: 100, trades: 'random', tradeRequested: true }).then(res => {
+  RG.run(u, rom, { seed: 'x', fieldItems: 'random', wild: 'random', trainers: 'random', trainerLevel: 10, evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random', tmMoves: 'random', tmCompat: 'random', movePower: true, moveType: true, expCurve: 'fast', evoImpossible: true, statics: 'random', staticLevelPct: 100, trades: 'random', tradeRequested: true }).then(res => {
     { const e1 = E.g1[0], d1 = res.data, t1 = Array.from({ length: 50 }, (_, i) => d1[e1.TMMovesOffset + i]); ok(new Set(t1).size === 50 && t1.every(m => m >= 1 && m <= 165), 'Gen 1: TMs gueltig'); ok(d1[e1.TMMovesOffset + 50] === 60, 'Gen 1: HMs unveraendert'); ok(d1[e1.PokemonStatsOffset + 19] === 4, 'Gen 1: EP-Kurve schnell'); ok(/=== Attacken-Daten/.test(res.log), 'Gen 1: Attacken-Daten'); const toNat = window.PKGB.toNat; ok(toNat[d1[0x49320]] && toNat[d1[0x49320]] !== 129 && d1[0x4931F] === 10, 'Gen 1: Static neu, Level +100 %'); ok(toNat[d1[0x71B7B]] && toNat[d1[0x71B7B + 1]] && /=== Ingame-Tausche/.test(res.log), 'Gen 1: Tausch gueltig'); }
     ok(res.log.indexOf('Wilde Pokémon') > 0 && res.data[0x14E] * 256 + res.data[0x14F] > 0, 'Gen 1: Lauf + Prüfsumme');
+    { const items = Array.from({ length: 12 }, (_, i) => res.data[0x80200 + 4 + i * 7 + 6]); ok(/=== Items auf dem Feld \(12\)/.test(res.log) && items.some((v, i) => v !== [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 29, 30][i]) && items.every(v => v >= 1), 'Gen 1: Feld-Items gefunden und gewürfelt (' + items.join(',') + ')'); ok(res.data[0x80200 + 4 + 12 * 7 + 5] === 0x40, 'Gen 1: Trainer-Objekt unberührt (' + res.data[0x80200 + 4 + 12 * 7 + 5] + ')'); }
     const e = E.g1[0]; const wr = Math.floor(e.WildPokemonTableOffset / 0x4000) * 0x4000 + 0x200;
     const d = res.data; ok(d[wr + 2] !== 0x54 || d[wr + 4] !== 0x54, 'Gen 1: wilde Art geändert (' + d[wr + 2] + ')');
     ok(d[wr + 1] === 5, 'Gen 1: Level unverändert');
@@ -45,11 +57,23 @@ function mk2() {
   let wo = e.WildPokemonOffset; for (let p = 0; p < 3; p++) { if (p === 0) { u[wo] = 3; u[wo + 1] = 4; for (let s = 0; s < 21; s++) { u[wo + 5 + s * 2] = 5; u[wo + 5 + s * 2 + 1] = 16; } wo += 47; } u[wo++] = 0xFF; u[wo++] = 0xFF; }
   u[e.FishingWildsOffset + 1] = 129; u[e.HeadbuttWildsOffset] = 0xFF; u[e.BCCWildsOffset] = 0xFF;
   const to = e.TrainerDataTableOffset; for (let c = 0; c < e.TrainerClassAmount; c++) { const tb = Math.floor(to / 0x4000), tp = 0x4000 + 0x300 + c * 0x40; u[to + c * 2] = tp & 255; u[to + c * 2 + 1] = tp >> 8; const tr = tb * 0x4000 + 0x300 + c * 0x40; for (let t = 0; t < e.TrainerDataClassCounts[c]; t++) { /* nur ein Trainer pro Klasse mit Daten */ } u[tr] = 0x82; u[tr + 1] = 0x50; u[tr + 2] = 0; u[tr + 3] = 20; u[tr + 4] = 25; u[tr + 5] = 0xFF; }
+  { // Karten-Events: Gruppe 1 mit einer Karte (2 versteckte Items über Schilder, 10 Itembälle als Personen)
+    const mh = e.MapHeaders, mhb = Math.floor(mh / 0x4000), A = mhb * 0x4000 + 0x300, S = 0xC0100, E = 0xC0200, wp = (o, v) => { u[o] = v & 255; u[o + 1] = v >> 8; };
+    wp(mh, 0x4000 + (A % 0x4000)); for (let g = 1; g < 26; g++) wp(mh + g * 2, 0x4000 + ((A + 9) % 0x4000));
+    u[A] = 0x30; wp(A + 3, 0x4100); // zweiter Kartenkopf in Bank 0x30
+    u[S + 6] = 0x30; wp(S + 9, 0x4200); // Event-Kopf in Bank 0x30
+    u[E + 2] = 0; u[E + 3] = 0; u[E + 4] = 2;
+    for (let k = 0; k < 2; k++) { u[E + 5 + k * 5 + 2] = 7; wp(E + 5 + k * 5 + 3, 0x4300 + k * 0x10); u[0xC0300 + k * 0x10 + 2] = 18 + k; }
+    u[E + 15] = 10;
+    for (let k = 0; k < 10; k++) { u[E + 16 + k * 13 + 7] = 1; wp(E + 16 + k * 13 + 9, 0x4400 + k * 4); u[0xC0400 + k * 4] = 20 + k; }
+  }
   const rom = RG.parseRom(u);
   ok(rom.gen === 2 && /Gold/.test(rom.game), 'Gen 2: Gold (U) erkannt');
   const info = RG.scan(rom, u); ok(info.wildSlots >= 21 && info.evo && info.starters, 'Gen 2: Scan (' + JSON.stringify(info) + ')');
-  return RG.run(u, rom, { seed: 'y', wild: 'random', trainers: 'random', evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random' }).then(res => {
+  return RG.run(u, rom, { seed: 'y', fieldItems: 'random', wild: 'random', trainers: 'random', evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random' }).then(res => {
     ok(res.log.indexOf('Trainer') > 0, 'Gen 2: Lauf');
+    { const hid = [0xC0302, 0xC0312].map(o => res.data[o]), balls = Array.from({ length: 10 }, (_, k) => res.data[0xC0400 + k * 4]);
+      ok(/=== Items auf dem Feld \(12\)/.test(res.log) && (hid[0] !== 18 || hid[1] !== 19 || balls.some((v, k) => v !== 20 + k)), 'Gen 2: Feld-Items (versteckt + Itembälle) gefunden und gewürfelt (' + hid.join(',') + ' | ' + balls.join(',') + ')'); }
     console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);
   });
 }

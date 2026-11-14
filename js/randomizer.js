@@ -331,7 +331,7 @@
     if (curMaxGen() >= 3 && curMaxGen() <= 5 && st.opts.trainers !== 'keep') pt.appendChild(check('rivalStarter', S.o_rivalStarter));
     pt.appendChild(check('trainerFullyEvolved', S.o_trainerFullyEvolved));
     grid(pt).appendChild(numRow('trainerFullyEvolvedLevel', S.o_trainerFullyEvolvedLevel, 1, 100, 1));
-    if (caps.items) grid(pt).appendChild(modeRow('trainerItems', S.trainerItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
+    if (caps.items && !caps.fieldOnly) grid(pt).appendChild(modeRow('trainerItems', S.trainerItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
 
     // Attacken
     var pa = panel('moves');
@@ -367,10 +367,10 @@
       var pi = panel('items');
       var g9 = grid(pi);
       g9.appendChild(modeRow('fieldItems', S.fieldItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
-      g9.appendChild(modeRow('pickupItems', S.pickupItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
+      if (!caps.fieldOnly) g9.appendChild(modeRow('pickupItems', S.pickupItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
       if (st.ext === 'nds') g9.appendChild(modeRow('wildHeldItems', S.wildHeldItems, ['keep', 'random'], { keep: S.keep, random: S.random }));
-      g9.appendChild(modeRow('shops', S.shops, ['keep', 'random'], { keep: S.keep, random: S.random }));
-      ['fieldTMShuffle', 'shopBanRegular', 'shopBanOP', 'itemsBanBad'].forEach(function (k) { pi.appendChild(check(k, S['o_' + k])); });
+      if (!caps.fieldOnly) g9.appendChild(modeRow('shops', S.shops, ['keep', 'random'], { keep: S.keep, random: S.random }));
+      (caps.fieldOnly ? ['fieldTMShuffle', 'itemsBanBad'] : ['fieldTMShuffle', 'shopBanRegular', 'shopBanOP', 'itemsBanBad']).forEach(function (k) { pi.appendChild(check(k, S['o_' + k])); });
       note(pi, S.itemsNote);
       tabs.push(['items', S.tabItems, pi]);
     }

@@ -8,10 +8,13 @@ function consts(file) {
   fs.readFileSync(path.join(dir, file), 'utf8').replace(/public static final int (\w+)\s*=\s*([^;]+);/g, (_, n, v) => { v = v.trim(); m[n] = /^\d+$/.test(v) ? +v : /^0x/i.test(v) ? parseInt(v, 16) : (m[v] !== undefined ? m[v] : NaN); });
   return m;
 }
-const C = { Items: consts('Items.java'), Gen3Items: consts('Gen3Items.java') };
+const C = { Items: consts('Items.java'), Gen1Items: consts('Gen1Items.java'), Gen2Items: consts('Gen2Items.java'), Gen3Items: consts('Gen3Items.java') };
+// lokale Konstanten aus Gen1Constants/Gen2Constants
+const LOCAL = { hmsStartIndex: C.Gen1Items.hm01, tmsStartIndex: C.Gen1Items.tm01, tmCount: 50, hmCount: 5, tmBlockOneIndex: C.Gen2Items.tm01, tmBlockOneSize: 4, tmBlockTwoIndex: C.Gen2Items.tm05, tmBlockTwoSize: 24, tmBlockThreeIndex: C.Gen2Items.tm29, tmBlockThreeSize: 22 };
 const val = (tok, prefix) => {
   tok = tok.trim();
   if (/^\d+$/.test(tok)) return +tok;
+  if (LOCAL[tok] !== undefined) return LOCAL[tok];
   const mm = tok.match(/^(\w+)\.(\w+)$/);
   if (!mm || C[mm[1]] === undefined || C[mm[1]][mm[2]] === undefined || isNaN(C[mm[1]][mm[2]])) throw new Error('Konstante ' + tok);
   return C[mm[1]][mm[2]];
@@ -27,8 +30,8 @@ function run(file, from, to) {
     let m;
     if ((m = st.match(/^(\w+) = new ItemList\((.+)\)$/))) { const n = val(m[2]); vars[m[1]] = { max: n, items: new Set(), tms: new Set() }; for (let i = 1; i <= n; i++) vars[m[1]].items.add(i); }
     else if ((m = st.match(/^(\w+) = (\w+)\.copy\(\)$/))) vars[m[1]] = { max: vars[m[2]].max, items: new Set(vars[m[2]].items), tms: new Set(vars[m[2]].tms) };
-    else if ((m = st.match(/^(\w+)\.banRange\((.+), (\d+)\)$/)) && vars[m[1]]) { const s0 = val(m[2]); for (let i = 0; i < +m[3]; i++) vars[m[1]].items.delete(s0 + i); }
-    else if ((m = st.match(/^(\w+)\.tmRange\((.+), (\d+)\)$/)) && vars[m[1]]) { const s0 = val(m[2]); for (let i = 0; i < +m[3]; i++) vars[m[1]].tms.add(s0 + i); }
+    else if ((m = st.match(/^(\w+)\.banRange\((.+), (\w+)\)$/)) && vars[m[1]]) { const s0 = val(m[2]); for (let i = 0; i < val(m[3]); i++) vars[m[1]].items.delete(s0 + i); }
+    else if ((m = st.match(/^(\w+)\.tmRange\((.+), (\w+)\)$/)) && vars[m[1]]) { const s0 = val(m[2]); for (let i = 0; i < val(m[3]); i++) vars[m[1]].tms.add(s0 + i); }
     else if ((m = st.match(/^(\w+)\.banSingles\((.+)\)$/)) && vars[m[1]]) m[2].split(',').forEach(t => vars[m[1]].items.delete(val(t)));
     else if ((m = st.match(/^(\w+) = new ArrayList<>\(\)$/))) lists[m[1]] = [];
     else if ((m = st.match(/^(\w+)\.addAll\(IntStream\.rangeClosed\((.+?),\s*(.+?)\)\.boxed/)) && lists[m[1]]) { for (let i = val(m[2]); i <= val(m[3]); i++) lists[m[1]].push(i); }
@@ -39,10 +42,14 @@ function run(file, from, to) {
   return out;
 }
 const pick = (r, names) => { const o = { shop: r.lists.regularShopItems || [], op: r.lists.opShopItems || [] }; names.forEach(([k, n]) => { o[k] = r[n]; }); return o; };
+const g1 = run('Gen1Constants.java', 'allowedItems = new ItemList', 'return allowedItems;');
+const g2 = run('Gen2Constants.java', 'allowedItems = new ItemList', 'nonBadItems.banRange(Gen2Items.surfMail, 9);');
 const g3 = run('Gen3Constants.java', 'allowedItems = new ItemList', 'public static ItemList getNonBadItems');
 const g4 = run('Gen4Constants.java', 'allowedItems = new ItemList', 'opShopItems.add(Items.luckyEgg);');
 const g5 = run('Gen5Constants.java', 'allowedItems = new ItemList', 'public static ItemList getNonBadItems');
 const out = {
+  1: pick(g1, [['allowed', 'allowedItems']]),
+  2: pick(g2, [['allowed', 'allowedItems'], ['nonBad', 'nonBadItems']]),
   3: pick(g3, [['allowed', 'allowedItems'], ['nonBad', 'nonBadItemsRSE'], ['nonBad2', 'nonBadItemsFRLG']]),
   4: pick(g4, [['allowed', 'allowedItems'], ['nonBad', 'nonBadItems']]),
   5: pick(g5, [['allowed', 'allowedItems'], ['nonBad', 'nonBadItemsBW1'], ['nonBad2', 'nonBadItemsBW2']])

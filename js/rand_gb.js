@@ -306,6 +306,68 @@
         })(e.TradeTableOffset + te * tlen);
       }
     }
+    // Items auf dem Feld (nach dem UPR): Gen 1 = Karten-Objekte (Itembälle) und versteckte Items über die Sonderkarten-Liste, Gen 2 = Itembälle und versteckte Items (Schilder) der Karten-Event-Daten
+    var ITD = window.CC_ITEMS && window.CC_ITEMS[g1 ? 1 : 2];
+    if (ITD) {
+      model.itemData = { allowed: ITD.allowed.items, tms: ITD.allowed.tms, nonBad: (ITD.nonBad || ITD.allowed).items, shop: [], op: [] };
+      var gbOff = function (bank, ptr) { return ptr < 0x4000 ? ptr : (ptr % 0x4000) + bank * 0x4000; };
+      var rwd = function (o) { return u8[o] | (u8[o + 1] << 8); };
+      var fOffs = [];
+      try {
+        if (g1 && e.MapBanks && e.MapAddresses && e.HiddenItemRoutine) {
+          var seen = {}, loadMap = function (id) {
+            if (seen[id] || id === 0xED || id === 0xFF) return; seen[id] = 1;
+            var addr = gbOff(u8[e.MapBanks + id], rwd(e.MapAddresses + id * 2));
+            if (addr + 12 > u8.length) return;
+            var mb = Math.floor(addr / 0x4000), cb = u8[addr + 9], nc = ((cb & 8) >> 3) + ((cb & 4) >> 2) + ((cb & 2) >> 1) + (cb & 1), co = addr + 10, k;
+            for (k = 0; k < nc; k++) loadMap(u8[co + k * 11]);
+            var oa = gbOff(mb, rwd(co + nc * 11));
+            if (oa + 4 > u8.length) return;
+            var nw = u8[oa + 1], p = oa + 2;
+            for (k = 0; k < nw; k++) { loadMap(u8[p + 3]); p += 4; }
+            p += u8[p] * 3 + 1;
+            var ne = u8[p++];
+            for (k = 0; k < ne && p + 8 < u8.length; k++) {
+              var tid = u8[p + 5];
+              if (tid & 0x40) p += 8;
+              else if ((tid & 0x80) && u8[p + 6] !== 0) { fOffs.push({ o: p + 6, label: 'Karte ' + id }); p += 7; } else p += 6;
+            }
+          };
+          loadMap(0);
+          var spT = e.SpecialMapPointerTable, spB = Math.floor(spT / 0x4000), hiR = e.HiddenItemRoutine, scan = function (sp) {
+            for (var n = 0; n < 200 && u8[sp] !== 0xFF && sp + 6 < u8.length; n++, sp += 6) if (gbOff(u8[sp + 3], rwd(sp + 4)) === hiR) fOffs.push({ o: sp + 2, label: 'versteckt' });
+          };
+          if (!rom.yellow && e.SpecialMapList) { for (var lo = e.SpecialMapList, ix = 0; u8[lo] !== 0xFF && ix < 400; lo++, ix += 2) scan(gbOff(spB, rwd(spT + ix))); }
+          else if (rom.yellow) { for (var ly = spT, nn = 0; u8[ly] !== 0xFF && nn < 200; ly += 3, nn++) scan(gbOff(spB, rwd(ly + 1))); }
+        } else if (!g1 && e.MapHeaders) {
+          var mh = e.MapHeaders, mhb = Math.floor(mh / 0x4000), grp = [], gi;
+          for (gi = 0; gi < 26; gi++) grp.push(gbOff(mhb, rwd(mh + gi * 2)));
+          for (gi = 0; gi < 26; gi++) {
+            var mo = grp[gi], mx = gi === 25 ? (mhb + 1) * 0x4000 : grp[gi + 1], mn = 0, mm = gi === 25 ? 11 : 1e9;
+            while (mo < mx && mn < mm && mo + 9 <= u8.length) {
+              var sm = gbOff(u8[mo], rwd(mo + 3)), eb = u8[sm + 6], eh = gbOff(eb, rwd(sm + 9)) + 2, lab = 'Karte ' + (gi + 1) + '-' + (mn + 1), q;
+              if (sm + 12 < u8.length && eh + 4 < u8.length) {
+                eh += 1 + u8[eh] * 5;
+                eh += 1 + u8[eh] * 8;
+                var ns = u8[eh++];
+                for (q = 0; q < ns; q++) if (u8[eh + q * 5 + 2] === 7) fOffs.push({ o: gbOff(eb, rwd(eh + q * 5 + 3)) + 2, label: lab + ' (versteckt)' });
+                eh += ns * 5;
+                var npp = u8[eh++];
+                for (q = 0; q < npp; q++) if (u8[eh + q * 13 + 7] & 1) fOffs.push({ o: gbOff(eb, rwd(eh + q * 13 + 9)), label: lab });
+              }
+              mo += 9; mn++;
+            }
+          }
+        }
+      } catch (eF) { fOffs = []; }
+      // Plausibilitätsprüfung: die meisten gefundenen Bytes müssen erlaubte Items oder TMs sein, sonst wird nichts verändert
+      var okSetF = {}; ITD.allowed.items.concat(ITD.allowed.tms).forEach(function (i) { okSetF[i] = 1; });
+      fOffs = fOffs.filter(function (f) { return f.o > 0 && f.o < u8.length; });
+      var nOkF = fOffs.filter(function (f) { return okSetF[u8[f.o]]; }).length;
+      if (fOffs.length >= 10 && nOkF / fOffs.length >= 0.6) {
+        model.field = fOffs.map(function (f) { return { label: f.label, get: function () { return u8[f.o]; }, set: function (n) { u8[f.o] = n; } }; });
+      }
+    }
     model.commit = function () {
       // Globale Prüfsumme (Bytes 0x14E/0x14F) neu berechnen
       var sum = 0; for (var k = 0; k < u8.length; k++) if (k !== 0x14E && k !== 0x14F) sum = (sum + u8[k]) & 0xFFFF;
@@ -319,5 +381,5 @@
     var u8 = new Uint8Array(buf), rom = parseRom(u8);
     return C.run(buildModel(rom, u8), opts);
   }
-  window.CCRandGB = { CAPS: { moves: true, tm: true, evoFix: true, extra: true, noTutor: true }, DEFAULTS: C.DEFAULTS, parseRom: parseRom, scan: scan, run: run, buildModel: buildModel };
+  window.CCRandGB = { CAPS: { moves: true, tm: true, evoFix: true, extra: true, noTutor: true, items: true, fieldOnly: true }, DEFAULTS: C.DEFAULTS, parseRom: parseRom, scan: scan, run: run, buildModel: buildModel };
 })();
