@@ -35,7 +35,6 @@
     hours: 'Stunden', minutes: 'Minuten', seconds: 'Sekunden', coins: 'Münzen', bp: 'Kampfpunkte (BP)',
     badges: 'Orden', badge: 'Orden', badgeA: 'Region 1', badgeB: 'Region 2',
     tabHof: 'Ruhmeshalle', hofEmpty: 'Noch kein Eintrag in der Ruhmeshalle.', hofClear: 'Ruhmeshalle leeren', hofAsk: 'Alle Einträge der Ruhmeshalle löschen?', hofNo: 'Eintrag',
-    tabHof: 'Hall of Fame', hofEmpty: 'No Hall of Fame entry yet.', hofClear: 'Clear Hall of Fame', hofAsk: 'Delete all Hall of Fame entries?', hofNo: 'Entry',
     tabItems: 'Items', tabDex: 'Pokédex', tabEvents: 'Events', tRib: 'Bänder', ribNone: 'Für dieses Format gibt es keine Bänder.', ribAll: 'Alle', ribClear: 'Keine',
     pItems: 'Items', pKey: 'Basis-Items', pTm: 'TMs & VMs', pMail: 'Briefe', pMed: 'Medizin', pBerry: 'Beeren', pBall: 'Bälle', pBattle: 'Kampf-Items', pPc: 'PC-Items', pZ: 'Z-Kristalle',
     giveAll: 'Alles geben (Max)', clearPouch: 'Tasche leeren', sortPouch: 'Nach ID sortieren', addItem: '+ Item hinzufügen', slotsUsed: 'Plätze belegt', noBag: 'Für diesen Spielstand gibt es noch keinen Editor.', outOfList: 'nicht in der Standardliste',
@@ -57,6 +56,7 @@
     metDate: 'Met date', eggDate: 'Egg date', otGender: 'OT gender', form: 'Form (no.)',
     hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds', coins: 'Coins', bp: 'Battle Points (BP)',
     badges: 'Badges', badge: 'Badge', badgeA: 'region 1', badgeB: 'region 2',
+    tabHof: 'Hall of Fame', hofEmpty: 'No Hall of Fame entry yet.', hofClear: 'Clear Hall of Fame', hofAsk: 'Delete all Hall of Fame entries?', hofNo: 'Entry',
     tabItems: 'Items', tabDex: 'Pokédex', tabEvents: 'Events', tRib: 'Ribbons', ribNone: 'This format has no ribbons.', ribAll: 'All', ribClear: 'None',
     pItems: 'Items', pKey: 'Key Items', pTm: 'TMs & HMs', pMail: 'Mail', pMed: 'Medicine', pBerry: 'Berries', pBall: 'Balls', pBattle: 'Battle Items', pPc: 'PC Items', pZ: 'Z-Crystals',
     giveAll: 'Give all (max)', clearPouch: 'Clear pouch', sortPouch: 'Sort by ID', addItem: '+ Add item', slotsUsed: 'slots used', noBag: 'There is no editor for this save yet.', outOfList: 'not in the standard list',
@@ -80,7 +80,6 @@
   function maxAbility() { return st.sv.maxAbility; }
   function pers(species) { var e = P['g' + st.sv.gen][st.sv.natOf(species)]; return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0]; }
   function isShiny(d) { var F = st.sv.fmt; if (F.gb) return F.shiny(d); var p = F.get(d, 'pid'); return ((F.get(d, 'tid') ^ F.get(d, 'sid') ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8); }
-  function genderOf(d, species) { var r = pers(species)[7], pid = st.sv.fmt.get(d, 'pid'); return r === 255 ? 2 : r === 254 ? 1 : r === 0 ? 0 : ((pid & 0xFF) < r ? 1 : 0); }
   // neue PID mit gewünschtem Wesen / Shiny-Status (Geschlecht und Fähigkeits-Slot bleiben erhalten)
   function newPid(d, nature, shiny) {
     var F = st.sv.fmt, old = F.get(d, 'pid'), tid = F.get(d, 'tid'), sid = F.get(d, 'sid'), low = old & 0xFF, bit = old & 1;
@@ -90,7 +89,7 @@
       if (F.natureIsPid && p % 25 !== nature) continue;
       var sh = ((tid ^ sid ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8);
       if (sh !== shiny) continue;
-      if (st.sv.gen === 3 && ((p & 1) !== bit) && false) continue;
+      if (st.sv.gen === 3 && ((p & 1) !== bit)) continue;
       return p;
     }
     return old;
@@ -115,7 +114,7 @@
       if (party) refreshParty(nd);
       return nd;
     }
-    var sv = st.sv, F = sv.fmt, d = new Uint8Array(party ? F.partySize : F.size), t = sv.getTrainer(), lang = de ? (sv.gen === 3 ? 5 : 5) : 2;
+    var sv = st.sv, F = sv.fmt, d = new Uint8Array(party ? F.partySize : F.size), t = sv.getTrainer(), lang = de ? 5 : 2;
     F.set(d, 'pid', ((Math.random() * 0x10000) << 16 | (Math.random() * 0x10000)) >>> 0);
     F.set(d, 'tid', t.tid); F.set(d, 'sid', t.sid);
     F.set(d, 'species', species); F.set(d, 'friendship', 70);
@@ -435,10 +434,9 @@
     return box;
   }
   function apply() {
-    var sv = st.sv, s = st.sel, F = sv.fmt;
+    var sv = st.sv, s = st.sel;
     if (s.kind === 'party') {
       var list = sv.getParty(); while (list.length <= s.slot) list.push(null);
-      if (st.mon && s.slot > list.length) return;
       list[s.slot] = st.mon; sv.setParty(list);
     } else sv.setBoxMon(s.box, s.slot, st.mon);
     st.dirty = true; st.msg = L.ok; render();

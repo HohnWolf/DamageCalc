@@ -16,7 +16,6 @@
       // Zwei Sektoren bilden einen zusammenhängenden Puffer (je 0xF80 Bytes)
       var at = function (i) { return i < US ? 0x1C000 + i : 0x1D000 + (i - US); };
       var read = function (o, n) { var r = new Uint8Array(n); for (var i = 0; i < n; i++) r[i] = data[at(o + i)]; return r; };
-      var jp = false;
       sv.hof = {
         entries: function () {
           var out = [];

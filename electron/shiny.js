@@ -40,24 +40,27 @@ function clipDir() { return path.join(app.getPath('videos'), 'Rattata Lab Clips'
 // nur Dateien in diesem Ordner dürfen geöffnet werden
 function inClipDir(p) { const r = path.relative(clipDir(), path.resolve(String(p || ''))); return !!r && !r.startsWith('..') && !path.isAbsolute(r); }
 let writeTimer = null;
+let obsDirReady = false;
+const lastFiles = {};
 function writeFiles() {
   clearTimeout(writeTimer);
   writeTimer = setTimeout(() => {
     try {
       const h = state.hunts.find((x) => x.id === state.active) || state.hunts[0];
       if (!h) return;
-      fs.mkdirSync(obsDir(), { recursive: true });
+      if (!obsDirReady) { fs.mkdirSync(obsDir(), { recursive: true }); obsDirReady = true; }
       const files = {
         'zaehler.txt': String(h.count), 'gesamt.txt': String(h.total), 'phase.txt': String(h.phase), 'quote.txt': h.oddsText,
         'timer.txt': h.timeText, 'pokemon.txt': h.name, 'chance.txt': h.chanceText, 'methode.txt': h.methodText, 'spiel.txt': h.gameText
       };
       Object.keys(files).forEach((f) => {
-        const p = path.join(obsDir(), f);
-        let old = null;
-        try { old = fs.readFileSync(p, 'utf8'); } catch (e) { /* new file */ }
-        if (old !== files[f]) fs.writeFileSync(p, files[f] == null ? '' : files[f]);
+        const val = files[f] == null ? '' : String(files[f]);
+        if (lastFiles[f] !== val) {
+          fs.writeFileSync(path.join(obsDir(), f), val);
+          lastFiles[f] = val;
+        }
       });
-    } catch (e) { /* OBS-Dateien sind nicht kritisch */ }
+    } catch (e) { obsDirReady = false; /* OBS-Dateien sind nicht kritisch */ }
   }, 150);
 }
 

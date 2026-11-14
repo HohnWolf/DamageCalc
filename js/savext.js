@@ -19,7 +19,7 @@
   var G6 = { XY: { items: 1, ev: 19, dex: 20, work: 0x178, flags: 0xD00, max: 721 }, AO: { items: 1, ev: 19, dex: 20, work: 0x178, flags: 0xD00, max: 721 } };
   var G7 = { SM: { items: 0, ev: 5, dex: 6, work: 1000, flags: 4000, max: 802 }, USUM: { items: 0, ev: 5, dex: 6, work: 1000, flags: 4960, max: 807 } };
 
-  function personalGender(P, gen, n) { var t = P && P['g' + (gen >= 6 ? gen : gen)]; var e = t && t[n]; return e ? e[7] : 127; }
+  function personalGender(P, gen, n) { var t = P && P['g' + gen]; var e = t && t[n]; return e ? e[7] : 127; }
 
   window.CCSaveExt = function (sv, P) {
     var data = sv.data, gen = sv.gen, key = gen >= 6 ? String(sv.game).toUpperCase() : sv.game;

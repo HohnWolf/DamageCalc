@@ -34,7 +34,10 @@
     8: { 681: { 2: 140, 5: 140 } },
     9: { 488: { 2: 110, 5: 120 } }
   };
-  var CAT_IDX = { PHYSICAL: 0, SPECIAL: 1, STATUS: 2 }, TYPE_DE = { FIGHTING: 'Kampf', FLYING: 'Flug', GROUND: 'Boden', GHOST: 'Geist' };
+  var CAT_IDX = { PHYSICAL: 0, SPECIAL: 1, STATUS: 2 }, TYPE_DE = {
+    NORMAL: 'Normal', FIGHTING: 'Kampf', FLYING: 'Flug', POISON: 'Gift', GROUND: 'Boden', ROCK: 'Gestein', BUG: 'Käfer', GHOST: 'Geist', STEEL: 'Stahl',
+    FIRE: 'Feuer', WATER: 'Wasser', GRASS: 'Pflanze', ELECTRIC: 'Elektro', PSYCHIC: 'Psycho', ICE: 'Eis', DRAGON: 'Drache', DARK: 'Unlicht', FAIRY: 'Fee'
+  };
   // Attacken, die keine "guten Schadensattacken" sind bzw. nicht rollen sollen (GlobalConstants des UPR)
   var BAN_DMG = [120, 138, 153, 173, 206, 248, 252, 264, 353, 364, 387, 389, 132, 99, 205, 301, 485, 492, 255, 49, 82, 32, 12, 90, 329];
   var FIELD_MOVES = [15, 19, 57, 70, 148, 91, 100, 127, 230, 291];
@@ -656,7 +659,7 @@
               cur = rng.pick(ec).get();
             }
           }
-          if (o.trainerItems !== 'keep' && pm.setItem && ID && pm.hasItem) { var ti = rng.pick((o.itemsBanBad ? ID.nonBad : ID.nonBad).filter(function (x) { return !tmSet[x]; })); pm.setItem(ti); }
+          if (o.trainerItems !== 'keep' && pm.setItem && ID && pm.hasItem) { var ti = rng.pick((o.itemsBanBad ? ID.nonBad : ID.allowed).filter(function (x) { return !tmSet[x]; })); pm.setItem(ti); }
           if (pct) lv = Math.max(1, Math.min(100, Math.round(pm.level * (1 + pct / 100))));
           if (o.trainers !== 'keep') pm.set(cur);
           if (pct) pm.setLevel(lv);

@@ -281,7 +281,7 @@
       menu.innerHTML = '';
       (list || []).forEach(function (d) {
         var on = !!opts.fullscreen && opts.displayId === d.id;
-        item(t('mon', d.n, d.w, d.h) + (d.primary ? '' : ''), on, function () {
+        item(t('mon', d.n, d.w, d.h), on, function () {
           D.set({ fullscreen: true, displayId: d.id });
         });
       });

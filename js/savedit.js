@@ -89,10 +89,6 @@
       for (i = 0; i < 48; i += 4) w32(u8, off + 32 + i, (u32(tmp, i) ^ key) >>> 0);
       if (party) u8.set(d.subarray(80, 100), off + 80);
     },
-    f: {
-      pid: [0, 4], tid: [4, 2], sid: [6, 2], species: [32, 2], item: [34, 2], exp: [36, 4], friendship: [41, 1],
-      ev: [56, 1], pp: [56 - 12 + 8, 1]
-    },
     get: function (d, k, i) {
       switch (k) {
         case 'pid': return u32(d, 0);
@@ -156,14 +152,12 @@
         case 'lang': d[18] = v; break;
       }
     },
-    setStats: function (d, st) { for (var i = 0; i < 6; i++) w16(d, 88 + i * 2, st[i]); w16(d, 86, st[0]); },
-    stats: function (d) { var o = []; for (var i = 0; i < 6; i++) o.push(u16(d, 88 + i * 2)); return o; },
-    blank: function () { return null; }
-  };
-  PK3.setStats = function (d, st) {
-    // Reihenfolge im Team: KP, Angr, Vert, Init, SpA, SpV  → Speicher: maxKP 88, Angr 90, Vert 92, Init 94, SpA 96, SpV 98
-    for (var i = 0; i < 6; i++) w16(d, 88 + i * 2, st[i]);
-    if (u16(d, 86) > st[0]) w16(d, 86, st[0]);
+    setStats: function (d, st) {
+      // Reihenfolge im Team: KP, Angr, Vert, Init, SpA, SpV  → Speicher: maxKP 88, Angr 90, Vert 92, Init 94, SpA 96, SpV 98
+      for (var i = 0; i < 6; i++) w16(d, 88 + i * 2, st[i]);
+      if (u16(d, 86) > st[0]) w16(d, 86, st[0]);
+    },
+    stats: function (d) { var o = []; for (var i = 0; i < 6; i++) o.push(u16(d, 88 + i * 2)); return o; }
   };
   PK3.nature = function (d) { return u32(d, 0) % 25; };
   PK3.natureIsPid = true;
@@ -265,9 +259,9 @@
   };
   // Pokémon (gen 4) im Klartext: 0–7 Kopf (PID, 0, Prüfsumme), 8 A, 40 B, 72 C, 104 D, 136+ Teamwerte
   var PK4 = {
-    size: 136, partySize: 236, gen: 4, extras: true,
+    size: 136, partySize: 236, maxSp: 493, gen: 4, extras: true,
     decode: function (u8, off, party) {
-      var len = party ? 236 : 136;
+      var len = party ? (this.partySize || 236) : 136;
       if (off + len > u8.length) return null;
       var pid = u32(u8, off), chk = u16(u8, off + 6);
       if (u16(u8, off + 4) !== 0 || (!pid && !chk)) return null;
@@ -281,18 +275,18 @@
       for (var b = 0; b < 4; b++) { var src = NDS.BLOCK_POS[sv * 4 + b]; d.set(e.subarray(8 + src * 32, 40 + src * 32), 8 + b * 32); }
       if (party) { d.set(e.subarray(136), 136); NDS.crypt(d, 136, len, pid); }
       var sp = u16(d, 8);
-      if (!sp || sp > 493) return null;
+      if (!sp || sp > (this.maxSp || 493)) return null;
       return d;
     },
     encode: function (d, u8, off, party) {
-      var pid = u32(d, 0), sv = (pid >>> 13) & 31, sum = 0, i;
+      var pid = u32(d, 0), sv = (pid >>> 13) & 31, sum = 0, i, pLen = this.partySize || 236;
       for (i = 8; i < 136; i += 2) sum = (sum + u16(d, i)) & 0xFFFF;
       w16(d, 6, sum);
-      var e = new Uint8Array(party ? 236 : 136);
+      var e = new Uint8Array(party ? pLen : 136);
       e.set(d.subarray(0, 8));
       for (var b = 0; b < 4; b++) { var dst = NDS.BLOCK_POS[sv * 4 + b]; e.set(d.subarray(8 + b * 32, 40 + b * 32), 8 + dst * 32); }
       NDS.crypt(e, 8, 136, sum);
-      if (party) { var pt = d.slice(136); NDS.crypt(pt, 0, pt.length, pid); e.set(pt, 136); }
+      if (party) { var pt = new Uint8Array(pLen - 136); pt.set(d.subarray(136, pLen)); NDS.crypt(pt, 0, pt.length, pid); e.set(pt, 136); }
       u8.set(e, off);
     },
     get: function (d, k, i) {
@@ -330,9 +324,9 @@
         case 'ot': return NDS.g4str(d, 104, 8);
         case 'ball': return d[131];
         case 'metLevel': return d[132] & 127;
-        case 'level': return d.length >= 236 ? d[140] : 0;
-        case 'hp': return d.length >= 236 ? u16(d, 142) : 0;
-        case 'status': return d.length >= 236 ? u32(d, 136) : 0;
+        case 'level': return d.length >= 220 ? d[140] : 0;
+        case 'hp': return d.length >= 220 ? u16(d, 142) : 0;
+        case 'status': return d.length >= 220 ? u32(d, 136) : 0;
       }
       return 0;
     },
@@ -420,7 +414,7 @@
     var to = gb + g.trainer;
     sv.getTrainer = function () {
       return { name: NDS.g4str(data, to, 8), tid: u16(data, to + 0x10), sid: u16(data, to + 0x12), money: u32(data, to + 0x14), gender: data[to + 0x18],
-        hours: u16(data, gb + (hg ? 0x3BB0 : key === 'Pt' ? 0x3BB0 : 0x3BB0) * 0), minutes: 0, seconds: 0 };
+        hours: u16(data, gb), minutes: 0, seconds: 0 };
     };
     sv.setTrainer = function (t) {
       data.set(enc4(t.name, 7, 8), to);
@@ -453,7 +447,7 @@
     sv.maxSpecies = 493; sv.maxMove = 467; sv.maxItem = 536; sv.maxAbility = 123; sv.items = 'items';
     sv.finish = function () {
       var out = new Uint8Array(data);
-      [[gb, g.gSize], [sb, sb === g.sStart ? g.sSize : g.sSize]].forEach(function (x) {
+      [[gb, g.gSize], [sb, g.sSize]].forEach(function (x) {
         var start = x[0], size = x[1];
         w16(out, start + size - 2, crc16(out, start, start + size - g.footer));
       });
@@ -472,7 +466,8 @@
   }
   var PK5 = Object.create(PK4);
   PK5.gen = 5;
-  PK5.decode = function (u8, off, party) { var d = PK4.decode(u8, off, party); if (d && u16(d, 8) > 649) return null; return d; };
+  PK5.partySize = 220;
+  PK5.maxSp = 649;
   PK5.get = function (d, k, i) {
     switch (k) {
       case 'nick': return NDS.g5str(d, 72, 11);

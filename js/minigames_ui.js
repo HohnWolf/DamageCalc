@@ -395,7 +395,7 @@
       var guess = Math.max(0, Math.min(100, +num.value || 0));
       var truth = api.evaluateDamage(sc);
       var j = api.judgeDamage(guess, truth.minPct, truth.maxPct);
-      var before = st.streak;
+      var before = api.load().damage.streak;
       var rec = api.recordDamage(j.correct);
       var text = j.correct ? (j.distance === 0 ? T('mgDmgExact') : T('mgDmgOff', fmt(j.distance), j.tolerance)) : T('mgDmgLost', fmt(j.distance), j.tolerance, before);
       banner(result, j.correct, text);

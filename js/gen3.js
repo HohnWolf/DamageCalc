@@ -625,7 +625,7 @@
       res.fixed = true;
       for (var q = 0; q < 16; q++) res.rolls.push(fixed[Math.min(fixed.length - 1, Math.floor(q * fixed.length / 16))]);
       res.crit = res.rolls.slice();
-      return finish(res, A, D, mv, eff);
+      return finish(res, A, D, mv, eff, aHold, aNat);
     }
 
     // base damage (CalculateBaseDamage)
@@ -720,10 +720,10 @@
     if (eff === EF.DOUBLE_HIT || eff === EF.TWINEEDLE) { res.hits = 2; }
     if (eff === EF.EXPLOSION) res.notes.push('explosion');
     if (moveId === 76) res.notes.push('solarbeam');
-    return finish(res, A, D, mv, eff);
+    return finish(res, A, D, mv, eff, aHold, aNat);
   }
-  function finish(res, A, D, mv, eff) {
-    var hold = 0; // crit stage
+  function finish(res, A, D, mv, eff, aHold, aNat) {
+    var hold = (aHold && aHold.hold === HE.SCOPE_LENS ? 1 : 0) + (aHold && aHold.hold === HE.LUCKY_PUNCH && aNat === 113 ? 2 : 0) + (aHold && aHold.hold === HE.STICK && aNat === 83 ? 2 : 0);
     var crit = (eff === EF.HIGH_CRITICAL || eff === EF.SKY_ATTACK || eff === EF.BLAZE_KICK || eff === EF.POISON_TAIL) ? 1 : 0;
     res.critChance = (D.ability === AB.BATTLE_ARMOR || D.ability === AB.SHELL_ARMOR) ? 0 : 1 / CRIT_CHANCE[Math.min(4, crit + (A.critStage || 0) + hold)];
     res.min = res.rolls[0]; res.max = res.rolls[15];

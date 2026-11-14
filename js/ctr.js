@@ -317,7 +317,6 @@
   // ---------------- Schreiben ----------------
   // patches: [{ off (absolut in der Quelldatei), bytes }]. Aktualisiert den IVFC-Hashbaum und den Kopf-Hash und gibt einen Blob zurück.
   async function build(info, patches, source, BlobCtor, exefsNew) {
-    var map = {}; // Blocknummer (Ebene 3) -> betroffen
     var iv = info.ivfc, B = 0x1000, extra = [];
     function applyTo(buf, start) { // Änderungen in einen gelesenen Abschnitt einarbeiten
       patches.concat(extra).forEach(function (p) {
@@ -334,7 +333,7 @@
         for (var b = a; b <= z; b++) blocks3[b] = 1;
       }
     });
-    var l2set = {}, l1set = {}, masterSet = {};
+    var l2set = {}, l1set = {};
     // Ebene 3 → Ebene 2
     var keys3 = Object.keys(blocks3).map(Number).sort(function (a, b) { return a - b; });
     for (var i = 0; i < keys3.length; i++) {

@@ -30,8 +30,8 @@
   </style>
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=90">
-  <link rel="stylesheet" href="css/views.css?v=104">
+  <link rel="stylesheet" href="css/style.css?v=91">
+  <link rel="stylesheet" href="css/views.css?v=105">
   <link rel="stylesheet" href="css/nuz.css?v=88">
   <link rel="stylesheet" href="css/shiny.css?v=88">
   <link rel="stylesheet" href="css/match.css?v=86">
@@ -45,7 +45,7 @@
   <link rel="stylesheet" href="css/projector_view.css?v=1">
   <link rel="stylesheet" href="css/randomizer.css?v=3">
   <link rel="stylesheet" href="css/savedit.css?v=8">
-  <link rel="stylesheet" href="css/pro.css?v=22">
+  <link rel="stylesheet" href="css/pro.css?v=23">
   <link rel="stylesheet" href="css/studio.css?v=18">
   <link rel="stylesheet" href="css/minigames.css?v=1">
   <link rel="stylesheet" href="css/battle.css?v=1">
@@ -121,7 +121,7 @@
             <span class="sc-bar"><span style="width:67%"></span></span>
             <span class="sc-ko">Bo3 · Leads · Matchups</span>
           </span>
-          <span class="sc-head"><span class="sc-title">Team-Analyse</span></span>
+          <span class="sc-head"><span class="sc-title" data-t="navMatch">Team-Analyse</span></span>
           <span class="sc-text" data-t="startMatchText"></span>
         </button>
         <button class="start-card card-speedtier" data-go="speedtier">
@@ -415,11 +415,11 @@
   <script src="data/pick_meta.js?v=86"></script>
   <script src="data/learnsets_champ.js?v=86"></script>
   <script src="data/sprite_boxes.js?v=86"></script>
-  <script src="js/online.js?v=86"></script>
-  <script src="js/calc.js?v=86"></script>
+  <script src="js/online.js?v=87"></script>
+  <script src="js/calc.js?v=87"></script>
   <script src="js/update_channel.js?v=1"></script>
-  <script src="js/app.js?v=121"></script>
-  <script src="js/patchnotes.js?v=2"></script>
+  <script src="js/app.js?v=122"></script>
+  <script src="js/patchnotes.js?v=3"></script>
   <script src="js/builder_adopt.js?v=1"></script>
   <script src="js/builder.js?v=90"></script>
   <script src="data/meta_teams.js?v=1"></script>
@@ -427,68 +427,68 @@
   <script src="js/meta/format.js?v=1"></script>
   <script src="js/meta/stats.js?v=1"></script>
   <script src="js/meta/text.js?v=1"></script>
-  <script src="js/meta/preview.js?v=1"></script>
+  <script src="js/meta/preview.js?v=2"></script>
   <script src="js/meta/replay.js?v=1"></script>
-  <script src="js/meta_ui.js?v=1"></script>
-  <script src="js/teamsheet.js?v=4"></script>
+  <script src="js/meta_ui.js?v=2"></script>
+  <script src="js/teamsheet.js?v=5"></script>
   <script src="data/natdex.js?v=86"></script>
   <script src="data/catch_data.js?v=86"></script>
   <script src="data/gen3_names.js?v=86"></script>
-  <script src="js/gen3.js?v=86"></script>
+  <script src="js/gen3.js?v=87"></script>
   <script src="data/nds_names.js?v=86"></script>
-  <script src="js/nds_calc.js?v=86"></script>
+  <script src="js/nds_calc.js?v=87"></script>
   <script src="js/nds.js?v=90"></script>
   <script src="js/nuz.js?v=87"></script>
   <script src="data/items_data.js?v=1"></script>
   <script src="data/gen3_offsets.js?v=3"></script>
-  <script src="js/rand_gen3.js?v=8"></script>
+  <script src="js/rand_gen3.js?v=9"></script>
   <script src="data/move_updates.js?v=1"></script>
-  <script src="js/rand_core.js?v=13"></script>
+  <script src="js/rand_core.js?v=14"></script>
   <script src="data/gen4_offsets.js?v=5"></script>
-  <script src="js/rand_nds.js?v=12"></script>
+  <script src="js/rand_nds.js?v=13"></script>
   <script src="data/gen5_offsets.js?v=5"></script>
   <script src="js/rand_gen5.js?v=11"></script>
-  <script src="js/ctr.js?v=1b"></script>
+  <script src="js/ctr.js?v=2"></script>
   <script src="js/rand_3ds.js?v=8"></script>
   <script src="data/gb_roms.js?v=3"></script>
   <script src="js/rand_gb.js?v=5"></script>
-  <script src="js/randomizer.js?v=19"></script>
+  <script src="js/randomizer.js?v=20"></script>
   <script src="data/pk_text.js?v=2"></script>
   <script src="data/pk_personal.js?v=1"></script>
   <script src="data/pk_gb.js?v=1"></script>
   <script src="data/pk_blocks67.js?v=1"></script>
   <script src="data/pk_blocks.js?v=1"></script>
-  <script src="js/savedit.js?v=6"></script>
+  <script src="js/savedit.js?v=7"></script>
   <script src="data/pkhex_data.js?v=3"></script>
-  <script src="js/savext.js?v=4"></script>
-  <script src="js/savhof.js?v=1"></script>
+  <script src="js/savext.js?v=5"></script>
+  <script src="js/savhof.js?v=2"></script>
   <script src="js/savedit_gb.js?v=2"></script>
   <script src="js/savedit_3ds.js?v=4"></script>
   <script src="data/pk_learn.js?v=1"></script>
   <script src="data/pk_enc.js?v=1"></script>
   <script src="js/legality.js?v=6"></script>
-  <script src="js/saveui.js?v=15"></script>
-  <script src="js/nuzcalc.js?v=86"></script>
+  <script src="js/saveui.js?v=16"></script>
+  <script src="js/nuzcalc.js?v=87"></script>
   <script src="js/shiny_odds.js?v=86"></script>
-  <script src="js/capture.js?v=121"></script>
+  <script src="js/capture.js?v=122"></script>
   <script src="js/shiny_detect.js?v=125"></script>
-  <script src="js/shiny_clip.js?v=86"></script>
+  <script src="js/shiny_clip.js?v=87"></script>
   <script src="js/shiny_projector.js?v=125"></script>
-  <script src="js/shiny.js?v=127"></script>
-  <script src="js/match_parse.js?v=86"></script>
+  <script src="js/shiny.js?v=128"></script>
+  <script src="js/match_parse.js?v=87"></script>
   <script src="js/match.js?v=86"></script>
   <script src="data/pokeapi_ids.js?v=86"></script>
   <script src="js/overlay.js?v=91"></script>
-  <script src="js/catch_calc.js?v=86"></script>
+  <script src="js/catch_calc.js?v=87"></script>
   <script src="data/dex_gen1.js?v=86"></script>
-  <script src="js/pokedex.js?v=88"></script>
+  <script src="js/pokedex.js?v=89"></script>
   <script src="data/godex.js?v=2"></script>
-  <script src="js/godex.js?v=6"></script>
-  <script src="js/gocounter.js?v=6"></script>
-  <script src="js/goinfo.js?v=1"></script>
-  <script src="js/speedtier.js?v=1"></script>
-  <script src="js/minigames.js?v=1"></script>
-  <script src="js/minigames_ui.js?v=1"></script>
+  <script src="js/godex.js?v=7"></script>
+  <script src="js/gocounter.js?v=7"></script>
+  <script src="js/goinfo.js?v=2"></script>
+  <script src="js/speedtier.js?v=2"></script>
+  <script src="js/minigames.js?v=2"></script>
+  <script src="js/minigames_ui.js?v=2"></script>
   <script src="js/battle_ui.js?v=1"></script>
   <script src="js/projector_view.js?v=1"></script>
 </body>

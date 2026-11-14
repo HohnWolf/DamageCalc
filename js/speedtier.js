@@ -43,7 +43,7 @@
     if (c[4]) v = Math.floor(v * 1.5);
     if (S.tw) v *= 2;
     if (S.para) v = Math.floor(v / 2);
-    return v;
+    return Math.max(1, v);
   }
 
   function sortedRows() {
@@ -89,7 +89,11 @@
     var seg = el('div', { class: 'st-seg' });
     [['all', TXT.all], ['nomega', TXT.nomega], ['mega', TXT.mega]].forEach(function (f) {
       var b = el('button', { type: 'button', class: S.form === f[0] ? 'on' : '', text: f[1] });
-      b.addEventListener('click', function () { S.form = f[0]; save(); render(); });
+      b.addEventListener('click', function () {
+        S.form = f[0]; save();
+        Array.prototype.forEach.call(seg.children, function (btn, idx) { btn.className = (idx === 0 ? 'all' : idx === 1 ? 'nomega' : 'mega') === S.form ? 'on' : ''; });
+        fill();
+      });
       seg.appendChild(b);
     });
     bar.appendChild(seg);

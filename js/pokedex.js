@@ -53,15 +53,6 @@
   var STAT_LABELS_DE = ['KP', 'Angriff', 'Verteidigung', 'Sp.-Angriff', 'Sp.-Vert.', 'Initiative'];
   var STAT_LABELS_EN = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed'];
 
-  function statColor(v) {
-    if (v < 50) return '#e5484d';
-    if (v < 80) return '#e08b3a';
-    if (v < 100) return '#e0b33a';
-    if (v < 125) return '#3cb96a';
-    if (v < 150) return '#2aa8a0';
-    return '#3a7bd5';
-  }
-
   // Berechnet Min- und Max-Wert auf Level 50 (0 IV/0 EV- vs. 31 IV/252 EV+)
   function statRangeLv50(base, isHP) {
     if (base === 1) return '1';
@@ -261,9 +252,10 @@
 
   function isMonFullyEvolved(m) {
     if (!m || !m.evoTree) return true;
+    if (m._fullyEvolved !== undefined) return m._fullyEvolved;
     var node = findEvoNode(m.evoTree, m.num);
-    if (!node) return true;
-    return !node.children || node.children.length === 0;
+    m._fullyEvolved = !node || !node.children || node.children.length === 0;
+    return m._fullyEvolved;
   }
 
   function filteredMons() {
@@ -384,8 +376,8 @@
     var mon = dex[st.num] || dex[1];
     var forms = mon.forms || [];
     if (st.formIdx >= forms.length || st.formIdx < 0) st.formIdx = 0;
-    var form = forms[st.formIdx];
-    var baseForm = forms[0];
+    var form = forms[st.formIdx] || mon;
+    var baseForm = forms[0] || form;
 
     var cd = (window.CATCH_DATA && window.CATCH_DATA[mon.num]) || [45, 50, 50, 4];
     var catchRate = cd[0];

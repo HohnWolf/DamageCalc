@@ -666,7 +666,6 @@
 
   // ==================== UI RENDERING ====================
   var root = null;
-  var searchOpen = false;
 
   function render() {
     root = document.getElementById('catchView');
@@ -708,7 +707,6 @@
       );
     }).join('');
 
-    var effRate = Number(st.customRate) > 0 ? Math.min(255, Math.max(1, Math.round(Number(st.customRate)))) : mon.catchRate;
     var minHP = calcMaxHPForIV(mon.baseHP, st.level, 0, gen);
     var maxHP31 = calcMaxHPForIV(mon.baseHP, st.level, gen <= 2 ? 15 : 31, gen);
 
@@ -805,9 +803,9 @@
                     '</div>' +
                   '</div>' +
                   '<div class="catch-hp-presets">' +
-                    '<button type="button" id="ccEx1HP" class="tbtn">1 KP</button>' +
-                    '<button type="button" id="ccExIV0" class="tbtn">Max KP (0 IV: ' + minHP + ')</button>' +
-                    '<button type="button" id="ccExIV31" class="tbtn">Max KP (' + (gen <= 2 ? '15 DV: ' : '31 IV: ') + maxHP31 + ')</button>' +
+                    '<button type="button" id="ccEx1HP" class="tbtn">' + (de ? '1 KP' : '1 HP') + '</button>' +
+                    '<button type="button" id="ccExIV0" class="tbtn">' + (de ? 'Max KP' : 'Max HP') + ' (0 IV: ' + minHP + ')</button>' +
+                    '<button type="button" id="ccExIV31" class="tbtn">' + (de ? 'Max KP (' : 'Max HP (') + (gen <= 2 ? '15 DV: ' : '31 IV: ') + maxHP31 + ')</button>' +
                   '</div>' +
                 '</div>'
               )) +
@@ -834,11 +832,11 @@
                     '<label class="catch-lbl">' + (de ? 'Gefangene Arten im Pokédex' : 'Caught Species in Pokédex') + '</label>' +
                     '<select id="ccDexTier" class="catch-sel">' +
                       '<option value="0"' + (st.dexCaughtTier === 0 ? ' selected' : '') + '>0 – 30 (×0)</option>' +
-                      '<option value="1"' + (st.dexCaughtTier === 1 ? ' selected' : '') + '>31 – 150 (×0,5)</option>' +
+                      '<option value="1"' + (st.dexCaughtTier === 1 ? ' selected' : '') + '>31 – 150 (' + (de ? '×0,5' : '×0.5') + ')</option>' +
                       '<option value="2"' + (st.dexCaughtTier === 2 ? ' selected' : '') + '>151 – 300 (×1)</option>' +
-                      '<option value="3"' + (st.dexCaughtTier === 3 ? ' selected' : '') + '>301 – 450 (×1,5)</option>' +
+                      '<option value="3"' + (st.dexCaughtTier === 3 ? ' selected' : '') + '>301 – 450 (' + (de ? '×1,5' : '×1.5') + ')</option>' +
                       '<option value="4"' + (st.dexCaughtTier === 4 ? ' selected' : '') + '>451 – 600 (×2)</option>' +
-                      '<option value="5"' + (st.dexCaughtTier === 5 ? ' selected' : '') + '>Über 600 (×2,5)</option>' +
+                      '<option value="5"' + (st.dexCaughtTier === 5 ? ' selected' : '') + '>' + (de ? 'Über 600 (×2,5)' : 'Over 600 (×2.5)') + '</option>' +
                     '</select>' +
                   '</div>' +
 
@@ -851,9 +849,9 @@
                       '</label>' +
                       '<select id="ccPowerMod" class="catch-sel">' +
                         '<option value="0"' + (st.powerMod === 0 ? ' selected' : '') + '>' + (de ? 'Keine (×1)' : 'None (×1)') + '</option>' +
-                        '<option value="1"' + (st.powerMod === 1 ? ' selected' : '') + '>' + (gen === 5 ? 'Stufe 1 (×1,1)' : (gen <= 7 ? 'Stufe 1 (×1,5)' : 'Fangkraft Lv. 1 (×1,1)')) + '</option>' +
-                        '<option value="2"' + (st.powerMod === 2 ? ' selected' : '') + '>' + (gen === 5 ? 'Stufe 2 (×1,2)' : (gen <= 7 ? 'Stufe 2 (×2,0)' : 'Fangkraft Lv. 2 (×1,25)')) + '</option>' +
-                        '<option value="3"' + (st.powerMod === 3 ? ' selected' : '') + '>' + (gen === 5 ? 'Stufe 3 / S / MAX (×1,3)' : (gen <= 7 ? 'Stufe 3 / S / Rotom-Fang (×2,5)' : 'Fangkraft Lv. 3 (×2,0)')) + '</option>' +
+                        '<option value="1"' + (st.powerMod === 1 ? ' selected' : '') + '>' + (gen === 5 ? (de ? 'Stufe 1 (×1,1)' : 'Lv. 1 (×1.1)') : (gen <= 7 ? (de ? 'Stufe 1 (×1,5)' : 'Lv. 1 (×1.5)') : (de ? 'Fangkraft Lv. 1 (×1,1)' : 'Catching Power Lv. 1 (×1.1)'))) + '</option>' +
+                        '<option value="2"' + (st.powerMod === 2 ? ' selected' : '') + '>' + (gen === 5 ? (de ? 'Stufe 2 (×1,2)' : 'Lv. 2 (×1.2)') : (gen <= 7 ? (de ? 'Stufe 2 (×2,0)' : 'Lv. 2 (×2.0)') : (de ? 'Fangkraft Lv. 2 (×1,25)' : 'Catching Power Lv. 2 (×1.25)'))) + '</option>' +
+                        '<option value="3"' + (st.powerMod === 3 ? ' selected' : '') + '>' + (gen === 5 ? (de ? 'Stufe 3 / S / MAX (×1,3)' : 'Lv. 3 / S / MAX (×1.3)') : (gen <= 7 ? (de ? 'Stufe 3 / S / Rotom-Fang (×2,5)' : 'Lv. 3 / S / Rotom Catch (×2.5)') : (de ? 'Fangkraft Lv. 3 (×2,0)' : 'Catching Power Lv. 3 (×2.0)'))) + '</option>' +
                       '</select>' +
                     '</div>'
                   ) : '') +

@@ -8,15 +8,17 @@
   function dexIndex() {
     var A = root.CC;
     if (!A || !A.DEX) return null;
-    if (dexCache && dexCache.dex === A.DEX) return dexCache;
-    var byId = {}, bySh = {};
+    if (dexCache && dexCache.dex === A.DEX && dexCache.moves === A.MOVES && dexCache.items === A.ITEMS) return dexCache;
+    var byId = {}, bySh = {}, movesById = {}, itemsById = {};
     Object.keys(A.DEX).forEach(function (k) {
       byId[idOf(k)] = k;
       var m = /^Mega (.+?)(?: ([XYZ]))?$/.exec(k);
       if (m) bySh[idOf(m[1]) + 'mega' + (m[2] ? m[2].toLowerCase() : '')] = k;
     });
     if (byId[idOf('Urshifu-Single Strike')]) bySh.urshifu = 'Urshifu-Single Strike';
-    dexCache = { dex: A.DEX, byId: byId, bySh: bySh };
+    if (A.MOVES) Object.keys(A.MOVES).forEach(function (k) { movesById[idOf(k)] = k; });
+    if (A.ITEMS) A.ITEMS.forEach(function (k) { itemsById[idOf(k)] = k; });
+    dexCache = { dex: A.DEX, moves: A.MOVES, items: A.ITEMS, byId: byId, bySh: bySh, movesById: movesById, itemsById: itemsById };
     return dexCache;
   }
 
@@ -55,7 +57,9 @@
     var A = root.CC;
     if (!A || !A.MOVES) return raw;
     if (A.MOVES[raw]) return raw;
+    var idx = dexIndex();
     var id = idOf(raw);
+    if (idx && idx.movesById[id]) return idx.movesById[id];
     var hit = '';
     Object.keys(A.MOVES).some(function (k) { if (idOf(k) === id) { hit = k; return true; } return false; });
     return hit || raw;
@@ -66,7 +70,10 @@
     if (!raw) return '';
     var A = root.CC;
     if (!A || !A.ITEMS) return raw;
-    var id = idOf(raw), hit = '';
+    var idx = dexIndex();
+    var id = idOf(raw);
+    if (idx && idx.itemsById[id]) return idx.itemsById[id];
+    var hit = '';
     A.ITEMS.some(function (k) { if (idOf(k) === id) { hit = k; return true; } return false; });
     return hit || raw;
   }

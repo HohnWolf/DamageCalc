@@ -3,11 +3,6 @@
 // Original, die Archive werden also direkt in der ROM-Kopie beschrieben. Komprimierte Archive werden übersprungen und gemeldet.
 (function () {
   'use strict';
-  var R3 = window.CCRand3;
-  var DEFAULTS = {
-    seed: '', wild: 'random', wildGlobal: false, trainers: 'random', trainerLevel: 0, starters: 'keep', starterPick: [0, 0, 0],
-    evo: 'keep', stats: 'keep', types: 'keep', abilities: 'keep', moves: 'keep', noLegend: false
-  };
   var LEGEND_NAT = [144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493];
   var TN = ['Normal', 'Kampf', 'Flug', 'Gift', 'Boden', 'Gestein', 'Käfer', 'Geist', 'Stahl', '???', 'Feuer', 'Wasser', 'Pflanze', 'Elektro', 'Psycho', 'Eis', 'Drache', 'Unlicht'];
   var BAN_ABILITY = [25, 54]; // Wunderwache, Bummler
@@ -19,11 +14,6 @@
   function w32(b, o, v) { b[o] = v & 0xFF; b[o + 1] = (v >> 8) & 0xFF; b[o + 2] = (v >> 16) & 0xFF; b[o + 3] = (v >>> 24) & 0xFF; }
 
   function validSpecies(rom, s) { return s >= 1 && s <= MAXNAT && !!rom.species[s]; }
-  function bstOf(rom, s) { var b = rom.species[s].bs; return b[0] + b[1] + b[2] + b[3] + b[4] + b[5]; }
-  function nameOf(rom, s) {
-    var nd = window.NATDEX && window.NATDEX[s];
-    return nd ? ((window.CC && window.CC.LANG === 'en') ? nd[1] : (nd[2] || nd[1])) : '#' + s;
-  }
   function makePool(rom, noLegend) {
     var pool = [];
     for (var s = 1; s <= MAXNAT; s++) {
@@ -33,21 +23,6 @@
     }
     return pool;
   }
-  function makePicker(rom, pool, rng, bst0) {
-    var sorted = pool.slice().sort(function (a, b) { return bst0[a] - bst0[b]; });
-    return function (orig, similar, exclude) {
-      var list = sorted;
-      if (similar && bst0[orig]) {
-        var t = bst0[orig], w = Math.max(30, t * 0.12);
-        var near = sorted.filter(function (s) { return Math.abs(bst0[s] - t) <= w; });
-        if (near.length < 6) near = sorted.slice().sort(function (a, b) { return Math.abs(bst0[a] - t) - Math.abs(bst0[b] - t); }).slice(0, 12);
-        list = near;
-      }
-      if (exclude) { var f = list.filter(function (s) { return exclude.indexOf(s) === -1; }); if (f.length) list = f; }
-      return rng.pick(list);
-    };
-  }
-  function isMem(rom, arr) { return !!arr && arr.length > 0; }
 
   // ---------------- Wilde Pokémon: Liste aller Artenfelder je Spielart ----------------
   // Rückgabe: [{ file, off, size (2|4), map, kind }]

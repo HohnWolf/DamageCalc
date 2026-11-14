@@ -157,20 +157,27 @@
     r.keep = true;
     var at = new Date(), type = (r.mr.mimeType || mime || 'video/webm').split(';')[0];
     pending = new Promise(function (resolve) {
+      var done = false;
+      r.mr.onstop = function () {
+        if (done) return;
+        done = true;
+        var blob = new Blob(r.chunks, { type: type });
+        recs = recs.filter(function (x) { return x !== r; });
+        var name2 = fileName(at, name, reason);
+        store(blob, name2).then(function (path) {
+          var entry = { file: name2, path: path || '', at: at.getTime(), reason: reason, hunt: hunt || '', size: blob.size };
+          cfg.list.unshift(entry); cfg.list = cfg.list.slice(0, 20);
+          persist();
+          A.toast(t('saved', name2));
+          pending = null; onChange(); resolve(entry);
+        }, function (e) { A.toast(t('failed', e && e.message ? e.message : e)); pending = null; onChange(); resolve(null); });
+      };
       setTimeout(function () {
-        r.mr.onstop = function () {
-          var blob = new Blob(r.chunks, { type: type });
-          recs = recs.filter(function (x) { return x !== r; });
-          var name2 = fileName(at, name, reason);
-          store(blob, name2).then(function (path) {
-            var entry = { file: name2, path: path || '', at: at.getTime(), reason: reason, hunt: hunt || '', size: blob.size };
-            cfg.list.unshift(entry); cfg.list = cfg.list.slice(0, 20);
-            persist();
-            A.toast(t('saved', name2));
-            pending = null; onChange(); resolve(entry);
-          }, function (e) { A.toast(t('failed', e && e.message ? e.message : e)); pending = null; onChange(); resolve(null); });
-        };
-        try { r.mr.stop(); } catch (e) { pending = null; resolve(null); }
+        if (done) return;
+        try {
+          if (r.mr.state !== 'inactive') r.mr.stop();
+          else r.mr.onstop();
+        } catch (e) { done = true; pending = null; onChange(); resolve(null); }
       }, cfg.after * 1000);
     });
     onChange();

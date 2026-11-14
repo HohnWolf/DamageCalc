@@ -898,7 +898,7 @@
       var g = O.game(c.game), m = O.method(c.method);
       tx.appendChild(el('div', { class: 'sh-item-sub', text: (de ? g.de : g.en) + ' · ' + (de ? m.de : m.en) }));
       tx.appendChild(el('div', { class: 'sh-item-sub', text: [c.encounters ? fmt(c.encounters) + ' ' + t('encounters') : '', c.phases ? t('phasesN', c.phases) : '', c.nature ? (A.nNature ? A.nNature(c.nature) : c.nature) : '',
-        c.level ? 'Lv. ' + c.level : '', c.ball, c.location, c.date ? new Date(c.date).toLocaleDateString(de ? 'de-DE' : 'en-US') : ''].filter(Boolean).join(' · ') }));
+        c.level ? 'Lv. ' + c.level : '', c.ball, c.location, c.date ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(c.date) ? c.date + 'T00:00:00' : c.date).toLocaleDateString(de ? 'de-DE' : 'en-US') : ''].filter(Boolean).join(' · ') }));
       if (c.notes) tx.appendChild(el('div', { class: 'hint', text: c.notes }));
       card.appendChild(tx);
       var tools = el('div', { class: 'sh-catch-tools' });

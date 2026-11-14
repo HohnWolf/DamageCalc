@@ -41,8 +41,8 @@ function start() {
     const begin = () => {
       proc = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', dst], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
       guardChild(proc);
-      let done = false;
-      const finish = (v) => { if (!done) { done = true; resolve(v); } };
+      let done = false, startTimer = null;
+      const finish = (v) => { if (!done) { done = true; clearTimeout(startTimer); resolve(v); } };
       proc.stdout.setEncoding('utf8');
       proc.stdout.on('data', (chunk) => {
         buf += chunk;
@@ -74,7 +74,8 @@ function start() {
         finish({ error: msg });
         fail(msg);
       });
-      setTimeout(() => {
+      startTimer = setTimeout(() => {
+        if (done) return;
         finish({ error: 'OCR startet nicht (Zeitüberschreitung)' + (tail(stderr) ? ' — ' + tail(stderr) : '') });
         if (proc) { try { proc.kill(); } catch (e) { /* schon weg */ } }
       }, 20000);

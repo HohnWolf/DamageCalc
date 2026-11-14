@@ -187,10 +187,13 @@
       }
       return true;
     }
+    var poolCache = {};
     function buildPool(opts) {
       opts = opts || {};
+      var key = opts.scope === 'all' ? 'all' : 'reg';
       // 'reg': nur Pokémon der aktuellen Regulation (deps.dex); 'all': alle Pokémon (deps.dexAll, sonst deps.dex)
-      var src = (opts.scope === 'all' && deps.dexAll) ? deps.dexAll : (deps.dex || {});
+      var src = (key === 'all' && deps.dexAll) ? deps.dexAll : (deps.dex || {});
+      if (poolCache[key] && poolCache[key].src === src) return poolCache[key].pool;
       var pool = [];
       Object.keys(src).forEach(function (name) {
         var entry = src[name];
@@ -213,6 +216,7 @@
         });
       });
       pool.sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+      poolCache[key] = { src: src, pool: pool };
       return pool;
     }
     function pickTwo(pool, rng) {

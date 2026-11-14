@@ -179,7 +179,7 @@
   }
 
   // ---------------- timer: runs here, no data needed per second ----------------
-  var timerHunt = null, timerTxt = '', timerTo = 0;
+  var timerHunt = null, timerTo = 0;
   function dur(ms) {
     var s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
     return h + ':' + ('0' + m).slice(-2) + ':' + ('0' + x).slice(-2);

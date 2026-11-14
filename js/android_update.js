@@ -12,7 +12,7 @@
   var API = 'https://api.github.com/repos/HohnWolf/DamageCalc/releases?per_page=100';
   var ASSET = 'RattataLab-android.apk';
   var status = { state: 'idle', current: '?', android: true, channel: 'full' };
-  var listeners = [], found = null, busy = false, decision = null;
+  var listeners = [], found = null, busy = false, decision = null, downloadedVer = '';
 
   function readChannel() {
     try {
@@ -82,14 +82,23 @@
     if (busy || !found) return;
     var f = found;
     busy = true;
-    emit({ state: 'progress', version: f.version, percent: 0 });
-    var h = N.addListener('progress', function (p) { emit({ state: 'progress', version: f.version, percent: p.percent || 0 }); });
-    Promise.resolve(h).then(function (hd) {
-      return N.download({ url: f.url, sha256: f.sha256 }).then(function () { if (hd && hd.remove) hd.remove(); }, function (e) {
-        if (hd && hd.remove) hd.remove();
-        throw e;
+    var readyPromise;
+    if (downloadedVer === f.version) {
+      readyPromise = Promise.resolve();
+    } else {
+      emit({ state: 'progress', version: f.version, percent: 0 });
+      var h = N.addListener('progress', function (p) { emit({ state: 'progress', version: f.version, percent: p.percent || 0 }); });
+      readyPromise = Promise.resolve(h).then(function (hd) {
+        return N.download({ url: f.url, sha256: f.sha256 }).then(function () {
+          downloadedVer = f.version;
+          if (hd && hd.remove) hd.remove();
+        }, function (e) {
+          if (hd && hd.remove) hd.remove();
+          throw e;
+        });
       });
-    }).then(function () { return N.install(); }).then(function () {
+    }
+    readyPromise.then(function () { return N.install(); }).then(function () {
       emit({ state: 'ready', version: f.version });
     }).catch(function (e) {
       if (e && e.code === 'permission') emit({ state: 'perm', version: f.version });

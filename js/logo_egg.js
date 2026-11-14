@@ -51,13 +51,15 @@
     }
     if (on) html.setAttribute('data-shiny-logo', '1');
     else html.removeAttribute('data-shiny-logo');
+    var wasOn = !!root.__IS_SHINY_LOGO;
     root.__IS_SHINY_LOGO = on;
-    if (!on) return false;
-    setSrc(d.querySelector('.start-logo'), ASSETS.logoShiny);
-    setSrc(d.querySelector('link[rel="icon"]'), ASSETS.logoShiny);
+    if (!on && !wasOn) return false;
+    var lSrc = logoSrc(on), hSrc = homeSrc(on);
+    setSrc(d.querySelector('.start-logo'), lSrc);
+    setSrc(d.querySelector('link[rel="icon"]'), lSrc);
     var brands = d.querySelectorAll('#btnHome img, img.sb-logo, img[data-rl-brand], .set-upd-badge img');
-    for (var i = 0; i < brands.length; i++) setSrc(brands[i], ASSETS.homeShiny);
-    return true;
+    for (var i = 0; i < brands.length; i++) setSrc(brands[i], hSrc);
+    return on;
   }
 
   function boot() {

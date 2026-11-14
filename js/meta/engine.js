@@ -36,7 +36,6 @@ function parseKos(log) {
   const kos = [];
   lines.forEach(function (line) {
     const parts = String(line).split('|');
-    const tag = parts[0] === '' ? parts[1] : parts[0];
     const a = parts[0] === '' ? parts : [''].concat(parts);
     const t = a[1];
     if (t === 'move') {
@@ -46,7 +45,13 @@ function parseKos(log) {
       lastHit._src = src;
     } else if (t === '-damage') {
       const tgt = a[2] || '';
-      if (tgt && lastHit._src) lastHit[tgt] = lastHit._src;
+      if (!tgt) return;
+      const ofTag = a.find(function (x) { return /^\[of\]\s*p[12]/.test(x || ''); });
+      const fromTag = a.some(function (x) { return /^\[from\]/.test(x || ''); });
+      if (ofTag) lastHit[tgt] = ofTag.replace(/^\[of\]\s*/, '');
+      else if (!fromTag && lastHit._src) lastHit[tgt] = lastHit._src;
+    } else if (t === 'turn' || t === 'upkeep') {
+      lastHit._src = '';
     } else if (t === 'faint') {
       const tgt = a[2] || '';
       kos.push({ target: tgt, source: lastHit[tgt] || '' });
@@ -137,7 +142,7 @@ function runGame(opts) {
     leadsA: userIsP1 ? leads.p1 : leads.p2,
     leadsB: userIsP1 ? leads.p2 : leads.p1,
     kos: kos,
-    log: battle.log.join('\n'),
+    log: opts.needLog === false ? '' : battle.log.join('\n'),
     seed: seed,
     swap: swap
   };

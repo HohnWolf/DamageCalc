@@ -101,7 +101,8 @@
     var ocrCanvas = document.createElement('canvas'), octx = ocrCanvas.getContext('2d');
     function sample(video, r, size) {
       var z = size || sampleSize(video, r), p = z.p || regionPx(video, r);
-      work.width = z.w; work.height = z.h;
+      if (work.width !== z.w) work.width = z.w;
+      if (work.height !== z.h) work.height = z.h;
       wctx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, z.w, z.h);
       var d = wctx.getImageData(0, 0, z.w, z.h).data, g = new Uint8Array(z.w * z.h);
       for (var i = 0, j = 0; i < d.length; i += 4, j++) g[j] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
@@ -113,10 +114,12 @@
       if (dw > 1800) { var s = 1800 / dw; dw = 1800; dh = Math.max(1, Math.round(p.h * s)); }
       // small text reads better a bit larger; Windows OCR takes at most about 2600 px per side
       var k = Math.min(dh < 80 ? 2 : 1, 2400 / dw, 2400 / dh);
-      ocrCanvas.width = Math.max(1, Math.round(dw * k)); ocrCanvas.height = Math.max(1, Math.round(dh * k));
+      var ow = Math.max(1, Math.round(dw * k)), oh = Math.max(1, Math.round(dh * k));
+      if (ocrCanvas.width !== ow) ocrCanvas.width = ow;
+      if (ocrCanvas.height !== oh) ocrCanvas.height = oh;
       octx.imageSmoothingEnabled = true;
       octx.imageSmoothingQuality = 'high';
-      octx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
+      octx.drawImage(video, p.x, p.y, p.w, p.h, 0, 0, ow, oh);
       return ocrCanvas.toDataURL('image/png').split(',')[1];
     }
     return { regionPx: regionPx, sampleSize: function (video, r) { return sampleSize(video, r); }, sample: sample, ocrImage: ocrImage };

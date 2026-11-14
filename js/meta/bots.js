@@ -69,7 +69,10 @@ function natureName(poke) {
   return (got && got.name) || n;
 }
 function pokeCalc(poke, megaName) {
-  const emptyBoost = { at: 0, df: 0, sa: 0, sd: 0, sp: 0 };
+  const boosts = {
+    at: poke.boosts.atk, df: poke.boosts.def, sa: poke.boosts.spa,
+    sd: poke.boosts.spd, sp: poke.boosts.spe
+  };
   if (!megaName) {
     return {
       species: poke.species.name,
@@ -78,10 +81,7 @@ function pokeCalc(poke, megaName) {
         hp: poke.maxhp, at: poke.storedStats.atk, df: poke.storedStats.def,
         sa: poke.storedStats.spa, sd: poke.storedStats.spd, sp: poke.storedStats.spe
       },
-      boosts: {
-        at: poke.boosts.atk, df: poke.boosts.def, sa: poke.boosts.spa,
-        sd: poke.boosts.spd, sp: poke.boosts.spe
-      },
+      boosts: boosts,
       ability: poke.getAbility().name,
       item: poke.getItem().name,
       status: STATUS_MAP[poke.status] || 'Healthy',
@@ -105,10 +105,10 @@ function pokeCalc(poke, megaName) {
   };
   const ability = spc.abilities['0'] || poke.getAbility().name;
   return {
-    species: spc.name, types: spc.types.slice(), stats: stats, boosts: emptyBoost,
+    species: spc.name, types: spc.types.slice(), stats: stats, boosts: boosts,
     ability: ability, item: poke.getItem().name,
     status: STATUS_MAP[poke.status] || 'Healthy',
-    curHP: stats.hp, maxHP: stats.hp, weight: spc.weightkg || poke.getWeight(), canEvolve: false
+    curHP: poke.hp, maxHP: poke.maxhp || stats.hp, weight: spc.weightkg || poke.getWeight(), canEvolve: false
   };
 }
 function mean(rolls) {
@@ -219,7 +219,6 @@ function chooseTeam(battle, side, level, rng) {
     return score;
   }
   if (level === 1) {
-    const order = metas.slice().sort(function (a, b) { return b.i - a.i; });
     const ranked = side.pokemon.map(function (p, idx) {
       const off = (p.storedStats.atk + p.storedStats.spa) + p.storedStats.spe * 0.25;
       return { i: idx + 1, off: off };
@@ -473,10 +472,7 @@ function jointScore(a, b, foes, level) {
   if (b.kind === 'helpinghand' && a.kind === 'attack') s += 50;
   if (a.kind === 'redirect' && (b.kind === 'attack' || b.kind === 'tailwind' || b.kind === 'trickroom')) s += 40;
   if (b.kind === 'redirect' && (a.kind === 'attack' || a.kind === 'tailwind' || a.kind === 'trickroom')) s += 40;
-  if (a.kind === 'fakeout' && b.kind === 'fakeout') s -= 40;
-  if ((a.target === 'allAdjacent' && b.kind !== 'protect') || (b.target === 'allAdjacent' && a.kind !== 'protect')) {
-    // splash penalty already on the action; a small extra if both would eat it
-  }
+  if (a.id === 'fakeout' && b.id === 'fakeout') s -= (a.loc && a.loc === b.loc ? 160 : 40);
   if (a.kind === 'switch' && b.kind === 'switch') s -= 40;
   return s;
 }

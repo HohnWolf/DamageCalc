@@ -259,7 +259,16 @@
   var STAT_MAP = { hp: 'hp', atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
   function first(v) { return Array.isArray(v) ? v[0] : v; }
   function top(obj) { return Object.keys(obj || {}).sort(function (a, b) { return obj[b] - obj[a]; }); }
-  function clampSps(s) { Object.keys(s).forEach(function (k) { s[k] = Math.max(0, Math.min(32, +s[k] || 0)); }); return s; }
+  function clampSps(s) {
+    var keys = Object.keys(s), max = 0, sum = 0;
+    keys.forEach(function (k) { var v = +s[k] || 0; if (v > max) max = v; sum += v; });
+    var isEv = max > 32 || sum > 66;
+    keys.forEach(function (k) {
+      var v = Math.max(0, +s[k] || 0);
+      s[k] = Math.min(32, isEv ? (v > 0 ? Math.max(1, Math.floor((v + 4) / 8)) : 0) : v);
+    });
+    return s;
+  }
   function latest(indexJson, re) {
     var best = null, bestN = -1;
     Object.keys(indexJson || {}).forEach(function (k) { var m = re.exec(k); if (m && +m[1] > bestN) { bestN = +m[1]; best = k; } });

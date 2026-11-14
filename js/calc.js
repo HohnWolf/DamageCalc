@@ -317,7 +317,7 @@
     // situational x2 moves (toggle in the UI)
     var DOUBLE_IF = ['Payback', 'Avalanche', 'Assurance', 'Stomping Tantrum', 'Temper Flare', 'Round', 'Lash Out', 'Fickle Beam'];
     if (move.boosted && DOUBLE_IF.indexOf(name) !== -1) { bp *= 2; d.moveBP = bp; }
-    if (name === 'Steel Roller' && !field.terrain) { res.notes.push('Steel Roller schlägt ohne Terrain fehl'); res.damage = [0]; return res; }
+    if (name === 'Steel Roller' && (!field.terrain || field.terrain === 'None')) { res.notes.push('Steel Roller schlägt ohne Terrain fehl'); res.damage = [0]; return res; }
     if (bp <= 0) { res.damage = [0]; return res; }
 
     var bpMods = [];
@@ -495,7 +495,6 @@
     var hitsList = [1];
     if (name === 'Triple Axel') hitsList = [20, 40, 60].slice(0, move.hits || 3);
     else if (name === 'Triple Kick') hitsList = [10, 20, 30].slice(0, move.hits || 3);
-    if (hitsList.length === 1 && hitsList[0] !== 1) { bp = Math.max(1, applyMod(hitsList[0], chainMods(bpMods))); hitsList = [1]; }
     var nHits = 1;
     if (move.hitRange) {
       if (Array.isArray(move.hitRange)) {
@@ -504,7 +503,8 @@
         if (attacker.ability === 'Skill Link' && mx === 5) d.attackerAbility = 'Skill Link';
       } else nHits = move.hitRange;
     }
-    if (name === 'Population Bomb') nHits = move.hits || (attacker.ability === 'Skill Link' ? 10 : 10);
+    if (name === 'Population Bomb') nHits = move.hits || 10;
+    if (name === 'Beat Up') nHits = move.hits || 6;
     if (name === 'Dragon Darts' && doubles) nHits = move.hits || 2;
 
     function rollsFor(b) {
@@ -521,15 +521,15 @@
     }
 
     var rolls;
-    if (hitsList.length > 1) {
+    if (hitsList.length > 1 || hitsList[0] !== 1) {
       // Triple Axel / Triple Kick: recompute base per hit power
       rolls = new Array(16).fill(0);
-      var savedRes = calculateWithBP;
       hitsList.forEach(function (hbp) {
-        var r = savedRes(hbp);
+        var r = calculateWithBP(hbp);
         for (var i = 0; i < 16; i++) rolls[i] += r[i];
       });
-      d.hits = 3;
+      if (hitsList.length > 1) d.hits = hitsList.length;
+      nHits = hitsList.length;
     } else {
       rolls = rollsFor(base);
       if (nHits > 1) { rolls = rolls.map(function (x) { return x * nHits; }); d.hits = nHits; }
@@ -541,10 +541,18 @@
     }
 
     function calculateWithBP(hbp) {
-      var m = move; // reuse same pipeline with different bp
       var b2 = Math.max(1, applyMod(hbp, chainMods(bpMods)));
       var bb = Math.floor(Math.floor(Math.floor(2 * LEVEL / 5 + 2) * b2 * attack / defense) / 50) + 2;
       if (spread) bb = applyMod(bb, 3072);
+      if (!defUmbrella) {
+        if (atkWeather === 'Sun' || atkWeather === 'Harsh Sun') {
+          if (type === 'Fire') bb = applyMod(bb, 6144);
+          else if (type === 'Water' && name !== 'Hydro Steam') bb = applyMod(bb, 2048);
+        } else if (atkWeather === 'Rain' || atkWeather === 'Heavy Rain') {
+          if (type === 'Water') bb = applyMod(bb, 6144);
+          else if (type === 'Fire') bb = applyMod(bb, 2048);
+        }
+      }
       if (isCrit) bb = Math.floor(bb * 1.5);
       return rollsFor(bb);
     }

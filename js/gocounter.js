@@ -136,7 +136,6 @@
     var shadow = !!(flags & 1);
     var released = !!(flags & 2);
     var isLegend = !!(flags & 4);
-    var inDialga = (flags & 8) ? true : true;
     var isMega = flabel === 'Mega' || flabel === 'Mega-X' || flabel === 'Mega-Y' || flabel === 'Mega-Z' || flabel === 'Primal';
     var pogoForm = m[14] || (isMega ? (flabel === 'Mega-Y' ? 'MegaY' : flabel === 'Mega-Z' ? 'MegaZ' : 'Mega') : (flabel || 'Normal'));
     var nd = (window.NATDEX && window.NATDEX[num]) || [];
@@ -173,7 +172,6 @@
       shadow: shadow,
       released: released,
       class: isLegend ? 'LEGENDARY' : undefined,
-      inDialga: inDialga,
       raid_tier: m[12] || 0
     };
     speciesByNum[num].forms.push(entry);
@@ -305,7 +303,7 @@
   }
 
   function getPartyBoost(fToCRatio) {
-    if (st.partySize <= 1) return 0;
+    if (st.partySize <= 1 || !isFinite(fToCRatio) || fToCRatio <= 0) return 0;
     var fMovesPerBoost = st.partySize === 2 ? 18 : st.partySize === 3 ? 9 : 6;
     return Math.max(0, Math.min(fToCRatio / fMovesPerBoost, 1));
   }
@@ -445,8 +443,9 @@
       var epsForDamage = ENERGY_PER_HP * totalIncomingDps;
       fmDur += FM_DELAY;
       cmDur += CM_DELAY;
-      fmsPerCm = (-cmObj.energy_delta - epsForDamage * cmDur) / (fmObj.energy_delta + epsForDamage * fmDur);
-      if (fmsPerCm < 0) fmsPerCm = 0;
+      var denom = fmObj.energy_delta + epsForDamage * fmDur;
+      fmsPerCm = denom > 0 ? (-cmObj.energy_delta - epsForDamage * cmDur) / denom : 0;
+      if (fmsPerCm < 0 || !isFinite(fmsPerCm)) fmsPerCm = 0;
       fmsPerCm = fmsPerCm + (1 / CHARGED_MOVE_CHANCE) - 1;
     } else {
       if (cmObj.energy_delta === -100) fmsPerCm = 3;
@@ -1893,7 +1892,7 @@
   function mvN(m) { return !m ? '' : (typeof m === 'string' ? m : m.name || ''); }
   function bossCounters(num, form, tier, n) {
     if (!speciesByNum[num]) return [];
-    var key = [num, form || '', tier || 0, st.metric, st.levelMode, st.partySize, st.teamMode, st.mega, st.shadow, st.legendary, st.elite, st.mixed, st.offtype, st.unreleased, st.newdps, st.pveTurns].join('|');
+    var key = [num, form || '', tier || 0, st.metric, st.levelMode, st.partySize, st.teamMode, st.relobbyTime, st.superMegaLevel, st.mega, st.shadow, st.legendary, st.elite, st.mixed, st.offtype, st.unreleased, st.newdps, st.pveTurns].join('|');
     var res = bossCache[key];
     if (!res) {
       var keep = { mode: st.mode, bossNum: st.bossNum, bossForm: st.bossForm, bossTier: st.bossTier, bossFm: st.bossFm, bossCm: st.bossCm, suboptimal: st.suboptimal, grouped: st.grouped };

@@ -946,15 +946,6 @@ body.is-maximized #winMax .ic-restore { display: block; }
 .sw-dark { background: linear-gradient(135deg, #1b1d21 52%, #3a7bd5 52%); }
 .sw-light { background: linear-gradient(135deg, #e8eaed 52%, #1f5fbf 52%); }
 .sw-oled { background: linear-gradient(135deg, #000 52%, #6aabff 52%); }
-.sw-poke { background: linear-gradient(135deg, #6b1220 52%, #ffd54a 52%); }
-.sw-rattata { background: linear-gradient(135deg, #241636 52%, #d4bbff 52%); }
-.sw-ocean { background: linear-gradient(135deg, #0b333b 52%, #7af0e0 52%); }
-.sw-emerald { background: linear-gradient(135deg, #082419 52%, #3dd68c 52%); }
-.sw-gold { background: linear-gradient(135deg, #16130d 52%, #f5c451 52%); }
-.sw-cyber { background: linear-gradient(135deg, #0d0f24 52%, #00d2f5 52%); }
-.sw-sakura { background: linear-gradient(135deg, #f7edf2 52%, #c93072 52%); }
-.sw-sunset { background: linear-gradient(135deg, #24110b 52%, #ff9e44 52%); }
-.sw-arctic { background: linear-gradient(135deg, #0f1924 52%, #7ce0ff 52%); }
 .sw-system { background: linear-gradient(135deg, #1b1d21 50%, #e8eaed 50%); }
 
 /* App & Updates status card */

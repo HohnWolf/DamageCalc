@@ -226,7 +226,16 @@
 
   // ---------------- battle Pokémon ----------------
   function allMine() { return save ? save.party.map(function (m, i) { m.where = 'party'; m.idx = i; return m; }).concat(save.boxes.map(function (m) { m.where = 'box'; return m; })) : []; }
-  function findMine(pid) { var r = null; allMine().some(function (m) { if (m.pid === pid) { r = m; return true; } return false; }); return r; }
+  function findMine(pid) {
+    if (!save || pid == null) return null;
+    for (var i = 0; i < save.party.length; i++) {
+      if (save.party[i].pid === pid) { save.party[i].where = 'party'; save.party[i].idx = i; return save.party[i]; }
+    }
+    for (var j = 0; j < save.boxes.length; j++) {
+      if (save.boxes[j].pid === pid) { save.boxes[j].where = 'box'; return save.boxes[j]; }
+    }
+    return null;
+  }
   function prep(base, side) {
     var m = JSON.parse(JSON.stringify(base));
     var o = side === 'my' ? st.my : st.op;

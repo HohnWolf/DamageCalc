@@ -18,6 +18,7 @@ function runMatchup(opts) {
     if (opts.shouldStop && opts.shouldStop()) break;
     const seed = stats.seedFor(base, i);
     const swap = i % 2 === 1;
+    const needLog = !!(opts.keepLog || (opts.keepReplay && games.length < (opts.keepReplay | 0)));
     const g = engine.runGame({
       packedA: opts.packedA,
       packedB: opts.packedB,
@@ -26,7 +27,8 @@ function runMatchup(opts) {
       seed: seed,
       swap: swap,
       maxTurns: opts.maxTurns,
-      maxMs: opts.maxMs
+      maxMs: opts.maxMs,
+      needLog: needLog
     });
     errors += g.errors;
     if (g.result === 'unfinished') unfinished++;
@@ -42,7 +44,7 @@ function runMatchup(opts) {
       const tgtName = engine.nameOf(k.target);
       const userSrc = (srcSide === 'p1') !== swap;
       const userTgt = (tgtSide === 'p1') !== swap;
-      if (userSrc && srcName) koBy[srcName] = (koBy[srcName] || 0) + 1;
+      if (userSrc && !userTgt && srcName) koBy[srcName] = (koBy[srcName] || 0) + 1;
       if (userTgt && tgtName) faintBy[tgtName] = (faintBy[tgtName] || 0) + 1;
       if (userSrc && !userTgt && srcName && tgtName) {
         koMatrix[srcName] = koMatrix[srcName] || {};

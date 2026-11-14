@@ -6,10 +6,6 @@
   'use strict';
   var G = window.GEN3;
 
-  var DEFAULTS = {
-    seed: '', wild: 'random', wildGlobal: false, trainers: 'random', trainerLevel: 0, starters: 'random', starterPick: [0, 0, 0],
-    evo: 'keep', stats: 'keep', types: 'keep', abilities: 'keep', moves: 'keep', noLegend: false
-  };
   var LEGEND_NAT = [144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386];
   var KIND = [['land', 12], ['water', 5], ['rock', 5], ['fish', 10]];
   var BAN_ABILITY = [25, 54]; // Wunderwache, Bummler
@@ -43,7 +39,6 @@
 
   // ---------------- Arten und Hilfen ----------------
   function validSpecies(rom, s) { return ((s >= 1 && s <= 251) || (s >= 277 && s <= 411)) && rom.species[s] && rom.species[s].nat > 0; }
-  function bstOf(rom, s) { var b = rom.species[s].bs; return b[0] + b[1] + b[2] + b[3] + b[4] + b[5]; }
   function nameOf(rom, s) { var sp = rom.species[s]; return sp ? (sp.name || ('#' + sp.nat)) : '#' + s; }
   function makePool(rom, noLegend) {
     var pool = [];
@@ -53,24 +48,6 @@
       pool.push(s);
     }
     return pool;
-  }
-  // zufällig ersetzen, "similar": nur Arten mit ähnlicher Gesamtstärke (Basiswertesumme)
-  function makePicker(rom, pool, rng, bst0) {
-    var sorted = pool.slice().sort(function (a, b) { return bst0[a] - bst0[b]; });
-    return function (orig, similar, exclude) {
-      var list = sorted;
-      if (similar) {
-        var t = bst0[orig], w = Math.max(30, t * 0.12);
-        var near = sorted.filter(function (s) { return Math.abs(bst0[s] - t) <= w; });
-        if (near.length < 6) {
-          var by = sorted.slice().sort(function (a, b) { return Math.abs(bst0[a] - t) - Math.abs(bst0[b] - t); });
-          near = by.slice(0, 12);
-        }
-        list = near;
-      }
-      if (exclude) { var f = list.filter(function (s) { return exclude.indexOf(s) === -1; }); if (f.length) list = f; }
-      return rng.pick(list);
-    };
   }
 
   // ---------------- Wilde Pokémon: gWildMonHeaders ----------------

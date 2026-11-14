@@ -154,7 +154,9 @@
     if (imgCache[url]) return imgCache[url];
     return (imgCache[url] = new Promise(function (res) {
       var i = new Image(); i.crossOrigin = 'anonymous';
-      i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = url;
+      i.onload = function () { res(i); };
+      i.onerror = function () { delete imgCache[url]; res(null); };
+      i.src = url;
     }));
   }
   function apiId(m) {
@@ -238,7 +240,7 @@
     background(c, W, H, T, tint);
     var wide = W > H * 1.2, s = P.s;
     var shadow = /^shadow/.test(st.tier);
-    var kicker = (de ? 'RAID · ' : 'RAID · ') + tierLbl;
+    var kicker = 'RAID · ' + tierLbl;
     var top = header(c, wide ? W * 0.5 : W, P, P.m, T, kicker, shadow ? '#7c3aed' : (st.tier.indexOf('mega') === 0 ? '#f97316' : '#fbbf24'));
     var bossIm = m ? await loadMon(m, false) : null;
     var cm0 = catchMon(m), shIm = (st.shinyOk && cm0) ? await loadMon(cm0, true) : null;
@@ -339,10 +341,9 @@
       var rowsN = Math.ceil(cnt.length / per);
       var cntH = cnt.length ? 22 * s + rowsN * (cellH0 + 12 * s) - 12 * s : 0;
       var wkH = m ? 22 * s + weakRows(W0) : 0;
-      var heroH = R - cntH - wkH - gp * (m ? 2 : 1) - (cnt.length ? 0 : 0);
+      var heroH = R - cntH - wkH - gp * (m ? 2 : 1);
       heroH = Math.max(250 * s, Math.min(heroH, heroMax));
       if (cnt.length) { var left = R - heroH - cntH - wkH - gp * 2; if (left > 0) cellH0 = Math.min(210 * s, cellH0 + left / rowsN); }
-      var avCnt = H - fr - top - heroH - wkH - gp * 2;
       var sw = W0 * 0.5, rad2 = Math.min(sw * 0.5, (heroH - 130 * s) / 2);
       bossBlock(x0 + sw / 2, top + rad2 + 6 * s, rad2, sw - 10 * s);
       if (m) {
@@ -367,7 +368,6 @@
     var rday = !!st.rday, rowH = (rday ? 200 : 150) * s, gap = 14 * s, hd = 190 * s + (st.sub.trim() ? 40 * s : 0) + (st.date.trim() ? 40 * s : 0) + (st.title.trim() ? 50 * s : 0);
     var need = hd + Math.ceil(n / cols) * (rowH + gap) + P.m * 1.6;
     var H = Math.max(H0, Math.round(need));
-    if (wide) H = Math.max(H0, Math.round(need));
     cv.height = H; // Höhe wächst mit der Zeilenzahl
     c = cv.getContext('2d'); c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
     background(c, W, H, T, T.acc);
@@ -459,7 +459,7 @@
     var dl = el('datalist', { id: 'giMons' }); dl.innerHTML = speciesNames.map(function (n) { return '<option value="' + esc(n) + '">'; }).join(''); side.appendChild(dl);
     var dt = el('datalist', { id: 'giTasks' }); dt.innerHTML = TASKS.map(function (n) { return '<option value="' + esc(n) + '">'; }).join(''); side.appendChild(dt);
 
-    side.appendChild(seg([['raid', de ? 'Raid' : 'Raid'], ['research', de ? 'Feldforschung' : 'Field Research']], st.kind, function (v) { st.kind = v; save(); render(); }));
+    side.appendChild(seg([['raid', 'Raid'], ['research', de ? 'Feldforschung' : 'Field Research']], st.kind, function (v) { st.kind = v; save(); render(); }));
     side.appendChild(field(de ? 'Titel' : 'Title', input('title', st.kind === 'raid' ? (de ? 'z. B. Raid-Stunde' : 'e.g. Raid Hour') : (de ? 'z. B. Community Day Forschung' : 'e.g. Community Day research'))));
     side.appendChild(field(de ? 'Untertitel' : 'Subtitle', input('sub', '')));
     side.appendChild(field(de ? 'Datum / Zeit' : 'Date / time', input('date', de ? 'z. B. Mi, 18–19 Uhr' : 'e.g. Wed, 6–7 PM')));

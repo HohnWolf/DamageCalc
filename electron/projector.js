@@ -1,7 +1,7 @@
 // Eigenes Fenster „Projektor“ für den Shiny-Zähler: Aufnahme vollflächig, OBS-Overlay darüber.
 // Das Fenster ist undurchsichtig (kein transparentes Fenster, das unter Windows flackert).
 // Das Bild ist dasselbe MediaStream wie im Zähler (ein Prozess, kein JPEG). Der gelbe Rahmen bleibt auf dem Vorschau-Canvas.
-const { BrowserWindow, ipcMain, screen, MessageChannelMain } = require('electron');
+const { BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const shiny = require('./shiny');
@@ -15,7 +15,6 @@ let teamUrls = null; // 21:9: { me, opp } Team-Overlays links und rechts vom Spi
 let theme = 'oled';
 let lang = 'de';
 let saveTimer = null;
-let ready = false;
 
 function emptyOpts() {
   return { onTop: false, hideCursor: false, overlay: true, fullscreen: false, displayId: null, bounds: null, sound: true, volume: 80, counterX: 2, counterY: 2, counterScale: 100 };
@@ -136,23 +135,6 @@ function rememberBounds() {
   }, 200);
 }
 
-function linkPorts() {
-  if (!alive(proj) || !alive(mainWin)) return;
-  // isLoading() bleibt nach did-finish-load manchmal wahr und hat die Verbindung verschluckt.
-  try {
-    const { port1, port2 } = new MessageChannelMain();
-    mainWin.webContents.postMessage('projector-port', { type: 'rl-projector-port' }, [port1]);
-    proj.webContents.postMessage('projector-port', { type: 'rl-projector-port' }, [port2]);
-  } catch (e) { console.error('Projektor: MessagePort', e); }
-}
-
-function whenPort(cb, n) {
-  const p = shiny.port();
-  if (p) { cb(p); return; }
-  if ((n || 0) > 40) { cb(0); return; }
-  setTimeout(() => whenPort(cb, (n || 0) + 1), 50);
-}
-
 function isProjectorUrl(url) {
   return /(?:^|\/)projector\.html(?:$|\?|#)/.test(String(url || ''));
 }
@@ -181,14 +163,13 @@ function popupOptions() {
 }
 function attach(child) {
   proj = child;
-  ready = false;
   safe(() => child.webContents.setBackgroundThrottling(false));
   const showProj = () => { if (alive(proj) && !proj.isVisible()) safe(() => proj.show()); };
   child.once('ready-to-show', showProj);
   child.on('resize', rememberBounds);
   child.on('move', rememberBounds);
-  child.on('closed', () => { if (proj === child) { proj = null; ready = false; sendMain('projector-closed', {}); } });
-  child.webContents.on('did-finish-load', () => { ready = true; showProj(); applyWindow(); });
+  child.on('closed', () => { if (proj === child) { proj = null; sendMain('projector-closed', {}); } });
+  child.webContents.on('did-finish-load', () => { showProj(); applyWindow(); });
   child.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
     if (isMainFrame === false) return;
     console.error('Projektor: Seite nicht geladen', code, desc, url);

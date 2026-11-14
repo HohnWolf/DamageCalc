@@ -111,10 +111,13 @@
   function stageMod(v, st) { st = st || 0; return st >= 0 ? Math.floor(v * (2 + st) / 2) : Math.floor(v * 2 / (2 - st)); }
 
   // the species entry for a species and form (forms have their own base stats and types)
+  function specIdx(rom, species, form) {
+    var sp = rom.species[species];
+    if (form && sp && sp.forms && sp.forms[form - 1] != null && rom.species[sp.forms[form - 1]]) return sp.forms[form - 1];
+    return species;
+  }
   function specOf(rom, species, form) {
-    var sp = rom.species[species] || rom.species[0];
-    if (form && sp.forms && sp.forms[form - 1] != null && rom.species[sp.forms[form - 1]]) return rom.species[sp.forms[form - 1]];
-    return sp;
+    return rom.species[specIdx(rom, species, form)] || rom.species[0];
   }
   function abilityFor(sp, slot) { var a = sp.abilities || []; return slot === 2 && a[2] ? a[2] : slot === 1 && a[1] ? a[1] : a[0]; }
 
@@ -183,8 +186,9 @@
         slot = ab5 === 3 ? 2 : ab5 === 2 ? (two ? 1 : 0) : ab5 === 1 ? 0 : (pid5 & 0x10000) && two ? 1 : 0;
       }
       var stats = calcStats(sp, pm.level, ivs, evs, nature);
+      var fSp = specIdx(rom, pm.species, pm.form);
       return { species: pm.species, form: pm.form || 0, nat: sp.nat, level: pm.level, stats: stats, types: sp.types.slice(), ability: abilityFor(sp, slot),
-        item: pm.item, moves: pm.moves ? pm.moves.filter(function (x) { return x > 0; }) : defaultMoves(rom, pm.species, pm.level), nature: nature,
+        item: pm.item, moves: pm.moves ? pm.moves.filter(function (x) { return x > 0; }) : defaultMoves(rom, rom.learnsets[fSp] ? fSp : pm.species, pm.level), nature: nature,
         natureKnown: natureKnown, ivs: ivs, evs: evs, friendship: sp.friendship, maxHP: stats.hp, hp: stats.hp, defaultMoves: !pm.moves, weight: sp.weight };
     });
   }

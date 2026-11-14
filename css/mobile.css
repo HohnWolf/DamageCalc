@@ -94,7 +94,6 @@ html.rl-android .sidebar .sb-list > *, html.rl-android .sidebar .sb-list button 
 html.rl-android .start-inner { padding: 12px 12px calc(20px + env(safe-area-inset-bottom)) !important; max-width: 100% !important; }
 html.rl-android .start-logo { height: 84px !important; width: auto !important; margin: 4px auto 10px !important; display: block; }
 html.rl-android .start-cards.is-all { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px; }
-html.rl-android .start-cards.is-all .start-group { display: none !important; }
 html.rl-android .start-cards .cat-card { min-height: 0; padding: 10px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px; }
 html.rl-android .start-cards .cat-card .sc-art { height: 64px !important; max-height: 64px !important; min-height: 0; overflow: hidden; transform: none; }
 html.rl-android .start-cards .cat-card .sc-art .sc-mon { transform: scale(.78); }

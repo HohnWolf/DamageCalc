@@ -13,7 +13,7 @@
     dark: { bg: '#15171c', ink: '#ecebe6', mute: '#a3a39c', accent: '#e5493d', card: '#21242b', line: '#383c46', spr: '#2c3039', chip: '#32363f', q: '#777' }
   };
   var FF = '"Segoe UI",system-ui,Arial,sans-serif';
-  var modal = null, ctx = null, lang = 'de', showSp = false, dark = false, token = 0, timer = 0;
+  var modal = null, ctx = null, lang = de ? 'de' : 'en', showSp = false, dark = false, token = 0, timer = 0;
 
   // names in a fixed language, independent of the app language
   function inLang(l, fn) { return A.withLang ? A.withLang(l, fn) : fn(); }
@@ -118,7 +118,7 @@
       '<input type="text" data-player spellcheck="false" placeholder="' + A.esc(de ? 'Spielername (optional)' : 'Player name (optional)') + '">' +
       '<label class="ts-chk"><input type="checkbox" data-sp> ' + A.esc(de ? 'SP anzeigen' : 'Show SP') + '</label>' +
       '<label class="ts-chk"><input type="checkbox" data-dark> ' + A.esc(de ? 'Dark Mode' : 'Dark mode') + '</label>' +
-      '<span class="ts-seg"><button data-l="de" class="on">Deutsch</button><button data-l="en">English</button><button data-l="both">' + A.esc(de ? 'Beide' : 'Both') + '</button></span>' +
+      '<span class="ts-seg"><button data-l="de"' + (lang === 'de' ? ' class="on"' : '') + '>Deutsch</button><button data-l="en"' + (lang === 'en' ? ' class="on"' : '') + '>English</button><button data-l="both">' + A.esc(de ? 'Beide' : 'Both') + '</button></span>' +
       '</div><div class="ts-out" data-out></div></div>';
     document.body.appendChild(modal);
     var close = function () { modal.classList.add('hidden'); };
@@ -154,11 +154,20 @@
       var st = A.el('span', { class: 'hint' });
       var cp = A.el('button', { class: 'tbtn', text: de ? 'Bild kopieren' : 'Copy image' });
       cp.addEventListener('click', function () {
+        var failMsg = de ? 'Kopieren nicht möglich – Bild rechtsklicken oder speichern.' : 'Copy not possible – right-click the image or save it.';
+        if (typeof ClipboardItem === 'undefined' || !navigator.clipboard || !navigator.clipboard.write) { st.textContent = failMsg; return; }
         cv.toBlob(function (bl) {
-          navigator.clipboard.write([new ClipboardItem({ 'image/png': bl })]).then(function () { st.textContent = de ? 'Kopiert' : 'Copied'; }, function () { st.textContent = de ? 'Kopieren nicht möglich – Bild rechtsklicken oder speichern.' : 'Copy not possible – right-click the image or save it.'; });
+          if (!bl) { st.textContent = failMsg; return; }
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': bl })]).then(function () { st.textContent = de ? 'Kopiert' : 'Copied'; }, function () { st.textContent = failMsg; });
         }, 'image/png');
       });
       var a = A.el('a', { class: 'tbtn ts-save', text: de ? 'Als PNG speichern' : 'Save as PNG' }); a.href = img.src; a.download = 'teamsheet-' + l + '.png';
+      if (window.RL_ANDROID && A.saveFile) {
+        a.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          cv.toBlob(function (bl) { if (bl) A.saveFile('teamsheet-' + l + '.png', bl, 'image/png'); }, 'image/png');
+        });
+      }
       box.appendChild(img);
       var row = A.el('div', { class: 'ts-row' }); row.appendChild(cp); row.appendChild(a); row.appendChild(st);
       box.appendChild(row);

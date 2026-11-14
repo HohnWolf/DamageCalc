@@ -84,10 +84,14 @@ function spawn(job) {
     if (job.cancelled || active !== job) return;
     if (msg.type === 'tick') {
       job.doneGames++;
-      send(job, 'meta-progress', {
-        jobId: job.id, done: Math.min(job.totalGames, job.doneGames), total: job.totalGames,
-        name: worker._op && worker._op.name
-      });
+      const now = Date.now();
+      if (now - (job.lastTick || 0) >= 40 || job.doneGames >= job.totalGames) {
+        job.lastTick = now;
+        send(job, 'meta-progress', {
+          jobId: job.id, done: Math.min(job.totalGames, job.doneGames), total: job.totalGames,
+          name: worker._op && worker._op.name
+        });
+      }
     } else if (msg.type === 'done') {
       const op = worker._op || {};
       if (msg.error) job.rows.push({ id: op.id, name: op.name, archetype: op.archetype, error: msg.error });
@@ -97,10 +101,15 @@ function spawn(job) {
     }
   });
   worker.on('error', function (err) {
-    if (job.cancelled) return;
+    if (job.cancelled || active !== job) return;
+    const idx = job.workers.indexOf(worker);
+    if (idx >= 0) job.workers.splice(idx, 1);
     const op = worker._op || {};
-    job.rows.push({ id: op.id, name: op.name, error: String(err && err.message || err) });
-    give();
+    const row = { id: op.id, name: op.name, archetype: op.archetype, error: String(err && err.message || err) };
+    job.rows.push(row);
+    send(job, 'meta-progress', { jobId: job.id, done: Math.min(job.totalGames, job.doneGames), total: job.totalGames, row: row });
+    if (job.next < job.opponents.length) spawn(job);
+    else maybeFinish(job);
   });
   give();
 }

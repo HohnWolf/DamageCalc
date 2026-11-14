@@ -10,13 +10,11 @@
     gens: 'Unterstützt: Generation 1 (Rot, Blau, Gelb), 2 (Gold, Silber, Kristall), 3 (Rubin, Saphir, Smaragd, Feuerrot, Blattgrün), 4 (Diamant, Perl, Platin, HeartGold, SoulSilver), 5 (Schwarz, Weiß, Schwarz 2, Weiß 2) und 6/7 (X, Y, Omega Rubin, Alpha Saphir, Sonne, Mond, Ultra Sonne, Ultra Mond; entschlüsselte .cxi).',
     pick: 'ROM wählen …', drop: 'oder eine .gb- / .gbc- / .gba- / .nds- / .cxi-Datei hierher ziehen', enc: 'Diese 3DS-Datei ist verschlüsselt. Gebraucht wird eine entschlüsselte .cxi (oder .3ds).', big: 'Große Datei, bitte kurz warten …', game: 'Erkannt:', scan: 'Gefunden: {0} Karten mit wilden Pokémon, {1} Trainer, Starter {2}, Entwicklungen {3}',
     yes: 'ja', no: 'nein', bad: 'Diese Datei wird nicht unterstützt. Gebraucht wird eine unveränderte GBA-ROM der 3. Generation.',
-    gen12: 'Game-Boy-ROMs (Generation 1 und 2) werden noch nicht unterstützt.', gen45: 'DS-ROMs der Generation 5 werden noch nicht unterstützt.', gen67: '3DS-ROMs (Generation 6 und 7) werden noch nicht unterstützt.',
     wild: 'Wilde Pokémon', trainers: 'Trainer-Pokémon', starters: 'Starter', evo: 'Entwicklungen', stats: 'Basiswerte', types: 'Typen', abilities: 'Fähigkeiten', moves: 'Level-Attacken',
     keep: 'Unverändert', random: 'Zufällig', similar: 'Zufällig, ähnlich stark', custom: 'Eigene Auswahl', shuffle: 'Werte mischen', randomStats: 'Zufällig (gleiche Summe)',
     wildGlobal: 'Jede Art wird überall gleich ersetzt (1:1)', noLegend: 'Keine legendären Pokémon', trainerLevel: 'Trainer-Level ändern um', seed: 'Seed (leer = zufällig)',
     go: 'Randomisieren und speichern', log: 'Protokoll speichern', done: 'Fertig. Die randomisierte ROM wurde gespeichert, Seed:', again: 'Gleiche ROM, gleiche Einstellungen und gleicher Seed ergeben immer dasselbe Ergebnis.',
     warn: 'Nutze die neue Datei nur mit einer Kopie deines Spielstands. Randomisierte Spiele können unfair oder unspielbar sein.',
-    adv: 'Erweiterte Optionen', advOnly: 'Diese Optionen gibt es für Generation 1, 2 und 5–7. Generation 3 und 4 kennen nur die Grundoptionen.',
     o_followEvoTypes: 'Typen: Weiterentwicklungen erben den Typ der Vorstufe', o_followEvoAbilities: 'Fähigkeiten: Weiterentwicklungen erben die Fähigkeiten der Vorstufe',
     o_allowWonderGuard: 'Wunderwache darf vorkommen', o_banTrapping: 'Keine Fallen-Fähigkeiten (Magnetfalle, Schattentag, Fallensteller)', o_banNegative: 'Keine schlechten Fähigkeiten (Bummler, Anlaufzeit, Defätist …)',
     o_moveTypePct: 'Level-Attacken: Anteil gleicher Typ (%)', o_evoSameType: 'Entwicklungen: neues Ziel teilt einen Typ mit der Vorstufe', o_evoForceChange: 'Entwicklungen: Ziel muss sich ändern',
@@ -52,13 +50,11 @@
     gens: 'Supported: generation 1 (Red, Blue, Yellow), 2 (Gold, Silver, Crystal), 3 (Ruby, Sapphire, Emerald, FireRed, LeafGreen), 4 (Diamond, Pearl, Platinum, HeartGold, SoulSilver), 5 (Black, White, Black 2, White 2) and 6/7 (X, Y, Omega Ruby, Alpha Sapphire, Sun, Moon, Ultra Sun, Ultra Moon; decrypted .cxi).',
     pick: 'Choose ROM …', drop: 'or drag a .gb / .gbc / .gba / .nds / .cxi file here', enc: 'This 3DS file is encrypted. A decrypted .cxi (or .3ds) is required.', big: 'Large file, please wait …', game: 'Detected:', scan: 'Found: {0} maps with wild Pokémon, {1} trainers, starters {2}, evolutions {3}',
     yes: 'yes', no: 'no', bad: 'This file is not supported. An unmodified generation 3 GBA ROM is required.',
-    gen12: 'Game Boy ROMs (generation 1 and 2) are not supported yet.', gen45: 'DS ROMs of generation 5 are not supported yet.', gen67: '3DS ROMs (generation 6 and 7) are not supported yet.',
     wild: 'Wild Pokémon', trainers: 'Trainer Pokémon', starters: 'Starters', evo: 'Evolutions', stats: 'Base stats', types: 'Types', abilities: 'Abilities', moves: 'Level-up moves',
     keep: 'Unchanged', random: 'Random', similar: 'Random, similar strength', custom: 'Custom', shuffle: 'Shuffle stats', randomStats: 'Random (same total)',
     wildGlobal: 'Each species is replaced the same everywhere (1:1)', noLegend: 'No legendary Pokémon', trainerLevel: 'Change trainer levels by', seed: 'Seed (empty = random)',
     go: 'Randomize and save', log: 'Save log', done: 'Done. The randomized ROM was saved, seed:', again: 'Same ROM, same settings and same seed always give the same result.',
     warn: 'Use the new file only with a copy of your save. Randomized games can be unfair or unplayable.',
-    adv: 'Advanced options', advOnly: 'These options exist for generations 1, 2 and 5–7. Generations 3 and 4 only have the basic options.',
     o_followEvoTypes: 'Types: evolutions inherit the type of the previous stage', o_followEvoAbilities: 'Abilities: evolutions inherit the abilities of the previous stage',
     o_allowWonderGuard: 'Allow Wonder Guard', o_banTrapping: 'No trapping abilities (Magnet Pull, Shadow Tag, Arena Trap)', o_banNegative: 'No bad abilities (Truant, Slow Start, Defeatist …)',
     o_moveTypePct: 'Level-up moves: share of same type (%)', o_evoSameType: 'Evolutions: new target shares a type with the previous stage', o_evoForceChange: 'Evolutions: target must change',
@@ -149,7 +145,6 @@
     var c = el('input', { type: 'checkbox' }); c.checked = !!st.opts[key]; c.onchange = function () { st.opts[key] = c.checked; };
     var l = el('label', { class: 'rd-check' }); l.appendChild(c); l.appendChild(el('span', { text: label })); return l;
   }
-  var BOOLS = ['followEvoTypes', 'followEvoAbilities', 'allowWonderGuard', 'banTrapping', 'banNegative', 'evoSameType', 'evoForceChange', 'evoLimit3', 'starterTwoEvo', 'starterSameType', 'wildAreaType', 'wildArea1to1', 'wildCatchAll', 'trainerTypeTheme', 'trainerNoDup'];
   function adv() { return st.eng && st.eng.DEFAULTS && 'followEvoTypes' in st.eng.DEFAULTS; }
   var PRESETS = {
     pStd: function (d) { return d; },
@@ -270,7 +265,8 @@
     if (caps.evoFix) {
       ['evoImpossible', 'evoNoTime', 'evoEasier'].forEach(function (k) { pm.appendChild(check(k, S['o_' + k])); });
       head(pm, S.expCurve);
-      grid(pm).appendChild(modeRow('expCurve', S.expCurve, ['keep', 'mediumFast', 'mediumSlow', 'fast', 'slow', 'erratic', 'fluctuating'], { keep: S.keep, mediumFast: S.cMediumFast, mediumSlow: S.cMediumSlow, fast: S.cFast, slow: S.cSlow, erratic: S.cErratic, fluctuating: S.cFluctuating }));
+      var expChoices = isGb ? ['keep', 'mediumFast', 'mediumSlow', 'fast', 'slow'] : ['keep', 'mediumFast', 'mediumSlow', 'fast', 'slow', 'erratic', 'fluctuating'];
+      grid(pm).appendChild(modeRow('expCurve', S.expCurve, expChoices, { keep: S.keep, mediumFast: S.cMediumFast, mediumSlow: S.cMediumSlow, fast: S.cFast, slow: S.cSlow, erratic: S.cErratic, fluctuating: S.cFluctuating }));
       pm.appendChild(check('expLegendsSlow', S.o_expLegendsSlow));
     }
 
@@ -280,7 +276,7 @@
     var g2 = grid(ps);
     var hasStarters = isGba || isGb || info.starters;
     if (hasStarters) {
-      g2.appendChild(modeRow('starters', S.starters, isGba || isGb ? ['keep', 'random', 'custom'] : ['keep', 'random'], { keep: S.keep, random: S.random, custom: S.custom }));
+      g2.appendChild(modeRow('starters', S.starters, isGba ? ['keep', 'random', 'custom'] : ['keep', 'random'], { keep: S.keep, random: S.random, custom: S.custom }));
       if (st.opts.starters === 'custom' && isGba) {
         var sr = el('div', { class: 'rd-starters' }), pool = st.eng.makePool(st.rom, false);
         for (var k = 0; k < 3; k++) (function (k) {

@@ -9,6 +9,17 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.1',
+      de: [
+        'Save-Editor: Gen-5-Team-Pokémon (#494–#649) werden richtig geladen und überschreiben beim Speichern nicht mehr den nächsten Slot.',
+        'Damage Calc & Online-Sets: EV-Spreads aus Online-Presets werden korrekt in SPs umgerechnet; Steel Roller, Triple Axel, Triple Kick und Beat Up sowie das Tauschen von Feldeffekten (⇄) behoben.',
+        'Meta-Test, Shiny-Zähler & Performance: K.O.-Zählung (Wetter/Rückstoß/Eigen-K.O.) und Mega-Bewertung korrigiert, OCR-Prozess bricht nicht mehr nach 20 s ab, schnelleres Laden und Berechnen im gesamten Projekt.'
+      ],
+      en: [
+        'Save editor: Gen 5 party Pokémon (#494–#649) load properly and no longer overwrite the next slot when saving.',
+        'Damage calc & online sets: EV spreads from online presets are properly converted to SPs; fixed Steel Roller, Triple Axel, Triple Kick, Beat Up and swapping field effects (⇄).',
+        'Meta test, shiny counter & performance: fixed KO attribution (weather/recoil/self-KO) and Mega evaluation, OCR no longer stops after 20 s, faster loading and calculations across the app.'
+      ] },
     { v: '1.26.0',
       de: ['Sidebar-Ansicht: Das große Logo über der Übersicht ist weg, damit alle Tools ohne Scrollen sichtbar sind.'],
       en: ['Sidebar layout: the large logo above the overview is gone, so all tools are visible without scrolling.'],

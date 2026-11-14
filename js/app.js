@@ -184,7 +184,7 @@
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
       startCatchText: 'Fangwahrscheinlichkeiten für alle Hauptspiele (Gen 1–9): KP-IV-Spannen, alle Pokébälle im Direktvergleich, Kritischer Fang, Orden-Caps und Fangkraft.',
-      navRandomizer: 'Randomizer', navSave: 'Save File Editor', startSaveText: 'Bearbeite Spielstände (Team, Boxen, Pokémon, Items, Trainerdaten) und speichere eine neue Datei.', startSaveKo: 'Team · Boxen · Pokémon', startRandomizerText: 'Mischt wilde Pokémon, Trainer, Starter, Entwicklungen, Werte, Typen und Attacken einer Spiel-ROM (Generation 3) und speichert eine neue Datei.', navRandomizer: 'Randomizer', navSave: 'Save File Editor', startSaveText: 'Edit save files (party, boxes, Pokémon, items, trainer data) and save a new file.', startSaveKo: 'Party · Boxes · Pokémon', startRandomizerText: 'Shuffles wild Pokémon, trainers, starters, evolutions, stats, types and moves of a game ROM (generation 3) and saves a new file.', navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'Alle Pokémon aus Pokémon GO mit Typen, Basiswerten, schnellen und Lade-Attacken (inkl. Elite-TM und STAB) sowie der WP eines 100%-IV-Pokémon auf Level 15, 20, 25 und 50.', startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
+      navRandomizer: 'Randomizer', navSave: 'Save File Editor', startSaveText: 'Bearbeite Spielstände (Team, Boxen, Pokémon, Items, Trainerdaten) und speichere eine neue Datei.', startSaveKo: 'Team · Boxen · Pokémon', startRandomizerText: 'Mischt wilde Pokémon, Trainer, Starter, Entwicklungen, Werte, Typen und Attacken einer Spiel-ROM und speichert eine neue Datei.', startRandomizerKo: 'Wild · Trainer · Starter', navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'Alle Pokémon aus Pokémon GO mit Typen, Basiswerten, schnellen und Lade-Attacken (inkl. Elite-TM und STAB) sowie der WP eines 100%-IV-Pokémon auf Level 15, 20, 25 und 50.', startDexText: 'Nationaler Pokédex (Gen 1–9, alle 1025 Pokémon): 3D-Modelle & Sprites, alle Formen (Mega, Proto, Alola, Galar, Hisui, Paldea), Typen, Fähigkeiten, Basiswerte und Entwicklungsreihen mit Methode.',
       startSLText: 'Planer für Soul-Link-Runs mit 2–6 Spielern: welche Pokémon verbunden sind, wer im Team ist und wer gestorben ist.',
       startNuzText: 'Rechner für Nuzlockes der 3. bis 5. Generation (GBA und DS) mit Trainern aus der ROM und deiner Box aus dem Spielstand. Beta-Version.', startNuzKo: 'Gen 3–5 · Trainer, Box, Schaden',
       winMin: 'Minimieren', winMax: 'Maximieren', winRestore: 'Verkleinern', winClose: 'Schließen',
@@ -217,8 +217,7 @@
       setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon-Darstellung', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
       setModelHint: 'Wie das große Pokémon-Bild im Teambuilder und in beiden Pokédexen angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
-      setOled: 'Dunkel', setPoke: 'Poké-Rot', setRattata: 'Rattata-Lila', setOcean: 'Ozean', setEmerald: 'Smaragd', setGold: 'HeartGold', setCyber: 'Cyber-Neon', setSakura: 'Sakura (Hell)', setSunset: 'Abendrot', setArctic: 'Arktis-Eis', setSystem: 'System',
-      setUiStyle: 'Oberflächen-Stil', setUiStyleHint: 'Aufbau und Aussehen der gesamten App: Seitenleiste (Pro) oder obere Leiste (Studio).', uiClassic: 'Klassisch (Flach)', uiModern: 'Modern (Weich)', uiGlass: 'Glas (Transluzent)', uiRetro: 'Retro (Pixel)', uiCompact: 'Kompakt (Turnier)',
+      setUiStyle: 'Oberflächen-Stil', setUiStyleHint: 'Aufbau und Aussehen der gesamten App: Seitenleiste (Pro) oder obere Leiste (Studio).',
       setZoom: 'Oberflächengröße', setZoomHint: 'Automatisch passt die Größe ans Fenster an. Feste Stufen vergrößern oder verkleinern die gesamte Oberfläche.', setZoomAuto: 'Automatisch',
       setBackup: 'Daten-Backup', setBackupHint: 'Alle Teams, eigenen Sets, Hunts, Soul Links, Replays und Einstellungen als Datei sichern oder wiederherstellen.',
       setBackupSave: 'Backup speichern', setBackupLoad: 'Backup laden …', backupSaved: 'Backup gespeichert', backupLoaded: 'Backup geladen – Seite lädt neu …', backupInvalid: 'Ungültige Backup-Datei',
@@ -337,19 +336,19 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage calc, teambuilder, matchups', catRunsText: 'Soul Link, Nuzlocke, randomizer', catDexText: 'All 1025 Pokémon with 3D models', catGo: 'GO', catGoText: 'GO Pokédex, top counter, info', catRestText: 'Shiny counter, overlays, catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team-Analyse', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Capture projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage calc, teambuilder, matchups', catRunsText: 'Soul Link, Nuzlocke, randomizer', catDexText: 'All 1025 Pokémon with 3D models', catGo: 'GO', catGoText: 'GO Pokédex, top counter, info', catRestText: 'Shiny counter, overlays, catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team Analysis', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Capture projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
       startCatchText: 'Exact capture probabilities across all main-series games (Gen 1–9): HP IV ranges, all Poké Balls compared live, Critical Capture, badge caps and Catching Power.',
-      navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'All Pokémon from Pokémon GO with types, base stats, fast and charged moves (incl. elite TM and STAB) and the CP of a 100% IV Pokémon at level 15, 20, 25 and 50.', startDexText: 'National Pokédex (Gen 1–9, all 1025 Pokémon): 3D models & sprites, all forms (Mega, Primal, Alola, Galar, Hisui, Paldea), types, abilities, base stats and evolution chains with methods.',
+      navRandomizer: 'Randomizer', navSave: 'Save File Editor', startSaveText: 'Edit save files (party, boxes, Pokémon, items, trainer data) and save a new file.', startSaveKo: 'Party · Boxes · Pokémon', startRandomizerText: 'Shuffles wild Pokémon, trainers, starters, evolutions, stats, types and moves of a game ROM and saves a new file.', startRandomizerKo: 'Wild · Trainers · Starters', navGoDex: 'Pokémon GO Pokédex', startGoDexText: 'All Pokémon from Pokémon GO with types, base stats, fast and charged moves (incl. elite TM and STAB) and the CP of a 100% IV Pokémon at level 15, 20, 25 and 50.', startDexText: 'National Pokédex (Gen 1–9, all 1025 Pokémon): 3D models & sprites, all forms (Mega, Primal, Alola, Galar, Hisui, Paldea), types, abilities, base stats and evolution chains with methods.',
       startSLText: 'Planner for Soul Link runs with 2–6 players: which Pokémon are linked, who is in the team and who died.',
       startNuzText: 'Calculator for Gen 3 to 5 Nuzlockes (GBA and DS) with trainers from the ROM and your box from the save file. Beta version.', startNuzKo: 'Gen 3–5 · trainers, box, damage',
       winMin: 'Minimize', winMax: 'Maximize', winRestore: 'Restore', winClose: 'Close',
       startCalcKo: '43.8% chance to OHKO',
       startCalcText: 'Damage, KO chances and turn order in singles and doubles, with weather, terrain and all field effects.',
       startBuilderText: 'Build teams of up to six Pokémon, set items, moves and Stat Points, check weaknesses and send the team to the damage calc.',
-      startSub: 'Damage Calculator, Teambuilder, Shiny counter, Catch Calculator and Team-Analyse for Pokémon Champions',
+      startSub: 'Damage Calculator, Teambuilder, Shiny counter, Catch Calculator and Team Analysis for Pokémon Champions',
       startFoot: 'Back to the start via the logo in the top left',
       tbTeams: 'Teams', tbNew: '+ New team', tbImport: 'Import', tbImportTitle: 'Import team (text format)', tbMetaTest: 'Test vs Meta',
       tbImportNew: 'As new team', tbImportInto: 'Replace this team', tbExport: 'Export', tbExportTitle: 'Export team',
@@ -375,8 +374,7 @@
       setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon artwork', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
       setModelHint: 'How the big Pokémon picture is shown in the Teambuilder and both Pokédexes', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setThemeHint: 'Applies to the whole app right away and stays saved.',
-      setOled: 'Dark', setPoke: 'Poké red', setRattata: 'Rattata purple', setOcean: 'Ocean', setEmerald: 'Emerald', setGold: 'HeartGold', setCyber: 'Cyber Neon', setSakura: 'Sakura (Light)', setSunset: 'Sunset', setArctic: 'Arctic Ice', setSystem: 'System',
-      setUiStyle: 'Interface style', setUiStyleHint: 'Layout and look of the whole app: sidebar (Pro) or top bar (Studio).', uiClassic: 'Classic (Flat)', uiModern: 'Modern (Rounded)', uiGlass: 'Glass (Translucent)', uiRetro: 'Retro (Pixel)', uiCompact: 'Compact (Esports)',
+      setUiStyle: 'Interface style', setUiStyleHint: 'Layout and look of the whole app: sidebar (Pro) or top bar (Studio).',
       setZoom: 'UI scale', setZoomHint: 'Auto scales the interface to fit the window. Fixed levels zoom the entire interface in or out.', setZoomAuto: 'Auto',
       setBackup: 'Data backup', setBackupHint: 'Save or restore all teams, custom sets, hunts, Soul Links, replays and settings as a file.',
       setBackupSave: 'Save backup', setBackupLoad: 'Load backup …', backupSaved: 'Backup saved', backupLoaded: 'Backup loaded – reloading …', backupInvalid: 'Invalid backup file',
@@ -2014,17 +2012,18 @@
         if (st) restoreState(side, st); else setEmpty(side, true);
       });
       selected.side = 1 - selected.side;
+      if (field && Array.isArray(field.sides)) {
+        var tmpSide = field.sides[0]; field.sides[0] = field.sides[1]; field.sides[1] = tmpSide;
+        renderField();
+      }
       recalc();
     });
     setTheme = function (theme) { applyTheme(theme, true); };
     applyTheme(currentTheme(), false);
     applyUiStyle(setting('uiStyle'));
-    if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-        if (currentTheme() === 'system') applyTheme('system', false);
-      });
-    }
+    var skipUnloadSave = false;
     function saveState() {
+      if (skipUnloadSave) return;
       save('cc_state', [0, 1].map(function (s) {
         var side = sides[s], slots = side.slots.slice();
         slots[side.active] = side.empty ? null : captureState(side);
@@ -2269,7 +2268,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.21.0') + (s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.26.1') + (s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2410,7 +2409,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.17.4';
+      var ver = (updStatus && updStatus.current) || '1.26.1';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2585,7 +2584,7 @@
       } else if (settingsTab === 'data') {
         var gData = makeGroup(de ? 'Sicherung & Synchronisation' : 'Backup & synchronization');
         (function () {
-          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_tabs', 'cc_state', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames', 'cc_metateams'];
+          var BACKUP_KEYS = ['cc_settings', 'cc_theme', 'cc_light', 'cc_lang', 'cc_state', 'cc_field', 'cc_speedtier', 'cc_teams', 'cc_customSets', 'cc_builder', 'cc_soullink', 'cc_nuz_calc', 'cc_shiny', 'cc_match', 'cc_overlay', 'cc_catch', 'cc_pokedex', 'cc_godex', 'cc_gocounter', 'cc_goinfo', 'cc_minigames', 'cc_metateams'];
           var r = el('div', { class: 'set-row' });
           var lab = el('div', { class: 'set-label' });
           lab.appendChild(el('div', { class: 'set-name', text: T('setBackup') }));
@@ -2594,7 +2593,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: '1.17.4', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.26.1', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2613,6 +2612,7 @@
                   var parsed = JSON.parse(String(rd.result || ''));
                   var st = parsed && parsed.storage && typeof parsed.storage === 'object' ? parsed.storage : null;
                   if (!st) { toast(T('backupInvalid')); return; }
+                  skipUnloadSave = true;
                   BACKUP_KEYS.forEach(function (k) { if (st[k] !== undefined) save(k, st[k]); });
                   toast(T('backupLoaded'));
                   setTimeout(function () { location.reload(); }, 400);
@@ -2938,7 +2938,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.17.4';
+    var ver = (updStatus && updStatus.current) || '1.26.1';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -2965,13 +2965,13 @@
     if (!box) return;
     var st = load('cc_builder', null), team = null;
     if (st && st.teams) st.teams.some(function (t) { if (t.id === st.cur) { team = t; return true; } return false; });
-    var mons = team && team.mons.length ? team.mons.map(function (m) { return m.set && m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species; })
+    var mons = team && Array.isArray(team.mons) && team.mons.length ? team.mons.map(function (m) { return m.set && m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species; })
       : ['Incineroar', 'Rillaboom', 'Garchomp', 'Sneasler', 'Kingambit', 'Sinistcha'].filter(function (s) { return DEX[s]; });
     box.innerHTML = '';
     for (var i = 0; i < 6; i++) {
       var c = el('span', { class: 'sc-mon' + (mons[i] ? '' : ' empty') });
       if (mons[i]) c.appendChild(spriteFit(mons[i]));
-      if (mons[i] && team && team.mons.length && window.CCBuilder && window.CCBuilder.move) wireTeamDrag(c, i);
+      if (mons[i] && team && Array.isArray(team.mons) && team.mons.length && window.CCBuilder && window.CCBuilder.move) wireTeamDrag(c, i);
       box.appendChild(c);
     }
   }

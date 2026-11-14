@@ -262,7 +262,13 @@ function init(w) {
       shell.openExternal(status.url || RELEASES);
     }
   });
-  if (enabled && !portable && app.isPackaged) setTimeout(() => cleanStale(cacheDir(), app.getVersion()), 15000);
+  if (enabled && !portable && app.isPackaged) {
+    setTimeout(() => {
+      if (!busy && status.state !== 'checking' && status.state !== 'available' && status.state !== 'progress' && status.state !== 'ready') {
+        cleanStale(cacheDir(), app.getVersion());
+      }
+    }, 1500);
+  }
   // Die Seite schickt den Kanal aus localStorage. Kommt er nicht, gilt die gespeicherte Wahl (Standard: Vollversionen).
   setTimeout(() => { if (!sawChannel && enabled) check(false); }, 8000);
 }

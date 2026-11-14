@@ -44,7 +44,7 @@
   function fmtNum(n) { return n >= 1000 ? String(n) : ('00' + n).slice(-3); }
 
   var FORM_DE = { Alola: 'Alola-Form', Galar: 'Galar-Form', Galarian: 'Galar-Form', Hisui: 'Hisui-Form', Hisuian: 'Hisui-Form', Paldea: 'Paldea-Form',
-    'Paldea-Aqua': 'Paldea ( Flut)', 'Paldea-Blaze': 'Paldea (Glut)', 'Paldea-Combat': 'Paldea (Gefecht)',
+    'Paldea-Aqua': 'Paldea (Flut)', 'Paldea-Blaze': 'Paldea (Glut)', 'Paldea-Combat': 'Paldea (Gefecht)',
     Attack: 'Angriffsform', Defense: 'Verteidigungsform', Speed: 'Initiativeform', Plant: 'Pflanzenumhang', Sandy: 'Sandumhang', Trash: 'Lumpenumhang',
     Sunny: 'Sonnenform', Rainy: 'Regenform', Snowy: 'Schneeform', Sunshine: 'Sonnenform',
     Fan: 'Wirbel-Rotom', Frost: 'Frost-Rotom', Heat: 'Hitze-Rotom', Mow: 'Schneid-Rotom', Wash: 'Wasch-Rotom',
@@ -133,14 +133,14 @@
 
   // ---- Zustand ----
   var st = A.load('cc_godex', null) || {};
-  if (!st.num || !byNum[st.num]) st.num = 150;
+  if (!st.num || !byNum[st.num]) st.num = byNum[150] ? 150 : (species[0] ? species[0].num : 1);
   if (st.formIdx == null) st.formIdx = 0;
   if (!st.sort) st.sort = 'num';
   if (!st.typeFilter) st.typeFilter = '';
   if (!st.genFilter) st.genFilter = '';
   if (st.onlyForms == null) st.onlyForms = false;
   if (!st.search) st.search = '';
-  if (st.formIdx >= byNum[st.num].forms.length) st.formIdx = 0;
+  if (byNum[st.num] && st.formIdx >= byNum[st.num].forms.length) st.formIdx = 0;
   function saveState() { A.save('cc_godex', { num: st.num, formIdx: st.formIdx, sort: st.sort, typeFilter: st.typeFilter, genFilter: st.genFilter, onlyForms: st.onlyForms }); }
 
   var root = null;
@@ -308,7 +308,9 @@
     if (!rows.length) body.appendChild(el('div', { class: 'gd-none', text: de ? 'Keine Attacken hinterlegt' : 'No moves on record' }));
     rows.sort(function (a, b) { return a[1] - b[1]; });
     rows.forEach(function (r) {
-      var m = all[r[0]], stab = f.types.indexOf(m[1]) !== -1;
+      var m = all[r[0]];
+      if (!m) return;
+      var stab = f.types.indexOf(m[1]) !== -1;
       var row = el('div', { class: 'gd-mv' + (r[1] ? ' elite' : '') });
       row.appendChild(A.typeBadge(m[1]));
       var n = el('span', { class: 'gd-mv-name' });

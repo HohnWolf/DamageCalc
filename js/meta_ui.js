@@ -109,11 +109,17 @@
     var box = el('div', { class: 'modal-box' });
     modal.appendChild(box);
     document.body.appendChild(modal);
-    function close() { if (state.running && window.desktop && window.desktop.meta) window.desktop.meta.cancel(); modal.remove(); modal = null; }
+    function key(ev) {
+      if (ev.key === 'Escape' && modal) { ev.stopPropagation(); close(); }
+    }
+    function close() {
+      document.removeEventListener('keydown', key, true);
+      if (state.roughWorker) { try { state.roughWorker.terminate(); } catch (e) {} state.roughWorker = null; }
+      if (state.running && window.desktop && window.desktop.meta) window.desktop.meta.cancel();
+      if (modal) { modal.remove(); modal = null; }
+    }
     modal.addEventListener('mousedown', function (ev) { if (ev.target === modal) close(); });
-    document.addEventListener('keydown', function key(ev) {
-      if (ev.key === 'Escape' && modal) { ev.stopPropagation(); close(); document.removeEventListener('keydown', key, true); }
-    }, true);
+    document.addEventListener('keydown', key, true);
 
     function filtered() {
       return store.teams.filter(function (t) { return !state.arch || t.archetype === state.arch; });
@@ -499,19 +505,27 @@
     function roughRun(ops) {
       var foe = state.selected || ops[0];
       if (!foe) return;
+      if (state.roughWorker) { try { state.roughWorker.terminate(); } catch (e) {} }
       state.running = true;
       setMsg(T('Grobe Prüfung, 30 Spiele …', 'Rough check, 30 games …'));
-      var worker = new Worker('js/meta/rough_worker.js');
+      var worker = state.roughWorker = new Worker('js/meta/rough_worker.js');
       worker.onmessage = function (ev) {
         var msg = ev.data || {};
         if (msg.type === 'tick') setProg(msg.done, msg.total);
         if (msg.type === 'done') {
           worker.terminate();
+          state.roughWorker = null;
           var ci = window.RLMetaStats.wilson(msg.wins, msg.wins + msg.losses);
           state.rows = [{ name: decode(foe.name), rough: true, winsA: msg.wins, winsB: msg.losses, ties: msg.ties, ci: ci, unfinished: 0, avgTurns: 0 }];
           state.running = false;
           draw();
         }
+      };
+      worker.onerror = function () {
+        try { worker.terminate(); } catch (e) {}
+        state.roughWorker = null;
+        state.running = false;
+        draw();
       };
       worker.postMessage({ games: 30, seed: 7, mine: teamMons(state.entry), foe: teamMons(foe) });
     }
