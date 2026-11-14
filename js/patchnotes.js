@@ -9,6 +9,15 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.26.5',
+      de: [
+        'Randomizer Gen 3: Option „Nationaler Pokédex ab Spielbeginn“ (Rubin/Saphir, Smaragd, Feuerrot/Blattgrün); in Feuerrot/Blattgrün entwickeln sich Pokémon außerhalb von Kanto nicht mehr falsch, Deoxys und Mew gehorchen.',
+        'Randomizer Gen 6: Statische Begegnungen und Geschenke von X/Y und Omega Rubin/Alpha Saphir werden jetzt mit randomisiert (inkl. verknüpfter Einträge).'
+      ],
+      en: [
+        'Randomizer gen 3: new “National Pokédex from the start” option (Ruby/Sapphire, Emerald, FireRed/LeafGreen); in FireRed/LeafGreen Pokémon outside Kanto no longer evolve incorrectly, Deoxys and Mew obey.',
+        'Randomizer gen 6: static encounters and gifts of X/Y and Omega Ruby/Alpha Sapphire are now randomized too (including linked entries).'
+      ] },
     { v: '1.26.4',
       de: [
         'Save-Editor: Showdown-Text-Import/-Export für einzelne Pokémon (Gen 3-7), Geschlecht (♂/♀) und Form-Dropdown mit Namen, Fähigkeiten-Auswahl (Fähigkeit 1/2/Versteckte) für Gen 4-7, Button „Legal machen“, Bänder für Gen 3.',
