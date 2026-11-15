@@ -58,6 +58,7 @@ app.whenReady().then(async function () {
         var log = document.querySelector('.battle-log');
         return {
           what: txt('.whatdo'),
+          preview: !!document.querySelector('.btl-count'),
           ended: /Sieger:|Unentschieden/.test(document.body.innerText),
           bad: txt('.btl-bad'),
           moves: Array.prototype.map.call(document.querySelectorAll('.movemenu button:not(:disabled)'), function (b) { return b.textContent.trim(); }),
@@ -72,7 +73,7 @@ app.whenReady().then(async function () {
       })()`, true);
       if (state.bad) { seen.bad = state.bad; break; }
       if (state.cut.length || state.scroll > 2) seen.fit.push({ step: step, cut: state.cut, scroll: state.scroll, what: state.what });
-      if (state.what.indexOf('Wähle') === 0) {
+      if (state.preview || state.what.indexOf('Wähle') === 0 || state.what.indexOf('Die ersten zwei') === 0) {
         seen.preview = true;
         if (shots && !seen.shotPreview) {
           seen.shotPreview = true;
@@ -151,7 +152,83 @@ app.whenReady().then(async function () {
     await win.webContents.executeJavaScript("var b=Array.prototype.find.call(document.querySelectorAll('button'), function(x){return x.textContent==='Zurück';}); if(b) b.click();", true);
     await sleep(150);
   }
+  async function selectionProbe() {
+    const out = { lobby: null, preview: null };
+    await boot(1024, 600, '100');
+    await win.webContents.executeJavaScript("window.CC.showView('btlchoice')", true);
+    await sleep(250);
+    out.lobby = await win.webContents.executeJavaScript(`(function () {
+      var buttons = Array.prototype.slice.call(document.querySelectorAll('.btl-seg button'));
+      var pressed = buttons.filter(function (b) { return b.getAttribute('aria-pressed') === 'true' && b.classList.contains('on'); }).map(function (b) { return b.textContent; });
+      var l0 = buttons.filter(function (b) { return b.textContent.indexOf('L0') === 0; })[0];
+      if (l0) l0.click();
+      return { before: pressed };
+    })()`, true);
+    await sleep(150);
+    out.lobby.after = await win.webContents.executeJavaScript(`(function () {
+      var buttons = Array.prototype.slice.call(document.querySelectorAll('.btl-seg button'));
+      return {
+        pressed: buttons.filter(function (b) { return b.getAttribute('aria-pressed') === 'true' && b.classList.contains('on'); }).map(function (b) { return b.textContent; }),
+        off: buttons.filter(function (b) { return b.getAttribute('aria-pressed') !== 'true'; }).length
+      };
+    })()`, true);
+    if (shots) fs.writeFileSync('/opt/cursor/artifacts/battle-lobby-1024x600.png', (await win.webContents.capturePage()).toPNG());
+    await boot(1920, 1080, '100');
+    await sleep(200);
+    if (shots) fs.writeFileSync('/opt/cursor/artifacts/battle-lobby-1920x1080.png', (await win.webContents.capturePage()).toPNG());
+    await boot(1024, 600, '100');
+    await win.webContents.executeJavaScript("window.CC.showView('btlrandom'); document.querySelector('.btl-go').click();", true);
+    for (let i = 0; i < 30; i++) {
+      await sleep(200);
+      const ready = await win.webContents.executeJavaScript("!!document.querySelector('.switchmenu button')", true);
+      if (ready) break;
+    }
+    async function clickPick(which) {
+      await win.webContents.executeJavaScript(
+        "(function () { var p = document.querySelectorAll('.switchmenu button.btl-pick" + which + "'); if (p[0]) p[0].click(); })()",
+        true);
+      await sleep(80);
+    }
+    await clickPick('');
+    await clickPick(':not(.chosen)');
+    await sleep(120);
+    out.preview = await win.webContents.executeJavaScript(`(function () {
+      var picks = Array.prototype.slice.call(document.querySelectorAll('.switchmenu button.btl-pick'));
+      var chosen = picks.filter(function (b) { return b.classList.contains('chosen') && b.getAttribute('aria-pressed') === 'true'; });
+      var ords = chosen.map(function (b) { var n = b.querySelector('.btl-ord'); return n ? n.textContent : ''; });
+      var bring = Array.prototype.find.call(document.querySelectorAll('button'), function (b) { return b.textContent === 'Mitnehmen'; });
+      var count = (document.querySelector('.btl-count') || {}).textContent || '';
+      var foes = document.querySelectorAll('.btl-prevmon').length;
+      var titles = picks.map(function (b) { return b.title || ''; }).filter(Boolean);
+      var balls = Array.prototype.slice.call(document.querySelectorAll('.btl-balls'));
+      var view = document.querySelector('.btl-view').getBoundingClientRect();
+      var cut = balls.filter(function (b) {
+        var r = b.getBoundingClientRect();
+        return r.right > view.right + 1 || r.left < view.left - 1;
+      }).map(function (b) { return b.textContent; });
+      return { n: picks.length, chosen: chosen.length, ords: ords, count: count, bringOff: !!(bring && bring.disabled), foes: foes, titles: titles.length, cut: cut };
+    })()`, true);
+    await clickPick('.chosen');
+    await sleep(80);
+    await clickPick(':not(.chosen)');
+    await clickPick(':not(.chosen)');
+    await clickPick(':not(.chosen)');
+    await sleep(150);
+    out.preview.full = await win.webContents.executeJavaScript(`(function () {
+      var bring = Array.prototype.find.call(document.querySelectorAll('button'), function (b) { return b.textContent === 'Mitnehmen'; });
+      var count = (document.querySelector('.btl-count') || {}).textContent || '';
+      return { count: count, bringOn: !!(bring && !bring.disabled), chosen: document.querySelectorAll('.switchmenu button.chosen').length };
+    })()`, true);
+    if (shots) fs.writeFileSync('/opt/cursor/artifacts/battle-select-1024x600.png', (await win.webContents.capturePage()).toPNG());
+    await boot(1920, 1080, '100');
+    await sleep(300);
+    if (shots) fs.writeFileSync('/opt/cursor/artifacts/battle-select-1920x1080.png', (await win.webContents.capturePage()).toPNG());
+    await win.webContents.executeJavaScript("var b=Array.prototype.find.call(document.querySelectorAll('button'), function(x){return x.textContent==='Zurück';}); if(b) b.click();", true);
+    await sleep(150);
+    return out;
+  }
   try {
+    report.selection = await selectionProbe();
     await playOne('klein', 1024, 400, '100');
     await playOne('mittel', 1280, 720, '100');
     await playOne('gross', 1920, 1080, '100');

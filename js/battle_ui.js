@@ -54,10 +54,11 @@
     box.appendChild(el('h2', { text: cur.mode === 'btlrandom' ? T('Zufallskampf', 'Random battle') : T('Eigener Kampf', 'Your battle') }));
     box.appendChild(el('p', { class: 'btl-note', text: T('Nur auf diesem Gerät. Kein Pokémon-Showdown-Server und keine Ladder. Doppelkampf, Reg M-C.', 'On this device only. No Pokémon Showdown server and no ladder. Doubles, Reg M-C.') }));
     if (!api()) box.appendChild(el('p', { class: 'btl-warn', text: T('Auf Android kannst du Teams und die Bot-Stufe wählen, aber nicht kämpfen. Der Simulator ist ein Node-Paket mit vielen Dateien und läuft nur im Desktop-Worker, nicht im WebView.', 'On Android you can pick teams and the bot level, but not battle. The simulator is a Node package of many files and runs only in the desktop worker, not in the WebView.') }));
-    var lvl = el('div', { class: 'btl-seg' });
+    var lvl = el('div', { class: 'btl-seg', role: 'group', 'aria-label': 'Bot-Stufe' });
     [0, 1, 2, 3].forEach(function (n) {
       var names = [T('Zufall', 'Random'), T('Schaden', 'Damage'), T('Doppel', 'Doubles'), T('Vorausschau', 'Lookahead')];
-      var b = el('button', { type: 'button', class: 'tbtn' + (cur.level === n ? ' on' : ''), text: 'L' + n + ' ' + names[n] });
+      var on = cur.level === n;
+      var b = el('button', { type: 'button', class: 'tbtn' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', text: 'L' + n + ' ' + names[n] });
       b.addEventListener('click', function () { cur.level = n; drawLobby(); });
       lvl.appendChild(b);
     });
@@ -79,19 +80,20 @@
       var foes = cur.foeSrc === 'builder' ? builderTeams() : metaTeams();
       box.appendChild(el('p', { class: 'btl-note', text: T('Beide Teams kommen aus dem Teambuilder. Für die KI kannst du zusätzlich ein Meta-Team wählen.', 'Both teams come from the teambuilder. For the AI you can also pick a meta team.') }));
       box.appendChild(el('div', { class: 'btl-label', text: T('Dein Team (Teambuilder)', 'Your team (teambuilder)') }));
-      mineSel = el('select', { class: 'btl-select' });
+      mineSel = el('select', { class: 'btl-select', 'aria-label': 'Dein Team' });
       if (!mine.length) mineSel.appendChild(el('option', { value: '', text: T('Kein Team im Teambuilder', 'No teambuilder team') }));
       mine.forEach(function (t) { mineSel.appendChild(el('option', { value: t.id, text: t.name })); });
       box.appendChild(mineSel);
-      var src = el('div', { class: 'btl-seg' });
+      var src = el('div', { class: 'btl-seg', role: 'group', 'aria-label': 'Quelle des KI-Teams' });
       [['builder', T('Teambuilder', 'Teambuilder')], ['meta', T('Meta-Teams', 'Meta teams')]].forEach(function (pair) {
-        var b = el('button', { type: 'button', class: 'tbtn' + (cur.foeSrc === pair[0] ? ' on' : ''), text: pair[1] });
+        var on = cur.foeSrc === pair[0];
+        var b = el('button', { type: 'button', class: 'tbtn' + (on ? ' on' : ''), 'aria-pressed': on ? 'true' : 'false', text: pair[1] });
         b.addEventListener('click', function () { cur.foeSrc = pair[0]; drawLobby(); });
         src.appendChild(b);
       });
       box.appendChild(el('div', { class: 'btl-label', text: T('Team der KI', 'AI team') }));
       box.appendChild(src);
-      foeSel = el('select', { class: 'btl-select' });
+      foeSel = el('select', { class: 'btl-select', 'aria-label': 'Team der KI' });
       foes.forEach(function (t) { foeSel.appendChild(el('option', { value: t.id, text: t.name })); });
       box.appendChild(foeSel);
     }
@@ -160,10 +162,13 @@
     }
     return img;
   }
-  function placeMon(battle, poke, back, pos) {
+  function placeMon(battle, poke, back, pos, title) {
     if (!poke || poke.fainted) return;
-    var m = el('div', { class: 'btl-mon', style: 'left:' + pos.x + 'px;top:' + pos.y + 'px' });
-    m.appendChild(fieldSprite(poke.species, back));
+    var m = el('div', { class: 'btl-mon' + (title ? ' btl-prevmon' : ''), style: 'left:' + pos.x + 'px;top:' + pos.y + 'px', title: title || deMon(poke.species) });
+    var spr = fieldSprite(poke.species, back);
+    if (title && spr.tagName === 'IMG') spr.alt = '';
+    if (title && spr.tagName === 'SPAN') spr.textContent = '';
+    m.appendChild(spr);
     battle.appendChild(m);
   }
   function statbar(poke, cls, left, key) {
@@ -218,15 +223,12 @@
     root.innerHTML = '';
     var box = el('div', { class: 'btl-shell ps-room' });
     var top = el('div', { class: 'btl-top' });
-    top.appendChild(el('h2', { text: (cur.mode === 'btlrandom' ? T('Zufallskampf', 'Random battle') : T('Eigener Kampf', 'Your battle')) + ' · L' + (v.level | 0) }));
+    var head = el('div', { class: 'btl-topmain' });
+    head.appendChild(el('h2', { text: (cur.mode === 'btlrandom' ? T('Zufallskampf', 'Random battle') : T('Eigener Kampf', 'Your battle')) + ' · L' + (v.level | 0) }));
     var chips = el('div', { class: 'btl-chips' });
     chips.appendChild(el('span', { text: 'Runde ' + v.turn }));
     fieldChips(v).forEach(function (t) { chips.appendChild(el('span', { text: t })); });
-    top.appendChild(chips);
-    var balls = el('div', { class: 'btl-ballrow' });
-    balls.appendChild(ballLine(v.p2, 'KI'));
-    balls.appendChild(ballLine(v.p1, 'Du'));
-    top.appendChild(balls);
+    head.appendChild(chips);
     var acts = el('div', { class: 'btl-top-acts' });
     var back = el('button', { type: 'button', class: 'tbtn', text: T('Zurück', 'Back') });
     back.addEventListener('click', function () { cur.game = null; cur.error = ''; drawLobby(); });
@@ -250,7 +252,12 @@
       });
     });
     acts.appendChild(re);
-    top.appendChild(acts);
+    head.appendChild(acts);
+    top.appendChild(head);
+    var balls = el('div', { class: 'btl-ballrow' });
+    balls.appendChild(ballLine(v.p2, 'KI'));
+    balls.appendChild(ballLine(v.p1, 'Du'));
+    top.appendChild(balls);
     box.appendChild(top);
     var row = el('div', { class: 'btl-row' });
     var stage = el('div', { class: 'btl-stage' });
@@ -268,8 +275,19 @@
     fit();
     requestAnimationFrame(fit);
   }
+  function tip(p) {
+    var item = p && p.item ? deOf(A.nItem, p.item) : '';
+    return deMon(p && p.species) + (item ? ' · ' + item : '');
+  }
   function arena(v) {
     var b = el('div', { class: 'battle doubles' });
+    var req = v.request || {};
+    if (req.kind === 'preview' && req.foe && req.foe.length) {
+      req.foe.forEach(function (p, i) {
+        var x = Math.round(56 + (528 * (i + 0.5) / req.foe.length));
+        placeMon(b, p, false, { x: x, y: 148 }, tip(p));
+      });
+    }
     [0, 1].forEach(function (i) { placeMon(b, v.p2.active[i], false, FOE_POS[i]); });
     [0, 1].forEach(function (i) { placeMon(b, v.p1.active[i], true, ALLY_POS[i]); });
     [0, 1].forEach(function (i) { var bar = statbar(v.p2.active[i], 'lstatbar', FOE_BAR[i], 'p2' + i); if (bar) b.appendChild(bar); });
@@ -325,12 +343,20 @@
   }
   function previewPanel(c, ctl, req) {
     cur.picks = cur.picks || [];
-    ctl.appendChild(el('div', { class: 'whatdo', text: 'Wähle ' + req.max + '. Die ersten zwei führen.' }));
+    var n = cur.picks.length;
+    var count = el('div', { class: 'btl-count', text: n + '/' + req.max + ' gewählt' });
+    c.appendChild(count);
+    ctl.appendChild(el('div', { class: 'whatdo', text: 'Die ersten zwei führen.' }));
     var sm = el('div', { class: 'switchmenu' });
     (req.party || []).forEach(function (p) {
       var idx = cur.picks.indexOf(p.slot);
-      var b = partyButton(p, idx >= 0, (idx >= 0 ? (idx + 1) + ' ' : '') + deMon(p.species));
+      var on = idx >= 0;
+      var b = partyButton(p, on, deMon(p.species));
+      b.classList.add('btl-pick');
       b.disabled = false;
+      b.title = tip(p);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (on) b.appendChild(el('span', { class: 'btl-ord', text: String(idx + 1) }));
       b.addEventListener('click', function () {
         var at = cur.picks.indexOf(p.slot);
         if (at >= 0) cur.picks.splice(at, 1);
@@ -340,8 +366,8 @@
       sm.appendChild(b);
     });
     ctl.appendChild(sm);
-    var ok = el('button', { type: 'button', class: 'big', text: 'Mitnehmen' });
-    ok.disabled = cur.picks.length !== req.max;
+    var ok = el('button', { type: 'button', class: 'big btl-bring', text: 'Mitnehmen' });
+    ok.disabled = n !== req.max;
     ok.addEventListener('click', function () { send('team ' + cur.picks.join('')); });
     ctl.appendChild(ok);
     c.appendChild(ctl);

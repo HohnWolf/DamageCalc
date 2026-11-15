@@ -110,11 +110,21 @@ function targetsFor(battle, poke, targetType) {
   });
   return out;
 }
+function itemName(p) {
+  if (!p || !p.item) return '';
+  try {
+    const it = p.battle && p.battle.dex.items.get(p.item);
+    if (it && it.exists && it.name && it.name !== 'No Item') return it.name;
+  } catch (e) { /* ohne Dex bleibt der Rohname */ }
+  if (typeof p.item === 'string') return p.item;
+  return p.item.name || '';
+}
 function partyOf(side) {
   return side.pokemon.map(function (p, i) {
     return {
       slot: i + 1,
       species: p.species.name,
+      item: itemName(p),
       hp: p.hp,
       maxhp: p.maxhp,
       status: p.status || '',
@@ -172,7 +182,10 @@ function moveView(battle, poke, mv, index) {
 function requestOf(battle, side) {
   const req = side.activeRequest;
   if (!req || req.wait || side._rlDone === req) return { kind: 'wait' };
-  if (req.teamPreview) return { kind: 'preview', max: req.maxChosenTeamSize || 4, party: partyOf(side) };
+  if (req.teamPreview) {
+    const foe = battle.p1 === side ? battle.p2 : battle.p1;
+    return { kind: 'preview', max: req.maxChosenTeamSize || 4, party: partyOf(side), foe: partyOf(foe) };
+  }
   if (req.forceSwitch) return { kind: 'switch', flags: req.forceSwitch.slice(), party: partyOf(side) };
   const active = (req.active || []).map(function (a, i) {
     const poke = side.active[i];

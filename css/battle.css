@@ -1704,8 +1704,13 @@ body:not([data-view="btlchoice"]) .btlchoice-view { display: none !important; }
   overflow: auto !important;
   align-self: stretch;
 }
-.btl-view.btl-live .btl-ballrow { display: flex; gap: 14px; flex-wrap: wrap; }
-.btl-view.btl-live .btl-balls { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; }
+.btl-view.btl-live .btl-top { flex-direction: column; align-items: stretch; gap: 4px; }
+.btl-view.btl-live .btl-topmain { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; min-width: 0; }
+.btl-view.btl-live .btl-ballrow {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  width: 100%; min-width: 0;
+}
+.btl-view.btl-live .btl-balls { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; flex: 0 1 auto; min-width: 0; }
 .btl-view.btl-live .btl-balls b { margin-right: 2px; }
 .btl-view.btl-live .ball {
   width: 10px; height: 10px; border-radius: 50%;
@@ -1727,3 +1732,82 @@ body:not([data-view="btlchoice"]) .btlchoice-view { display: none !important; }
   width: 100%;
   max-width: none;
 }
+
+/* Auswahl muss sichtbar bleiben. Die vorbereiteten Knöpfe verstecken sonst Text und den gewählten Zustand. */
+.btl-view .btl-seg button.on,
+.btl-view .btl-seg button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #d7ff67, #6fbf2a) !important;
+  border-color: #fff !important;
+  color: #1a1430 !important;
+  box-shadow: 0 0 0 2px #ffe14a, 0 2px 0 rgba(0, 0, 0, .35) !important;
+}
+.btl-view .btl-select {
+  border: 2px solid #8eb6ff !important;
+  background: #241848 !important;
+  color: #fff !important;
+  min-height: 34px;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.btl-view .btl-check:has(input:checked) {
+  outline: 2px solid #b6ff57;
+  background: rgba(182, 255, 87, .16);
+  border-radius: 8px;
+  padding: 2px 8px;
+}
+.btl-view .btl-count {
+  position: absolute !important;
+  left: 10px !important;
+  top: 8px !important;
+  z-index: 6;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 3px 10px !important;
+  font-size: 13px !important;
+  font-weight: 800;
+  line-height: 1.2 !important;
+  color: #1a1430 !important;
+  background: #ffe14a !important;
+  border-radius: 8px;
+  pointer-events: none;
+}
+.btl-view .switchmenu button.btl-pick {
+  position: relative !important;
+  opacity: .4 !important;
+  filter: grayscale(.55) !important;
+}
+.btl-view .switchmenu button.btl-pick.chosen {
+  opacity: 1 !important;
+  filter: none !important;
+  border-color: #ffe14a !important;
+  box-shadow: 0 0 0 3px #9dff57, 0 0 14px rgba(157, 255, 87, .85) !important;
+}
+.btl-view .switchmenu button.btl-pick .btl-ord {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  z-index: 3;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: #ffe14a;
+  color: #1a1430;
+  font-size: 11px !important;
+  font-weight: 800;
+  line-height: 16px !important;
+  text-align: center;
+}
+.btl-view .btl-bring:disabled {
+  opacity: .38 !important;
+  filter: grayscale(1) !important;
+  box-shadow: none !important;
+}
+.btl-view .btl-bring:not(:disabled) {
+  background: linear-gradient(180deg, #d7ff67, #5cb82a) !important;
+  color: #1a1430 !important;
+  border-color: #fff !important;
+  box-shadow: 0 0 0 2px #ffe14a !important;
+}
+.btl-view .btl-mon.btl-prevmon img { max-width: 72px; max-height: 72px; }

@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.1',
+      de: ['Kämpfe: Gewählte Pokémon und die Bot-Stufe sind deutlich markiert. Die Teamvorschau zeigt auch das gegnerische Team.'],
+      en: ['Battles: chosen Pokémon and the bot level are clearly marked. Team preview also shows the opponent’s team.'] },
     { v: '1.29.0',
       de: ['Kämpfe: Das Feld passt ins Fenster, ohne die Seite zu scrollen.', 'Ziele, Mega, Wechsel, erzwungener Wechsel und Aufgabe lassen sich im Doppelkampf wirklich spielen. Das Protokoll ist deutsch.'],
       en: ['Battles: the field fits the window, and the page does not scroll.', 'Targets, Mega, switches, forced switches and forfeit work in doubles. The log is in German.'] },
