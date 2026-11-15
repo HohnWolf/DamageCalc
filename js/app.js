@@ -245,10 +245,10 @@
       setUpdHintA: 'Version {0}. Die App sucht bei jedem Start auf GitHub nach einer neuen Version. Der Update-Kanal gilt auch hier. Zum Installieren lädt sie die Datei und öffnet den Android-Installer.',
       updAReady: 'Update {0}: installieren', updAReadyT: 'Rattata Labs {0} ist verfügbar. Antippen lädt das Update und öffnet den Android-Installer.',
       updAReadyMsg: 'Version {0} ist verfügbar.', updAInstall: 'Jetzt installieren',
-      catVs: 'Gegen die KI', catVsText: 'Selbst gegen die KI kämpfen',
-      navBtlRandom: 'Random Battle', navBtlChoice: 'Choice Battle',
+      catVs: 'Kämpfe', catVsText: 'Lokal gegen die KI kämpfen',
+      navBtlRandom: 'Zufallskampf', navBtlChoice: 'Eigener Kampf',
       startBtlRandomText: 'Kampf mit zufällig gewürfeltem Team gegen die KI.', startBtlRandomKo: 'Zufallsteam · 6 gegen 6',
-      startBtlChoiceText: 'Kampf mit selbst gewähltem Team gegen die KI.', startBtlChoiceKo: 'Eigenes Team · 6 gegen 6',
+      startBtlChoiceText: 'Beide Teams aus dem Teambuilder, die KI optional auch mit einem Meta-Team.', startBtlChoiceKo: 'Teambuilder · beide Seiten',
       btlTurn: 'Runde {0}', btlWhatDo: 'Was soll {0} tun?', btlSoon: 'Der Kampf gegen die KI kommt bald.', btlStart: 'Kampf starten', btlMoves: 'Attacken', btlSwitch: 'Wechseln',
       btlLogWait: 'Warte auf den Kampfbeginn …', btlYou: 'Du', btlAi: 'KI', btlTeamRandom: 'Dein Team wird zufällig gewürfelt.', btlTeamChoice: 'Wähle dein Team (6 Pokémon).',
       catPlay: 'Minigames', catPlayText: 'Quiz und Rätsel rund um Werte und Typen',
@@ -402,10 +402,10 @@
       setUpdHintA: 'Version {0}. The app looks for a new version on GitHub on every start. The update channel applies here too. To install it, it downloads the file and opens the Android installer.',
       updAReady: 'Update {0}: install', updAReadyT: 'Rattata Labs {0} is available. Tap to download the update and open the Android installer.',
       updAReadyMsg: 'Version {0} is available.', updAInstall: 'Install now',
-      catVs: 'Vs. AI', catVsText: 'Battle the AI yourself',
-      navBtlRandom: 'Random Battle', navBtlChoice: 'Choice Battle',
+      catVs: 'Battles', catVsText: 'Fight the AI locally',
+      navBtlRandom: 'Random battle', navBtlChoice: 'Your battle',
       startBtlRandomText: 'Battle the AI with a randomly rolled team.', startBtlRandomKo: 'Random team · 6 vs 6',
-      startBtlChoiceText: 'Battle the AI with a team of your own choice.', startBtlChoiceKo: 'Your team · 6 vs 6',
+      startBtlChoiceText: 'Both teams come from the teambuilder. The AI can also use a meta team.', startBtlChoiceKo: 'Teambuilder · both sides',
       btlTurn: 'Turn {0}', btlWhatDo: 'What will {0} do?', btlSoon: 'Battling the AI is coming soon.', btlStart: 'Start battle', btlMoves: 'Moves', btlSwitch: 'Switch',
       btlLogWait: 'Waiting for the battle to start …', btlYou: 'You', btlAi: 'AI', btlTeamRandom: 'Your team is rolled at random.', btlTeamChoice: 'Choose your team (6 Pokémon).',
       catPlay: 'Minigames', catPlayText: 'Quizzes and puzzles on stats and types',
@@ -2705,7 +2705,7 @@
 
   // ======================= views: start screen / calculator / teambuilder =======================
   var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype', 'btlrandom', 'btlchoice'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType'], ['btlrandom', 'navBtlRandom', 'SOON'], ['btlchoice', 'navBtlChoice', 'SOON']];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType'], ['btlrandom', 'navBtlRandom'], ['btlchoice', 'navBtlChoice']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
   var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']], ['vs', ['btlrandom', 'btlchoice']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
