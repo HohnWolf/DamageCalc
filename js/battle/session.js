@@ -9,6 +9,16 @@ const stats = require('../meta/stats');
 const WEATHER = { raindance: 'Rain', primordialsea: 'Heavy Rain', sunnyday: 'Sun', desolateland: 'Harsh Sun', sandstorm: 'Sand', snow: 'Snow', snowscape: 'Snow', hail: 'Snow' };
 const TERRAIN = { electricterrain: 'Electric', grassyterrain: 'Grass', psychicterrain: 'Psychic', mistyterrain: 'Misty' };
 
+function germanChoiceError(msg) {
+  const s = String(msg || '');
+  if (/more choices than unfainted/i.test(s)) return 'Zu viele Befehle für die Pokémon, die noch kämpfen.';
+  if (/needs a target/i.test(s)) return 'Diese Attacke braucht ein Ziel.';
+  if (/Invalid target/i.test(s)) return 'Ungültiges Ziel.';
+  if (/doesn't have a move/i.test(s)) return 'Diese Attacke kann nicht eingesetzt werden.';
+  if (/trapped|can't switch/i.test(s)) return 'Dieses Pokémon kann nicht wechseln.';
+  if (/Can't move/i.test(s) || /Can't do anything/i.test(s)) return 'Diese Wahl ist gerade nicht möglich.';
+  return 'Ungültige Wahl.';
+}
 function create(opts) {
   const level = Math.max(0, Math.min(3, opts.level | 0));
   const seed = opts.seed || '1,2,3,4';
@@ -62,7 +72,7 @@ function create(opts) {
       invalid++;
       const err = (side.choice && side.choice.error) || 'Ungültige Wahl.';
       try { side.clearChoice(); } catch (e) { /* already clear */ }
-      return { ok: false, error: String(err), view: view() };
+      return { ok: false, error: germanChoiceError(err), view: view() };
     }
     side._rlDone = req;
     pump();
@@ -113,6 +123,23 @@ function partyOf(side) {
     };
   });
 }
+function boostsOf(p) {
+  const out = {};
+  const b = p.boosts || {};
+  ['atk', 'def', 'spa', 'spd', 'spe', 'accuracy', 'evasion'].forEach(function (k) {
+    if (b[k]) out[k] = b[k];
+  });
+  return out;
+}
+function conditionsOf(side) {
+  const ids = ['tailwind', 'reflect', 'lightscreen', 'auroraveil', 'safeguard'];
+  const out = [];
+  ids.forEach(function (id) {
+    const c = side.sideConditions && side.sideConditions[id];
+    if (c) out.push({ id: id, turns: c.duration || 0 });
+  });
+  return out;
+}
 function activeOf(side) {
   return side.active.map(function (p) {
     if (!p) return null;
@@ -122,7 +149,9 @@ function activeOf(side) {
       maxhp: p.maxhp,
       status: p.status || '',
       fainted: !!p.fainted,
-      types: (p.types || []).slice()
+      types: (p.types || []).slice(),
+      boosts: boostsOf(p),
+      item: (p.item && p.item.name) || ''
     };
   });
 }
@@ -146,12 +175,14 @@ function requestOf(battle, side) {
   if (req.teamPreview) return { kind: 'preview', max: req.maxChosenTeamSize || 4, party: partyOf(side) };
   if (req.forceSwitch) return { kind: 'switch', flags: req.forceSwitch.slice(), party: partyOf(side) };
   const active = (req.active || []).map(function (a, i) {
-    if (!a) return null;
     const poke = side.active[i];
+    if (!a || !poke || poke.fainted || poke.hp <= 0 || (poke.volatiles && poke.volatiles.commanding)) return null;
     return {
       moves: (a.moves || []).map(function (mv, k) { return moveView(battle, poke, mv, k); }),
       canMega: a.canMegaEvo ? String(a.canMegaEvo) : '',
-      canTera: a.canTerastallize ? String(a.canTerastallize) : ''
+      canTera: a.canTerastallize ? String(a.canTerastallize) : '',
+      trapped: !!a.trapped,
+      maybeTrapped: !!a.maybeTrapped
     };
   });
   return { kind: 'move', active: active, party: partyOf(side) };
@@ -163,14 +194,17 @@ function snapshot(battle, extra) {
     ended: !!battle.ended,
     winner: battle.winner || '',
     weather: WEATHER[battle.field.weather] || '',
+    weatherTurns: battle.field.weather ? (battle.field.weatherState.duration || 0) : 0,
     terrain: TERRAIN[battle.field.terrain] || '',
+    terrainTurns: battle.field.terrain ? (battle.field.terrainState.duration || 0) : 0,
     trickRoom: !!battle.field.getPseudoWeather('trickroom'),
+    trickRoomTurns: (battle.field.getPseudoWeather('trickroom') || {}).duration || 0,
     tailwind: [
       !!(battle.p1.sideConditions && battle.p1.sideConditions.tailwind),
       !!(battle.p2.sideConditions && battle.p2.sideConditions.tailwind)
     ],
-    p1: { name: battle.p1.name, active: activeOf(battle.p1), party: partyOf(battle.p1) },
-    p2: { name: battle.p2.name, active: activeOf(battle.p2), party: partyOf(battle.p2) },
+    p1: { name: battle.p1.name, active: activeOf(battle.p1), party: partyOf(battle.p1), conditions: conditionsOf(battle.p1) },
+    p2: { name: battle.p2.name, active: activeOf(battle.p2), party: partyOf(battle.p2), conditions: conditionsOf(battle.p2) },
     request: requestOf(battle, battle.p1),
     log: log.slice(-30),
     invalid: extra.invalid,
