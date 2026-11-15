@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.1',
+      de: ['Matchlog (früher Test): Im Capture-Projektor „Matchlog lesen“ einschalten. Das Protokoll entsteht aus dem Bild, ohne das Kampf-Log im Spiel.', 'Bekannte Lücken: Gegnerteam nur über später gelesene Namen, Schaden und Mega des Gegners noch unzuverlässig, Forfeit/Sieg oft noch nicht erkannt.'],
+      en: ['Matchlog (early test): in the capture projector turn on “Read Matchlog”. The log is built from the picture, without opening the in-game battle log.', 'Known gaps: the opponent team is only filled from names read later, damage and the opponent’s Mega are still unreliable, and forfeit/win is often missed.'] },
     { v: '1.29.0',
       de: ['Kämpfe: Das Feld passt ins Fenster, ohne die Seite zu scrollen.', 'Ziele, Mega, Wechsel, erzwungener Wechsel und Aufgabe lassen sich im Doppelkampf wirklich spielen. Das Protokoll ist deutsch.'],
       en: ['Battles: the field fits the window, and the page does not scroll.', 'Targets, Mega, switches, forced switches and forfeit work in doubles. The log is in German.'] },
