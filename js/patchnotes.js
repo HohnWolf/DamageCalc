@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.0',
+      de: ['Kämpfe: Das Feld passt ins Fenster, ohne die Seite zu scrollen.', 'Ziele, Mega, Wechsel, erzwungener Wechsel und Aufgabe lassen sich im Doppelkampf wirklich spielen. Das Protokoll ist deutsch.'],
+      en: ['Battles: the field fits the window, and the page does not scroll.', 'Targets, Mega, switches, forced switches and forfeit work in doubles. The log is in German.'] },
     { v: '1.28.1',
       de: ['Kämpfe: Das Spielfeld nutzt wieder die vorbereitete Ansicht (beide Seiten gegenüber, KP-Kästen, Attackenfeld, Protokoll).', 'Die Kampfansicht ist durchgehend deutsch.'],
       en: ['Battles: the field uses the prepared view again (both sides facing each other, HP boxes, move panel, log).', 'The battle screen is entirely in German.'] },

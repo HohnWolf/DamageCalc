@@ -126,5 +126,44 @@ else {
   else ok('Kampfwerte (' + poke.species.name + ', 30/32/4 Adamant) stimmen mit dem Teambuilder überein: KP ' + poke.maxhp + ' Ang ' + got.atk);
 }
 
+function chooseLikeTheScreen(label, pasteA, pasteB) {
+  const a = engine.validatePaste(pasteA);
+  const b = engine.validatePaste(pasteB);
+  const game = session.create({ packedA: a.packed, packedB: b.packed, level: 1, seed: '4,4,4,4', nameA: 'Du', nameB: 'KI' });
+  let guard = 0;
+  while (game.view().request.kind === 'preview' && guard++ < 4) {
+    const req = game.view().request;
+    const team = (req.party || []).slice(0, req.max).map(function (p) { return p.slot; }).join('');
+    const r = game.choose('team ' + team);
+    if (!r.ok) { fail(label + ': Vorschau ' + r.error); return; }
+  }
+  const before = game.view();
+  if (before.request.kind !== 'move') { fail(label + ': keine Attackenwahl'); return; }
+  const turn = before.turn;
+  const parts = [];
+  let targeted = false;
+  (before.request.active || []).forEach(function (slot) {
+    if (!slot) { parts.push('pass'); return; }
+    const open = (slot.moves || []).filter(function (m) { return !m.disabled; });
+    const mv = open.filter(function (m) { return m.targets && m.targets.length; })[0] || open[0] || (slot.moves || [])[0];
+    if (!mv) { parts.push('move 1'); return; }
+    let s = 'move ' + mv.slot;
+    if (mv.targets && mv.targets.length) {
+      const loc = mv.targets[0].loc;
+      s += loc > 0 ? (' +' + loc) : (' ' + loc);
+      targeted = true;
+    }
+    parts.push(s);
+  });
+  const res = game.choose(parts.join(', '));
+  if (!res.ok) fail(label + ': Wahl abgelehnt (' + parts.join(', ') + '): ' + res.error);
+  else if (res.view.turn > turn || res.view.request.kind === 'switch' || res.view.ended) ok(label + (targeted ? ': Zielwahl geht weiter' : ': Wahl ohne Ziel geht weiter'));
+  else fail(label + ': Runde bleibt bei ' + res.view.turn);
+}
+chooseLikeTheScreen('Klick-Format', pool[0].paste, pool[1].paste);
+
+if (!ui.includes('function commitSlot') || !ui.includes('function maybeSend') || !ui.includes('btl-target')) fail('Zielknöpfe sind nicht an die Wahl gebunden');
+else ok('Zielknöpfe rufen die Wahl auf');
+
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Kämpfe OK');
