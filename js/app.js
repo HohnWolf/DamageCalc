@@ -503,7 +503,8 @@
   var CALC_NOTES_EN = {
     'Poltergeist schlägt ohne Item fehl': 'Poltergeist fails without an item', 'OHKO-Attacke': 'OHKO move',
     'Erlittenen Schaden bei der Attacke eintragen': 'Enter the damage taken at the move',
-    'Spit Up schlägt ohne Stockpile fehl': 'Spit Up fails without Stockpile', 'Steel Roller schlägt ohne Terrain fehl': 'Steel Roller fails without terrain'
+    'Spit Up schlägt ohne Stockpile fehl': 'Spit Up fails without Stockpile', 'Steel Roller schlägt ohne Terrain fehl': 'Steel Roller fails without terrain',
+    'Psychic Terrain blockt Prioritätsattacken gegen Pokémon am Boden': 'Psychic Terrain blocks priority moves against grounded Pokémon'
   };
   function nNote(s) {
     if (LANG === 'de') {
@@ -1407,21 +1408,22 @@
   var selected = { side: 0, slot: 0, move: 0, target: 0 };
   var lastResults = [[[], []], [[], []]];
 
-  function residualInfo(def, defSide, atk) {
+  function residualInfo(def, defSide, atk, activeField) {
+    var f = activeField || field;
     var max = def.maxHP, parts = [], res = 0, hazards = 0;
     var magicGuard = def.ability === 'Magic Guard';
-    var w = C.effectiveWeather(field, def, atk);
+    var w = C.effectiveWeather(f, def, atk);
     if (!magicGuard) {
       if (defSide.stealthRock) {
         var e = C.typeEff('Rock', def.types, {});
         hazards += Math.floor(max * e / 8); parts.push(nMove('Stealth Rock'));
       }
       var sp = defSide.spikes || 0;
-      if (sp && C.isGrounded(def, field)) { hazards += Math.floor(max * [0, 1 / 8, 1 / 6, 1 / 4][sp]); parts.push(T('spikesN', sp, nMove('Spikes'))); }
+      if (sp && C.isGrounded(def, f)) { hazards += Math.floor(max * [0, 1 / 8, 1 / 6, 1 / 4][sp]); parts.push(T('spikesN', sp, nMove('Spikes'))); }
     }
     var after = [];
     if (def.item === 'Leftovers') { res += Math.floor(max / 16); after.push(T('recovery', nItem('Leftovers'))); }
-    if (field.terrain === 'Grassy' && C.isGrounded(def, field)) { res += Math.floor(max / 16); after.push(T('recovery', nMove('Grassy Terrain'))); }
+    if (f.terrain === 'Grassy' && C.isGrounded(def, f)) { res += Math.floor(max / 16); after.push(T('recovery', nMove('Grassy Terrain'))); }
     if (!magicGuard) {
       if (w === 'Sand' && ['Rock', 'Ground', 'Steel'].every(function (t) { return def.types.indexOf(t) === -1; }) &&
           ['Overcoat', 'Sand Veil', 'Sand Rush', 'Sand Force'].indexOf(def.ability) === -1 && def.item !== 'Safety Goggles') {
@@ -1544,7 +1546,8 @@
     // ruin abilities, weather and terrain from all Pokémon on the field
     var autoWeather = { Drought: 'Sun', Drizzle: 'Rain', 'Sand Stream': 'Sand', 'Snow Warning': 'Snow',
       'Desolate Land': 'Harsh Sun', 'Primordial Sea': 'Heavy Rain', 'Delta Stream': 'Strong Winds' };
-    var autoTerrain = { 'Electric Surge': 'Electric', 'Grassy Surge': 'Grassy', 'Psychic Surge': 'Psychic', 'Misty Surge': 'Misty' };
+    // Hadron Engine sets Electric Terrain on entry, same as Electric Surge. Seed Sower only does so when hit, so it is not automatic.
+    var autoTerrain = { 'Electric Surge': 'Electric', 'Grassy Surge': 'Grassy', 'Psychic Surge': 'Psychic', 'Misty Surge': 'Misty', 'Hadron Engine': 'Electric' };
     all.forEach(function (x) {
       if (x.ability === 'Tablets of Ruin') fld.ruin.tablets = true;
       if (x.ability === 'Vessel of Ruin') fld.ruin.vessel = true;
@@ -1588,7 +1591,7 @@
             var atk = stanceAdjust(attacker, true, mv), def = stanceAdjust(target, false, null);
             var dSide = sideFieldFor(o, t, mons);
             var r = C.calculate(atk, def, mv, fld, aSide, dSide);
-            var info = residualInfo(def, field.sides[o], atk);
+            var info = residualInfo(def, field.sides[o], atk, fld);
             var ko = null;
             if (!r.empty && !r.status && r.damage[r.damage.length - 1] > 0) {
               ko = localKO(C.koChance(r.damage, def, {

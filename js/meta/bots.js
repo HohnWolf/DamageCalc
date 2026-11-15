@@ -11,7 +11,7 @@ const PROTECT = {
 const REDIRECT = { followme: 1, ragepowder: 1 };
 const STATUS_MAP = { brn: 'Burned', par: 'Paralyzed', psn: 'Poisoned', tox: 'Badly Poisoned', slp: 'Asleep', frz: 'Frozen' };
 const WEATHER = { sunnyday: 'Sun', raindance: 'Rain', sandstorm: 'Sand', snow: 'Snow', snowscape: 'Snow', desolateland: 'Harsh Sun', primordialsea: 'Heavy Rain' };
-const TERRAIN = { electricterrain: 'Electric', grassyterrain: 'Grass', psychicterrain: 'Psychic', mistyterrain: 'Misty' };
+const TERRAIN = { electricterrain: 'Electric', grassyterrain: 'Grassy', psychicterrain: 'Psychic', mistyterrain: 'Misty' };
 
 function fieldOf(battle) {
   const w = battle.field.weather;

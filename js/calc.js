@@ -104,10 +104,41 @@
     return w;
   }
 
+  // UI buttons use Electric/Grassy/Psychic/Misty. The battle sim and some callers
+  // pass Showdown ids ("electricterrain") or "Grass" for Grassy Terrain.
+  function normalizeTerrain(t) {
+    if (t == null || t === '' || t === 'None' || t === 'none') return '';
+    var key = String(t).toLowerCase().replace(/[^a-z]/g, '');
+    var map = {
+      electric: 'Electric', electricterrain: 'Electric', elektro: 'Electric', elektrofeld: 'Electric',
+      grassy: 'Grassy', grass: 'Grassy', grassyterrain: 'Grassy', gras: 'Grassy', grasfeld: 'Grassy',
+      psychic: 'Psychic', psychicterrain: 'Psychic', psycho: 'Psychic', psychofeld: 'Psychic',
+      misty: 'Misty', mistyterrain: 'Misty', nebel: 'Misty', nebelfeld: 'Misty'
+    };
+    return map[key] || '';
+  }
+  // Terrain Pulse / Nature-style type of the terrain. Grassy Terrain is Grass, not "Grassy".
+  var TERRAIN_TYPE = { Electric: 'Electric', Grassy: 'Grass', Psychic: 'Psychic', Misty: 'Fairy' };
+  // Damaging moves whose priority is not 0. Grassy Glide is 0 until Grassy Terrain.
+  var PRIORITY = {
+    'Accelerock': 1, 'Aqua Jet': 1, 'Bullet Punch': 1, 'Extreme Speed': 2, 'Fake Out': 3,
+    'Feint': 2, 'First Impression': 2, 'Ice Shard': 1, 'Jet Punch': 1, 'Mach Punch': 1,
+    'Quick Attack': 1, 'Shadow Sneak': 1, 'Sucker Punch': 1, 'Thunderclap': 1,
+    'Upper Hand': 3, 'Vacuum Wave': 1, 'Water Shuriken': 1, 'Grassy Glide': 0
+  };
+  function movePriority(move, terrain, attackerGrounded) {
+    var p = (move.priority != null && move.priority !== '') ? +move.priority : (PRIORITY[move.name] || 0);
+    if (move.name === 'Grassy Glide' && terrain === 'Grassy' && attackerGrounded) p += 1;
+    return p;
+  }
+  // Grounded: Gravity, Ingrain, Smack Down and Iron Ball pin the Pokémon down.
+  // Flying (unless it Roosted), Levitate, Eelevate, Magnet Rise, Telekinesis and Air Balloon do not touch the ground.
   function isGrounded(p, field) {
-    if (field.gravity || p.item === 'Iron Ball') return true;
-    if (hasType(p, 'Flying')) return false;
+    field = field || {};
+    if (field.gravity || p.ingrain || p.smackDown || p.item === 'Iron Ball') return true;
+    if (hasType(p, 'Flying') && !p.roost) return false;
     if (p.ability === 'Levitate' || p.ability === 'Eelevate') return false;
+    if (p.magnetRise || p.telekinesis) return false;
     if (p.item === 'Air Balloon') return false;
     return true;
   }
@@ -122,7 +153,7 @@
     if ((p.ability === 'Chlorophyll' && (w === 'Sun' || w === 'Harsh Sun')) ||
         (p.ability === 'Swift Swim' && (w === 'Rain' || w === 'Heavy Rain')) ||
         (p.ability === 'Sand Rush' && w === 'Sand') || (p.ability === 'Slush Rush' && w === 'Snow') ||
-        (p.ability === 'Surge Surfer' && field.terrain === 'Electric')) mods.push(8192);
+        (p.ability === 'Surge Surfer' && normalizeTerrain(field && field.terrain) === 'Electric')) mods.push(8192);
     if (p.ability === 'Quick Feet' && p.status !== 'Healthy') mods.push(6144);
     s = applyMod(s, chainMods(mods));
     if (p.status === 'Paralyzed' && p.ability !== 'Quick Feet') s = Math.floor(s / 2);
@@ -167,6 +198,8 @@
   // field: {format, weather, terrain, gravity, ruin:{tablets,vessel,sword,beads}, fairyAura, darkAura, auraBreak}
   // aSide/dSide: {helpingHand, reflect, lightScreen, auroraVeil, friendGuard, battery, powerSpot, steelySpirit, flowerGift}
   function calculate(attacker, defender, move, field, aSide, dSide) {
+    field = Object.assign({}, field || {});
+    field.terrain = normalizeTerrain(field.terrain);
     var res = { damage: [0], desc: {}, move: move, attacker: attacker, defender: defender, notes: [] };
     if (!move || !move.name || move.name === '(No Move)') { res.empty = true; return res; }
     if (move.category === 'Status') { res.status = true; return res; }
@@ -196,8 +229,8 @@
     if (name === 'Weather Ball' && atkWeather) {
       type = { Sun: 'Fire', 'Harsh Sun': 'Fire', Rain: 'Water', 'Heavy Rain': 'Water', Sand: 'Rock', Snow: 'Ice' }[atkWeather] || type;
       bp = 100; d.weather = atkWeather;
-    } else if (name === 'Terrain Pulse' && field.terrain && field.terrain !== 'None' && attackerGrounded) {
-      type = field.terrain === 'Misty' ? 'Fairy' : field.terrain; bp = 100; d.terrain = field.terrain;
+    } else if (name === 'Terrain Pulse' && field.terrain && attackerGrounded) {
+      type = TERRAIN_TYPE[field.terrain]; bp = Math.max(1, bp) * 2; d.terrain = field.terrain;
     } else if (name === 'Revelation Dance') {
       type = attacker.types[0];
     } else if (name === 'Aura Wheel' && attacker.species === 'Morpeko-Hangry') {
@@ -244,6 +277,16 @@
     }
     res.effectiveness = eff;
     if (eff === 0) { res.damage = [0]; return res; }
+    // Psychic Terrain: priority moves fail against a grounded target. Grassy Glide
+    // only has priority while the user is grounded in Grassy Terrain.
+    var pri = movePriority(move, field.terrain, attackerGrounded);
+    res.priority = pri;
+    if (pri > 0 && field.terrain === 'Psychic' && defenderGrounded) {
+      res.damage = [0];
+      res.notes.push('Psychic Terrain blockt Prioritätsattacken gegen Pokémon am Boden');
+      d.terrain = 'Psychic';
+      return res;
+    }
 
     // ---- fixed damage moves ----
     if (name === 'Seismic Toss' || name === 'Night Shade') { res.damage = [LEVEL]; return res; }
@@ -395,6 +438,8 @@
     if (attacker.ability === 'Fire Mane' && type === 'Fire') { atkMods.push(6144); d.attackerAbility = 'Fire Mane'; }
     if (attacker.ability === "Dragon's Maw" && type === 'Dragon') { atkMods.push(6144); d.attackerAbility = attacker.ability; }
     if (attacker.ability === 'Transistor' && type === 'Electric') { atkMods.push(5325); d.attackerAbility = attacker.ability; }
+    // Hadron Engine: 5461/4096 Sp. Atk while Electric Terrain is up (in addition to the 1.3x move boost).
+    if (attacker.ability === 'Hadron Engine' && atkKey === 'sa' && field.terrain === 'Electric') { atkMods.push(5461); d.attackerAbility = 'Hadron Engine'; }
     if (attacker.ability === 'Steelworker' && type === 'Steel') { atkMods.push(6144); d.attackerAbility = attacker.ability; }
     if (attacker.ability === 'Rocky Payload' && type === 'Rock') { atkMods.push(6144); d.attackerAbility = attacker.ability; }
     if (attacker.ability === 'Water Bubble' && type === 'Water') { atkMods.push(8192); d.attackerAbility = attacker.ability; }
@@ -438,7 +483,9 @@
 
     // ---- base damage ----
     var base = Math.floor(Math.floor(Math.floor(2 * LEVEL / 5 + 2) * bp * attack / defense) / 50) + 2;
-    var spread = doubles && move.isSpread && !move.singleTarget;
+    // Expanding Force hits every adjacent foe in Psychic Terrain, so doubles applies the 0.75 spread modifier.
+    var expandingSpread = name === 'Expanding Force' && field.terrain === 'Psychic' && attackerGrounded;
+    var spread = doubles && (move.isSpread || expandingSpread) && !move.singleTarget;
     if (spread) base = applyMod(base, 3072);
     res.spread = spread;
     if (!defUmbrella) {

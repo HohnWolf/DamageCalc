@@ -145,7 +145,7 @@
   var FOE_BAR = ['78px', '228px'];
   var ALLY_BAR = ['8px', '156px'];
   var WEATHER_DE = { Rain: 'Regen', 'Heavy Rain': 'Starkregen', Sun: 'Sonne', 'Harsh Sun': 'Gleißende Sonne', Sand: 'Sandsturm', Snow: 'Schnee' };
-  var TERRAIN_DE = { Electric: 'Elektrofeld', Grass: 'Grasfeld', Psychic: 'Psychofeld', Misty: 'Nebelfeld' };
+  var TERRAIN_DE = { Electric: 'Elektrofeld', Grassy: 'Grasfeld', Grass: 'Grasfeld', Psychic: 'Psychofeld', Misty: 'Nebelfeld' };
   function deMon(name) { return name ? deOf(A.nSpecies, name) : ''; }
   function deMove(name) { return name ? deOf(A.nMove, name) : ''; }
   function deType(type) { return type ? deOf(A.nType, type) : ''; }

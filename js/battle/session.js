@@ -7,7 +7,7 @@ const bots = require('../meta/bots');
 const stats = require('../meta/stats');
 
 const WEATHER = { raindance: 'Rain', primordialsea: 'Heavy Rain', sunnyday: 'Sun', desolateland: 'Harsh Sun', sandstorm: 'Sand', snow: 'Snow', snowscape: 'Snow', hail: 'Snow' };
-const TERRAIN = { electricterrain: 'Electric', grassyterrain: 'Grass', psychicterrain: 'Psychic', mistyterrain: 'Misty' };
+const TERRAIN = { electricterrain: 'Electric', grassyterrain: 'Grassy', psychicterrain: 'Psychic', mistyterrain: 'Misty' };
 
 function germanChoiceError(msg) {
   const s = String(msg || '');
