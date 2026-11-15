@@ -1,0 +1,157 @@
+{
+  "kind": "rattata-matchlog", "v": 1, "game": "champions", "format": "doubles", "lang": "en",
+  "id": "gt_match02", "source": "recordings/match02.mp4", "layout": "champions_1080p_doubles@1",
+  "gt_status": "partial, hand-verified from frames + OCR (out/timeline_m02.txt, out/hp_m02.txt, out/ts_m02.txt). t = s in recording. Mid-drain HP values ignored; settled values only.",
+  "players": { "you": "HohnWolf", "foe": "wobbiiin" },
+  "phases": { "team_select": [0, 23], "standby": [23, 60], "battle": [70, 381], "result": [381.25, 388] },
+  "teams": {
+    "you": [
+      { "id": "y1", "species": "Espathra", "item": "Electric Seed", "brought": true, "lead": true, "order": 2 },
+      { "id": "y2", "species": "Goodra", "item": "Leftovers", "brought": false },
+      { "id": "y3", "species": "Raichu", "item": "Raichunite X", "brought": true, "lead": false, "order": 3 },
+      { "id": "y4", "species": "Floette", "item": "Floettite", "brought": false },
+      { "id": "y5", "species": "Arcanine-Hisui", "item": "Focus Sash", "ability": "Rock Head", "brought": true, "lead": true, "order": 1 },
+      { "id": "y6", "species": "Basculegion", "item": "Choice Scarf", "ability": "Adaptability", "brought": true, "lead": false, "order": 4 }
+    ],
+    "foe": [
+      { "id": "f1", "species": "Gholdengo", "brought": true },
+      { "id": "f2", "species": "Krookodile", "brought": true, "lead": true },
+      { "id": "f3", "species": "Tauros-Paldea-Blaze", "brought": false, "note": "black bull, Fighting/Fire icons" },
+      { "id": "f4", "species": "Froslass", "brought": true, "item": "Froslassite", "mega": true },
+      { "id": "f5", "species": "Inteleon", "brought": false, "note": "slim Water-only, male; verify" },
+      { "id": "f6", "species": "Noivern", "brought": true, "lead": true, "item": "Focus Sash" }
+    ]
+  },
+  "turns": [
+    { "n": 0, "events": [
+        { "seq": 1, "t": 77.5, "kind": "send_out", "side": "foe", "mons": ["f2", "f6"], "src": { "line": "wobbiiin sent out Krookodile and Noivern!" } },
+        { "seq": 2, "t": 81.5, "kind": "send_out", "side": "you", "mons": ["y5", "y1"], "src": { "line": "Go! Arcanine and Espathra!" } } ] },
+    { "n": 1, "t": 84.5,
+      "active": { "you": ["y5", "y1"], "foe": ["f6", "f2"] },
+      "hp_start": { "y5": { "cur": 171, "max": 171 }, "y1": { "cur": 170, "max": 170 }, "f6": { "pct": 100 }, "f2": { "pct": 100 } },
+      "choices": [
+        { "slot": 0, "mon": "y5", "action": "move", "move": "Head Smash", "target": "f6", "mega": false, "t_confirm": 88.9, "executed": true },
+        { "slot": 1, "mon": "y1", "action": "move", "move": "Protect", "target": "self", "mega": false, "t_confirm": 100.7, "executed": true }
+      ],
+      "events": [
+        { "seq": 1, "t": 101.75, "kind": "move", "actor": "y1", "move": "Protect", "src": { "line": "Espathra used Protect!" } },
+        { "seq": 2, "t": 107.0, "kind": "move", "actor": "f6", "move": "Tailwind", "src": { "line": "The opposing Noivern used Tailwind!" } },
+        { "seq": 3, "t": 110.75, "kind": "field", "field": "Tailwind", "side": "foe", "src": { "line": "A tailwind started blowing on the opposing side!" } },
+        { "seq": 4, "t": 113.0, "kind": "move", "actor": "f2", "move": "Earthquake", "flags": ["spread"],
+          "hits": [ { "mon": "y5", "before": { "cur": 171, "max": 171 }, "after": { "cur": 1, "max": 171 }, "dmg": { "hp": 170 }, "effect": "extreme" },
+                    { "mon": "y1", "blocked": "protect" } ],
+          "src": { "line": "The opposing Krookodile used Earthquake!" } },
+        { "seq": 5, "t": 125.75, "kind": "item", "actor": "y5", "item": "Focus Sash", "src": { "banner": "Arcanine's / Focus Sash", "line": "Arcanine hung on using its Focus Sash!" } },
+        { "seq": 6, "t": 131.0, "kind": "move", "actor": "y5", "move": "Head Smash",
+          "hits": [ { "mon": "f6", "before": { "pct": 100 }, "after": { "pct": 1 }, "dmg": { "pct": 99 }, "effect": "super" } ],
+          "note": "no recoil shown (Rock Head)", "src": { "line": "Arcanine used Head Smash!" } },
+        { "seq": 7, "t": 138.25, "kind": "item", "actor": "f6", "item": "Focus Sash", "src": { "banner": "Noivern's / Focus Sash (opp side)" } },
+        { "seq": 8, "t": 143.25, "kind": "ability", "actor": "y1", "ability": "Speed Boost", "src": { "banner": "Espathra's / Speed Boost" } }
+      ] },
+    { "n": 2, "t": 146.5,
+      "active": { "you": ["y5", "y1"], "foe": ["f6", "f2"] },
+      "hp_start": { "y5": { "cur": 1, "max": 171 }, "y1": { "cur": 170, "max": 170 }, "f6": { "pct": 1 }, "f2": { "pct": 100 } },
+      "choices": [
+        { "slot": 0, "mon": "y5", "action": "move", "move": "Protect", "target": "self", "t_confirm": 149.9, "executed": true },
+        { "slot": 1, "mon": "y1", "action": "move", "move": "Calm Mind", "target": "self", "t_confirm": 152.6, "executed": false, "reason": "fainted first" }
+      ],
+      "events": [
+        { "seq": 1, "t": 163.25, "kind": "move", "actor": "f6", "move": "Protect", "src": { "line": "The opposing Noivern used Protect!" } },
+        { "seq": 2, "t": 168.25, "kind": "move", "actor": "y5", "move": "Protect", "src": { "line": "Arcanine used Protect!" } },
+        { "seq": 3, "t": 174.5, "kind": "move", "actor": "f2", "move": "Knock Off",
+          "hits": [ { "mon": "y1", "before": { "cur": 170, "max": 170 }, "after": { "cur": 0, "max": 170 }, "dmg": { "hp": 170 }, "effect": "super", "ko": true } ],
+          "src": { "line": "The opposing Krookodile used Knock Off!" } },
+        { "seq": 4, "t": 179.0, "kind": "faint", "mon": "y1", "src": { "line": "Espathra fainted!" } },
+        { "seq": 5, "t": 183.5, "kind": "item_removed", "mon": "y1", "item": "Electric Seed", "by": "f2", "src": { "line": "The opposing Krookodile knocked off Espathra's Electric Seed!" }, "note": "shown AFTER the faint line" },
+        { "seq": 6, "t": 187.5, "kind": "switch", "side": "you", "slot": 1, "out": "y1", "in": "y6", "forced": true, "menu": [182, 186], "src": { "line": "Go! Basculegion!" } }
+      ] },
+    { "n": 3, "t": 191.5,
+      "active": { "you": ["y5", "y6"], "foe": ["f6", "f2"] },
+      "hp_start": { "y5": { "cur": 1, "max": 171 }, "y6": { "cur": 197, "max": 197 }, "f6": { "pct": 1 }, "f2": { "pct": 100 } },
+      "choices": [
+        { "slot": 0, "mon": "y5", "action": "move", "move": "Extreme Speed", "target": "f6", "t_confirm": 193.6, "executed": true, "note": "hit Gholdengo (switched into slot): no effect" },
+        { "slot": 1, "mon": "y6", "action": "move", "move": "Wave Crash", "target": "f2", "t_confirm": 196.0, "executed": true, "note": "cursor oppA -> oppB before confirm" }
+      ],
+      "events": [
+        { "seq": 1, "t": 203.5, "kind": "switch", "side": "foe", "slot": 0, "out": "f6", "in": "f1", "forced": false, "src": { "lines": ["wobbiiin withdrew Noivern!", "wobbiiin sent out Gholdengo!"] } },
+        { "seq": 2, "t": 210.0, "kind": "move", "actor": "y5", "move": "Extreme Speed",
+          "hits": [ { "mon": "f1", "effect": "immune" } ], "src": { "line": "Arcanine used Extreme Speed!", "line2": "It doesn't affect the opposing Gholdengo..." } },
+        { "seq": 3, "t": 213.75, "kind": "move", "actor": "f2", "move": "Earthquake", "flags": ["spread"],
+          "hits": [ { "mon": "f1", "before": { "pct": 100 }, "after": { "pct": 23 }, "dmg": { "pct": 77 }, "effect": "super" },
+                    { "mon": "y5", "before": { "cur": 1, "max": 171 }, "after": { "cur": 0, "max": 171 }, "dmg": { "hp": 1 }, "effect": "extreme", "ko": true },
+                    { "mon": "y6", "before": { "cur": 197, "max": 197 }, "after": { "cur": 94, "max": 197 }, "dmg": { "hp": 103 } } ],
+          "src": { "line": "The opposing Krookodile used Earthquake!" } },
+        { "seq": 4, "t": 222.75, "kind": "faint", "mon": "y5", "src": { "line": "Arcanine fainted!" } },
+        { "seq": 5, "t": 226.75, "kind": "move", "actor": "y6", "move": "Wave Crash",
+          "hits": [ { "mon": "f2", "before": { "pct": 100 }, "after": { "pct": 0 }, "dmg": { "pct": 100 }, "effect": "super", "ko": true } ],
+          "src": { "line": "Basculegion used Wave Crash!" } },
+        { "seq": 6, "t": 234.25, "kind": "faint", "mon": "f2", "src": { "line": "The opposing Krookodile fainted!" } },
+        { "seq": 7, "t": 238.0, "kind": "residual", "cause": "recoil", "hits": [ { "mon": "y6", "before": { "cur": 94, "max": 197 }, "after": { "cur": 37, "max": 197 }, "dmg": { "hp": 57 } } ], "src": { "line": "Basculegion was damaged by the recoil!" } },
+        { "seq": 8, "t": 247.75, "kind": "switch", "side": "you", "slot": 0, "out": "y5", "in": "y3", "forced": true, "menu": [241, 246], "src": { "line": "Go! Raichu!" } },
+        { "seq": 9, "t": 251.5, "kind": "switch", "side": "foe", "slot": 1, "out": "f2", "in": "f6", "forced": true, "src": { "line": "wobbiiin sent out Noivern!" } }
+      ] },
+    { "n": 4, "t": 255.5,
+      "active": { "you": ["y3", "y6"], "foe": ["f1", "f6"] },
+      "hp_start": { "y3": { "cur": 167, "max": 167 }, "y6": { "cur": 37, "max": 197 }, "f1": { "pct": 23 }, "f6": { "pct": 1 } },
+      "choices": [
+        { "slot": 0, "mon": "y3", "action": "move", "move": "Fake Out", "target": "f6", "mega": true, "t_confirm": 259.7, "executed": true, "note": "cursor on Gholdengo ('Has no effect') first, moved to Noivern" },
+        { "slot": 1, "mon": "y6", "action": "move", "move": "Wave Crash", "target": "f1", "t_confirm": 263.3, "executed": true }
+      ],
+      "events": [
+        { "seq": 1, "t": 266.75, "kind": "mega_react", "actor": "y3", "src": { "line": "Raichu's Raichunite X is reacting to HohnWolf's Omni Ring!" } },
+        { "seq": 2, "t": 276.0, "kind": "mega", "actor": "y3", "into": "Mega Raichu X", "src": { "line": "Raichu has Mega Evolved into Mega Raichu!" } },
+        { "seq": 3, "t": 278.0, "kind": "ability", "actor": "y3", "ability": "Electric Surge", "src": { "banner": "Raichu's / Electric Surge" } },
+        { "seq": 4, "t": 278.5, "kind": "field", "field": "Electric Terrain", "src": { "line": "An electric current ran across the battlefield!" } },
+        { "seq": 5, "t": 280.5, "kind": "move", "actor": "f1", "move": "Protect", "src": { "line": "The opposing Gholdengo used Protect!" } },
+        { "seq": 6, "t": 285.75, "kind": "move", "actor": "y3", "move": "Fake Out",
+          "hits": [ { "mon": "f6", "before": { "pct": 1 }, "after": { "pct": 0 }, "dmg": { "pct": 1 }, "ko": true } ], "src": { "line": "Raichu used Fake Out!" } },
+        { "seq": 7, "t": 289.25, "kind": "faint", "mon": "f6", "src": { "line": "The opposing Noivern fainted!" } },
+        { "seq": 8, "t": 293.0, "kind": "move", "actor": "y6", "move": "Wave Crash", "hits": [ { "mon": "f1", "blocked": "protect" } ], "src": { "line": "Basculegion used Wave Crash!", "line2": "The opposing Gholdengo protected itself!" } },
+        { "seq": 9, "t": 297.25, "kind": "field_end", "field": "Tailwind", "side": "foe", "src": { "line": "The opposing side's tailwind petered out!" } },
+        { "seq": 10, "t": 302.5, "kind": "switch", "side": "foe", "slot": 1, "out": "f6", "in": "f4", "forced": true, "src": { "line": "wobbiiin sent out Froslass!" } }
+      ] },
+    { "n": 5, "t": 307.0,
+      "active": { "you": ["y3", "y6"], "foe": ["f1", "f4"] },
+      "hp_start": { "y3": { "cur": 167, "max": 167 }, "y6": { "cur": 37, "max": 197 }, "f1": { "pct": 23 }, "f4": { "pct": 100 } },
+      "menu_events": [ { "t": 307.25, "mon": "y3", "kind": "unusable_move", "move": "Fake Out", "src": { "line": "This move can't be used!" } } ],
+      "choices": [
+        { "slot": 0, "mon": "y3", "action": "move", "move": "Rising Voltage", "target": "f4", "t_confirm": 310.7, "executed": true, "note": "cursor oppA -> oppB" },
+        { "slot": 1, "mon": "y6", "action": "move", "move": "Wave Crash", "target": "f1", "t_confirm": 315.0, "executed": true }
+      ],
+      "events": [
+        { "seq": 1, "t": 318.75, "kind": "mega_react", "actor": "f4", "src": { "line": "The opposing Froslass's Froslassite is reacting to wobbiiin's Omni Ring!" } },
+        { "seq": 2, "t": 328.0, "kind": "mega", "actor": "f4", "into": "Mega Froslass", "src": { "line": "The opposing Froslass has Mega Evolved into Mega Froslass!" } },
+        { "seq": 3, "t": 330.0, "kind": "ability", "actor": "f4", "ability": "Snow Warning", "src": { "banner": "Froslass's / Snow Warning (opp side)" } },
+        { "seq": 4, "t": 330.25, "kind": "weather", "weather": "Snow", "src": { "line": "It started to snow!" } },
+        { "seq": 5, "t": 332.0, "kind": "move", "actor": "y6", "move": "Wave Crash",
+          "hits": [ { "mon": "f1", "before": { "pct": 23 }, "after": { "pct": 0 }, "dmg": { "pct": 23 }, "ko": true } ], "src": { "line": "Basculegion used Wave Crash!" } },
+        { "seq": 6, "t": 338.0, "kind": "faint", "mon": "f1", "src": { "line": "The opposing Gholdengo fainted!" } },
+        { "seq": 7, "t": 341.75, "kind": "residual", "cause": "recoil", "mon": "y6", "note": "value not settled (37 -> ?)", "src": { "line": "Basculegion was damaged by the recoil!" } },
+        { "seq": 8, "t": 344.0, "kind": "move", "actor": "f4", "move": "Blizzard", "flags": ["spread"],
+          "hits": [ { "mon": "y6", "after": { "cur": 0, "max": 197 }, "effect": "resisted", "ko": true },
+                    { "mon": "y3", "before": { "cur": 167, "max": 167 }, "after": { "cur": 79, "max": 167 }, "dmg": { "hp": 88 } } ],
+          "src": { "line": "The opposing Froslass used Blizzard!", "line2": "It's not very effective on Basculegion." } },
+        { "seq": 9, "t": 350.5, "kind": "faint", "mon": "y6", "src": { "line": "Basculegion fainted!" } },
+        { "seq": 10, "t": 354.75, "kind": "move", "actor": "y3", "move": "Rising Voltage",
+          "hits": [ { "mon": "f4", "before": { "pct": 100 }, "after": { "pct": 27 }, "dmg": { "pct": 73 } } ], "src": { "line": "Raichu used Rising Voltage!" } }
+      ] },
+    { "n": 6, "t": 362.25,
+      "active": { "you": ["y3"], "foe": ["f4"] },
+      "hp_start": { "y3": { "cur": 79, "max": 167 }, "f4": { "pct": 27 } },
+      "choices": [
+        { "slot": 0, "mon": "y3", "action": "move", "move": "Rising Voltage", "target": "f4", "t_confirm": 367.0, "executed": false, "reason": "fainted first" }
+      ],
+      "events": [
+        { "seq": 1, "t": 371.0, "kind": "move", "actor": "f4", "move": "Blizzard",
+          "hits": [ { "mon": "y3", "before": { "cur": 79, "max": 167 }, "after": { "cur": 0, "max": 167 }, "dmg": { "hp": 79 }, "ko": true } ], "src": { "line": "The opposing Froslass used Blizzard!" } },
+        { "seq": 2, "t": 375.75, "kind": "faint", "mon": "y3", "src": { "line": "Raichu fainted!" } }
+      ] }
+  ],
+  "result": { "winner": "foe", "reason": "all fainted", "t": 381.25, "src": { "line": "You lost to wobbiiin!" } },
+  "open_points": [
+    "Foe f5 Inteleon from icon only (Water, male, slim) - verify; Tauros form from type icons.",
+    "Basculegion HP after T5 recoil not settled before Blizzard KO.",
+    "Possible missed short lines between 136-143 ('The opposing Noivern hung on using its Focus Sash!') - banner seen, line not in dedup output.",
+    "Opp choices are inferred only from executed moves (no menu access)."
+  ]
+}

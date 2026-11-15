@@ -10,6 +10,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node test/run_all.js",
+    "matchlog": "node test/matchlog_harness.js",
     "dist": "electron-builder --win nsis portable",
     "dist:mac": "electron-builder --mac dmg zip --x64 --arm64 --publish never",
     "dist:dir": "electron-builder --win dir",
@@ -18,7 +19,8 @@
   "devDependencies": {
     "electron": "^39.0.0",
     "electron-builder": "^26.0.0",
-    "esbuild": "^0.25.11"
+    "esbuild": "^0.25.11",
+    "jpeg-js": "^0.4.4"
   },
   "build": {
     "appId": "de.hohnwolf.championscalc",
@@ -37,6 +39,7 @@
       "img/**",
       "electron/**",
       "vendor/ps/**",
+      "vendor/tessdata/**",
       "package.json"
     ],
     "win": {
@@ -47,8 +50,20 @@
       "icon": "icon.png",
       "category": "public.app-category.utilities",
       "target": [
-        { "target": "dmg", "arch": ["arm64", "x64"] },
-        { "target": "zip", "arch": ["arm64", "x64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "identity": null,
       "hardenedRuntime": false,
@@ -83,6 +98,7 @@
     "electron@39.8.10": true
   },
   "dependencies": {
-    "electron-updater": "^6.8.11"
+    "electron-updater": "^6.8.11",
+    "tesseract.js": "^5.1.1"
   }
 }
