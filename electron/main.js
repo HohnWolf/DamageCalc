@@ -9,6 +9,7 @@ const shiny = require('./shiny');
 const match = require('./match');
 const updater = require('./updater');
 const metaPool = require('./meta_pool');
+const battleHost = require('./battle_host');
 const ocr = require('./ocr');
 const { isStreamPipeError } = require('./streamguard');
 
@@ -174,6 +175,7 @@ if (!app.requestSingleInstanceLock()) {
     ocr.init();
     updater.init(win);
     metaPool.init();
+    battleHost.init();
     // Chromium schreibt localStorage nur verzögert auf die Platte: alle 5 s sichern, damit bei einem Absturz
     // oder "Task beenden" höchstens die letzten Sekunden Zählungen fehlen (kostet nichts, wenn sich nichts geändert hat)
     setInterval(() => { try { session.defaultSession.flushStorageData(); } catch (e) { /* beim Beenden */ } }, 5000);

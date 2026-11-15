@@ -69,6 +69,11 @@ contextBridge.exposeInMainWorld('desktop', {
     onProgress: (cb) => ipcRenderer.on('meta-progress', (e, p) => cb(p || {})),
     onDone: (cb) => ipcRenderer.on('meta-done', (e, p) => cb(p || {})),
   },
+  battle: {
+    start: (opts) => ipcRenderer.invoke('battle-start', opts || {}),
+    choose: (choice) => ipcRenderer.invoke('battle-choose', String(choice || '')),
+    forfeit: () => ipcRenderer.invoke('battle-forfeit'),
+  },
   // Updates über GitHub-Releases (electron/updater.js)
   update: {
     get: () => ipcRenderer.invoke('update-get'),
