@@ -11,6 +11,7 @@ const updater = require('./updater');
 const metaPool = require('./meta_pool');
 const battleHost = require('./battle_host');
 const ocr = require('./ocr');
+const matchlogOcr = require('./matchlog_ocr');
 const { isStreamPipeError } = require('./streamguard');
 
 function noteCrash(err) {
@@ -124,6 +125,23 @@ function createWindow() {
   });
 
   win.on('close', () => saveBounds(win));
+  if (process.argv.includes('--matchlog-smoke')) {
+    win.webContents.once('did-finish-load', () => {
+      const shot = process.env.RL_SHOT_DIR || require('os').tmpdir();
+      win.webContents.executeJavaScript(`(function () {
+        try { window.CC.showView('projector'); } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
+        var host = document.getElementById('matchlogMount');
+        var text = host ? host.innerText : '';
+        return { ok: !!(host && /Matchlog/.test(text) && window.CCMatchlog && window.CCMatchlogUI), text: text.slice(0, 500) };
+      })()`, true).then((result) => {
+        try { fs.mkdirSync(shot, { recursive: true }); fs.writeFileSync(path.join(shot, 'matchlog-smoke.json'), JSON.stringify(result)); } catch (e) { /* */ }
+        setTimeout(() => { try { app.exit(result && result.ok ? 0 : 1); } catch (e) { process.exit(result && result.ok ? 0 : 1); } }, 50);
+      }).catch((err) => {
+        try { fs.writeFileSync(path.join(shot, 'matchlog-smoke.json'), JSON.stringify({ ok: false, error: String(err && err.message || err) })); } catch (e) { /* */ }
+        setTimeout(() => { try { app.exit(1); } catch (e) { process.exit(1); } }, 50);
+      });
+    });
+  }
   win.loadFile(path.join(ROOT, 'index.html'), isShiny ? { query: { shiny: '1' } } : undefined);
   if (process.argv.includes('--projector-click-test')) {
     const driver = fs.readFileSync(path.join(__dirname, 'projector_click.js'), 'utf8');
@@ -173,6 +191,7 @@ if (!app.requestSingleInstanceLock()) {
     projector.init(win);
     match.init(shiny);
     ocr.init();
+    matchlogOcr.init();
     updater.init(win);
     metaPool.init();
     battleHost.init();

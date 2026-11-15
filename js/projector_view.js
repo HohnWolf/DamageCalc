@@ -301,6 +301,9 @@
     opt.appendChild(fl);
     root.appendChild(opt);
     root.appendChild(el('p', { class: 'pv-note', text: t('hint') }));
+    var ml = el('div', { id: 'matchlogMount' });
+    root.appendChild(ml);
+    if (window.CCMatchlogUI) window.CCMatchlogUI.mount(ml);
 
     fillCameras();
     syncControls();
@@ -327,6 +330,8 @@
   if (D && D.onClosed) D.onClosed(function () { window.setTimeout(paint, 0); });
   window.CCProjectorView = {
     render: render,
+    stream: function () { return stream; },
+    videoEl: function () { return video; },
     getAuto: function (k) { return k === 'connect' || !k ? !!store.autoConnect : false; },
     setAuto: function (k, v) {
       if (k && k !== 'connect') return;

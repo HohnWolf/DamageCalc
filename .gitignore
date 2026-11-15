@@ -1,4 +1,6 @@
 node_modules/
+.tess-cache/
+test/matchlog/last_m01.json
 dist/
 __pycache__/
 *.pyc

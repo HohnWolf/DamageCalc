@@ -1,0 +1,14 @@
+/* Matchlog-Test im Capture-Projektor */
+.ml-panel { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line, #2a2a30); display: flex; flex-direction: column; gap: 8px; }
+.ml-panel h3 { margin: 0; }
+.ml-sub { margin: 0; opacity: .75; font-size: 13px; }
+.ml-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.ml-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.ml-debug { font: 12px/1.4 ui-monospace, Consolas, monospace; opacity: .85; }
+.ml-log {
+  margin: 0; max-height: 360px; overflow: auto; white-space: pre-wrap;
+  font: 13px/1.45 ui-monospace, Consolas, monospace;
+  background: rgba(0, 0, 0, .25); border-radius: 8px; padding: 10px 12px;
+}
+.ml-roi { width: min(100%, 480px); height: auto; border-radius: 8px; background: #000; }
+.ml-roi[hidden] { display: none; }

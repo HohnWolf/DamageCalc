@@ -1,0 +1,949 @@
+{
+ "version": 1,
+ "resolution": [
+  1920,
+  1080
+ ],
+ "source": "match01.mp4 (EN, 1080p, no overlays), cross-checked on match02.mp4",
+ "notes": "Boxes are [x0,y0,x1,y1] in 1920x1080 pixels. Measured from frames; roughly +-5 px. Text ROIs have extra margin for longer names (e.g. German). 'unverified' = seen only once or derived.",
+ "screens": {
+  "team_select": {
+   "detect": {
+    "title_text": [
+     740,
+     225,
+     1000,
+     300
+    ],
+    "mode_header": [
+     750,
+     22,
+     1166,
+     60
+    ],
+    "hint": "'Select 4 Pokémon to send into battle.' / mode 'Ranked Battles  Double Battle'"
+   },
+   "timer": [
+    320,
+    34,
+    430,
+    75
+   ],
+   "own_trainer_name": [
+    178,
+    98,
+    497,
+    140
+   ],
+   "opp_trainer_name": [
+    1537,
+    98,
+    1871,
+    140
+   ],
+   "own_rows": {
+    "x": [
+     85,
+     600
+    ],
+    "y0": 160,
+    "pitch": 126,
+    "h": 103,
+    "count": 6,
+    "fields_rel": {
+     "order_digit": [
+      3,
+      0,
+      47,
+      103
+     ],
+     "name": [
+      55,
+      12,
+      290,
+      48
+     ],
+     "item": [
+      100,
+      57,
+      385,
+      90
+     ],
+     "gender": [
+      365,
+      12,
+      405,
+      48
+     ],
+     "icon": [
+      415,
+      0,
+      515,
+      103
+     ]
+    }
+   },
+   "opp_rows": {
+    "x": [
+     1556,
+     1856
+    ],
+    "y0": 154,
+    "pitch": 126,
+    "h": 112,
+    "count": 6,
+    "fields_rel": {
+     "icon": [
+      38,
+      0,
+      178,
+      112
+     ],
+     "types": [
+      188,
+      10,
+      291,
+      60
+     ],
+     "gender": [
+      188,
+      62,
+      240,
+      105
+     ]
+    },
+    "note": "Opponent preview shows NO names - only icon, type icons, gender. Species must come from icon matching (types as tie-breaker)."
+   },
+   "pick_counter": [
+    195,
+    928,
+    245,
+    965
+   ]
+  },
+  "standby": {
+   "detect": {
+    "title": [
+     770,
+     108,
+     1162,
+     146
+    ],
+    "hint": "'Preparing for Battle', button 'Standing By'"
+   },
+   "timer": [
+    806,
+    108,
+    920,
+    146
+   ],
+   "own_rows": {
+    "x": [
+     294,
+     594
+    ],
+    "y0": 175,
+    "pitch": 126,
+    "h": 110,
+    "count": 6,
+    "fields_rel": {
+     "order_digit": [
+      16,
+      10,
+      62,
+      100
+     ],
+     "icon": [
+      70,
+      0,
+      200,
+      110
+     ]
+    },
+    "note": "Selected rows are lime with order digit 1-4 (1+2 = leads); unselected rows are dark blue."
+   },
+   "opp_rows": {
+    "x": [
+     1328,
+     1624
+    ],
+    "y0": 175,
+    "pitch": 126,
+    "h": 110,
+    "count": 6
+   }
+  },
+  "battle": {
+   "field_bar": {
+    "box": [
+     300,
+     50,
+     850,
+     100
+    ],
+    "fields": {
+     "condition_text": [
+      320,
+      55,
+      720,
+      95
+     ],
+     "turns_left": [
+      760,
+      55,
+      830,
+      95
+     ]
+    },
+    "note": "e.g. 'Electric Terrain 4/5'; appears top-left next to exit button"
+   },
+   "battle_text": {
+    "box": [
+     280,
+     785,
+     1650,
+     875
+    ],
+    "note": "single line, white with dark outline, no textbox, left aligned at x~300; fades in/out; long EN line ends ~x1440"
+   },
+   "ability_banner_own": {
+    "box": [
+     0,
+     380,
+     700,
+     500
+    ],
+    "fields": {
+     "icon": [
+      25,
+      385,
+      145,
+      495
+     ],
+     "line1": [
+      148,
+      395,
+      640,
+      442
+     ],
+     "line2": [
+      148,
+      442,
+      640,
+      495
+     ]
+    },
+    "note": "Ability AND item trigger banner (same widget). Dark navy band across left side with icon at left: mon sprite + yellow chevron for abilities ('Raichu's / Electric Surge' t~104, 'Espathra's / Speed Boost'), item sprite for items ('Espathra's / Electric Seed' t104.5-106). NOT in battle_text line. A video model described it as a 'yellow pill' - frames show a navy band; the yellow is the chevron/item icon. Visible ~1.5-2 s, overlaps glow effects. line1 = '<Mon>'s', line2 = ability or item name -> classify via name lists (EN/DE).",
+    "detect_hint": "navy band: mean B > R+40 in strip [150,385,640,395]; OCR line1/line2 only while band present"
+   },
+   "ability_banner_opp": {
+    "box": [
+     1220,
+     380,
+     1920,
+     500
+    ],
+    "fields": {
+     "line1": [
+      1280,
+      395,
+      1772,
+      442
+     ],
+     "line2": [
+      1280,
+      442,
+      1772,
+      495
+     ],
+     "icon": [
+      1775,
+      385,
+      1895,
+      495
+     ]
+    },
+    "note": "verified match02: 'Noivern's / Focus Sash' t138, 'Froslass's / Snow Warning' t330. Mirrored navy band, icon on the RIGHT. Text is RIGHT-aligned (ends x~1762), icon x~1772-1847; band left of text adds noise ('-----') -> strip non-letters."
+   },
+   "opp_plates": [
+    {
+     "slot": "oppA",
+     "plate": [
+      1080,
+      30,
+      1490,
+      165
+     ],
+     "name": [
+      1200,
+      42,
+      1410,
+      82
+     ],
+     "pct": [
+      1320,
+      110,
+      1450,
+      170
+     ],
+     "gender": [
+      1425,
+      45,
+      1470,
+      85
+     ]
+    },
+    {
+     "slot": "oppB",
+     "plate": [
+      1475,
+      30,
+      1890,
+      165
+     ],
+     "name": [
+      1595,
+      42,
+      1800,
+      82
+     ],
+     "pct": [
+      1715,
+      110,
+      1845,
+      170
+     ],
+     "gender": [
+      1820,
+      45,
+      1865,
+      85
+     ]
+    }
+   ],
+   "own_plates": [
+    {
+     "slot": "ownA",
+     "plate": [
+      35,
+      905,
+      445,
+      1040
+     ],
+     "name": [
+      158,
+      928,
+      385,
+      965
+     ],
+     "hp": [
+      250,
+      990,
+      405,
+      1045
+     ],
+     "gender": [
+      395,
+      930,
+      435,
+      965
+     ]
+    },
+    {
+     "slot": "ownB",
+     "plate": [
+      430,
+      905,
+      840,
+      1040
+     ],
+     "name": [
+      553,
+      928,
+      780,
+      965
+     ],
+     "hp": [
+      645,
+      990,
+      800,
+      1045
+     ],
+     "gender": [
+      790,
+      930,
+      830,
+      965
+     ]
+    }
+   ],
+   "plates_note": "Plates are shown permanently only during command phase. During animations a single plate pops up at the SAME slot position when that mon is hit (seen for opp: t121 Blastoise 98%, t133 Clefable 65%, t169 Blastoise 0%). Read %/HP from every popup. | match01 timeline: plates are HIDDEN during move animations; only the plate of the mon being hit pops in for ~1.5 s and drains 100->93->89 (pct visible ~0.5-1 s after drain start). Read the settled value ~1 s after pop-in. Full set of plates is shown again at the command phase -> use that as the authoritative turn-start HP. Own hp ROI raw OCR often loses the current value ('/167', '7170' = '/170'); needs digit templates or 2x upscale + slash-split. | match02: after a KO with no replacement the fainted side shows a single plate (Raichu alone, T6).",
+   "opp_timer": [
+    1520,
+    160,
+    1615,
+    195
+   ],
+   "opp_remaining_balls": [
+    1660,
+    160,
+    1785,
+    195
+   ],
+   "own_timer": [
+    300,
+    860,
+    420,
+    895
+   ],
+   "own_remaining_balls": [
+    95,
+    865,
+    205,
+    892
+   ],
+   "exit_button": [
+    125,
+    50,
+    275,
+    100
+   ]
+  },
+  "command_menu": {
+   "detect": {
+    "fight_button": [
+     1680,
+     610,
+     1880,
+     815
+    ],
+    "pokemon_button": [
+     1595,
+     835,
+     1790,
+     1030
+    ]
+   },
+   "battle_info": [
+    1600,
+    375,
+    1880,
+    420
+   ],
+   "view_log": [
+    0,
+    385,
+    290,
+    430
+   ],
+   "note": "Active own mon to command is the plate with the glowing yellow outline (ownA or ownB).",
+   "view_log_policy": "NOT a data source (Jeremy 2026-11-15): tool must log fully automatically from the live image; the in-game View Log screen is only a content model for event types/wording. ROI kept only to recognise/ignore that screen if the player opens it."
+  },
+  "move_select": {
+   "move_time": [
+    1600,
+    295,
+    1845,
+    340
+   ],
+   "battle_info": [
+    1600,
+    375,
+    1880,
+    420
+   ],
+   "move_info": [
+    1600,
+    455,
+    1880,
+    500
+   ],
+   "moves": [
+    {
+     "name": [
+      1500,
+      565,
+      1785,
+      612
+     ],
+     "pp": [
+      1790,
+      550,
+      1885,
+      640
+     ],
+     "eff": [
+      1480,
+      622,
+      1785,
+      658
+     ],
+     "button": [
+      1365,
+      540,
+      1890,
+      665
+     ]
+    },
+    {
+     "name": [
+      1500,
+      695,
+      1785,
+      742
+     ],
+     "pp": [
+      1790,
+      680,
+      1885,
+      770
+     ],
+     "eff": [
+      1480,
+      752,
+      1785,
+      788
+     ],
+     "button": [
+      1365,
+      670,
+      1890,
+      795
+     ]
+    },
+    {
+     "name": [
+      1500,
+      825,
+      1785,
+      872
+     ],
+     "pp": [
+      1790,
+      810,
+      1885,
+      900
+     ],
+     "eff": [
+      1480,
+      882,
+      1785,
+      918
+     ],
+     "button": [
+      1365,
+      800,
+      1890,
+      925
+     ]
+    },
+    {
+     "name": [
+      1500,
+      955,
+      1785,
+      1002
+     ],
+     "pp": [
+      1790,
+      940,
+      1885,
+      1030
+     ],
+     "eff": [
+      1480,
+      1012,
+      1785,
+      1048
+     ],
+     "button": [
+      1365,
+      930,
+      1890,
+      1055
+     ]
+    }
+   ],
+   "note": "Highlighted move = lime button + yellow arrow left of it (x~1290-1340). Own chosen move = highlighted move when screen changes to target_select or back to battle.",
+   "mega_toggle": {
+    "box": [
+     1040,
+     840,
+     1300,
+     1040
+    ],
+    "label": [
+     1062,
+     935,
+     1278,
+     974
+    ],
+    "button_hint": [
+     1141,
+     987,
+     1196,
+     1030
+    ],
+    "icon": [
+     1128,
+     850,
+     1227,
+     915
+    ],
+    "note": "Only shown when the active mon can Mega Evolve. 'MEGA EVOLVE' + [R]. Pressed state = icon glows with pink sparkles (t77.5 in match01). State reader still TBD (brightness/saturation in icon box)."
+   },
+   "note_eff": "Effectiveness line only for damaging moves; status moves (Calm Mind, Protect...) have none.",
+   "note_anim": "Move list slides in (t151/t309: only 2 of 4 rows visible) -> read only when all 4 button boxes are stable for >=2 frames.",
+   "note_eff_semantics": "Eff line under each move refers to the default/hovered target; it also signals usability: Fake Out after turn 1 shows 'Has no effect' and selecting it gives battle_text 'This move can't be used!' (match02 t307)."
+  },
+  "target_select": {
+   "detect": {
+    "panel": [
+     370,
+     112,
+     1550,
+     975
+    ],
+    "close_button": [
+     1210,
+     990,
+     1530,
+     1035
+    ]
+   },
+   "opp_trainer_name": [
+    880,
+    160,
+    1050,
+    202
+   ],
+   "own_trainer_name": [
+    855,
+    890,
+    1070,
+    932
+   ],
+   "move_label": [
+    525,
+    525,
+    885,
+    572
+   ],
+   "cards": [
+    {
+     "slot": "oppA",
+     "card": [
+      490,
+      235,
+      930,
+      490
+     ],
+     "eff": [
+      545,
+      247,
+      880,
+      282
+     ],
+     "name": [
+      660,
+      310,
+      840,
+      352
+     ],
+     "pct": [
+      780,
+      375,
+      880,
+      420
+     ]
+    },
+    {
+     "slot": "oppB",
+     "card": [
+      990,
+      235,
+      1430,
+      490
+     ],
+     "eff": [
+      1045,
+      247,
+      1380,
+      282
+     ],
+     "name": [
+      1160,
+      310,
+      1340,
+      352
+     ],
+     "pct": [
+      1280,
+      375,
+      1380,
+      420
+     ]
+    },
+    {
+     "slot": "ownA",
+     "card": [
+      490,
+      595,
+      930,
+      855
+     ],
+     "eff": [
+      545,
+      607,
+      880,
+      642
+     ],
+     "name": [
+      660,
+      670,
+      840,
+      712
+     ],
+     "hp": [
+      715,
+      735,
+      880,
+      780
+     ]
+    },
+    {
+     "slot": "ownB",
+     "card": [
+      990,
+      595,
+      1430,
+      855
+     ],
+     "eff": [
+      1045,
+      607,
+      1380,
+      642
+     ],
+     "name": [
+      1160,
+      670,
+      1340,
+      712
+     ],
+     "hp": [
+      1215,
+      735,
+      1380,
+      780
+     ]
+    }
+   ],
+   "note": "Selected target card = lime fill + yellow arrow on its left. move_label points (tail) to the own mon that is choosing.",
+   "note2": "Also shown for self/ally moves (Protect, Calm Mind): the user's own card is lit. Cursor can move before confirm (match02 T3 oppA->oppB, T4 oppA->oppB): final target = last lit card before panel closes; sample >=10 fps for this panel. A KO'd/empty slot card is grey (match02 t366)."
+  },
+  "result": {
+   "note": "WON!/LOST... split screen with trainer models; seen at t180+ in match01. Detect by big text in center; ROI TBD from more recordings.",
+   "unverified": true
+  },
+  "waiting": {
+   "detect": {
+    "text": [
+     850,
+     295,
+     1070,
+     350
+    ],
+    "spinner": [
+     930,
+     205,
+     990,
+     260
+    ]
+   },
+   "note": "'Communicating...' + Poke Ball spinner, centre-top over battle scene, shown after own choices are locked until opponent finishes (match01 t~81.75-83.25). Marks end of own decision phase."
+  },
+  "switch_menu": {
+   "source": "match02 t182-184 (after Espathra KO) and t241-246 (after Arcanine KO); presumably same widget for voluntary switch via Pokemon button (not seen yet)",
+   "detect": {
+    "own_header": [
+     160,
+     169,
+     478,
+     210
+    ],
+    "opp_header": [
+     1541,
+     165,
+     1866,
+     215
+    ],
+    "hide_summary": [
+     1631,
+     1012,
+     1875,
+     1054
+    ]
+   },
+   "move_time": [
+    1594,
+    112,
+    1847,
+    150
+   ],
+   "battle_info": [
+    1697,
+    41,
+    1847,
+    79
+   ],
+   "timer": [
+    84,
+    1003,
+    234,
+    1041
+   ],
+   "own_rows": {
+    "x": [
+     55,
+     580
+    ],
+    "y0": 232,
+    "pitch": 124,
+    "h": 116,
+    "count": 6,
+    "fields_rel": {
+     "name": [
+      60,
+      10,
+      330,
+      58
+     ],
+     "hp": [
+      118,
+      50,
+      280,
+      98
+     ],
+     "hp_bar": [
+      215,
+      52,
+      385,
+      90
+     ],
+     "fainted_icon": [
+      5,
+      40,
+      65,
+      105
+     ],
+     "sprite": [
+      400,
+      0,
+      520,
+      112
+     ]
+    },
+    "note": "Party order = battle order (active slots first, then bench, then 2 greyed unbrought mons; match02 t242: Arcanine, Basculegion, Raichu, Espathra, Goodra, Floette). Exact HP cur/max for ALL own mons incl. 0/171 fainted (KO icon left). Cursor = lime row + yellow arrow."
+   },
+   "opp_rows": {
+    "x": [
+     1555,
+     1852
+    ],
+    "y0": 229,
+    "pitch": 126,
+    "h": 112,
+    "count": 6,
+    "fields_rel": {
+     "pct": [
+      212,
+      52,
+      295,
+      98
+     ],
+     "hp_bar": [
+      180,
+      90,
+      290,
+      108
+     ],
+     "types": [
+      190,
+      5,
+      295,
+      52
+     ],
+     "fainted_icon": [
+      5,
+      0,
+      65,
+      60
+     ]
+    },
+    "note": "Team-preview order. Revealed mons = bright pink with % (0% if fainted + KO icon); unrevealed = dark, no %. => authoritative opp HP snapshot + brought list each time this screen appears."
+   },
+   "summary_panel": {
+    "box": [
+     619,
+     97,
+     1453,
+     981
+    ],
+    "tabs": [
+     740,
+     107,
+     1331,
+     159
+    ],
+    "types": [
+     675,
+     193,
+     1134,
+     253
+    ],
+    "moves": {
+     "x": [
+      722,
+      1397
+     ],
+     "y0": 281,
+     "pitch": 120,
+     "h": 80,
+     "count": 4,
+     "fields_rel": {
+      "name": [
+       88,
+       15,
+       403,
+       65
+      ],
+      "pp": [
+       525,
+       5,
+       660,
+       75
+      ]
+     }
+    },
+    "ability": [
+     1100,
+     770,
+     1460,
+     820
+    ],
+    "item": [
+     1100,
+     875,
+     1460,
+     925
+    ],
+    "note": "'Moves & More' tab for the mon under cursor: 4 moves + PP, ability, held item. Second source for own move lists (live: read once per mon)."
+   }
+  }
+ },
+ "notes_ocr": [
+  "Rec-only OCR (rapidocr use_det=False,use_cls=False) on fixed line ROIs: ~60 ms/crop, same quality as det+rec; match02 battle text+banners 313 s video in 126 s at 4 fps on 8 cores = real-time capable. Gate: skip crop if <60 near-white pixels."
+ ],
+ "version_note": "m0 rev2: verified on match01+match02 (EN)"
+}

@@ -50,6 +50,10 @@ contextBridge.exposeInMainWorld('desktop', {
     testDone: (result) => ipcRenderer.send('projector-test-done', result || {}),
     testInfo: (spec) => ipcRenderer.invoke('projector-test-info', spec || {}),
   },
+  // Matchlog: Ausschnitt (ABGR) an die prozessinterne Texterkennung. Kein PowerShell.
+  matchlog: {
+    recognize: (image) => ipcRenderer.invoke('matchlog-ocr', image || {}),
+  },
   // Match-Overlays für OBS (electron/match.js): Stand schicken, Adresse, Teamlogos, Start-Screen abspielen
   match: {
     push: (s) => ipcRenderer.send('match-state', s),
