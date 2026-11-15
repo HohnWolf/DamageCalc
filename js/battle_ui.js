@@ -6,14 +6,16 @@
   var A = window.CC;
   if (!A) return;
   var el = A.el, de = A.LANG === 'de';
-  function T(d, e) { return de ? d : e; }
+  function T(d) { return d; }
+  function deOf(fn, arg) { return A.withLang ? A.withLang('de', function () { return fn(arg); }) : fn(arg); }
+  var resizeBound = false;
   var ROOTS = { btlrandom: 'btlRandomView', btlchoice: 'btlChoiceView' };
   var cur = { view: null, mode: 'btlrandom', game: null, last: null, picks: [], targeting: null, busy: false, error: '', level: 2, foeSrc: 'builder', useBuilder: false };
 
   function api() { return window.desktop && window.desktop.battle; }
   function pct(hp, max) { if (!max) return 0; return Math.max(0, Math.min(100, Math.round(100 * hp / max))); }
   function statusName(s) {
-    return { brn: 'BRN', par: 'PAR', psn: 'PSN', tox: 'TOX', slp: 'SLP', frz: 'FRZ' }[s] || '';
+    return { brn: 'Brand', par: 'Paralyse', psn: 'Gift', tox: 'Vergiftung', slp: 'Schlaf', frz: 'Frost' }[s] || '';
   }
   function decode(s) { return window.RLMetaText ? window.RLMetaText.decodeEntities(s) : (s || ''); }
   function builderTeams() {
@@ -137,16 +139,73 @@
     });
   }
 
+  var FOE_POS = [{ x: 408, y: 176 }, { x: 522, y: 146 }];
+  var ALLY_POS = [{ x: 126, y: 308 }, { x: 250, y: 338 }];
+  var FOE_BAR = ['78px', '228px'];
+  var ALLY_BAR = ['8px', '156px'];
+  var WEATHER_DE = { Rain: 'Regen', 'Heavy Rain': 'Starkregen', Sun: 'Sonne', 'Harsh Sun': 'Gleißende Sonne', Sand: 'Sandsturm', Snow: 'Schnee' };
+  var TERRAIN_DE = { Electric: 'Elektrofeld', Grass: 'Grasfeld', Psychic: 'Psychofeld', Misty: 'Nebelfeld' };
+  function deMon(name) { return name ? deOf(A.nSpecies, name) : ''; }
+  function deMove(name) { return name ? deOf(A.nMove, name) : ''; }
+  function deType(type) { return type ? deOf(A.nType, type) : ''; }
+  function fieldSprite(species, back) {
+    var img;
+    try { img = A.spriteImg(species); } catch (e) { img = null; }
+    if (!img) return el('span', { text: deMon(species) });
+    if (back && img.src) {
+      var front = img.src;
+      img.onerror = function () { img.onerror = null; img.src = front; };
+      img.src = front.replace('/gen5-shiny/', '/gen5-back-shiny/').replace('/gen5/', '/gen5-back/');
+    }
+    return img;
+  }
+  function placeMon(battle, poke, back, pos) {
+    if (!poke || poke.fainted) return;
+    var m = el('div', { class: 'btl-mon', style: 'left:' + pos.x + 'px;top:' + pos.y + 'px' });
+    m.appendChild(fieldSprite(poke.species, back));
+    battle.appendChild(m);
+  }
+  function statbar(poke, cls, left) {
+    if (!poke) return null;
+    var n = pct(poke.hp, poke.maxhp);
+    var box = el('div', { class: 'statbar ' + cls, style: 'left:' + left });
+    var nm = el('strong');
+    nm.appendChild(document.createTextNode(deMon(poke.species) + ' '));
+    nm.appendChild(el('small', { text: 'L50' }));
+    box.appendChild(nm);
+    var hp = el('div', { class: 'hpbar' });
+    hp.appendChild(el('div', { class: 'hptext', text: n + '%' }));
+    var prev = el('div', { class: 'prevhp' });
+    var tone = n > 50 ? '' : n > 20 ? ' hp-yellow' : ' hp-red';
+    prev.appendChild(el('div', { class: 'hp' + tone, style: 'width:' + Math.round(148 * n / 100) + 'px' }));
+    hp.appendChild(prev);
+    box.appendChild(hp);
+    var st = el('div', { class: 'status' });
+    if (poke.status) st.appendChild(el('span', { class: 'bad', text: statusName(poke.status) }));
+    box.appendChild(st);
+    return box;
+  }
+  function fit() {
+    var root = cur.view;
+    if (!root) return;
+    var z = parseFloat(document.body.style.zoom) || 1;
+    var r = root.getBoundingClientRect();
+    var vw = window.innerWidth / z;
+    var vh = window.innerHeight / z;
+    var w = vw - 24 - Math.max(240, vw * 0.22);
+    var h = vh - (r.top / z) - 16;
+    root.style.setProperty('--battle-scale', String(Math.max(0.55, Math.min(2.2, w / 640, h / 360)).toFixed(3)));
+  }
   function drawBattle() {
     var root = cur.view, v = cur.game;
     root.innerHTML = '';
+    var box = el('div', { class: 'btl-shell ps-room' });
     var top = el('div', { class: 'btl-top' });
     top.appendChild(el('h2', { text: (cur.mode === 'btlrandom' ? T('Zufallskampf', 'Random battle') : T('Eigener Kampf', 'Your battle')) + ' · L' + (v.level | 0) }));
     var chips = el('div', { class: 'btl-chips' });
-    chips.appendChild(el('span', { text: T('Runde ', 'Turn ') + v.turn }));
-    if (v.weather) chips.appendChild(el('span', { text: v.weather }));
-    if (v.terrain) chips.appendChild(el('span', { text: v.terrain }));
-    if (v.trickRoom) chips.appendChild(el('span', { text: 'Trick Room' }));
+    chips.appendChild(el('span', { text: 'Runde ' + v.turn }));
+    var sky = [WEATHER_DE[v.weather] || v.weather, TERRAIN_DE[v.terrain] || v.terrain, v.trickRoom ? 'Trick Room' : ''].filter(Boolean).join(' · ');
+    if (sky) chips.appendChild(el('span', { text: sky }));
     top.appendChild(chips);
     var acts = el('div', { class: 'btl-top-acts' });
     var back = el('button', { type: 'button', class: 'tbtn', text: T('Zurück', 'Back') });
@@ -169,226 +228,217 @@
     });
     acts.appendChild(re);
     top.appendChild(acts);
-    var field = el('div', { class: 'btl-field' });
-    field.appendChild(sideRow(v.p2, true));
-    field.appendChild(sideRow(v.p1, false));
-    var play = el('div', { class: 'btl-play' });
-    play.appendChild(top);
-    play.appendChild(field);
-    play.appendChild(controls(v));
-    if (cur.error) play.appendChild(el('p', { class: 'btl-bad', text: cur.error }));
-    if (v.ended) play.appendChild(el('p', { class: 'btl-end', text: v.winner ? (T('Sieger: ', 'Winner: ') + v.winner) : T('Unentschieden', 'Tie') }));
-    play.appendChild(logBox(v.log || []));
-    root.appendChild(play);
+    box.appendChild(top);
+    var row = el('div', { class: 'btl-row' });
+    var cont = el('div', { class: 'scrollable-battle-container' });
+    cont.appendChild(arena(v));
+    cont.appendChild(fieldControls(v));
+    row.appendChild(cont);
+    row.appendChild(logBox(v.log || []));
+    box.appendChild(row);
+    if (cur.error) box.appendChild(el('p', { class: 'btl-bad', text: cur.error }));
+    if (v.ended) box.appendChild(el('p', { class: 'btl-end', text: v.winner ? ('Sieger: ' + v.winner) : 'Unentschieden' }));
+    root.appendChild(box);
+    if (!resizeBound) { resizeBound = true; window.addEventListener('resize', fit); }
+    fit();
+    requestAnimationFrame(fit);
   }
-  function sideRow(side, foe) {
-    var row = el('div', { class: 'btl-side' + (foe ? ' foe' : ' you') });
-    row.appendChild(el('div', { class: 'btl-side-name', text: side.name, title: side.name }));
-    var act = el('div', { class: 'btl-actives' });
-    (side.active || []).forEach(function (p) { act.appendChild(pokeCard(p)); });
-    row.appendChild(act);
-    var bench = el('div', { class: 'btl-bench' });
-    (side.party || []).forEach(function (p) {
-      var b = el('span', { class: 'btl-chip' + (p.fainted ? ' faint' : '') + (p.active ? ' on' : ''), title: p.species });
-      b.appendChild(el('b', { text: A.nSpecies(p.species) }));
-      b.appendChild(el('i', { text: p.fainted ? 'K.O.' : (pct(p.hp, p.maxhp) + '%') }));
-      bench.appendChild(b);
-    });
-    row.appendChild(bench);
-    return row;
+  function arena(v) {
+    var b = el('div', { class: 'battle doubles' });
+    var sky = [WEATHER_DE[v.weather] || '', TERRAIN_DE[v.terrain] || ''].filter(Boolean).join(' · ');
+    if (sky) b.appendChild(el('div', { class: 'weather', style: 'position:absolute;left:124px;top:6px' }, '<em>' + sky + '</em>'));
+    [0, 1].forEach(function (i) { placeMon(b, v.p2.active[i], false, FOE_POS[i]); });
+    [0, 1].forEach(function (i) { placeMon(b, v.p1.active[i], true, ALLY_POS[i]); });
+    [0, 1].forEach(function (i) { var bar = statbar(v.p2.active[i], 'lstatbar', FOE_BAR[i]); if (bar) b.appendChild(bar); });
+    [0, 1].forEach(function (i) { var bar = statbar(v.p1.active[i], 'rstatbar', ALLY_BAR[i]); if (bar) b.appendChild(bar); });
+    b.appendChild(el('div', { class: 'turn' }, '<strong>Runde ' + v.turn + '</strong>'));
+    return b;
   }
-  function pokeCard(p) {
-    var card = el('div', { class: 'btl-poke' + (!p || p.fainted ? ' faint' : '') });
-    if (!p) return card;
-    var spr = el('div', { class: 'btl-sprite' });
-    try { spr.appendChild(A.spriteFit(p.species)); } catch (e) { spr.textContent = A.nSpecies(p.species); }
-    card.appendChild(spr);
-    var info = el('div', { class: 'btl-pinfo' });
-    info.appendChild(el('div', { class: 'btl-pname', text: A.nSpecies(p.species), title: A.nSpecies(p.species) }));
-    var bar = el('div', { class: 'btl-hp' });
-    var fill = el('span');
-    var n = pct(p.hp, p.maxhp);
-    fill.style.width = n + '%';
-    if (n <= 25) fill.className = 'low';
-    else if (n <= 50) fill.className = 'mid';
-    bar.appendChild(fill);
-    info.appendChild(bar);
-    info.appendChild(el('div', { class: 'btl-hptext', text: p.hp + '/' + p.maxhp + (p.status ? ' ' + statusName(p.status) : '') }));
-    card.appendChild(info);
-    return card;
-  }
-  function controls(v) {
-    var box = el('div', { class: 'btl-controls' });
-    if (v.ended) return box;
+  function fieldControls(v) {
+    var c = el('div', { class: 'battle-controls' });
+    var ctl = el('div', { class: 'controls' });
     var req = v.request || { kind: 'wait' };
-    if (req.kind === 'wait') { box.appendChild(el('p', { class: 'btl-note', text: T('Warten …', 'Waiting …') })); return box; }
-    if (req.kind === 'preview') return previewControls(box, req);
-    if (req.kind === 'switch') return switchControls(box, req);
-    return moveControls(box, req);
+    if (v.ended) {
+      ctl.appendChild(el('div', { class: 'whatdo', text: v.winner ? ('Sieger: ' + v.winner) : 'Unentschieden' }));
+      c.appendChild(ctl);
+      return c;
+    }
+    if (req.kind === 'preview') return previewPanel(c, ctl, req);
+    if (req.kind === 'switch') return switchPanel(c, ctl, req);
+    return movePanel(c, ctl, req);
   }
-  function previewControls(box, req) {
+  function partyButton(p, on, label) {
+    var b = el('button', { type: 'button', class: (p.fainted ? 'disabled' : '') + (on ? ' chosen' : '') });
+    if (p.fainted || p.active) b.disabled = true;
+    var icon = el('span', { class: 'picon' });
+    try {
+      var img = A.spriteImg(p.species);
+      if (img && img.src) icon.style.backgroundImage = 'url(' + img.src + ')';
+    } catch (e) { /* kein Bild */ }
+    b.appendChild(icon);
+    b.appendChild(document.createTextNode(label || deMon(p.species)));
+    return b;
+  }
+  function previewPanel(c, ctl, req) {
     cur.picks = cur.picks || [];
-    box.appendChild(el('p', { class: 'btl-note', text: T('Wähle ' + req.max + ' Pokémon. Die ersten zwei führen.', 'Bring ' + req.max + '. The first two lead.') }));
-    var grid = el('div', { class: 'btl-preview' });
+    ctl.appendChild(el('div', { class: 'whatdo', text: 'Wähle ' + req.max + '. Die ersten zwei führen.' }));
+    var sm = el('div', { class: 'switchmenu' });
     (req.party || []).forEach(function (p) {
       var idx = cur.picks.indexOf(p.slot);
-      var b = el('button', { type: 'button', class: 'btl-prev' + (idx >= 0 ? ' on' : '') });
-      b.appendChild(el('b', { text: idx >= 0 ? String(idx + 1) : '·' }));
-      b.appendChild(el('span', { text: A.nSpecies(p.species) }));
+      var b = partyButton(p, idx >= 0, (idx >= 0 ? (idx + 1) + ' ' : '') + deMon(p.species));
+      b.disabled = false;
       b.addEventListener('click', function () {
         var at = cur.picks.indexOf(p.slot);
         if (at >= 0) cur.picks.splice(at, 1);
         else if (cur.picks.length < req.max) cur.picks.push(p.slot);
         drawBattle();
       });
-      grid.appendChild(b);
+      sm.appendChild(b);
     });
-    box.appendChild(grid);
-    var ok = el('button', { type: 'button', class: 'primary-btn', text: T('Mitnehmen', 'Bring') });
+    ctl.appendChild(sm);
+    var ok = el('button', { type: 'button', class: 'big', text: 'Mitnehmen' });
     ok.disabled = cur.picks.length !== req.max;
     ok.addEventListener('click', function () { send('team ' + cur.picks.join('')); });
-    box.appendChild(ok);
-    return box;
+    ctl.appendChild(ok);
+    c.appendChild(ctl);
+    return c;
   }
-  function switchControls(box, req) {
+  function switchPanel(c, ctl, req) {
     var need = (req.flags || []).filter(Boolean).length;
     cur.picks = cur.picks || [];
-    box.appendChild(el('p', { class: 'btl-note', text: T('Einwechseln', 'Switch in') }));
-    var grid = el('div', { class: 'btl-preview' });
+    ctl.appendChild(el('div', { class: 'whatdo', text: 'Einwechseln' }));
+    var sm = el('div', { class: 'switchmenu' });
     (req.party || []).forEach(function (p) {
       if (p.active || p.fainted) return;
       var on = cur.picks.indexOf(p.slot) >= 0;
-      var b = el('button', { type: 'button', class: 'btl-prev' + (on ? ' on' : ''), text: A.nSpecies(p.species) });
+      var b = partyButton(p, on);
+      b.disabled = false;
       b.addEventListener('click', function () {
         var at = cur.picks.indexOf(p.slot);
         if (at >= 0) cur.picks.splice(at, 1);
         else if (cur.picks.length < need) cur.picks.push(p.slot);
         drawBattle();
       });
-      grid.appendChild(b);
+      sm.appendChild(b);
     });
-    box.appendChild(grid);
-    var ok = el('button', { type: 'button', class: 'primary-btn', text: T('Wechseln', 'Switch') });
+    ctl.appendChild(sm);
+    var ok = el('button', { type: 'button', class: 'big', text: 'Wechseln' });
     ok.disabled = cur.picks.length !== need;
     ok.addEventListener('click', function () { send(cur.picks.map(function (s) { return 'switch ' + s; }).join(', ')); });
-    box.appendChild(ok);
-    return box;
+    ctl.appendChild(ok);
+    c.appendChild(ctl);
+    return c;
   }
-  function moveControls(box, req) {
+  function movePanel(c, ctl, req) {
     cur.picks = cur.picks || [];
     var slots = req.active || [];
+    var idx = 0;
+    for (var i = 0; i < slots.length; i++) { if (slots[i] && !cur.picks[i]) { idx = i; break; } }
+    var slot = slots[idx];
+    var who = (cur.game.p1.active && cur.game.p1.active[idx]) || {};
+    ctl.appendChild(el('div', { class: 'whatdo', text: slot ? ('Was soll ' + deMon(who.species) + ' tun?') : 'Warten …' }));
     if (cur.targeting) {
-      box.appendChild(el('p', { class: 'btl-note', text: T('Ziel wählen', 'Choose a target') }));
-      var row = el('div', { class: 'btl-targets' });
+      var mmT = el('div', { class: 'movemenu' });
       (cur.targeting.targets || []).forEach(function (tg) {
-        var b = el('button', { type: 'button', class: 'tbtn', text: (tg.ally ? T('Partner ', 'Ally ') : T('Gegner ', 'Foe ')) + A.nSpecies(tg.species) });
+        var b = el('button', { type: 'button' });
+        b.appendChild(el('strong', { text: (tg.ally ? 'Partner ' : 'Gegner ') + deMon(tg.species) }));
         b.addEventListener('click', function () {
           commitSlot(cur.targeting.slotIndex, cur.targeting.move, tg.loc);
           cur.targeting = null;
           maybeSend(slots);
         });
-        row.appendChild(b);
+        mmT.appendChild(b);
       });
-      var cancel = el('button', { type: 'button', class: 'tbtn', text: T('Zurück', 'Back') });
-      cancel.addEventListener('click', function () { cur.targeting = null; drawBattle(); });
-      row.appendChild(cancel);
-      box.appendChild(row);
-      return box;
+      var back = el('button', { type: 'button', text: 'Zurück' });
+      back.addEventListener('click', function () { cur.targeting = null; drawBattle(); });
+      mmT.appendChild(back);
+      ctl.appendChild(mmT);
+      c.appendChild(ctl);
+      return c;
     }
-    slots.forEach(function (slot, i) {
-      if (!slot) return;
-      var card = el('div', { class: 'btl-moveslot' });
-      var who = (cur.game.p1.active && cur.game.p1.active[i]) || {};
-      card.appendChild(el('div', { class: 'btl-label', text: A.nSpecies(who.species || '') }));
-      if (cur.picks[i]) card.appendChild(el('div', { class: 'btl-note', text: cur.picks[i] }));
-      var grid = el('div', { class: 'btl-moves' });
+    if (slot) {
+      var mc = el('div', { class: 'movecontrols' });
+      var mm = el('div', { class: 'movemenu' });
       (slot.moves || []).forEach(function (mv) {
-        var b = el('button', { type: 'button', class: 'btl-move type-' + (mv.type || 'Normal') });
+        var b = el('button', { type: 'button', class: 'type-' + (mv.type || 'Normal') });
         if (mv.disabled) b.disabled = true;
-        b.appendChild(el('span', { class: 'mv-name', text: A.nMove(mv.name) }));
-        b.appendChild(el('span', { class: 'mv-meta', text: (mv.type ? A.nType(mv.type) : '') + ' ' + mv.pp + '/' + mv.maxpp }));
+        b.appendChild(el('strong', { text: deMove(mv.name) }));
+        b.appendChild(el('br'));
+        b.appendChild(el('small', { class: 'type', text: deType(mv.type) }));
+        b.appendChild(document.createTextNode(' '));
+        b.appendChild(el('small', { class: 'pp', text: mv.pp + '/' + mv.maxpp }));
         b.addEventListener('click', function () {
           if (mv.disabled) return;
-          if (mv.targets && mv.targets.length) { cur.targeting = { slotIndex: i, move: mv, targets: mv.targets }; drawBattle(); return; }
-          commitSlot(i, mv, 0);
+          if (mv.targets && mv.targets.length) { cur.targeting = { slotIndex: idx, move: mv, targets: mv.targets }; drawBattle(); return; }
+          commitSlot(idx, mv, 0);
           maybeSend(slots);
         });
-        grid.appendChild(b);
+        mm.appendChild(b);
       });
-      card.appendChild(grid);
-      var extras = el('div', { class: 'btl-extras' });
+      mc.appendChild(mm);
       if (slot.canMega) {
-        var mega = el('button', { type: 'button', class: 'tbtn' + (cur.picks.mega === i ? ' on' : ''), text: 'Mega' });
-        mega.addEventListener('click', function () { cur.picks.mega = cur.picks.mega === i ? null : i; drawBattle(); });
-        extras.appendChild(mega);
+        var lab = el('label', { class: 'megaevo' });
+        var input = el('input', { type: 'checkbox' });
+        input.checked = cur.picks.mega === idx;
+        input.addEventListener('change', function () { cur.picks.mega = input.checked ? idx : null; });
+        lab.appendChild(input);
+        lab.appendChild(document.createTextNode(' Mega'));
+        mc.appendChild(lab);
       }
-      if (slot.canTera) {
-        var tera = el('button', { type: 'button', class: 'tbtn' + (cur.picks.tera === i ? ' on' : ''), text: 'Tera' });
-        tera.addEventListener('click', function () { cur.picks.tera = cur.picks.tera === i ? null : i; drawBattle(); });
-        extras.appendChild(tera);
-      }
-      var sw = el('button', { type: 'button', class: 'tbtn', text: T('Wechseln', 'Switch') });
-      sw.addEventListener('click', function () { openSwitch(i, req.party || [], slots); });
-      extras.appendChild(sw);
-      card.appendChild(extras);
-      box.appendChild(card);
-    });
-    return box;
-  }
-  function commitSlot(i, mv, loc) {
-    var s = 'move ' + mv.slot;
-    if (loc) s += ' ' + loc;
-    if (cur.picks.mega === i) s += ' mega';
-    if (cur.picks.tera === i) s += ' terastallize';
-    cur.picks[i] = s;
-  }
-  function maybeSend(slots) {
-    var parts = [];
-    for (var i = 0; i < slots.length; i++) {
-      if (!slots[i]) { parts.push('pass'); continue; }
-      if (!cur.picks[i]) { drawBattle(); return; }
-      parts.push(cur.picks[i]);
+      ctl.appendChild(mc);
     }
-    send(parts.join(', '));
-  }
-  function openSwitch(i, party, slots) {
-    var bench = party.filter(function (p) { return !p.active && !p.fainted; });
-    if (!bench.length) return;
-    var box = cur.view.querySelector('.btl-controls');
-    if (!box) return;
-    var row = el('div', { class: 'btl-targets' });
-    bench.forEach(function (p) {
-      var b = el('button', { type: 'button', class: 'tbtn', text: A.nSpecies(p.species) });
-      b.addEventListener('click', function () { cur.picks[i] = 'switch ' + p.slot; maybeSend(slots); });
-      row.appendChild(b);
+    var sc = el('div', { class: 'switchcontrols' });
+    var sm = el('div', { class: 'switchmenu' });
+    (req.party || []).forEach(function (p) {
+      var b = partyButton(p, !!p.active);
+      if (!p.fainted && !p.active) {
+        b.disabled = false;
+        b.addEventListener('click', function () { cur.picks[idx] = 'switch ' + p.slot; maybeSend(slots); });
+      }
+      sm.appendChild(b);
     });
-    box.appendChild(row);
+    sc.appendChild(sm);
+    ctl.appendChild(sc);
+    c.appendChild(ctl);
+    return c;
   }
   function logBox(lines) {
-    var box = el('div', { class: 'btl-log' });
-    box.appendChild(el('div', { class: 'btl-label', text: T('Protokoll', 'Log') }));
-    var pre = el('div', { class: 'btl-log-body' });
+    var box = el('div', { class: 'battle-log' });
+    var inner = el('div', { class: 'inner' });
+    inner.appendChild(el('h2', { class: 'battle-history', text: 'Protokoll' }));
     lines.forEach(function (line) {
       var text = logLine(line);
-      if (text) pre.appendChild(el('div', { text: text }));
+      if (text) inner.appendChild(el('div', { class: 'battle-history', text: text }));
     });
-    box.appendChild(pre);
+    box.appendChild(inner);
     return box;
   }
   function logLine(line) {
     var p = String(line || '').split('|');
     if (p[0] === '') p.shift();
     var tag = p[0];
-    if (tag === 'turn') return T('Runde ', 'Turn ') + p[1];
-    if (tag === 'move') return nameOf(p[1]) + ' · ' + (p[2] || '') + (p[3] ? ' → ' + nameOf(p[3]) : '');
-    if (tag === 'switch' || tag === 'drag') return nameOf(p[1]) + ' → ' + String(p[2] || '').split(',')[0];
-    if (tag === 'faint') return nameOf(p[1]) + ' K.O.';
-    if (tag === '-damage' || tag === '-heal') return nameOf(p[1]) + ' ' + (p[2] || '');
-    if (tag === '-status') return nameOf(p[1]) + ' ' + statusName(p[2] || '');
-    if (tag === '-weather' || tag === '-fieldstart' || tag === '-fieldend') return p[1] || '';
-    if (tag === 'win') return T('Sieger: ', 'Winner: ') + (p[1] || '');
-    if (tag === '-mega') return nameOf(p[1]) + ' Mega';
+    if (tag === 'turn') return 'Runde ' + p[1];
+    if (tag === 'move') return deIdent(p[1]) + ' · ' + deMove(p[2]) + (p[3] ? ' → ' + deIdent(p[3]) : '');
+    if (tag === 'switch' || tag === 'drag') return deIdent(p[1]) + ' → ' + deMon(String(p[2] || '').split(',')[0]);
+    if (tag === 'faint') return deIdent(p[1]) + ' K.O.';
+    if (tag === '-damage' || tag === '-heal') return deIdent(p[1]) + ' ' + (p[2] || '');
+    if (tag === '-status') return deIdent(p[1]) + ' ' + statusName(p[2] || '');
+    if (tag === '-weather' || tag === '-fieldstart' || tag === '-fieldend') return deField(p[1]);
+    if (tag === 'win') return 'Sieger: ' + (p[1] || '');
+    if (tag === '-mega') return deIdent(p[1]) + ' Mega';
     return '';
+  }
+  function deIdent(ident) {
+    return deMon(nameOf(ident).split(',')[0]) || nameOf(ident);
+  }
+  function deField(s) {
+    s = String(s || '').replace(/^move:\s*/, '');
+    var map = {
+      RainDance: 'Regen', Sandstorm: 'Sandsturm', SunnyDay: 'Sonne', Snow: 'Schnee', Snowscape: 'Schnee',
+      'Grassy Terrain': 'Grasfeld', 'Electric Terrain': 'Elektrofeld', 'Psychic Terrain': 'Psychofeld', 'Misty Terrain': 'Nebelfeld',
+      'Heavy Rain': 'Starkregen', 'Harsh Sunlight': 'Gleißende Sonne', 'Harsh Sunshine': 'Gleißende Sonne'
+    };
+    return map[s] || WEATHER_DE[s] || TERRAIN_DE[s] || s;
   }
   function nameOf(ident) {
     var i = String(ident || '').indexOf(':');

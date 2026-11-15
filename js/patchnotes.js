@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.28.1',
+      de: ['Kämpfe: Das Spielfeld nutzt wieder die vorbereitete Ansicht (beide Seiten gegenüber, KP-Kästen, Attackenfeld, Protokoll).', 'Die Kampfansicht ist durchgehend deutsch.'],
+      en: ['Battles: the field uses the prepared view again (both sides facing each other, HP boxes, move panel, log).', 'The battle screen is entirely in German.'] },
     { v: '1.28.0',
       de: ['Neue Kategorie Kämpfe: lokal gegen die KI, ohne Pokémon-Showdown-Server.', 'Zufallskampf mit zwei legalen Reg-M-C-Teams aus dem Meta-Pool. Eigener Kampf: beide Teams aus dem Teambuilder, die KI optional auch mit einem Meta-Team. Stufen L0 bis L3.', 'Kampfansicht mit Teamvorschau, Attacken, Zielen, Wechsel, Mega, Protokoll und Aufgabe. Auf Android läuft der Simulator in der Desktop-App.'],
       en: ['New category Battles: fight the AI locally, with no Pokémon Showdown server.', 'Random battle uses two legal Reg M-C teams from the meta pool. Your battle: both teams come from the teambuilder, and the AI can also use a meta team. Levels L0 to L3.', 'Battle screen with team preview, moves, targets, switching, Mega, a log and forfeit. On Android the simulator runs in the desktop app.'] },
