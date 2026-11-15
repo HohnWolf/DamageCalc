@@ -65,6 +65,8 @@ if (!/foeSrc: 'builder'/.test(ui) || !/builderTeams\(\)/.test(ui)) fail('Eigener
 else ok('Eigener Kampf: beide Seiten starten beim Teambuilder');
 if (!/metaTeams\(\)/.test(ui)) fail('Meta-Teams fehlen als zusätzliche KI-Quelle');
 else ok('Meta-Teams bleiben eine zusätzliche Quelle für die KI');
+if (!ui.includes('scrollable-battle-container') || !ui.includes('statbar') || !ui.includes('movemenu')) fail('Kampfansicht nutzt nicht das vorbereitete Feld');
+else ok('Kampfansicht nutzt das vorbereitete Feld');
 if (!app.includes("catVs: 'Kämpfe'") || !app.includes("'vs'")) fail('Kategorie Kämpfe fehlt');
 else ok('Kategorie Kämpfe ist verdrahtet');
 eq(fmt.FORMAT_ID, 'gen9championsvgc2026regmc', 'Kampf nutzt Reg M-C');

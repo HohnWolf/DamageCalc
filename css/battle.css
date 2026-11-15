@@ -1638,3 +1638,5 @@ body:not([data-view="btlchoice"]) .btlchoice-view { display: none !important; }
   .btl-view .btl-actives { grid-template-columns: 1fr; }
   .btl-view .btl-log-body { max-height: 140px; }
 }
+/* Die vorbereitete Attackenspalte ist auf kurze englische Namen ausgelegt. */
+.btl-view { --ctl-w: 196px; --ctl-x: 428px; }
