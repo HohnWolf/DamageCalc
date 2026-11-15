@@ -11,6 +11,7 @@
     "start": "electron .",
     "test": "node test/run_all.js",
     "dist": "electron-builder --win nsis portable",
+    "dist:mac": "electron-builder --mac dmg zip --publish never",
     "dist:dir": "electron-builder --win dir",
     "release": "electron-builder --win nsis portable --publish always"
   },
@@ -29,6 +30,7 @@
       "index.html",
       "icon.ico",
       "icon_shiny.ico",
+      "icon.png",
       "css/**",
       "js/**",
       "data/**",
@@ -40,6 +42,21 @@
     "win": {
       "icon": "icon.ico",
       "signAndEditExecutable": true
+    },
+    "mac": {
+      "icon": "icon.png",
+      "category": "public.app-category.utilities",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ],
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "artifactName": "RattataLab-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "sign": false
     },
     "nsis": {
       "oneClick": false,

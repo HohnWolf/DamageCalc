@@ -7,6 +7,7 @@ Eigener VGC-Schadensrechner für **Pokémon Champions** (Level 50, Stat Points),
 
 ## Starten
 - **Als Windows-App:** `RattataLab-Setup-x.y.z.exe` aus den [Releases](../../releases) installieren. Das legt eine Desktop- und Startmenü-Verknüpfung an. Ohne Installation geht es mit `RattataLab-x.y.z-portable.exe`. Ab Version 1.3.0 aktualisiert sich die installierte App selbst.
+- **Auf dem Mac (unsigniert):** `RattataLab-x.y.z-mac-arm64.dmg` (Apple Silicon) bzw. `-mac-x64.dmg` (Intel) aus den Releases laden und in „Programme“ ziehen. Die App ist nicht signiert: beim ersten Start Rechtsklick → „Öffnen“. Falls macOS sie trotzdem blockiert, einmal `xattr -cr "/Applications/Rattata Labs.app"` im Terminal ausführen. Sie aktualisiert sich nicht selbst (nur Hinweis mit Download-Link); die Bilderkennung (OCR) und der System-Audio-Loopback im Shiny-Zähler gibt es nur unter Windows. Daten liegen in `~/Library/Application Support/Rattata Lab`. Bauen: `npm run dist:mac` auf einem Mac, oder der Workflow `mac.yml` bei jedem Release.
 - **Im Browser:** `index.html` per Doppelklick öffnen. Es braucht keinen Server und keine Installation.
 
 Nur die Sprites (und die Knöpfe „Sets laden“ / „Regulation laden“) brauchen Internet.

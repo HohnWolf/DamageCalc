@@ -1,0 +1,35 @@
+# Baut die macOS-App (unsigniert, Intel + Apple Silicon) und hängt DMG/ZIP an das Release
+name: macOS
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release-Tag fuer den Upload (z. B. v1.29.0); leer = nur Artifact"
+        required: false
+        default: ""
+permissions:
+  contents: write
+jobs:
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - name: Bauen (unsigniert)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RattataLab-mac
+          path: |
+            dist/*.dmg
+            dist/*-mac-*.zip
+      - name: An das Release hängen
+        if: github.event_name == 'release' || inputs.tag != ''
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release upload "${{ github.event.release.tag_name || inputs.tag }}" dist/*.dmg dist/*-mac-*.zip --clobber

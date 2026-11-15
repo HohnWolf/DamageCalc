@@ -13,12 +13,14 @@ const OWNER = 'HohnWolf', REPO = 'DamageCalc';
 const RELEASES = 'https://github.com/' + OWNER + '/' + REPO + '/releases';
 const API = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/releases?per_page=100';
 
-const portable = !!process.env.PORTABLE_EXECUTABLE_DIR;
+// macOS: die Build ist unsigniert, electron-updater kann sich dort nicht selbst ersetzen -> wie portabel nur Hinweis mit Link
+const mac = process.platform === 'darwin';
+const portable = !!process.env.PORTABLE_EXECUTABLE_DIR || mac;
 const devConfig = !app.isPackaged && fs.existsSync(path.join(app.getAppPath(), 'dev-app-update.yml'));
 const enabled = app.isPackaged || devConfig;
 
 let channel = Channel.DEFAULT_CHANNEL;
-let status = { state: enabled ? 'idle' : 'off', current: app.getVersion(), portable: portable, channel: channel };
+let status = { state: enabled ? 'idle' : 'off', current: app.getVersion(), portable: portable, mac: mac, channel: channel };
 let win = null, manual = false, autoUpdater = null;
 let decision = null, rollbackInstall = false;
 let busy = false, pending = null, gen = 0, downloadGen = 0, suppress = false;
@@ -57,6 +59,7 @@ function send(s) {
     current: app.getVersion(),
     manual: manual,
     portable: portable,
+    mac: mac,
     channel: channel,
     prerelease: Channel.isPrerelease(app.getVersion())
   }, meta(), s);
