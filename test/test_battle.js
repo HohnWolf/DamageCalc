@@ -4,6 +4,8 @@ const engine = require('../js/meta/engine');
 const random = require('../js/battle/random');
 const session = require('../js/battle/session');
 const fmt = require('../js/meta/format');
+const Calc = require('../js/calc');
+const Sim = require('../vendor/ps');
 let bad = 0;
 const ok = (m) => console.log('ok   ' + m);
 const fail = (m) => { bad++; console.log('FAIL ' + m); };
@@ -66,6 +68,61 @@ else ok('Meta-Teams bleiben eine zusätzliche Quelle für die KI');
 if (!app.includes("catVs: 'Kämpfe'") || !app.includes("'vs'")) fail('Kategorie Kämpfe fehlt');
 else ok('Kategorie Kämpfe ist verdrahtet');
 eq(fmt.FORMAT_ID, 'gen9championsvgc2026regmc', 'Kampf nutzt Reg M-C');
+
+// Teambuilder stores Stat Points. exportSet writes those numbers into the EVs line.
+// Under gen9championsvgc2026regmc the sim reads that line as Stat Points, not as classic EVs.
+const STAT_SD = { hp: 'HP', at: 'Atk', df: 'Def', sa: 'SpA', sd: 'SpD', sp: 'Spe' };
+const CALC_KEYS = ['hp', 'at', 'df', 'sa', 'sd', 'sp'];
+const SIM_KEYS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+function builderPaste(mon) {
+  const lines = [mon.species + (mon.item && mon.item !== '(none)' ? ' @ ' + mon.item : '')];
+  if (mon.ability) lines.push('Ability: ' + mon.ability);
+  lines.push('Level: 50');
+  const ev = CALC_KEYS.filter(function (k) { return mon.sps[k]; }).map(function (k) { return mon.sps[k] + ' ' + STAT_SD[k]; });
+  if (ev.length) lines.push('EVs: ' + ev.join(' / '));
+  lines.push(mon.nature + ' Nature');
+  (mon.moves || []).forEach(function (m) { lines.push('- ' + m); });
+  return lines.join('\n');
+}
+const sampleSps = { hp: 30, at: 32, df: 4, sa: 0, sd: 0, sp: 0 };
+const sampleLine = builderPaste({
+  species: 'Incineroar', ability: 'Intimidate', item: 'Sitrus Berry', nature: 'Adamant',
+  sps: sampleSps, moves: ['Fake Out']
+});
+if (!/EVs: 30 HP \/ 32 Atk \/ 4 Def/.test(sampleLine) || /236 HP|252 Atk/.test(sampleLine)) fail('Export schreibt Stat Points nicht 1:1 in die EVs-Zeile: ' + sampleLine);
+else ok('Teambuilder-Export schreibt die SP-Zahlen in die EVs-Zeile');
+
+const baseSets = Sim.Teams.import(pool[0].paste);
+const custom = baseSets.map(function (s, i) {
+  const sps = i === 0 ? sampleSps : {
+    hp: s.evs.hp || 0, at: s.evs.atk || 0, df: s.evs.def || 0,
+    sa: s.evs.spa || 0, sd: s.evs.spd || 0, sp: s.evs.spe || 0
+  };
+  const nature = i === 0 ? 'Adamant' : (s.nature ? s.nature[0].toUpperCase() + s.nature.slice(1) : 'Serious');
+  return builderPaste({
+    species: s.species, ability: s.ability, item: s.item || '(none)', nature: nature, sps: sps, moves: s.moves
+  });
+}).join('\n\n');
+const checked = engine.validatePaste(custom);
+if (!checked.ok) fail('SP-Team ist nicht legal: ' + (checked.errors || []).join(' '));
+else {
+  const battle = new Sim.Battle({
+    formatid: fmt.FORMAT_ID, seed: '9,9,9,9',
+    p1: { name: 'Du', team: checked.packed },
+    p2: { name: 'KI', team: checked.packed }
+  });
+  const poke = battle.p1.pokemon[0];
+  const got = poke.storedStats;
+  let mismatch = '';
+  CALC_KEYS.forEach(function (k, i) {
+    const simVal = SIM_KEYS[i] === 'hp' ? poke.maxhp : got[SIM_KEYS[i]];
+    const expect = Calc.calcStat(k, poke.species.baseStats[SIM_KEYS[i]], sampleSps[k], 'Adamant', poke.species.name);
+    if (simVal !== expect) mismatch += k + ' sim ' + simVal + ' calc ' + expect + '; ';
+  });
+  if (poke.set.evs.hp !== 30 || poke.set.evs.atk !== 32 || poke.set.evs.def !== 4) fail('Sim liest die EVs-Zeile nicht als Stat Points: ' + JSON.stringify(poke.set.evs));
+  else if (mismatch) fail('Kampfwerte weichen vom Teambuilder ab: ' + mismatch);
+  else ok('Kampfwerte (' + poke.species.name + ', 30/32/4 Adamant) stimmen mit dem Teambuilder überein: KP ' + poke.maxhp + ' Ang ' + got.atk);
+}
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Kämpfe OK');
