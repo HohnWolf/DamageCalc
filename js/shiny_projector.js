@@ -296,10 +296,10 @@
     if (api && api.toast) api.toast(api.noAudio);
     try { if (port) port.postMessage({ kind: 'audio-status', ok: false }); } catch (e) { console.error('Projektor: Hinweis', e); }
   }
-  // Bildrate der Aufnahme: nativ bis 60, oder eine Obergrenze. Kein zweites Gerät.
-  function limitCapture(video, native, fps) {
+  // Bildrate der Aufnahme als Obergrenze. Kein zweites Gerät.
+  function limitCapture(video, fps) {
     var list = video && video.srcObject && video.srcObject.getVideoTracks ? video.srcObject.getVideoTracks() : [];
-    var rate = native ? { ideal: 60, max: 60 } : { ideal: clampFps(fps), max: clampFps(fps) };
+    var rate = { ideal: clampFps(fps), max: clampFps(fps) };
     list.forEach(function (tr) {
       if (!tr.applyConstraints) return;
       tr.applyConstraints({ frameRate: rate }).catch(function (e) { console.error('Projektor: Bildrate', e); });
@@ -332,7 +332,7 @@
     var v = api && api.video(huntId);
     if (!v) return;
     var o = api.opts();
-    limitCapture(v, o.native !== false, o.fps);
+    limitCapture(v, o.fps);
   }
   function restart() {
     var v = api && api.video(huntId);

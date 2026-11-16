@@ -9,6 +9,21 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.30.0',
+      de: ['Projektor: Option „Quelle (nativ)“ entfernt – die Bildrate (10–60 Bilder/s) gilt nun direkt als Obergrenze für die Aufnahme.'],
+      en: ['Projector: removed the “Source (native)” option — the frame rate (10–60 fps) now applies directly as the capture cap.'],
+      full: {
+        de: [
+          'Game Projector: Umbenannt und wieder ein reiner Projektor ohne Matchlog; Option „Quelle (nativ)“ entfernt (10–60 Bilder/s gilt direkt).',
+          'Matchlog (Alpha): Eigenes Werkzeug unter VGC mit ALPHA-Kennzeichnung, eigener Quellen-Auswahl, Turn-Erkennung über den gegnerischen Timer (07:00 = Turn 1) sowie Live- und Aufnahme-Analyse.',
+          'Shiny-Clips: Multi-Audio-Quellen mit Lautstärke-Mixer und automatische Projektor-Verbindung.'
+        ],
+        en: [
+          'Game Projector: renamed and restored to a pure projector without Matchlog; removed “Source (native)” (10–60 fps applies directly).',
+          'Matchlog (Alpha): dedicated tool under VGC with an ALPHA badge, its own source picker, opponent-timer turn tracking (07:00 = Turn 1), and live/recorded match analysis.',
+          'Shiny clips: multi-audio sources with volume mixer and automatic projector connection.'
+        ]
+      } },
     { v: '1.29.9',
       de: ['Game Projector: Umbenannt und wieder ein reiner Projektor ohne Matchlog.', 'Matchlog (Alpha): Eigenes Werkzeug unter VGC mit ALPHA-Kennzeichnung, eigener Quellen-Auswahl und Übernahme vom Game Projector.', 'Shiny-Clips: Multi-Audio-Quellen mit Lautstärke-Mixer und automatische Projektor-Verbindung.'],
       en: ['Game Projector: renamed and restored to a pure projector without Matchlog.', 'Matchlog (Alpha): dedicated tool under VGC with an ALPHA badge, its own source picker, and Game Projector fallback.', 'Shiny clips: multi-audio sources with volume mixer and automatic projector connection.'] },

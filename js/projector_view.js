@@ -21,7 +21,7 @@
     project: 'Projizieren', stop: 'Projektor schließen', noVideo: 'Erst eine Quelle verbinden.', openFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
     noAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
     window: 'Fenster', onTop: 'Immer im Vordergrund', hideCursor: 'Mauszeiger ausblenden', fullscreen: 'Vollbild',
-    sound: 'Ton', volume: 'Lautstärke', fps: 'Bilder/s', native: 'Quelle (nativ)',
+    sound: 'Ton', volume: 'Lautstärke', fps: 'Bilder/s',
     hint: 'Im Projektor: Rechtsklick öffnet das Menü, F11 schaltet Vollbild, Esc verlässt es.'
   } : {
     title: 'Game Projector',
@@ -34,7 +34,7 @@
     project: 'Project', stop: 'Close projector', noVideo: 'Connect a source first.', openFail: 'The projector window could not be opened.',
     noAudio: 'This source has no audio. The picture is still shown.',
     window: 'Window', onTop: 'Always on top', hideCursor: 'Hide cursor', fullscreen: 'Fullscreen',
-    sound: 'Sound', volume: 'Volume', fps: 'Frames/s', native: 'Source (native)',
+    sound: 'Sound', volume: 'Volume', fps: 'Frames/s',
     hint: 'In the projector: right-click opens the menu, F11 toggles fullscreen, Esc leaves it.'
   };
   function t(k, a) { var s = S[k] != null ? S[k] : k; return a == null ? s : s.replace('{0}', a); }
@@ -46,7 +46,7 @@
       onTop: !!o.onTop, hideCursor: !!o.hideCursor, fullscreen: !!o.fullscreen,
       displayId: o.displayId == null ? null : o.displayId, bounds: o.bounds || null,
       sound: o.sound !== false, volume: MIR ? MIR.clampVolume(o.volume) : 80,
-      native: o.native !== false, fps: MIR ? MIR.clampFps(o.fps) : 20,
+      fps: MIR ? MIR.clampFps(o.fps) : 20,
       autoConnect: !!o.autoConnect,
       source: o.source && typeof o.source === 'object' ? { kind: o.source.kind === 'camera' ? 'camera' : 'screen', id: String(o.source.id || ''), label: String(o.source.label || '') } : null
     };
@@ -198,9 +198,7 @@
     ctl.fullscreen.checked = !!store.fullscreen;
     ctl.sound.checked = store.sound !== false;
     ctl.volume.value = String(store.volume);
-    ctl.native.checked = store.native !== false;
     ctl.fps.value = String(store.fps);
-    ctl.fps.disabled = store.native !== false;
     if (ctl.autoConnect) ctl.autoConnect.checked = !!store.autoConnect;
   }
   function check(key, label, onChange) {
@@ -208,7 +206,7 @@
     inp.addEventListener('change', function () {
       var patch = {}; patch[key] = inp.checked;
       api.save(patch);
-      if (isOpen() && D && key !== 'native' && key !== 'autoConnect') { var o = {}; o[key] = inp.checked; D.set(o); }
+      if (isOpen() && D && key !== 'autoConnect') { var o = {}; o[key] = inp.checked; D.set(o); }
       if (onChange) onChange();
     });
     ctl[key] = inp;
@@ -292,7 +290,6 @@
     });
     vl.appendChild(ctl.volume);
     opt.appendChild(vl);
-    opt.appendChild(check('native', t('native'), function () { if (isOpen()) window.CCProjector.syncLimit(); }));
     var fl = el('label', { class: 'pv-check' });
     fl.appendChild(el('span', { text: t('fps') }));
     ctl.fps = el('input', { type: 'number', min: '10', max: '60', step: '1' });

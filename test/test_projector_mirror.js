@@ -131,8 +131,8 @@ if (!page.includes('srcObject') || !page.includes('__rlProjectorFeed')) fail('Pr
 else ok('dieselbe Aufnahme im Video-Element');
 if (/createScriptProcessor|kind:\s*'pcm'/.test(src + page)) fail('Ton läuft noch als PCM');
 else ok('kein PCM');
-if (!app.includes('projectorNative') || !app.includes('native: p.native')) fail('native Bildrate fehlt');
-else ok('Quelle nativ, Grenze nur auf Wunsch');
+if (app.includes('projectorNative') || det.includes('detFpsNative')) fail('Quelle (nativ) noch vorhanden');
+else ok('Quelle (nativ) entfernt');
 if (!app.includes('sound: p.sound') || !app.includes('volume:')) fail('Ton wird nicht gespeichert');
 else ok('Ton und Lautstärke in den Projektor-Einstellungen');
 if (!app.includes('Diese Quelle liefert keinen Ton') || !app.includes('This source has no audio')) fail('Hinweis ohne Ton fehlt');
@@ -152,8 +152,8 @@ else ok('Diagnose und durchsichtiges Overlay');
 const overlay = fs.readFileSync(path.join(ROOT, 'electron/overlay.html'), 'utf8');
 if (!overlay.includes('transparent=1') || !overlay.includes('color-scheme: normal')) fail('Overlay bleibt im Projektor deckend');
 else ok('Overlay ohne dunkles Schema, wenn es im Projektor liegt');
-if (pkg.version !== '1.29.9') fail('Version ist ' + pkg.version);
-else ok('Version 1.29.9');
+if (pkg.version !== '1.30.0') fail('Version ist ' + pkg.version);
+else ok('Version 1.30.0');
 
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Projektor-Spiegel-Test OK');
