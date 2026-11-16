@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.8',
+      de: ['Matchlog (Test): Turn-Erkennung über den gegnerischen Timer (07:00 = Turn 1, neuer Turn erst bei Timer-Veränderung nach Kampf-Events), kein falsches Tailwind bei „petered out“ und verbesserte opposing-Erkennung.'],
+      en: ['Matchlog (test): turn tracking via the opponent timer (07:00 = Turn 1, new turn only when the timer drops after battle events), ignores “tailwind petered out”, and improved opposing OCR matching.'] },
     { v: '1.29.7',
       de: ['Matchlog (Test): Menü-Szenen komplett entprellt (keine Turn-Sprünge mitten in Animationen), doppelte Moves pro Zug gefiltert, Phantom-0% ohne Prozentzeichen behoben und Video-Bitrate auf 2,5 Mbit/s reduziert.'],
       en: ['Matchlog (test): debounced all menu scenes (no mid-animation turn splits), filtered duplicate moves per turn, fixed phantom 0% reads without a percent sign, and lowered video bitrate to 2.5 Mbps.'] },

@@ -82,6 +82,9 @@
       if (det.scene === 'target_select') {
         consider(jobs, 'tmove', Lay.scale(image, Lay.L.targetMove), 'ui', 'move_name', { from: 'target' });
       }
+      if (det.scene === 'command' || det.scene === 'move_select' || det.scene === 'target_select' || det.scene === 'communicating') {
+        consider(jobs, 'opp_timer', Lay.scale(image, Lay.L.oppTimer), 'digit', 'timer', { whitelist: '0123456789:', maxInk: 900 });
+      }
       if (det.scene === 'command' || (det.scene === 'battle' && (!st.slotMon.oppA || !st.slotMon.oppB))) {
         if (det.scene === 'command' || !st.slotMon.oppA) consider(jobs, 'nmA', Lay.scale(image, Lay.L.oppName[0]), 'ui', 'plate_name', { slot: 'oppA' });
         if (det.scene === 'command' || !st.slotMon.oppB) consider(jobs, 'nmB', Lay.scale(image, Lay.L.oppName[1]), 'ui', 'plate_name', { slot: 'oppB' });
@@ -159,6 +162,14 @@
           var patch = { slots: {} };
           patch.slots[job.slot] = { value: val };
           State.noteHp(st, patch);
+        }
+        return st;
+      }
+      if (job.kind === 'timer') {
+        var m = String(text || '').match(/(\d{1,2})\D*(\d{2})/);
+        if (m) {
+          var mm = parseInt(m[1], 10), ss = parseInt(m[2], 10);
+          if (mm <= 15 && ss <= 59) State.noteTimer(st, mm * 60 + ss);
         }
         return st;
       }

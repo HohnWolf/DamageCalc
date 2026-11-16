@@ -106,6 +106,21 @@ eq('withdraw without you is neutral', ev('< GS withdrew Pelipper!').side, '');
   eq('move_select stable bumps turnN', st4.turnN, 2);
   eq('mega raichu y from stone', st4.turns[1].events[0].into, 'Mega Raichu Y');
   eq('oppcsing is foe', st4.turns[1].events[1].side, 'foe');
+
+  // Timer-basierte Turn-Steuerung (07:00 = 420 immer Turn 1, kein Turn-Sprung bei Scene-Flackern):
+  const st5 = State.create();
+  State.noteTimer(st5, 420); // 07:00
+  eq('timer start turn 1', st5.turnN, 1);
+  State.noteTimer(st5, 418); // Gegner wählt noch in Turn 1 (keine Play-Events)
+  eq('timer countdown before play stays turn 1', st5.turnN, 1);
+  State.noteText(st5, 'battle', 'Raichu used Fake Out!', ev('Raichu used Fake Out!'), 5);
+  State.onScene(st5, 'command');
+  State.onScene(st5, 'command'); // Scene-Flackern allein darf bei aktivem Timer Turn nicht erhöhen
+  eq('scene flicker ignored with timer', st5.turnN, 1);
+  State.noteTimer(st5, 415); // Timer sinkt im nächsten Zug -> Turn 2
+  eq('timer drop after play starts turn 2', st5.turnN, 2);
+  eq('tailwind petered out ignored', ev("The opposing side’s tailwind petered out!"), null);
+  eq('opps tng is foe', ev("The opps tng Archaludon’s Sp Atk rosel").side, 'foe');
 })();
 
 if (failed) { console.error(failed + ' parser checks failed'); process.exit(1); }

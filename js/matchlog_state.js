@@ -30,6 +30,9 @@
       pendingChoice: null,
       choiceCount: 0,
       cmdPending: false,
+      hasTimer: false,
+      timerSec: null,
+      turnPlayed: false,
       lastAbility: null,
       lastItem: null,
       ocr: [],
@@ -55,15 +58,41 @@
   function norm(s) { return Lex.normKey(s || ''); }
 
   function enterCommand(st) {
-    var prevTurn = st.turnN >= 1 ? turn(st, st.turnN) : null;
-    if ((st.phase === 'play' || st.phase === 'locked') && prevTurn && (prevTurn.events.length || prevTurn.choices.length)) st.turnN += 1;
-    else if (st.turnN < 1) st.turnN = 1;
+    if (!st.hasTimer) {
+      var prevTurn = st.turnN >= 1 ? turn(st, st.turnN) : null;
+      if ((st.phase === 'play' || st.phase === 'locked') && prevTurn && (prevTurn.events.length || prevTurn.choices.length)) st.turnN += 1;
+      else if (st.turnN < 1) st.turnN = 1;
+    } else if (st.turnN < 1) {
+      st.turnN = 1;
+    }
     st.phase = 'command';
     st.choiceCount = 0;
     st.pendingChoice = null;
     st.cmdPending = false;
     turn(st, st.turnN);
     snapshotBase(st);
+  }
+  function noteTimer(st, sec) {
+    if (sec == null || isNaN(sec) || sec < 0 || sec > 900) return;
+    if (!st.hasTimer) {
+      st.hasTimer = true;
+      st.timerSec = sec;
+      if (st.turnN < 1) { st.turnN = 1; turn(st, 1); }
+      if (st.phase === 'pre') st.phase = 'command';
+      return;
+    }
+    if (sec >= st.timerSec) return;
+    if (st.timerSec - sec > 120) return;
+    // 7:00 (420s) ist immer Turn 1; erst wenn in diesem Turn gespielt wurde und der Timer danach weiter fällt, startet ein neuer Turn.
+    if (st.turnPlayed && sec < 420) {
+      st.turnN += 1;
+      st.turnPlayed = false;
+      st.choiceCount = 0;
+      st.pendingChoice = null;
+      turn(st, st.turnN);
+      snapshotBase(st);
+    }
+    st.timerSec = sec;
   }
   function onScene(st, scene) {
     var prev = st.scene;
@@ -281,6 +310,7 @@
     }
     if (ev.kind === 'ability') st.lastAbility = ev.ability;
     if (ev.kind === 'item') st.lastItem = ev.item;
+    if (bucket.n >= 1 && ev.kind !== 'result') st.turnPlayed = true;
     bucket.events.push(ev);
     st.lastEvent = ev;
   }
@@ -431,7 +461,7 @@
     return o;
   }
   return {
-    create: create, onScene: onScene, noteText: noteText, noteHp: noteHp, noteChoice: noteChoice,
+    create: create, onScene: onScene, noteText: noteText, noteHp: noteHp, noteTimer: noteTimer, noteChoice: noteChoice,
     noteTeamRow: noteTeamRow, noteBrought: noteBrought, noteFoeSpecies: noteFoeSpecies,
     exportSnap: exportSnap, idOf: idOf, slotSpecies: slotSpecies
   };

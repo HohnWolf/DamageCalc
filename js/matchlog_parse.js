@@ -16,7 +16,7 @@
     return flat(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
   }
   function opposing(s) {
-    return /oppos|\bopp[a-z]{1,4}ing\b|(?:\b|[^a-z])p?posing\b|gegn/.test(s);
+    return /oppos|\bopp[a-z .]{1,5}(?:ing|tng)\b|(?:\b|[^a-z])p?posing\b|gegn/.test(s);
   }
   function oneMove(text, lex) {
     var L = lexApi();
@@ -122,7 +122,7 @@
     if ((/electr/.test(s) && /field|batl|terrain|strom|feld|current/.test(s)) || /elektrofeld/.test(s)) {
       return { kind: 'field', field: 'Electric Terrain', line: raw };
     }
-    if (/tailwind|ruckenwind|rueckenwind/.test(s) && !/used|setzt/.test(s)) {
+    if (/tailwind|ruckenwind|rueckenwind/.test(s) && !/used|setzt|petered|wore off|ended|subsided|nachgelass|vorbei/.test(s)) {
       return { kind: 'field', field: 'Tailwind', side: opposing(s) ? 'foe' : 'you', line: raw };
     }
     if (/psychic terrain|psychofeld/.test(s)) return { kind: 'field', field: 'Psychic Terrain', line: raw };
