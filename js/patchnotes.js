@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.6',
+      de: ['Matchlog (Test): Schnelle Video-Aufnahme im Hintergrund (8 Mbit/s) mit gleichzeitiger 10-fps-Live-Auswertung auf Rohframes (sofortiges Log beim Stoppen) und gedrosselter KP-OCR während Kampfanimationen.'],
+      en: ['Matchlog (test): fast background video recording (8 Mbps) with simultaneous 10 fps live analysis on raw frames (instant log on stop) and throttled HP OCR during battle animations.'] },
     { v: '1.29.5',
       de: ['Matchlog (Test): Neuer Aufnahme-Modus („Match aufnehmen“ → „Aufnahme stoppen & Log erstellen“ mit 12 fps Video-Auswertung und „Video speichern“), plus Fix für Mega Raichu X/Y über Team-Item, oppcsing-Typos und direkte battle→move_select-Turn-Wechsel.'],
       en: ['Matchlog (test): new record-and-analyze mode (“Record match” → “Stop & build log” at 12 fps with “Save video”), plus fixes for Mega Raichu X/Y via team item, oppcsing typos and direct battle→move_select turn transitions.'] },

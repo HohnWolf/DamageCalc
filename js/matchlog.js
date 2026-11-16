@@ -28,11 +28,13 @@
     var seen = {};
     var teamGot = {};
     var optsImage = null;
+    var lastHpAt = -99;
     var bannerText = { own: ['', ''], foe: ['', ''] };
     function consider(list, id, box, mode, kind, extra) {
       var prep = Prep.prepare(optsImage, box, mode);
-      var gate = mode === 'ui' ? 25 : 60;
+      var gate = mode === 'ui' ? 25 : (kind === 'hp' ? 35 : 60);
       if (prep.count < gate) return;
+      if (extra && extra.maxInk && prep.count > extra.maxInk) return;
       if (seen[id] === prep.hash) return;
       seen[id] = prep.hash;
       if (!prep.image) return;
@@ -80,20 +82,23 @@
       if (det.scene === 'target_select') {
         consider(jobs, 'tmove', Lay.scale(image, Lay.L.targetMove), 'ui', 'move_name', { from: 'target' });
       }
-      if (det.scene === 'command' || det.scene === 'battle') {
-        consider(jobs, 'nmA', Lay.scale(image, Lay.L.oppName[0]), 'ui', 'plate_name', { slot: 'oppA' });
-        consider(jobs, 'nmB', Lay.scale(image, Lay.L.oppName[1]), 'ui', 'plate_name', { slot: 'oppB' });
+      if (det.scene === 'command' || (det.scene === 'battle' && (!st.slotMon.oppA || !st.slotMon.oppB))) {
+        if (det.scene === 'command' || !st.slotMon.oppA) consider(jobs, 'nmA', Lay.scale(image, Lay.L.oppName[0]), 'ui', 'plate_name', { slot: 'oppA' });
+        if (det.scene === 'command' || !st.slotMon.oppB) consider(jobs, 'nmB', Lay.scale(image, Lay.L.oppName[1]), 'ui', 'plate_name', { slot: 'oppB' });
       }
-      if (det.scene === 'command' || det.scene === 'move_select' || det.scene === 'battle') {
+      var nowT = meta.t != null ? meta.t : Date.now() / 1000;
+      var checkHp = det.scene === 'command' || det.scene === 'move_select' || (det.scene === 'battle' && nowT - lastHpAt >= 0.45);
+      if (checkHp) {
+        lastHpAt = nowT;
         var hpSlots = hp && hp.slots ? hp.slots : {};
         ['ownA', 'ownB'].forEach(function (sl, idx) {
           if (!hpSlots[sl] || !hpSlots[sl].value) {
-            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.ownHp[idx]), 'digit', 'hp', { slot: sl, isOwn: true, whitelist: '0123456789/%' });
+            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.ownHp[idx]), 'digit', 'hp', { slot: sl, isOwn: true, whitelist: '0123456789/%', maxInk: 1600 });
           }
         });
         ['oppA', 'oppB'].forEach(function (sl, idx) {
           if (!hpSlots[sl] || !hpSlots[sl].value) {
-            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.oppPct[idx]), 'digit', 'hp', { slot: sl, isOwn: false, whitelist: '0123456789/%' });
+            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.oppPct[idx]), 'digit', 'hp', { slot: sl, isOwn: false, whitelist: '0123456789/%', maxInk: 1450 });
           }
         });
       }

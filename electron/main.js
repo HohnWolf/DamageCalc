@@ -177,21 +177,24 @@ function createWindow() {
         }
         var liveOk = /Fake Out/i.test(logText) && /battle/.test(sceneText);
 
-        // Aufnahme-Modus testen: Record -> Stop -> 12fps Videoanalyse -> Video speichern aktiv
+        // Aufnahme-Modus testen: Start (Live-Log + Video) -> Stop -> sofortiges Log + Video speichern aktiv
         var recBtn = document.getElementById('mlRecBtn');
         var saveVidBtn = document.getElementById('mlSaveVidBtn');
         var recOk = false, recLog = '', recTime = '';
         if (recBtn && saveVidBtn) {
-          host.querySelector('.ml-log').textContent = '';
           recBtn.click();
-          await new Promise(function (r) { setTimeout(r, 700); });
-          recBtn.click();
-          for (var j = 0; j < 120; j++) {
+          for (var j = 0; j < 100; j++) {
             await new Promise(function (r) { setTimeout(r, 100); });
             recLog = host.querySelector('.ml-log').textContent || '';
-            recTime = host.querySelectorAll('.ml-debug')[2].textContent || '';
-            if (!saveVidBtn.disabled && /Fake Out/i.test(recLog) && /12 fps/.test(recTime)) { recOk = true; break; }
+            if (/Fake Out/i.test(recLog)) break;
           }
+          recBtn.click();
+          for (var m = 0; m < 40; m++) {
+            await new Promise(function (r) { setTimeout(r, 50); });
+            if (!saveVidBtn.disabled) break;
+          }
+          recTime = host.querySelectorAll('.ml-debug')[2].textContent || '';
+          recOk = !saveVidBtn.disabled && /Fake Out/i.test(recLog);
         }
         clearInterval(pump);
         try { stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) {}
