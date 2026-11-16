@@ -260,7 +260,6 @@
       startMgDmgText: 'Schätze den Schaden in Prozent der KP. Die Spanne rechnet der Damage Calculator.',
       startMgDmgKo: 'Level 50 · Einzel · Damage Calc',
       navSpeedTier: 'Speed-Tiers', startSpeedTierKo: 'Basis · Max · Scarf', startSpeedTierText: 'Initiative-Werte aller Champions-Pokémon auf Level 50: Basis, Max Speed, neutral mit 0 oder 32 SP, Wesen mit -Init und mit Choice Scarf. Sortier- und filterbar, mit Rückenwind und Stufen.',
-      navMeta: 'Meta-Test', startMetaKo: 'Lokal · ohne Showdown', startMetaText: 'Testet das Team aus dem Teambuilder lokal gegen Meta-Teams. Kein Server, keine Ladder.',
       startMgTypeText: 'Du siehst, wie effektiv jeder Typ gegen ein verstecktes Pokémon ist. Welches von sechs ist es?', startMgTypeKo: 'Schwächen · Resistenzen · Highscore',
       mgTypeAsk: 'Welches Pokémon hat diese Typ-Effektivitäten? Tippe den Namen ein. Ein Fehler beendet das Spiel.', mgTypeNote: 'Ohne Fähigkeiten. Jedes Pokémon mit denselben Typen zählt als richtig.',
       mgTypeOk: 'Richtig, {0} ({1}).', mgTypeLost: 'Falsch, es war {0} ({1}). Deine Serie: {2}', mgStTotal: 'Gesamt',
@@ -417,7 +416,6 @@
       startMgDmgText: 'Estimate the damage as a percent of HP. The range comes from the damage calculator.',
       startMgDmgKo: 'Level 50 · Singles · damage calc',
       navSpeedTier: 'Speed Tiers', startSpeedTierKo: 'Base · Max · Scarf', startSpeedTierText: 'Speed stats of every Champions Pokémon at level 50: base, max speed, neutral with 0 or 32 SP, -Spe nature and Choice Scarf. Sortable and filterable, with Tailwind and stat stages.',
-      navMeta: 'Meta test', startMetaKo: 'Local · no Showdown', startMetaText: 'Tests the teambuilder team locally against meta teams. No server, no ladder.',
       startMgTypeText: 'See how effective each type is against a hidden Pokémon. Which of the six is it?', startMgTypeKo: 'Weaknesses · resistances · high score',
       mgTypeAsk: 'Which Pokémon takes these type effectiveness values? Type its name. One mistake ends the game.', mgTypeNote: 'Abilities are ignored. Any Pokémon with the same types counts as correct.',
       mgTypeOk: 'Correct, {0} ({1}).', mgTypeLost: 'Wrong, it was {0} ({1}). Your streak: {2}', mgStTotal: 'Total',
@@ -2268,7 +2266,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.29.3') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.29.4') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2409,7 +2407,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.29.3';
+      var ver = (updStatus && updStatus.current) || '1.29.4';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2600,7 +2598,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.29.3', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.29.4', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2776,10 +2774,9 @@
     var back = document.getElementById('catBack');
     if (back) back.hidden = !startCat;
     MODES.forEach(function (m) {
-      var card = grid.querySelector('.start-card[data-go="' + m[0] + '"]:not([data-meta])');
+      var card = grid.querySelector('.start-card[data-go="' + m[0] + '"]');
       if (card) card.hidden = !isToolEnabled(m[0]);
     });
-    grid.querySelectorAll('[data-meta]').forEach(function (card) { card.hidden = !isToolEnabled('builder'); });
     CATS.forEach(function (c) {
       var t = catTools(c);
       var g = grid.querySelector('.start-group[data-cat="' + c[0] + '"]');
@@ -2823,12 +2820,6 @@
     }
   }
 
-  function openMetaTest(alreadyThere) {
-    if (!isToolEnabled('builder')) { showView('start'); return; }
-    if (!alreadyThere) showView('builder');
-    var cur = window.CCBuilder && window.CCBuilder.current && window.CCBuilder.current();
-    if (window.RLMeta && cur) window.RLMeta.open(cur);
-  }
   function showView(v, keepCat) {
     if (v === 'start' && !keepCat) startCat = null;
     if (VIEWS.indexOf(v) === -1 || !isToolEnabled(v)) v = 'start';
@@ -2855,7 +2846,6 @@
     if (v === 'start' && window.CCShiny) window.CCShiny.renderStartArt();
     if (v === 'start') { renderStartTeam(); syncStartCards(); }
     if (v === 'calc') { var r = document.getElementById('calcView'); if (r) r.scrollTop = 0; }
-    if (window.__RL_OPEN_META) { window.__RL_OPEN_META = false; openMetaTest(true); }
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
@@ -2909,7 +2899,6 @@
     }
     function addTool(id) {
       list.appendChild(toolItem(id));
-      if (id === 'builder') list.appendChild(item('meta', T('navMeta'), 'match', false, function () { openMetaTest(); }));
     }
     if (studio) {
       list.appendChild(el('div', { class: 'sb-group' }));
@@ -2945,7 +2934,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.29.3';
+    var ver = (updStatus && updStatus.current) || '1.29.4';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -3005,7 +2994,6 @@
     if (VIEWS.indexOf(setting('start')) === -1) setSetting('start', 'start');
     document.querySelectorAll('[data-go]').forEach(function (b) {
       b.addEventListener('click', function () {
-        if (b.dataset.meta) { openMetaTest(); return; }
         showView(b.dataset.go);
       });
     });
@@ -3069,7 +3057,6 @@
     else if (location.hash === '#gocounter') v = 'gocounter';
     else if (location.hash === '#goinfo') v = 'goinfo';
     else if (location.hash === '#speedtier') v = 'speedtier';
-    else if (location.hash === '#meta' || location.hash === '#metatest') { v = 'builder'; window.__RL_OPEN_META = true; }
     else if (location.hash === '#mgspeed') v = 'mgspeed';
     else if (location.hash === '#mgquiz') v = 'mgquiz';
     else if (location.hash === '#mgdmg') v = 'mgdmg';

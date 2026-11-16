@@ -29,6 +29,7 @@
       result: null,
       pendingChoice: null,
       choiceCount: 0,
+      cmdPending: false,
       lastAbility: null,
       lastItem: null,
       ocr: [],
@@ -53,25 +54,38 @@
   function cur(st) { return turn(st, st.phase === 'pre' ? 0 : st.turnN); }
   function norm(s) { return Lex.normKey(s || ''); }
 
+  function enterCommand(st) {
+    var prevTurn = st.turnN >= 1 ? turn(st, st.turnN) : null;
+    if ((st.phase === 'play' || st.phase === 'locked') && prevTurn && (prevTurn.events.length || prevTurn.choices.length)) st.turnN += 1;
+    else if (st.turnN < 1) st.turnN = 1;
+    st.phase = 'command';
+    st.choiceCount = 0;
+    st.pendingChoice = null;
+    st.cmdPending = false;
+    turn(st, st.turnN);
+    snapshotBase(st);
+  }
   function onScene(st, scene) {
     var prev = st.scene;
-    if (scene === 'command' && prev !== 'command' && prev !== 'move_select' && prev !== 'target_select') {
-      var prevTurn = st.turnN >= 1 ? turn(st, st.turnN) : null;
-      if ((st.phase === 'play' || st.phase === 'locked') && prevTurn && (prevTurn.events.length || prevTurn.choices.length)) st.turnN += 1;
-      else if (st.turnN < 1) st.turnN = 1;
-      st.phase = 'command';
-      st.choiceCount = 0;
-      st.pendingChoice = null;
-      turn(st, st.turnN);
-      snapshotBase(st);
+    if (scene === 'command') {
+      if (st.phase === 'pre') {
+        enterCommand(st);
+      } else if (st.phase === 'play' || st.phase === 'locked') {
+        if (st.cmdPending) enterCommand(st);
+        else st.cmdPending = true;
+      }
     } else if (scene === 'move_select' || scene === 'target_select') {
+      if (st.cmdPending) enterCommand(st);
       if (st.phase === 'pre') { st.turnN = Math.max(1, st.turnN); st.phase = 'command'; }
-    } else if (scene === 'communicating') {
-      if (st.pendingChoice && st.pendingChoice.move) commitChoice(st);
-      st.phase = 'locked';
-    } else if (scene === 'battle' && (st.phase === 'locked' || st.phase === 'command')) {
-      if (st.pendingChoice && st.pendingChoice.move) commitChoice(st);
-      st.phase = 'play';
+    } else {
+      st.cmdPending = false;
+      if (scene === 'communicating') {
+        if (st.pendingChoice && st.pendingChoice.move) commitChoice(st);
+        st.phase = 'locked';
+      } else if (scene === 'battle' && (st.phase === 'locked' || st.phase === 'command')) {
+        if (st.pendingChoice && st.pendingChoice.move) commitChoice(st);
+        st.phase = 'play';
+      }
     }
     // Zielwahl zu ist die eigene Eingabe. Zurück ins Attackenmenü ist schon das nächste Pokémon.
     if (prev === 'target_select' && scene !== 'target_select') {
@@ -196,8 +210,15 @@
     if (st.lastEvent && st.lastEvent !== last && st.lastEvent.t != null && t != null && Math.abs(t - st.lastEvent.t) <= 4 && sameEvent(st.lastEvent, ev)) {
       return;
     }
-    if (ev.kind === 'move' && last && last.kind === 'move' && last.move === ev.move && last.t != null && t != null && Math.abs(t - last.t) <= 1.5) {
-      if (last.side === ev.side || (st.teams.you.length >= 4 && ev.side === 'you' && !inYouTeam(st, ev.mon))) return;
+    if (ev.kind === 'move' && last && last.kind === 'move' && last.t != null && t != null && Math.abs(t - last.t) <= 2) {
+      if (last.move === ev.move && (last.side === ev.side || (st.teams.you.length >= 4 && ev.side === 'you' && !inYouTeam(st, ev.mon)))) return;
+      if (last.mon === ev.mon && last.move && ev.move && (ev.move.indexOf(last.move) === 0 || last.move.indexOf(ev.move) === 0)) {
+        if (ev.move.length > last.move.length) last.move = ev.move;
+        return;
+      }
+    }
+    if (ev.kind === 'field' && last && last.kind === 'move' && norm(last.move) === norm(ev.field)) {
+      return;
     }
     if (ev.kind === 'boost' && last && (last.kind === 'ability' || last.kind === 'item') && (last.mon === ev.mon || !ev.mon)) {
       last.boost = { stat: ev.stat, stages: ev.stages };

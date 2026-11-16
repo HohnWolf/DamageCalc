@@ -28,8 +28,8 @@
   --ic-play: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222.5%22%20y%3D%227%22%20width%3D%2219%22%20height%3D%2211%22%20rx%3D%224%22%2F%3E%3Cpath%20d%3D%22M7%2010.5v4M5%2012.5h4%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2211.5%22%20r%3D%22.8%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2218.2%22%20cy%3D%2213.7%22%20r%3D%22.8%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fsvg%3E");
   --ic-mgspeed: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%202L4%2014h7l-1%208%2010-14h-7z%22%2F%3E%3C%2Fsvg%3E");
   --ic-mgquiz: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2020V10M10%2020V4M16%2020v-7M21%2020H3%22%2F%3E%3C%2Fsvg%3E");
-  --ic-mgdmg: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%204l6%206-9.5%209.5H4.5V13.5z%22%2F%3E%3C%2Fsvg%3E");
-  --ic-mgtype: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%204l6%206-9.5%209.5H4.5V13.5z%22%2F%3E%3C%2Fsvg%3E");
+  --ic-mgdmg: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%227.5%22%20r%3D%222.5%22%2F%3E%3Ccircle%20cx%3D%2216.5%22%20cy%3D%2216.5%22%20r%3D%222.5%22%2F%3E%3Cpath%20d%3D%22M18.5%205.5l-13%2013%22%2F%3E%3C%2Fsvg%3E");
+  --ic-mgtype: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203l7%203v5.5c0%204.5-3%208-7%209.5-4-1.5-7-5-7-9.5V6z%22%2F%3E%3Cpath%20d%3D%22M12%203v18M5.2%2010.5h13.6%22%2F%3E%3C%2Fsvg%3E");
 }
 html[data-ui-style="pro"] {
   --sb-w: 184px;
@@ -194,7 +194,6 @@ html[data-ui-style="pro"] .start-card.card-godex::before { --ic: var(--ic-godex)
 html[data-ui-style="pro"] .start-card.card-gocounter::before { --ic: var(--ic-gocounter); }
 html[data-ui-style="pro"] .start-card.card-goinfo::before { --ic: var(--ic-goinfo); }
 html[data-ui-style="pro"] .start-card.card-speedtier::before { --ic: var(--ic-speedtier); }
-html[data-ui-style="pro"] .start-card.card-meta::before { --ic: var(--ic-match); }
 html[data-ui-style="pro"] .start-card.card-mgspeed::before { --ic: var(--ic-mgspeed); }
 html[data-ui-style="pro"] .start-card.card-mgquiz::before { --ic: var(--ic-mgquiz); }
 html[data-ui-style="pro"] .start-card.card-mgdmg::before { --ic: var(--ic-mgdmg); }

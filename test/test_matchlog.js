@@ -76,6 +76,18 @@ eq('withdraw without you is neutral', ev('< GS withdrew Pelipper!').side, '');
   const rendered = Format.render(State.exportSnap(st2));
   eq('compact move outcomes', rendered.includes('Krookodile Earthquake -> Espathra protected, Noivern isnt affected'), true);
   eq('compact switch into', rendered.includes('Enemy Noivern switch into Gholdengo'), true);
+
+  // Flackern von command in play-Phase, Trick->Trick Room Präfix, redundantes field:
+  const st3 = State.create();
+  State.onScene(st3, 'command');
+  State.onScene(st3, 'battle');
+  State.noteText(st3, 'battle', 'Banette used Trick!', ev('Banette used Trick!'), 1);
+  State.noteText(st3, 'battle', 'Banette used Trick Room!', ev('Banette used Trick Room!'), 1.3);
+  State.noteText(st3, 'battle', 'Banette twisted the dimensions!', ev('Trick Room'), 1.6);
+  State.onScene(st3, 'command'); // 1-Frame-Flackern mitten in der Animation
+  State.onScene(st3, 'battle');
+  eq('1-frame command flicker keeps turnN', st3.turnN, 1);
+  eq('trick upgraded to trick room without dup', st3.turns[0].events.map(e => e.move || e.field), ['Trick Room']);
 })();
 
 if (failed) { console.error(failed + ' parser checks failed'); process.exit(1); }

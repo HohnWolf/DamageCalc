@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.4',
+      de: ['Matchlog (Test): Entprellte Zugwechsel (keine Turn-Sprünge mehr mitten in Animationen), sauberes Upgrade bei Teil-OCR (z. B. Trick -> Trick Room) und ohne doppelte Tailwind-/Trick-Room-Zeilen.'],
+      en: ['Matchlog (test): debounced turn transitions (no mid-animation turn splits), prefix move upgrade (e.g. Trick -> Trick Room), and no duplicate Tailwind/Trick Room field lines.'] },
     { v: '1.29.3',
       de: ['Matchlog (Test): Kompaktes Protokoll-Format mit inline KP-Verläufen, Schutz/Immunität, Knock Off, Recoil, Schnee/Wetter, Switch-into und verbesserter Ziffern-/Side-Erkennung.'],
       en: ['Matchlog (test): compact log format with inline HP changes, protect/immunity, Knock Off, recoil, Snow/weather, switch-into and improved digit/side recognition.'] },

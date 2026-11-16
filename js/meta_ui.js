@@ -163,24 +163,24 @@
 
     function sidePanel() {
       var side = el('div', { class: 'meta-side' });
-      side.appendChild(field(T('Spiele pro Team', 'Games per team'), seg([
-        ['50', T('Schnell 50', 'Quick 50')], ['200', T('Normal 200', 'Normal 200')], ['1000', T('Genau 1000', 'Precise 1000')]
+      var opts = el('div', { class: 'meta-opts' });
+      opts.appendChild(field(T('Spiele', 'Games'), dropdown([
+        ['50', T('Schnell (50)', 'Quick (50)')], ['200', T('Normal (200)', 'Normal (200)')], ['1000', T('Genau (1000)', 'Precise (1000)')]
       ], String(state.games), function (v) { state.games = +v; })));
-      side.appendChild(field(T('Bot-Stufe (beide Seiten)', 'Bot level (both sides)'), seg([
+      opts.appendChild(field(T('Bot-Stufe', 'Bot level'), dropdown([
         ['0', T('Zufall', 'Random')], ['1', T('Schaden', 'Damage')], ['2', T('Doppel', 'Doubles')], ['3', T('Vorausschau', 'Lookahead')]
       ], String(state.level), function (v) { state.level = +v; })));
-      side.appendChild(field(T('Meta-Teams', 'Meta teams'), seg([
+      opts.appendChild(field(T('Meta-Teams', 'Meta teams'), dropdown([
         ['top8', 'Top 8'], ['top16', 'Top 16'], ['arch', T('Je Archetyp', 'Per archetype')], ['all', T('Alle', 'All')]
       ], state.scope, function (v) { state.scope = v; draw(); })));
       var arches = {};
       store.teams.forEach(function (t) { if (t.archetype) arches[t.archetype] = 1; });
-      var archRow = el('div', { class: 'meta-arch' });
-      [['', T('Alle Typen', 'All styles')]].concat(Object.keys(arches).sort().map(function (a) { return [a, a]; })).forEach(function (pair) {
-        var b = el('button', { type: 'button', class: 'tbtn' + (state.arch === pair[0] ? ' on' : ''), text: pair[1] });
-        b.addEventListener('click', function () { state.arch = pair[0]; draw(); });
-        archRow.appendChild(b);
-      });
-      side.appendChild(archRow);
+      opts.appendChild(field(T('Stil', 'Style'), dropdown(
+        [['', T('Alle Stile', 'All styles')]].concat(Object.keys(arches).sort().map(function (a) { return [a, a]; })),
+        state.arch,
+        function (v) { state.arch = v; draw(); }
+      )));
+      side.appendChild(opts);
       var list = el('div', { class: 'meta-list' });
       picked().forEach(function (t) {
         var name = decode(t.name);
@@ -227,14 +227,15 @@
       f.appendChild(node);
       return f;
     }
-    function seg(options, cur, on) {
-      var row = el('div', { class: 'meta-seg' });
+    function dropdown(options, cur, on) {
+      var sel = el('select');
       options.forEach(function (o) {
-        var b = el('button', { type: 'button', class: 'tbtn' + (String(cur) === String(o[0]) ? ' on' : ''), text: o[1] });
-        b.addEventListener('click', function () { on(o[0]); if (modal) draw(); });
-        row.appendChild(b);
+        var opt = el('option', { value: o[0], text: o[1] });
+        if (String(cur) === String(o[0])) opt.selected = true;
+        sel.appendChild(opt);
       });
-      return row;
+      sel.addEventListener('change', function () { on(sel.value); });
+      return sel;
     }
 
     function instant(mine, foe) {
