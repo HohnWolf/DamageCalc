@@ -128,10 +128,10 @@
     for (var i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
     return btoa(s);
   }
-  function recognize(image) {
+  function recognize(image, whitelist) {
     var D = window.desktop && window.desktop.matchlog;
     if (!D || !D.recognize) return Promise.resolve({ error: t('desk'), text: '' });
-    return D.recognize({ width: image.width, height: image.height, b64: b64(image.abgr) });
+    return D.recognize({ width: image.width, height: image.height, b64: b64(image.abgr), whitelist: whitelist || '' });
   }
   function paint() {
     if (!logEl || !engine) return;
@@ -168,7 +168,7 @@
       }
       var job = jobs[i++];
       var ts = Date.now();
-      recognize(job.image).then(function (r) {
+      recognize(job.image, job.whitelist).then(function (r) {
         engine.apply(job, (r && r.text) || '', { t: t0 });
         if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + ((r && (r.text || r.error)) || '–') + (r && r.ms ? ' (' + r.ms + ' ms)' : ' (' + (Date.now() - ts) + ' ms)');
         next();

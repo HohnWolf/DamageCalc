@@ -16,7 +16,7 @@
     return flat(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
   }
   function opposing(s) {
-    return /oppos|gegn/.test(s);
+    return /oppos|(?:\b|[^a-z])p?posing\b|gegn/.test(s);
   }
   function oneMove(text, lex) {
     var L = lexApi();
@@ -70,7 +70,7 @@
     var mons = speciesHits(raw, lex).map(function (h) { return h.entry.en; });
 
     if (/forfeit|aufgabe|gibt auf|hat aufgegeben/.test(s)) {
-      return { kind: 'forfeit', side: /you |du |dein /.test(s) ? 'you' : 'foe', line: raw };
+      return { kind: 'forfeit', side: /\byou\b|\bdu\b|\bdein\b/.test(s) ? 'you' : opposing(s) ? 'foe' : '', line: raw };
     }
     if (/you defeated|du hast .*besiegt|you win|gewonnen/.test(s) && !/fainted|wurde besiegt/.test(s.slice(0, 24))) {
       return { kind: 'result', winner: 'you', line: raw };
@@ -100,6 +100,21 @@
     if (/center of attention|im mittelpunkt|steht im fokus/.test(s)) {
       return { kind: 'center', mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
     }
+    if (/protected itself|hat sich selbst geschutzt|schutzt sich/.test(s)) {
+      return { kind: 'protect', mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
+    }
+    if (/knocked off|abgeschlagen|entrissen/.test(s)) {
+      var kItem = lexApi().best(raw, lex.items);
+      var kMon = mons.length > 1 ? mons[1] : mon;
+      return { kind: 'knock_off', mon: kMon, item: kItem ? kItem.entry.en : '', side: opposing(s) ? 'foe' : 'you', line: raw };
+    }
+    if (/damaged by (?:the )?recoil|durch ruckstoss|ruckstossschaden/.test(s)) {
+      return { kind: 'recoil', mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
+    }
+    if (/hung on using its|hielt mithilfe seines/.test(s)) {
+      var hItem = lexApi().best(raw, lex.items);
+      return { kind: 'item', mon: mon, item: hItem ? hItem.entry.en : 'Focus Sash', side: opposing(s) ? 'foe' : 'you', line: raw };
+    }
     if (/super effective|sehr effektiv|not very effective|nicht sehr effektiv|doesn.?t affect|hat keine wirkung|immune/.test(s)) {
       var value = /not very|nicht sehr/.test(s) ? 'resist' : /doesn|keine wirkung|immune/.test(s) ? 'immune' : 'super';
       return { kind: 'effectiveness', value: value, mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
@@ -113,6 +128,10 @@
     if (/psychic terrain|psychofeld/.test(s)) return { kind: 'field', field: 'Psychic Terrain', line: raw };
     if (/grassy terrain|grasfeld/.test(s)) return { kind: 'field', field: 'Grassy Terrain', line: raw };
     if (/misty terrain|nebelfeld/.test(s)) return { kind: 'field', field: 'Misty Terrain', line: raw };
+    if (/started to snow|es schneit|schneesturm/.test(s)) return { kind: 'field', field: 'Snow', line: raw };
+    if (/started to rain|es regnet|regenschauer/.test(s)) return { kind: 'field', field: 'Rain', line: raw };
+    if (/sunlight turned harsh|sonnenlicht wurde grell/.test(s)) return { kind: 'field', field: 'Sun', line: raw };
+    if (/sandstorm kicked up|sandsturm zieht auf/.test(s)) return { kind: 'field', field: 'Sandstorm', line: raw };
     if (/trick room|bizarroraum/.test(s) && !/used|setzt/.test(s)) return { kind: 'field', field: 'Trick Room', line: raw };
 
     var b = boostOf(s);
@@ -121,17 +140,18 @@
     }
 
     if (/^go\b|^gol\b|los!|geh!|^go,/.test(s) || /\bgo! /.test(s) || /^los /.test(s)) {
-      return { kind: 'send_out', side: 'you', mons: mons, line: raw };
+      return mons.length ? { kind: 'send_out', side: 'you', mons: mons, line: raw } : null;
     }
     if (/sent out|schickt|setzt .* ein ins feld|in den kampf/.test(s) && !/used|setzt .+ ein!/.test(s)) {
-      return { kind: 'send_out', side: 'foe', mons: mons, line: raw };
+      return mons.length ? { kind: 'send_out', side: 'foe', mons: mons, line: raw } : null;
     }
     if (/withdrew|ruft .* zuruck|wechselt .* aus|wird zuruckgezogen/.test(s)) {
-      return { kind: 'withdraw', side: opposing(s) ? 'foe' : (hint === 'foe' ? 'foe' : 'you'), mon: mon, line: raw };
+      var wSide = opposing(s) || hint === 'foe' ? 'foe' : (/\byou\b|\bdu\b/.test(s) ? 'you' : '');
+      return mon ? { kind: 'withdraw', side: wSide, mon: mon, line: raw } : null;
     }
     if (/used | setzt .+ ein|greift mit/.test(s)) {
       var mv = oneMove(raw, lex);
-      if (mv || /used /.test(s)) {
+      if (mv) {
         return { kind: 'move', mon: mon, move: mv, side: opposing(s) ? 'foe' : 'you', line: raw };
       }
     }

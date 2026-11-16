@@ -51,9 +51,9 @@
     return best;
   }
   function minScore(len) {
-    if (len >= 10) return 0.72;
-    if (len >= 7) return 0.78;
-    if (len >= 5) return 0.84;
+    if (len >= 10) return 0.78;
+    if (len >= 7) return 0.83;
+    if (len >= 5) return 0.85;
     return 0.9;
   }
   // Bester Eintrag, dessen EN- oder DE-Name im Text steckt. Zweiter Treffer muss klar schlechter sein.
@@ -109,6 +109,8 @@
       if (kept.some(function (k) { return k.entry.key === h.entry.key; })) return;
       // Mega-Form schlägt die Basis, wenn beide treffen ("Mega Raichu" enthält "Raichu").
       if (kept.some(function (k) { return k.entry.key.indexOf(h.entry.key) >= 0 && k.entry.key.length > h.entry.key.length; })) return;
+      // Überlappende Treffer an derselben Textstelle nicht doppelt aufnehmen ("Basculegion" vs "Basculegion-F" / "Falinks").
+      if (h.at >= 0 && kept.some(function (k) { return k.at >= 0 && Math.abs(k.at - h.at) <= 4; })) return;
       for (var i = kept.length - 1; i >= 0; i--) {
         if (h.entry.key.indexOf(kept[i].entry.key) >= 0 && h.entry.key.length > kept[i].entry.key.length && h.score + 0.02 >= kept[i].score) kept.splice(i, 1);
       }

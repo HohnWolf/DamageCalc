@@ -56,7 +56,8 @@
   function onScene(st, scene) {
     var prev = st.scene;
     if (scene === 'command' && prev !== 'command' && prev !== 'move_select' && prev !== 'target_select') {
-      if (st.phase === 'play' || st.phase === 'locked') st.turnN += 1;
+      var prevTurn = st.turnN >= 1 ? turn(st, st.turnN) : null;
+      if ((st.phase === 'play' || st.phase === 'locked') && prevTurn && (prevTurn.events.length || prevTurn.choices.length)) st.turnN += 1;
       else if (st.turnN < 1) st.turnN = 1;
       st.phase = 'command';
       st.choiceCount = 0;
@@ -94,12 +95,23 @@
   function commitChoice(st) {
     var p = st.pendingChoice;
     if (!p || !p.move) { st.pendingChoice = null; return; }
-    var mon = activeYou(st, st.choiceCount);
+    var slotIdx = Math.min(1, st.choiceCount);
+    var mon = activeYou(st, slotIdx);
     var target = '';
     if (p.targetSlot && st.slotMon[p.targetSlot]) target = st.slotMon[p.targetSlot];
     var c = { mon: mon, move: p.move, target: target, mega: !!p.mega, action: 'move' };
-    turn(st, st.turnN || 1).choices.push(c);
-    st.choiceCount++;
+    var list = turn(st, st.turnN || 1).choices;
+    var replaced = false;
+    if (mon) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].mon === mon) { list[i] = c; replaced = true; break; }
+      }
+    }
+    if (!replaced) {
+      if (list.length < 2) list.push(c);
+      else list[slotIdx] = c;
+    }
+    st.choiceCount = Math.min(2, st.choiceCount + 1);
     st.pendingChoice = null;
   }
   function noteChoice(st, patch) {
@@ -108,30 +120,49 @@
     Object.keys(patch).forEach(function (k) { if (patch[k] != null && patch[k] !== '') st.pendingChoice[k] = patch[k]; });
   }
 
+  function isDead(st, id) {
+    var h = id ? st.lastHp[id] : null;
+    return !!(h && (h.cur === 0 || h.pct === 0));
+  }
   function rememberSlots(st, side, mons) {
     if (!mons || !mons.length) return;
     if (side === 'you') {
-      if (mons[0]) st.slotMon.ownA = mons[0];
-      if (mons[1]) st.slotMon.ownB = mons[1];
-      st.leads.you = mons.slice(0, 2);
+      if (mons.length === 1 && mons[0]) {
+        if (isDead(st, st.slotMon.ownB) && !isDead(st, st.slotMon.ownA)) st.slotMon.ownB = mons[0];
+        else st.slotMon.ownA = mons[0];
+      } else {
+        if (mons[0]) st.slotMon.ownA = mons[0];
+        if (mons[1]) st.slotMon.ownB = mons[1];
+      }
+      if (!st.leads.you.length) st.leads.you = mons.slice(0, 2);
     } else {
-      if (mons[0]) st.slotMon.oppB = mons[0];
-      if (mons[1]) st.slotMon.oppA = mons[1];
-      st.leads.foe = mons.slice(0, 2);
+      if (mons.length === 1 && mons[0]) {
+        if (isDead(st, st.slotMon.oppA) && !isDead(st, st.slotMon.oppB)) st.slotMon.oppA = mons[0];
+        else st.slotMon.oppB = mons[0];
+      } else {
+        if (mons[0]) st.slotMon.oppB = mons[0];
+        if (mons[1]) st.slotMon.oppA = mons[1];
+      }
+      if (!st.leads.foe.length) st.leads.foe = mons.slice(0, 2);
     }
   }
   function sameEvent(a, b) {
     if (!a || !b || a.kind !== b.kind) return false;
-    if ((a.mon || '') !== (b.mon || '')) return false;
+    if (a.kind === 'effectiveness') return (a.value || '') === (b.value || '') && (!a.mon || !b.mon || a.mon === b.mon);
+    if (a.kind === 'mega' && (a.side || '') === (b.side || '')) return true;
+    if (a.kind === 'send_out') return (a.mons || []).slice().sort().join() === (b.mons || []).slice().sort().join();
+    if ((a.mon || '') !== (b.mon || '') && a.mon && b.mon) return false;
     if ((a.move || '') !== (b.move || '')) return false;
     if ((a.ability || '') !== (b.ability || '')) return false;
     if ((a.item || '') !== (b.item || '')) return false;
     if (a.kind === 'boost' && a.stat !== b.stat) return false;
-    if (a.kind === 'send_out' && (a.mons || []).join() !== (b.mons || []).join()) return false;
     return true;
   }
   function refine(st, ev) {
-    var surge = { electricsurge: 'Electric Terrain', grassysurge: 'Grassy Terrain', mistysurge: 'Misty Terrain', psychicsurge: 'Psychic Terrain' };
+    var surge = {
+      electricsurge: 'Electric Terrain', grassysurge: 'Grassy Terrain', mistysurge: 'Misty Terrain', psychicsurge: 'Psychic Terrain',
+      snowwarning: 'Snow', drizzle: 'Rain', drought: 'Sun', sandstream: 'Sandstorm'
+    };
     if (ev.kind === 'ability' && !ev.field && surge[norm(ev.ability || '')]) ev.field = surge[norm(ev.ability)];
     if (ev.kind === 'mega' && st.lastItem) {
       if (/raichunite x/i.test(st.lastItem) && /mega raichu$/i.test(ev.into || '')) ev.into = 'Mega Raichu X';
@@ -150,30 +181,67 @@
     ev = refine(st, ev);
     ev.t = t;
     if (ev.kind === 'mega_react' && ev.item) st.lastItem = ev.item;
-    var bucket = (st.phase === 'pre' || st.turnN === 0) && (ev.kind === 'send_out' || ev.kind === 'withdraw') ? turn(st, 0) : cur(st);
+    var bucket = (st.phase === 'pre' || st.turnN === 0 || (st.turnN <= 1 && !st.leads.you.length && ev.kind === 'send_out' && ev.side === 'you')) && (ev.kind === 'send_out' || ev.kind === 'withdraw') ? turn(st, 0) : cur(st);
     var last = bucket.events[bucket.events.length - 1];
     if (ev.kind === 'result' && st.result) {
       if (ev.winner && !st.result.winner) st.result.winner = ev.winner;
       if (ev.reason && st.result.reason === 'ko') st.result.reason = ev.reason;
       if (last && last.kind === 'result') return;
     }
-    if (sameEvent(last, ev)) return;
+    if (sameEvent(last, ev)) {
+      if (!last.mon && ev.mon) { last.mon = ev.mon; if (ev.side) last.side = ev.side; }
+      if (last.kind === 'mega_react' && !last.item && ev.item) last.item = ev.item;
+      return;
+    }
+    if (st.lastEvent && st.lastEvent !== last && st.lastEvent.t != null && t != null && Math.abs(t - st.lastEvent.t) <= 4 && sameEvent(st.lastEvent, ev)) {
+      return;
+    }
+    if (ev.kind === 'move' && last && last.kind === 'move' && last.move === ev.move && last.t != null && t != null && Math.abs(t - last.t) <= 1.5) {
+      if (last.side === ev.side || (st.teams.you.length >= 4 && ev.side === 'you' && !inYouTeam(st, ev.mon))) return;
+    }
     if (ev.kind === 'boost' && last && (last.kind === 'ability' || last.kind === 'item') && (last.mon === ev.mon || !ev.mon)) {
       last.boost = { stat: ev.stat, stages: ev.stages };
       return;
     }
-    if (ev.kind === 'field' && last && last.kind === 'ability' && /surge|erzeuger/i.test(last.ability || '')) {
+    if (ev.kind === 'field' && last && last.kind === 'ability' && /surge|erzeuger|warning|drizzle|drought|sandstream/i.test(last.ability || '')) {
       last.field = ev.field;
       return;
     }
+    if ((ev.kind === 'protect' || (ev.kind === 'effectiveness' && ev.value === 'immune')) && bucket.events.length) {
+      var mv = latestMove(st);
+      if (mv) {
+        mv.outcomes = mv.outcomes || [];
+        var kindOut = ev.kind === 'protect' ? 'protected' : 'immune';
+        if (!mv.outcomes.some(function (o) { return o.mon === ev.mon && o.kind === kindOut; })) {
+          mv.outcomes.push({ mon: ev.mon, kind: kindOut });
+        }
+        return;
+      }
+    }
+    if (ev.kind === 'send_out' && ev.side === 'you' && ev.mons) {
+      ev.mons.forEach(function (id) {
+        var sp = st.mons[id] ? st.mons[id].species : '';
+        for (var j = 0; j < st.teams.you.length; j++) {
+          if (norm(st.teams.you[j].species) === norm(sp)) st.teams.you[j].brought = true;
+        }
+      });
+    }
+    if (ev.kind === 'send_out' && last && last.kind === 'withdraw' && last.side === ev.side && ev.mons && ev.mons.length === 1) {
+      rememberSlots(st, ev.side, ev.mons.slice());
+      var sw = { kind: 'switch', side: ev.side, from: last.mon, mon: ev.mons[0], t: t };
+      bucket.events[bucket.events.length - 1] = sw;
+      st.lastEvent = sw;
+      return;
+    }
     if (ev.kind === 'forfeit') {
-      st.result = { winner: ev.side === 'you' ? 'foe' : 'you', reason: 'forfeit', t: t };
+      var fw = ev.side === 'you' ? 'foe' : (ev.side === 'foe' ? 'you' : '');
+      st.result = { winner: fw || (st.result && st.result.winner) || '', reason: 'forfeit', t: t };
     }
     if (ev.kind === 'result') st.result = { winner: ev.winner || (st.result && st.result.winner) || '', reason: (st.result && st.result.reason) || 'ko', t: t };
     if (ev.kind === 'send_out' && ev.mons) rememberSlots(st, ev.side, ev.mons.map(function (sp) { return idOf(st, ev.side, sp); }));
     if (ev.kind === 'faint' && ev.mon) {
       var id = idOf(st, ev.side || 'foe', ev.mon);
-      st.lastHp[id] = Object.assign({}, st.lastHp[id], ev.side === 'you' ? { cur: 0 } : { pct: 0 });
+      st.lastHp[id] = Object.assign({}, st.lastHp[id], ev.side === 'you' ? { cur: 0, pct: 0 } : { pct: 0 });
     }
     if (ev.kind === 'ability') st.lastAbility = ev.ability;
     if (ev.kind === 'item') st.lastItem = ev.item;
@@ -181,17 +249,47 @@
     st.lastEvent = ev;
   }
 
+  function matchYouTeam(st, species) {
+    if (!species) return '';
+    var k = norm(species);
+    for (var i = 0; i < st.teams.you.length; i++) {
+      if (norm(st.teams.you[i].species) === k) return st.teams.you[i].species;
+    }
+    var base = String(species).replace(/-(F|M|Hisui|Alola|Galar)$/i, '');
+    if (base !== species) {
+      var bk = norm(base);
+      for (var j = 0; j < st.teams.you.length; j++) {
+        if (norm(st.teams.you[j].species) === bk) return st.teams.you[j].species;
+      }
+    }
+    return '';
+  }
+  function inYouTeam(st, species) {
+    return !!matchYouTeam(st, species);
+  }
   function noteText(st, kind, text, parsed, t) {
     st.debug.lastText = text || st.debug.lastText;
     st.ocr.push({ t: t, kind: kind, text: text });
     if (st.ocr.length > 80) st.ocr.shift();
     if (!parsed) return;
     if (parsed.kind === 'team_mon' || parsed.kind === 'team_item' || parsed.kind === 'choice_move') return;
+    if (parsed.kind === 'withdraw' && !parsed.side) {
+      parsed.side = inYouTeam(st, parsed.mon) ? 'you' : 'foe';
+    } else if (parsed.mon && st.teams.you.length >= 4 && parsed.side === 'you' && !inYouTeam(st, parsed.mon) && st.foeSeen.indexOf(parsed.mon) >= 0) {
+      parsed.side = 'foe';
+    }
+    if (parsed.side === 'you' && st.teams.you.length >= 4) {
+      if (parsed.mon) {
+        var ym = matchYouTeam(st, parsed.mon);
+        if (ym) parsed.mon = ym;
+      }
+      if (parsed.kind === 'send_out' && parsed.mons && parsed.mons.length) {
+        var filtered = parsed.mons.map(function (sp) { return matchYouTeam(st, sp); }).filter(Boolean);
+        if (filtered.length) parsed.mons = filtered;
+      }
+    }
     if (parsed.mon) parsed.mon = idOf(st, parsed.side || 'you', parsed.mon);
     if (parsed.mons) parsed.mons = parsed.mons.map(function (sp) { return idOf(st, parsed.side || 'foe', sp); });
-    if (parsed.kind === 'send_out') {
-      // ids already
-    }
     pushEvent(st, parsed, t);
   }
   function noteTeamRow(st, index, species, item) {
@@ -209,8 +307,9 @@
     }
   }
   function noteFoeSpecies(st, species) {
-    if (!species) return;
-    idOf(st, 'foe', species);
+    if (!species) return '';
+    if (st.teams.you.length >= 4 && inYouTeam(st, species)) return '';
+    return idOf(st, 'foe', species);
   }
 
   function hpLower(a, b) {
@@ -225,8 +324,26 @@
   }
   function latestMove(st) {
     var evs = cur(st).events;
-    for (var i = evs.length - 1; i >= 0; i--) if (damaging(evs[i])) return evs[i];
+    for (var i = evs.length - 1; i >= 0; i--) {
+      if (evs[i].kind === 'move') return damaging(evs[i]) ? evs[i] : null;
+    }
     return null;
+  }
+  function recordHit(st, id, before, after) {
+    var evs = cur(st).events;
+    var tail = evs.length ? evs[evs.length - 1] : null;
+    if (tail && tail.kind === 'recoil' && tail.mon === id) {
+      tail.hit = tail.hit || { mon: id, before: before, after: after, ko: (after.pct === 0 || after.cur === 0) };
+      if (hpLower(tail.hit.after, after)) tail.hit.after = after;
+      return;
+    }
+    var mv = latestMove(st);
+    if (!mv) return;
+    mv.hits = mv.hits || [];
+    var hit = null;
+    for (var i = 0; i < mv.hits.length; i++) if (mv.hits[i].mon === id) hit = mv.hits[i];
+    if (!hit) mv.hits.push({ mon: id, before: before, after: after, ko: (after.pct === 0 || after.cur === 0) });
+    else if (hpLower(hit.after, after) || (hit.after.pct != null && after.pct != null && after.pct < hit.after.pct)) hit.after = after;
   }
   function noteHp(st, read) {
     if (!read || !read.slots) return;
@@ -238,22 +355,15 @@
       if (!id) return;
       var v = r.value;
       var prev = st.lastHp[id];
+      if (prev && prev.max && v.max && prev.max !== v.max) return;
+      if (prev && hpLower(st.base[id] || prev, v)) {
+        recordHit(st, id, Object.assign({}, st.base[id] || prev), Object.assign({}, v));
+        st.base[id] = Object.assign({}, v);
+      }
       if (authoritative) {
         st.base[id] = Object.assign({}, v);
         st.lastHp[id] = Object.assign({}, v);
         return;
-      }
-      if (prev && hpLower(st.base[id] || prev, v)) {
-        var mv = latestMove(st);
-        if (mv) {
-          mv.hits = mv.hits || [];
-          var hit = null;
-          for (var i = 0; i < mv.hits.length; i++) if (mv.hits[i].mon === id) hit = mv.hits[i];
-          var before = Object.assign({}, st.base[id] || prev);
-          var after = Object.assign({}, v);
-          if (!hit) mv.hits.push({ mon: id, before: before, after: after, ko: (after.pct === 0 || after.cur === 0) });
-          else if (hpLower(hit.after, after) || (hit.after.pct != null && after.pct != null && after.pct < hit.after.pct)) hit.after = after;
-        }
       }
       st.lastHp[id] = Object.assign({}, st.lastHp[id], v);
       if (!st.base[id]) st.base[id] = Object.assign({}, v);
@@ -280,6 +390,7 @@
     var o = {};
     Object.keys(ev).forEach(function (k) { o[k] = ev[k]; });
     if (ev.hits) o.hits = ev.hits.map(function (h) { return JSON.parse(JSON.stringify(h)); });
+    if (ev.outcomes) o.outcomes = ev.outcomes.map(function (x) { return Object.assign({}, x); });
     if (ev.boost) o.boost = Object.assign({}, ev.boost);
     return o;
   }

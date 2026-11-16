@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.3',
+      de: ['Matchlog (Test): Kompaktes Protokoll-Format mit inline KP-Verläufen, Schutz/Immunität, Knock Off, Recoil, Schnee/Wetter, Switch-into und verbesserter Ziffern-/Side-Erkennung.'],
+      en: ['Matchlog (test): compact log format with inline HP changes, protect/immunity, Knock Off, recoil, Snow/weather, switch-into and improved digit/side recognition.'] },
     { v: '1.29.2',
       de: ['Matchlog (Test): Bildabgriff direkt vom aktiven Projektor-Stream (inkl. Shiny-Projektor als Fallback) und korrigierter Electron-OCR-Worker für lokale Sprachdaten.'],
       en: ['Matchlog (test): captures frames directly from the active projector stream (including the Shiny projector as fallback) and fixes the Electron OCR worker for local tessdata files.'] },

@@ -84,7 +84,20 @@
         consider(jobs, 'nmA', Lay.scale(image, Lay.L.oppName[0]), 'ui', 'plate_name', { slot: 'oppA' });
         consider(jobs, 'nmB', Lay.scale(image, Lay.L.oppName[1]), 'ui', 'plate_name', { slot: 'oppB' });
       }
-      if (det.scene === 'result') {
+      if (det.scene === 'command' || det.scene === 'move_select' || det.scene === 'battle') {
+        var hpSlots = hp && hp.slots ? hp.slots : {};
+        ['ownA', 'ownB'].forEach(function (sl, idx) {
+          if (!hpSlots[sl] || !hpSlots[sl].value) {
+            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.ownHp[idx]), 'digit', 'hp', { slot: sl, isOwn: true, whitelist: '0123456789/%' });
+          }
+        });
+        ['oppA', 'oppB'].forEach(function (sl, idx) {
+          if (!hpSlots[sl] || !hpSlots[sl].value) {
+            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.oppPct[idx]), 'digit', 'hp', { slot: sl, isOwn: false, whitelist: '0123456789/%' });
+          }
+        });
+      }
+      if (det.scene === 'result' && st.phase !== 'pre') {
         consider(jobs, 'result', Lay.scale(image, Lay.L.result), 'outline', 'result');
         if (!st.result) State.noteText(st, 'result-scene', '', { kind: 'result', winner: '', line: 'Ergebnisbild' }, meta.t);
       }
@@ -124,11 +137,24 @@
       if (job.kind === 'plate_name') {
         var mon = Parse.parse(text, lex, 'team_name');
         if (mon && mon.mon) {
-          State.noteFoeSpecies(st, mon.mon);
-          var id = State.idOf(st, 'foe', mon.mon);
-          st.slotMon[job.slot] = id;
+          var id = State.noteFoeSpecies(st, mon.mon);
+          if (id) {
+            st.slotMon[job.slot] = id;
+            if (st.turnN <= 2 && st.leads.foe.length < 2 && st.leads.foe.indexOf(id) < 0) {
+              st.leads.foe.push(id);
+            }
+          }
         }
         State.noteText(st, job.kind, text, null, t);
+        return st;
+      }
+      if (job.kind === 'hp') {
+        var val = job.isOwn ? Hp.parseFraction(text) : Hp.parsePct(text);
+        if (val) {
+          var patch = { slots: {} };
+          patch.slots[job.slot] = { value: val };
+          State.noteHp(st, patch);
+        }
         return st;
       }
       var hint = job.kind === 'result' ? '' : '';

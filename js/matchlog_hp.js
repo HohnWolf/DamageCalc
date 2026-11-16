@@ -177,8 +177,12 @@
       if (!glyphs.length) return '';
       var s = '';
       glyphs.forEach(function (g) {
-        if (g.sep) { if (s && s[s.length - 1] !== '/') s += '/'; return; }
         var m = match(g.norm);
+        if (g.sep) {
+          if (m && m.ch === '1' && m.score >= 0.78) { s += '1'; return; }
+          if (s && s[s.length - 1] !== '/') s += '/';
+          return;
+        }
         s += m ? m.ch : '?';
       });
       return s;
@@ -193,10 +197,16 @@
 
   function parseFraction(s) {
     var src = String(s || '');
-    var m = src.match(/(\d{1,3})\D+(\d{1,3})/);
+    var m = src.match(/(\d{1,3})\s*[\/| ]\s*(\d{1,3})/);
     if (!m) {
       var d = src.replace(/\D/g, '');
-      if (d.length === 6 || d.length === 4) m = [d, d.slice(0, d.length / 2), d.slice(d.length / 2)];
+      if (d.length === 6 || d.length === 4) {
+        if (d.length === 4 && d[0] === '0') m = [d, '0', d.slice(1)];
+        else m = [d, d.slice(0, d.length / 2), d.slice(d.length / 2)];
+      } else if (d.length === 5) {
+        var c2 = +d.slice(0, 2), m3 = +d.slice(2);
+        if (m3 >= 100 && m3 <= 500 && c2 <= m3) m = [d, d.slice(0, 2), d.slice(2)];
+      }
     }
     if (!m) return null;
     var cur = +m[1], max = +m[2];
@@ -205,9 +215,10 @@
   }
   function parsePct(s) {
     var src = String(s || '').trim();
-    // Ohne Prozentzeichen sind zwei Ziffern auf dem Spielfeld meist Rauschen. 100 darf ohne Zeichen bleiben.
-    if (!/^\d{1,3}%$/.test(src) && src !== '100' && src !== '0') return null;
-    var n = parseInt(src, 10);
+    var m = src.match(/\b(\d{1,3})\s*%/);
+    if (!m && (src === '100' || src === '0')) m = [src, src];
+    if (!m) return null;
+    var n = parseInt(m[1], 10);
     if (isNaN(n) || n > 100) return null;
     return { pct: n };
   }

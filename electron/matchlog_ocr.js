@@ -16,7 +16,7 @@ function init() {
     let data = image.abgr && image.abgr.data ? image.abgr.data : image.abgr;
     if (image.b64) data = Buffer.from(String(image.b64), 'base64');
     if (!data) return { text: '', error: 'leeres Bild' };
-    return rec.recognize({ width: image.width | 0, height: image.height | 0, abgr: data });
+    return rec.recognize({ width: image.width | 0, height: image.height | 0, abgr: data, whitelist: image.whitelist || '' });
   });
   app.on('before-quit', () => { if (rec) rec.stop(); });
 }

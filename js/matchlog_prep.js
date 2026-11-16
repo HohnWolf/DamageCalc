@@ -53,15 +53,15 @@
     }
     return { ink: ink, count: count, w: w, h: h };
   }
-  // Helle KP-Ziffern (nicht reinweiß, JPEG drückt sie auf ~160–180).
+  // Helle KP-Ziffern (farbneutrales Weiß, schließt gelb-grüne KP-Balken aus).
   function digitMask(c) {
     var w = c.width, h = c.height, src = c.data;
     var ink = new Uint8Array(w * h);
     var count = 0;
     for (var i = 0, p = 0; i < src.length; i += 4, p++) {
       var r = src[i], g = src[i + 1], b = src[i + 2];
-      var L = lumOf(r, g, b);
-      if (L > 148 && r > 115 && g > 125 && b > 85 && (g - b) < 90 && (g - r) < 70) { ink[p] = 1; count++; }
+      var mn = Math.min(r, g, b), mx = Math.max(r, g, b);
+      if (mn >= 175 && (mx - mn) <= 48) { ink[p] = 1; count++; }
     }
     return { ink: ink, count: count, w: w, h: h };
   }

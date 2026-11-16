@@ -4,6 +4,8 @@ const path = require('path');
 const cp = require('child_process');
 const Lex = require('../js/matchlog_lexicon');
 const Parse = require('../js/matchlog_parse');
+const State = require('../js/matchlog_state');
+const Format = require('../js/matchlog_format');
 const lists = require('./matchlog_lists');
 
 let failed = 0;
@@ -33,6 +35,48 @@ eq('de move', ev('Raichu setzt Mogelhieb ein!').move, 'Fake Out');
 eq('de forfeit', ev('Gegner gibt auf.').kind, 'forfeit');
 eq('de faint', ev('Turtok wurde besiegt!').kind, 'faint');
 eq('de send', ev('Los! Raichu und Floette!').mons[0], 'Raichu');
+
+// Echte Live-Capture-Fehlerfälle aus matchlog.json:
+eq('empty send ignored', ev('LOS PM = 1 Ae'), null);
+eq('posing typo is foe', ev('It’s not very effective on the “posing Pelip, 7').side, 'foe');
+eq('mega swampert no starmie', ev('Tne opposing Swampert has Mega Evolved int Mega Swampert!').mon, 'Swampert');
+eq('withdraw without you is neutral', ev('< GS withdrew Pelipper!').side, '');
+
+// State-Checks: Leads bleiben, keine leeren Turns, max 2 Choices, side über eigenes Team:
+(function () {
+  const st = State.create();
+  ['Rillaboom', 'Goodra', 'Raichu', 'Floette', 'Arcanine', 'Basculegion'].forEach((sp, i) => State.noteTeamRow(st, i, sp, ''));
+  State.noteText(st, 'battle', 'Go Arcanine and Rillaboom!', ev('Go Arcanine and Rillaboom!'), 1);
+  State.noteText(st, 'battle', 'Go! Arcenine ard Rillahoom!', ev('Go! Arcenine ard Rillahoom!'), 1.5);
+  eq('dedup reordered send_out', st.turns[0].events.length, 1);
+  eq('leads set once', st.leads.you, ['you:Arcanine', 'you:Rillaboom']);
+  State.onScene(st, 'command');
+  State.onScene(st, 'battle');
+  State.onScene(st, 'command'); // leerer Turn dazwischen darf turnN nicht erhöhen
+  eq('no empty turn bump', st.turnN, 1);
+  State.noteText(st, 'battle', '< GS withdrew Pelipper!', ev('< GS withdrew Pelipper!'), 2);
+  eq('withdraw foe resolved via team', st.turns[1].events[0].side, 'foe');
+  State.noteText(st, 'battle', 'Go! Basculegion!', ev('Go! Basculegion!'), 3);
+  eq('leads preserved after switch', st.leads.you, ['you:Arcanine', 'you:Rillaboom']);
+
+  // Neue Events + kompaktes Format:
+  eq('protect event', ev('Espathra protected itself!').kind, 'protect');
+  eq('knock off event', ev("The opposing Krookodile knocked off Espathra's Electric Seed!").item, 'Electric Seed');
+  eq('recoil event', ev('Basculegion was damaged by the recoil!').kind, 'recoil');
+  eq('snow event', ev('It started to snow!').field, 'Snow');
+
+  const st2 = State.create();
+  State.onScene(st2, 'command');
+  State.onScene(st2, 'battle');
+  State.noteText(st2, 'battle', 'Krookodile used Earthquake!', ev('The opposing Krookodile used Earthquake!'), 10);
+  State.noteText(st2, 'battle', 'Espathra protected itself!', ev('Espathra protected itself!'), 10.5);
+  State.noteText(st2, 'battle', "It doesn't affect the opposing Noivern", ev("It doesn't affect the opposing Noivern"), 11);
+  State.noteText(st2, 'battle', 'The opposing Noivern withdrew!', ev('The opposing Noivern withdrew!'), 12);
+  State.noteText(st2, 'battle', 'Opponent sent out Gholdengo!', ev('Opponent sent out Gholdengo!'), 12.5);
+  const rendered = Format.render(State.exportSnap(st2));
+  eq('compact move outcomes', rendered.includes('Krookodile Earthquake -> Espathra protected, Noivern isnt affected'), true);
+  eq('compact switch into', rendered.includes('Enemy Noivern switch into Gholdengo'), true);
+})();
 
 if (failed) { console.error(failed + ' parser checks failed'); process.exit(1); }
 

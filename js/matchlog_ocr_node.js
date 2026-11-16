@@ -11,10 +11,12 @@ function create(opts) {
   const langs = opts.langs || 'eng+deu';
   let worker = null;
   let starting = null;
+  let lastWhitelist = '';
 
   function kill() {
     const w = worker;
     worker = null;
+    lastWhitelist = '';
     if (w) w.terminate().catch(function () {});
   }
   function boot() {
@@ -49,6 +51,11 @@ function create(opts) {
     const t0 = Date.now();
     try {
       const w = await boot();
+      const wl = String(image.whitelist || '');
+      if (wl !== lastWhitelist) {
+        await w.setParameters({ tessedit_char_whitelist: wl });
+        lastWhitelist = wl;
+      }
       const res = await w.recognize(toBmp(image));
       const text = String(res && res.data && res.data.text || '').replace(/\s+/g, ' ').trim();
       return { text: text, ms: Date.now() - t0 };
