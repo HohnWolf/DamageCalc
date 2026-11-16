@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.2',
+      de: ['Matchlog (Test): Bildabgriff direkt vom aktiven Projektor-Stream (inkl. Shiny-Projektor als Fallback) und korrigierter Electron-OCR-Worker für lokale Sprachdaten.'],
+      en: ['Matchlog (test): captures frames directly from the active projector stream (including the Shiny projector as fallback) and fixes the Electron OCR worker for local tessdata files.'] },
     { v: '1.29.1',
       de: ['Matchlog (früher Test): Im Capture-Projektor „Matchlog lesen“ einschalten. Das Protokoll entsteht aus dem Bild, ohne das Kampf-Log im Spiel.', 'Bekannte Lücken: Gegnerteam nur über später gelesene Namen, Schaden und Mega des Gegners noch unzuverlässig, Forfeit/Sieg oft noch nicht erkannt.'],
       en: ['Matchlog (early test): in the capture projector turn on “Read Matchlog”. The log is built from the picture, without opening the in-game battle log.', 'Known gaps: the opponent team is only filled from names read later, damage and the opponent’s Mega are still unreliable, and forfeit/win is often missed.'] },

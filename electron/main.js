@@ -42,8 +42,8 @@ app.commandLine.appendSwitch('disable-popup-blocking');
 if (process.platform === 'win32' && process.env.RL_D3D11_CAPTURE !== '1') app.commandLine.appendSwitch('disable-features', 'MediaFoundationD3D11VideoCapture');
 const ROOT = path.join(__dirname, '..');
 const projector = require('./projector');
-// Test des Projektors: eigene Nutzerdaten, damit die laufende App nicht blockiert wird
-if (process.argv.includes('--projector-test') || process.argv.includes('--projector-click-test')) {
+// Test des Projektors / Matchlogs: eigene Nutzerdaten, damit die laufende App nicht blockiert wird
+if (process.argv.includes('--projector-test') || process.argv.includes('--projector-click-test') || process.argv.includes('--matchlog-smoke')) {
   app.setPath('userData', path.join(require('os').tmpdir(), 'rl-projector-test-' + process.pid));
 }
 
@@ -128,11 +128,57 @@ function createWindow() {
   if (process.argv.includes('--matchlog-smoke')) {
     win.webContents.once('did-finish-load', () => {
       const shot = process.env.RL_SHOT_DIR || require('os').tmpdir();
-      win.webContents.executeJavaScript(`(function () {
+      const frameFile = path.join(ROOT, 'test', 'matchlog', 'frames', 'm01_t120_127e.jpg');
+      const frameUrl = fs.existsSync(frameFile) ? 'data:image/jpeg;base64,' + fs.readFileSync(frameFile).toString('base64') : '';
+      win.webContents.executeJavaScript(`(async function () {
         try { window.CC.showView('projector'); } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
         var host = document.getElementById('matchlogMount');
         var text = host ? host.innerText : '';
-        return { ok: !!(host && /Matchlog/.test(text) && window.CCMatchlog && window.CCMatchlogUI), text: text.slice(0, 500) };
+        if (!host || !/Matchlog/.test(text) || !window.CCMatchlog || !window.CCMatchlogUI) {
+          return { ok: false, error: 'panel missing', text: text.slice(0, 500) };
+        }
+        var frameUrl = ${JSON.stringify(frameUrl)};
+        if (!frameUrl) return { ok: true, text: text.slice(0, 500) };
+        var img = await new Promise(function (res, rej) {
+          var el = new Image();
+          el.onload = function () { res(el); };
+          el.onerror = function () { rej(new Error('frame load failed')); };
+          el.src = frameUrl;
+        });
+        var cv = document.createElement('canvas');
+        cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+        var ctx = cv.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        var pump = setInterval(function () { ctx.drawImage(img, 0, 0); }, 80);
+        var stream = cv.captureStream(15);
+        window.CCCapture.openStream = function () { return Promise.resolve(stream); };
+        var sel = document.querySelector('#projectorView select.det-cam');
+        if (!sel) { clearInterval(pump); return { ok: false, error: 'camSel missing' }; }
+        var opt = document.createElement('option');
+        opt.value = 'test-stream'; opt.textContent = 'Test-Stream';
+        sel.appendChild(opt);
+        sel.value = 'test-stream';
+        sel.dispatchEvent(new Event('change'));
+        for (var k = 0; k < 40 && !(window.CCProjectorView && window.CCProjectorView.stream()); k++) {
+          await new Promise(function (r) { setTimeout(r, 50); });
+        }
+        var mlOn = document.getElementById('mlOn');
+        if (!mlOn) { clearInterval(pump); return { ok: false, error: 'mlOn missing' }; }
+        if (!mlOn.checked) mlOn.click();
+        var logText = '', sceneText = '', timeText = '';
+        for (var i = 0; i < 120; i++) {
+          await new Promise(function (r) { setTimeout(r, 100); });
+          var logEl = host.querySelector('.ml-log');
+          var dbg = host.querySelectorAll('.ml-debug');
+          sceneText = dbg[0] ? dbg[0].textContent : '';
+          timeText = dbg[2] ? dbg[2].textContent : '';
+          logText = logEl ? logEl.textContent : '';
+          if (/Fake Out/i.test(logText) && /battle/.test(sceneText)) break;
+        }
+        clearInterval(pump);
+        try { stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) {}
+        var ok = /Fake Out/i.test(logText) && /battle/.test(sceneText);
+        return { ok: ok, scene: sceneText, time: timeText, log: logText.slice(0, 500) };
       })()`, true).then((result) => {
         try { fs.mkdirSync(shot, { recursive: true }); fs.writeFileSync(path.join(shot, 'matchlog-smoke.json'), JSON.stringify(result)); } catch (e) { /* */ }
         setTimeout(() => { try { app.exit(result && result.ok ? 0 : 1); } catch (e) { process.exit(result && result.ok ? 0 : 1); } }, 50);

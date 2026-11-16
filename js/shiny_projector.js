@@ -446,6 +446,10 @@
   }
   function isOpen() { return opened; }
   function isBound() { return !!baseApi; }
+  function stream() {
+    var v = api && api.video && huntId != null ? api.video(huntId) : null;
+    return v && v.srcObject ? v.srcObject : null;
+  }
 
   root.CCProjectorMirror = {
     fitSize: fitSize, isRawVideo: isRawVideo, drawRaw: drawRaw, startMirror: startMirror, startAudio: startAudio,
@@ -453,5 +457,5 @@
     clampVolume: clampVolume, clampScale: clampScale, placeCounter: placeCounter, silencePreview: silencePreview, liveAudioTrack: liveAudioTrack, grabFrame: grabFrame,
     MAX_W: MAX_W, MAX_H: MAX_H, FPS: FPS, FPS_MIN: FPS_MIN, FPS_MAX: FPS_MAX
   };
-  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, syncTeams: syncTeams, isOpen: isOpen, isBound: isBound };
+  root.CCProjector = { bind: bind, toggle: toggle, sourceStopped: sourceStopped, syncOverlay: syncOverlay, syncLimit: syncLimit, syncTeams: syncTeams, isOpen: isOpen, isBound: isBound, stream: stream };
 })(typeof window !== 'undefined' ? window : globalThis);

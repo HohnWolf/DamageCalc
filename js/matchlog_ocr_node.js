@@ -23,6 +23,7 @@ function create(opts) {
     starting = createWorker(langs, 1, {
       langPath: langPath,
       cachePath: cachePath,
+      workerPath: path.join(__dirname, 'matchlog_ocr_worker.js'),
       gzip: false,
       errorHandler: function (e) { console.error('Matchlog-OCR', e); }
     }).then(function (w) {

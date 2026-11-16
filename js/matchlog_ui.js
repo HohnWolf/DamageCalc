@@ -33,8 +33,9 @@
   };
   function t(k) { return S[k]; }
 
-  var engine = null, timer = null, busy = false, enabled = false, showRoi = false;
-  var hidden = null, grabCanvas = null, gctx = null, overlay = null, octx = null;
+  var engine = null, timer = null, busy = false, grabbing = false, enabled = false, showRoi = false;
+  var hidden = null, cap = null, capTrack = null, capFailed = false;
+  var grabCanvas = null, gctx = null, overlay = null, octx = null;
   var logEl = null, sceneEl = null, ocrEl = null, timeEl = null;
   var lastJobs = [];
 
@@ -44,7 +45,24 @@
   }
   function stream() {
     var V = window.CCProjectorView;
-    return V && V.stream ? V.stream() : null;
+    var s = V && V.stream ? V.stream() : null;
+    if (s) return s;
+    var P = window.CCProjector;
+    return P && P.stream ? P.stream() : null;
+  }
+  function liveTrack(s) {
+    var list = s && s.getVideoTracks ? s.getVideoTracks() : [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].readyState === 'live') return list[i];
+    }
+    return null;
+  }
+  function resetSource() {
+    cap = null; capTrack = null; capFailed = false;
+    if (hidden) {
+      try { hidden.pause(); } catch (e) { /* egal */ }
+      hidden.srcObject = null;
+    }
   }
   function attach(s) {
     if (!hidden) {
@@ -52,7 +70,8 @@
       hidden.muted = true;
       hidden.playsInline = true;
       hidden.setAttribute('aria-hidden', 'true');
-      hidden.style.cssText = 'position:fixed;left:0;top:0;width:8px;height:8px;opacity:0;pointer-events:none';
+      // Keine opacity: 0: Chromium drosselt sonst das Video-Decoding im Hintergrund.
+      hidden.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.002;pointer-events:none;z-index:-1';
       document.body.appendChild(hidden);
     }
     if (hidden.srcObject !== s) {
@@ -61,8 +80,7 @@
       if (p && p.catch) p.catch(function () {});
     }
   }
-  function grab(video) {
-    var w = video.videoWidth, h = video.videoHeight;
+  function drawSource(src, w, h) {
     if (w < 16 || h < 16) return null;
     if (!grabCanvas) {
       grabCanvas = document.createElement('canvas');
@@ -70,9 +88,40 @@
     }
     if (grabCanvas.width !== w) grabCanvas.width = w;
     if (grabCanvas.height !== h) grabCanvas.height = h;
-    gctx.drawImage(video, 0, 0, w, h);
+    gctx.drawImage(src, 0, 0, w, h);
     var im = gctx.getImageData(0, 0, w, h);
     return { width: w, height: h, data: im.data };
+  }
+  function grabVideo(s) {
+    var V = window.CCProjectorView;
+    var pv = V && V.videoEl ? V.videoEl() : null;
+    if (pv && pv.srcObject === s && !pv.paused && pv.readyState >= 2 && pv.videoWidth >= 16) {
+      return drawSource(pv, pv.videoWidth, pv.videoHeight);
+    }
+    attach(s);
+    if (!hidden || hidden.readyState < 2) return null;
+    return drawSource(hidden, hidden.videoWidth, hidden.videoHeight);
+  }
+  function grabStream(s) {
+    var tr = liveTrack(s);
+    if (tr && !capFailed && typeof window.ImageCapture === 'function') {
+      if (capTrack !== tr) {
+        capTrack = tr;
+        try { cap = new window.ImageCapture(tr); } catch (e) { cap = null; capFailed = true; }
+      }
+      if (cap && typeof cap.grabFrame === 'function') {
+        return cap.grabFrame().then(function (bmp) {
+          var im = null;
+          try { im = drawSource(bmp, bmp.width, bmp.height); }
+          finally { try { bmp.close(); } catch (e) { /* schon zu */ } }
+          return im;
+        }, function () {
+          capFailed = true;
+          return grabVideo(s);
+        });
+      }
+    }
+    return Promise.resolve(grabVideo(s));
   }
   function b64(u8) {
     var s = '';
@@ -108,12 +157,12 @@
       octx.strokeRect(s[0] * sx, s[1] * sy, (s[2] - s[0]) * sx, (s[3] - s[1]) * sy);
     });
   }
-  function runJobs(jobs, t0) {
+  function runJobs(jobs, t0, frameInfo) {
     var i = 0;
     function next() {
       if (!enabled || i >= jobs.length) {
         busy = false;
-        if (timeEl) timeEl.textContent = t('fps') + (jobs.length ? ' · OCR ' + jobs.length : '');
+        if (timeEl) timeEl.textContent = t('fps') + (frameInfo ? ' · ' + frameInfo : '') + (jobs.length ? ' · OCR ' + jobs.length : '');
         paint();
         return;
       }
@@ -134,22 +183,30 @@
     if (!enabled) return;
     var s = stream();
     if (!s) {
+      resetSource();
       if (sceneEl) sceneEl.textContent = t('need');
       return;
     }
-    attach(s);
-    if (!hidden || hidden.readyState < 2) return;
-    if (busy) return;
-    var image = grab(hidden);
-    if (!image) return;
-    var step = engine.step(image, { t: Date.now() / 1000 });
-    if (sceneEl) sceneEl.textContent = t('scene') + ': ' + step.scene;
-    drawRoi(image);
-    if (step.jobs && step.jobs.length) {
-      busy = true;
-      lastJobs = step.jobs;
-      runJobs(step.jobs, Date.now() / 1000);
-    } else paint();
+    if (busy || grabbing) return;
+    grabbing = true;
+    grabStream(s).then(function (image) {
+      grabbing = false;
+      if (!enabled || !image) return;
+      var frameInfo = image.width + '×' + image.height;
+      var step = engine.step(image, { t: Date.now() / 1000 });
+      if (sceneEl) sceneEl.textContent = t('scene') + ': ' + step.scene;
+      drawRoi(image);
+      if (step.jobs && step.jobs.length) {
+        busy = true;
+        lastJobs = step.jobs;
+        runJobs(step.jobs, Date.now() / 1000, frameInfo);
+      } else {
+        if (timeEl) timeEl.textContent = t('fps') + ' · ' + frameInfo;
+        paint();
+      }
+    }, function () {
+      grabbing = false;
+    });
   }
   function setOn(on) {
     enabled = !!on;
@@ -161,6 +218,7 @@
       clearInterval(timer);
       timer = null;
       busy = false;
+      grabbing = false;
     }
   }
 
