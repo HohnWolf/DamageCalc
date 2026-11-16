@@ -53,7 +53,8 @@
   function minScore(len) {
     if (len >= 10) return 0.78;
     if (len >= 7) return 0.83;
-    if (len >= 5) return 0.85;
+    if (len >= 6) return 0.82;
+    if (len >= 5) return 0.84;
     return 0.9;
   }
   // Bester Eintrag, dessen EN- oder DE-Name im Text steckt. Zweiter Treffer muss klar schlechter sein.

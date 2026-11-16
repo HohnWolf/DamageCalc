@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.7',
+      de: ['Matchlog (Test): Menü-Szenen komplett entprellt (keine Turn-Sprünge mitten in Animationen), doppelte Moves pro Zug gefiltert, Phantom-0% ohne Prozentzeichen behoben und Video-Bitrate auf 2,5 Mbit/s reduziert.'],
+      en: ['Matchlog (test): debounced all menu scenes (no mid-animation turn splits), filtered duplicate moves per turn, fixed phantom 0% reads without a percent sign, and lowered video bitrate to 2.5 Mbps.'] },
     { v: '1.29.6',
       de: ['Matchlog (Test): Schnelle Video-Aufnahme im Hintergrund (8 Mbit/s) mit gleichzeitiger 10-fps-Live-Auswertung auf Rohframes (sofortiges Log beim Stoppen) und gedrosselter KP-OCR während Kampfanimationen.'],
       en: ['Matchlog (test): fast background video recording (8 Mbps) with simultaneous 10 fps live analysis on raw frames (instant log on stop) and throttled HP OCR during battle animations.'] },

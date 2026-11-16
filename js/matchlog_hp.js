@@ -216,7 +216,7 @@
   function parsePct(s) {
     var src = String(s || '').trim();
     var m = src.match(/\b(\d{1,3})\s*%/);
-    if (!m && (src === '100' || src === '0')) m = [src, src];
+    if (!m && src === '100') m = [src, src];
     if (!m) return null;
     var n = parseInt(m[1], 10);
     if (isNaN(n) || n > 100) return null;

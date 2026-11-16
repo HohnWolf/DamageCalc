@@ -100,8 +100,10 @@ eq('withdraw without you is neutral', ev('< GS withdrew Pelipper!').side, '');
   State.noteText(st4, 'battle', 'Gol - canine and Raichu!', ev('Gol - canine and Raichu!'), 1.5);
   State.noteText(st4, 'battle', 'Raichu has Mega Evolved into Mega Raichu!', ev('Raichu has Mega Evolved into Mega Raichu!'), 2);
   State.noteText(st4, 'battle', 'The oppcsing Azumarill used Aqua Jet!', ev('The oppcsing Azumarill used Aqua Jet!'), 3);
-  State.onScene(st4, 'move_select'); // direktes Springen von battle in move_select
-  eq('move_select from play bumps turnN', st4.turnN, 2);
+  State.onScene(st4, 'move_select'); // 1. Flacker-Frame darf noch nicht hochzählen
+  eq('1-frame move_select flicker keeps turnN', st4.turnN, 1);
+  State.onScene(st4, 'move_select'); // 2. stabiler Menü-Frame startet Turn 2
+  eq('move_select stable bumps turnN', st4.turnN, 2);
   eq('mega raichu y from stone', st4.turns[1].events[0].into, 'Mega Raichu Y');
   eq('oppcsing is foe', st4.turns[1].events[1].side, 'foe');
 })();

@@ -67,16 +67,13 @@
   }
   function onScene(st, scene) {
     var prev = st.scene;
-    if (scene === 'command') {
+    if (scene === 'command' || scene === 'move_select' || scene === 'target_select') {
       if (st.phase === 'pre') {
         enterCommand(st);
       } else if (st.phase === 'play' || st.phase === 'locked') {
         if (st.cmdPending) enterCommand(st);
         else st.cmdPending = true;
       }
-    } else if (scene === 'move_select' || scene === 'target_select') {
-      if (st.cmdPending || st.phase === 'play' || st.phase === 'locked') enterCommand(st);
-      if (st.phase === 'pre') { st.turnN = Math.max(1, st.turnN); st.phase = 'command'; }
     } else {
       st.cmdPending = false;
       if (scene === 'communicating') {
@@ -148,7 +145,9 @@
         if (mons[0]) st.slotMon.ownA = mons[0];
         if (mons[1]) st.slotMon.ownB = mons[1];
       }
-      if (!st.leads.you.length) st.leads.you = mons.slice(0, 2);
+      if (st.leads.you.length < 2) {
+        mons.forEach(function (id) { if (id && st.leads.you.length < 2 && st.leads.you.indexOf(id) < 0) st.leads.you.push(id); });
+      }
     } else {
       if (mons.length === 1 && mons[0]) {
         if (isDead(st, st.slotMon.oppA) && !isDead(st, st.slotMon.oppB)) st.slotMon.oppA = mons[0];
@@ -157,7 +156,9 @@
         if (mons[0]) st.slotMon.oppB = mons[0];
         if (mons[1]) st.slotMon.oppA = mons[1];
       }
-      if (!st.leads.foe.length) st.leads.foe = mons.slice(0, 2);
+      if (st.leads.foe.length < 2 && st.turnN <= 2) {
+        mons.forEach(function (id) { if (id && st.leads.foe.length < 2 && st.leads.foe.indexOf(id) < 0) st.leads.foe.push(id); });
+      }
     }
   }
   function sameEvent(a, b) {
@@ -219,12 +220,13 @@
     if (st.lastEvent && st.lastEvent !== last && st.lastEvent.t != null && t != null && Math.abs(t - st.lastEvent.t) <= 4 && sameEvent(st.lastEvent, ev)) {
       return;
     }
-    if (ev.kind === 'move' && last && last.kind === 'move' && last.t != null && t != null && Math.abs(t - last.t) <= 2) {
-      if (last.move === ev.move && (last.side === ev.side || (st.teams.you.length >= 4 && ev.side === 'you' && !inYouTeam(st, ev.mon)))) return;
+    if (ev.kind === 'move' && last && last.kind === 'move' && last.t != null && t != null && Math.abs(t - last.t) <= 2.5) {
       if (last.mon === ev.mon && last.move && ev.move && (ev.move.indexOf(last.move) === 0 || last.move.indexOf(ev.move) === 0)) {
         if (ev.move.length > last.move.length) last.move = ev.move;
         return;
       }
+      if (last.mon && last.mon === ev.mon) return;
+      if (last.move === ev.move && (last.side === ev.side || (st.teams.you.length >= 4 && ev.side === 'you' && !inYouTeam(st, ev.mon)))) return;
     }
     if (ev.kind === 'field' && last && last.kind === 'move' && norm(last.move) === norm(ev.field)) {
       return;

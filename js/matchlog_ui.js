@@ -226,7 +226,7 @@
     if (chkLive) chkLive.checked = enabled;
     if (enabled) {
       if (!engine) makeEngine();
-      if (!timer) timer = setInterval(tick, 100);
+      if (!timer) timer = setInterval(tick, 125);
       tick();
     } else if (timer) {
       clearInterval(timer);
@@ -265,7 +265,7 @@
     paint();
     recChunks = [];
     var recStream = new MediaStream([vt]);
-    var opts = { videoBitsPerSecond: 8000000 };
+    var opts = { videoBitsPerSecond: 2500000 };
     if (window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) opts.mimeType = 'video/webm;codecs=vp8';
     else if (window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported('video/webm')) opts.mimeType = 'video/webm';
     recorder = new window.MediaRecorder(recStream, opts);
