@@ -141,6 +141,10 @@
     if (window.CCProjector) window.CCProjector.sourceStopped(id);
     if (window.CCShinyClip && window.CCShinyClip.syncDetect) window.CCShinyClip.syncDetect(id, null);
   }
+  function stopAll() {
+    Object.keys(sessions).forEach(stop);
+    Object.keys(panels).forEach(rerenderPanel);
+  }
   function chooseScreen(cb) { Cap.chooseScreen(cb); }
 
   // ---------------- image comparison (js/capture.js) ----------------
@@ -500,7 +504,7 @@
   }
 
   window.CCShinyDetect = {
-    panel: panel, stop: stop, cleanRefs: cleanRefs, autoStart: autoStart, autoStop: autoStop,
+    panel: panel, stop: stop, stopAll: stopAll, cleanRefs: cleanRefs, autoStart: autoStart, autoStop: autoStop,
     isRunning: function (id) { return !!(sessions[id] && sessions[id].running); },
     // connected source of a hunt (the clips can record the same picture)
     stream: function (id) { return sessions[id] ? sessions[id].stream : null; },

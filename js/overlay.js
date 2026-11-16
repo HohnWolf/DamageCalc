@@ -54,7 +54,10 @@
     modeOwnDesc: 'Dein Team und das Gegner-Team als OBS-Spalten im Kampf: KP in %, K.O., Mitgebracht-Auswahl sowie Turnier- und Ladder-Modus.',
     modeRec: 'Aufnahme Match', modeRecBadge: 'Teampreview · Matchup & Start',
     modeRecDesc: 'Teampreview, Matchup-Banner und Start Screen vereint auf einer Seite: Spielernamen, Teams, Standings, Spielstand und Teamlogos.',
-    backPick: '← Auswahl'
+    backPick: '← Auswahl',
+    disconnectSources: 'Disconnect all Sources',
+    disconnectSourcesT: 'Entfernt alle Sources-Verknüpfungen bei Shiny Counter, Matchlog und Projektor',
+    sourcesDisconnected: 'Alle Sources-Verknüpfungen bei Shiny Counter, Matchlog und Projektor entfernt.'
   } : {
     title: 'Match overlay', sub: 'OBS overlays for matches: team overlay (both teams as a column) and team preview with matchup banner and start screen. Each one can be switched on and off.',
     onOff: '{0}: on', offOn: '{0}: off', savePng: 'Save as PNG', savePngT: 'Saves the image exactly as OBS shows it (with transparent background)', pngSaved: 'Saved: {0}', pngErr: 'PNG export failed', ovTeam: 'Team overlay', ovPreview: 'Team preview', ovMatch: 'Matchup banner',
@@ -89,7 +92,10 @@
     modeOwnDesc: 'Your team and the opponent as OBS columns during the match: HP %, fainted status, brought selection, tournament and ladder mode.',
     modeRec: 'Recording Match', modeRecBadge: 'Team Preview · Matchup & Start',
     modeRecDesc: 'Team preview, matchup banner and Start Screen combined on one page: player names, teams, standings, score and team logos.',
-    backPick: '← Selection'
+    backPick: '← Selection',
+    disconnectSources: 'Disconnect all Sources',
+    disconnectSourcesT: 'Removes all source connections in Shiny Counter, Matchlog and Projector',
+    sourcesDisconnected: 'All source connections in Shiny Counter, Matchlog and Projector removed.'
   };
   function t(k) {
     var s = S[k] != null ? S[k] : k;
@@ -574,6 +580,7 @@
     lw.appendChild(seg([['de', 'DE'], ['en', 'EN']], store.lang, function (v) { store.lang = v; persist(); render(); }));
     swWrap.appendChild(lw);
     if (curMode === 'rec') {
+      swWrap.appendChild(btn(t('disconnectSources'), 'danger', disconnectAllSources, t('disconnectSourcesT')));
       var pb = btn(t('play'), 'primary-btn', function () { if (D) D.play(); }, t('playHint'));
       pb.disabled = !D;
       swWrap.appendChild(pb);
@@ -1058,5 +1065,12 @@
     eq(formName('Landorus-Therian', 'en'), 'Landorus (Therian)', 'form en');
     return { ok: ok, fails: fails };
   }
-  window.CCOverlay = { teamUrls: teamUrls, open: open, selectMode: selectMode, render: render, push: push, selfTest: selfTest };
+  function disconnectAllSources() {
+    if (window.CCShiny && window.CCShiny.disconnectAll) window.CCShiny.disconnectAll();
+    if (window.CCMatchlogUI && window.CCMatchlogUI.disconnect) window.CCMatchlogUI.disconnect();
+    if (window.CCProjectorView && window.CCProjectorView.disconnect) window.CCProjectorView.disconnect();
+    A.toast(t('sourcesDisconnected'));
+  }
+
+  window.CCOverlay = { teamUrls: teamUrls, open: open, selectMode: selectMode, render: render, push: push, disconnectAllSources: disconnectAllSources, selfTest: selfTest };
 })();

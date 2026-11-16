@@ -102,6 +102,7 @@
     }
     ownStream = null;
     ownLabel = '';
+    if (camSel) camSel.value = '';
     resetSource();
     syncSourceStatus();
   }
@@ -476,5 +477,5 @@
     if (!root.firstChild) buildView();
     else { fillCameras(); syncSourceStatus(); }
   }
-  window.CCMatchlogUI = { render: render, mount: mount, setOn: setOn, stream: stream };
+  window.CCMatchlogUI = { render: render, mount: mount, setOn: setOn, stream: stream, disconnect: disconnectOwn };
 })();

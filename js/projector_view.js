@@ -124,6 +124,13 @@
     if (video) { try { video.pause(); } catch (e) { /* egal */ } video.srcObject = null; }
     paint();
   }
+  function disconnectAll() {
+    disconnect();
+    store.source = null;
+    persist();
+    if (camSel) camSel.value = '';
+    paint();
+  }
   function connect(src, silent) {
     disconnect();
     if (statusEl) statusEl.textContent = '…';
@@ -324,6 +331,7 @@
   if (D && D.onClosed) D.onClosed(function () { window.setTimeout(paint, 0); });
   window.CCProjectorView = {
     render: render,
+    disconnect: disconnectAll,
     stream: function () { return stream; },
     videoEl: function () { return video; },
     getAuto: function (k) { return k === 'connect' || !k ? !!store.autoConnect : false; },

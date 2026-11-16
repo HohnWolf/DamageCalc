@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.32.0',
+      de: ['Aufnahme-Match-Overlay: Neuer Knopf „Disconnect all Sources“, der alle aktiven und gespeicherten Quellen-Verknüpfungen bei Shiny-Zähler, Matchlog und Projektor auf einmal trennt.'],
+      en: ['Recording Match overlay: new “Disconnect all Sources” button that disconnects all active and saved source connections across Shiny Counter, Matchlog and Projector at once.'] },
     { v: '1.31.0',
       de: ['Shiny-Clips: Live-Pegelanzeige (Audio-Meter wie in OBS) für jede Tonquelle, damit man direkt sieht, ob Ton ankommt und wie stark der Regler ausschlägt.'],
       en: ['Shiny clips: live audio level meter (OBS-style) on each sound source so you can immediately see incoming audio and slider levels.'] },

@@ -1107,7 +1107,17 @@
     baseOverlay = (info && info.url) || '';
     if (window.CCProjector && window.CCProjector.isOpen()) window.CCProjector.syncOverlay(overlayHref(baseOverlay, false));
   });
-  window.CCShiny = { getAuto: function (k) { return !!store.auto[k]; }, setAuto: function (k, v) { store.auto[k] = !!v; persist(); }, render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref };
+  function disconnectAll() {
+    if (window.CCShinyDetect && window.CCShinyDetect.stopAll) window.CCShinyDetect.stopAll();
+    store.hunts.forEach(function (h) {
+      if (window.CCShinyDetect) window.CCShinyDetect.stop(h.id);
+      if (h.detect && h.detect.source) h.detect.source = null;
+    });
+    if (Clip && Clip.disconnectAll) Clip.disconnectAll();
+    persist();
+    if (document.body && document.body.dataset.view === 'shiny') render();
+  }
+  window.CCShiny = { getAuto: function (k) { return !!store.auto[k]; }, setAuto: function (k, v) { store.auto[k] = !!v; persist(); }, disconnectAll: disconnectAll, render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref };
   function boot() {
     renderStartArt(); applyHotkeys(); pushState();
     // Ungültige Bildrate aus dem Speicher sofort auf 10–60 zurückschreiben.

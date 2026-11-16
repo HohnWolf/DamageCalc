@@ -597,9 +597,17 @@
     render();
   };
 
+  function disconnectAll() {
+    autoFollow = false;
+    stopBuffer();
+    if (cfg) cfg.source = null;
+    persist();
+    if (box && document.contains(box)) render();
+  }
+
   window.CCShinyClip = {
     init: function (c, p) { cfg = defaults(c); persist = p || persist; return cfg; },
-    panel: panel, trigger: trigger, syncDetect: syncDetect,
+    panel: panel, trigger: trigger, syncDetect: syncDetect, disconnectAll: disconnectAll,
     active: function () { return !!src; },
     open: function (path) { if (D && D.openClip && path) D.openClip(path); }
   };
