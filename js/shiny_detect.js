@@ -81,6 +81,7 @@
       var s = sessions[h.id] = { stream: stream, video: video, src: src, running: false, state: 'idle', hitsN: 0, missN: 0, until: 0, score: 0, counted: 0, api: api, hunt: h };
       stream.getVideoTracks().forEach(function (tr) { tr.addEventListener('ended', function () { stop(h.id); if (s.api && s.api.persist) s.api.persist(); rerenderPanel(h.id); }); });
       cfg(h).source = { kind: src.kind, id: src.id, label: src.label };
+      if (window.CCShinyClip && window.CCShinyClip.syncDetect) window.CCShinyClip.syncDetect(h.id, stream);
       return s;
     });
   }
@@ -138,6 +139,7 @@
     try { s.stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) { /* already stopped */ }
     delete sessions[id];
     if (window.CCProjector) window.CCProjector.sourceStopped(id);
+    if (window.CCShinyClip && window.CCShinyClip.syncDetect) window.CCShinyClip.syncDetect(id, null);
   }
   function chooseScreen(cb) { Cap.chooseScreen(cb); }
 

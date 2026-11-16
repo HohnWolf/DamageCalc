@@ -16,8 +16,12 @@
     title: 'Clips', off: 'aus', buffering: 'Puffer läuft ({0})', saving: 'Clip wird aufgenommen …', noRec: 'Aufnahme wird hier nicht unterstützt.',
     hint: 'Nimmt die Spielquelle im Hintergrund auf und speichert auf Knopfdruck, per Hotkey oder automatisch die letzten Sekunden als Video.',
     screen: 'Bildschirm / Fenster', camera: 'Kamera / Capture-Karte', cameraN: 'Kamera {0}', fromDetect: 'Quelle der Erkennung', reconnect: 'Verbinden: {0}', stop: 'Puffer stoppen',
-    save: '● Clip speichern', before: 'Sekunden davor', after: 'Sekunden danach', quality: 'Qualität', audio: 'Ton', audioNone: 'kein Ton',
-    audioSys: 'Systemton (Bildschirm)', audioIn: 'Eingang: {0}', audioInN: 'Eingang {0}', autoFound: 'Bei „Gefunden!“', autoPhase: 'Bei Phase / Entkommen',
+    save: '● Clip speichern', before: 'Sekunden davor', after: 'Sekunden danach', quality: 'Qualität', audio: 'Tonquellen', audioAdd: '+ Tonquelle hinzufügen …',
+    audioNone: 'Keine Tonquelle ausgewählt (Clip ohne Ton).', audioSys: 'Systemton (Desktop / Spiel / Discord)', audioDetect: 'Ton der Erkennung',
+    audioIn: 'Eingang: {0}', audioInN: 'Eingang {0}', audioDel: 'Tonquelle entfernen', audioVol: 'Lautstärke',
+    audioHint: 'Tipp: Für getrenntes Spiel- & Discord-Audio virtuelle Eingänge (z. B. VB-Cable, VoiceMeeter, Wave Link) oder Capture-Karte + Systemton nutzen.',
+    audioRestart: 'Neue Tonquelle wird beim nächsten Start des Puffers aktiv.', errAudio: 'Tonquelle „{0}“ nicht verfügbar: {1}',
+    autoFound: 'Bei „Gefunden!“', autoPhase: 'Bei Phase / Entkommen',
     saved: 'Clip gespeichert: {0}', failed: 'Clip fehlgeschlagen: {0}', busy: 'Es wird schon ein Clip aufgenommen.', notOn: 'Für Clips erst eine Quelle wählen.',
     recent: 'Letzte Clips', open: 'Abspielen', folder: 'Ordner öffnen', show: 'Im Ordner zeigen', errSource: 'Die Quelle konnte nicht geöffnet werden: {0}',
     r_manual: 'Clip', r_found: 'Shiny', r_phase: 'Phase', warmup: 'Der Puffer läuft erst {0} s: der Clip wird kürzer.', browser: 'Im Browser wird der Clip heruntergeladen.'
@@ -25,8 +29,12 @@
     title: 'Clips', off: 'off', buffering: 'Buffer running ({0})', saving: 'Recording clip …', noRec: 'Recording is not supported here.',
     hint: 'Records the game source in the background and saves the last seconds as a video on a click, a hotkey or automatically.',
     screen: 'Screen / window', camera: 'Camera / capture card', cameraN: 'Camera {0}', fromDetect: 'Source of the detection', reconnect: 'Connect: {0}', stop: 'Stop buffer',
-    save: '● Save clip', before: 'Seconds before', after: 'Seconds after', quality: 'Quality', audio: 'Sound', audioNone: 'no sound',
-    audioSys: 'System sound (screen)', audioIn: 'Input: {0}', audioInN: 'Input {0}', autoFound: 'On "Found!"', autoPhase: 'On phase / got away',
+    save: '● Save clip', before: 'Seconds before', after: 'Seconds after', quality: 'Quality', audio: 'Sound sources', audioAdd: '+ Add sound source …',
+    audioNone: 'No sound source selected (clip without sound).', audioSys: 'System sound (desktop / game / Discord)', audioDetect: 'Detection sound',
+    audioIn: 'Input: {0}', audioInN: 'Input {0}', audioDel: 'Remove sound source', audioVol: 'Volume',
+    audioHint: 'Tip: For separate game & Discord audio, use virtual inputs (e.g. VB-Cable, VoiceMeeter, Wave Link) or capture card + system sound.',
+    audioRestart: 'New sound source takes effect next time the buffer starts.', errAudio: 'Sound source "{0}" unavailable: {1}',
+    autoFound: 'On "Found!"', autoPhase: 'On phase / got away',
     saved: 'Clip saved: {0}', failed: 'Clip failed: {0}', busy: 'A clip is already being recorded.', notOn: 'Choose a source for clips first.',
     recent: 'Recent clips', open: 'Play', folder: 'Open folder', show: 'Show in folder', errSource: 'The source could not be opened: {0}',
     r_manual: 'Clip', r_found: 'Shiny', r_phase: 'Phase', warmup: 'The buffer has only run for {0} s: the clip will be shorter.', browser: 'In the browser the clip is downloaded.'
@@ -34,12 +42,37 @@
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
 
   var cfg = null, persist = function () {}, onChange = function () {};
+  function clampVol(v) {
+    var n = Number(v);
+    if (!isFinite(n)) return 1;
+    return Math.max(0, Math.min(2, Math.round(n * 20) / 20));
+  }
+  function normalizeAudio(c) {
+    if (Array.isArray(c.audioSources)) {
+      var list = [], seen = {};
+      c.audioSources.forEach(function (item) {
+        if (!item || typeof item.id !== 'string' || !item.id) return;
+        if (item.id !== 'system' && item.id !== 'detect' && !/^in:.+/.test(item.id)) return;
+        if (item.id === 'system' && !D) return;
+        if (seen[item.id]) return;
+        seen[item.id] = true;
+        list.push({ id: item.id, label: typeof item.label === 'string' ? item.label : '', volume: clampVol(item.volume) });
+      });
+      return list;
+    }
+    if (typeof c.audio === 'string') {
+      if (c.audio === 'system' && D) return [{ id: 'system', label: '', volume: 1 }];
+      if (/^in:.+/.test(c.audio)) return [{ id: c.audio, label: '', volume: 1 }];
+      return [];
+    }
+    return D ? [{ id: 'system', label: '', volume: 1 }] : [];
+  }
   function defaults(c) {
     c = c || {};
     c.before = Math.max(5, Math.min(120, +c.before || 30));
     c.after = Math.max(0, Math.min(30, c.after == null ? 5 : +c.after));
     c.quality = c.quality === '1080' ? '1080' : '720';
-    c.audio = typeof c.audio === 'string' ? c.audio : (D ? 'system' : ''); // desktop app: system sound by default
+    c.audioSources = normalizeAudio(c);
     c.autoFound = c.autoFound !== false;
     c.autoPhase = c.autoPhase !== false;
     c.list = Array.isArray(c.list) ? c.list.slice(0, 20) : [];
@@ -48,7 +81,7 @@
   }
 
   // ---------------- source ----------------
-  var src = null; // { stream: what we record, own: tracks to stop, label, kind }
+  var src = null; // { stream, own, ac, dest, audioNodes, label, kind }
   var recs = [], tickTimer = null, pending = null, mime = '';
   function canRecord() { return typeof MediaRecorder !== 'undefined'; }
   function pickMime(audio) {
@@ -58,12 +91,54 @@
     for (var i = 0; i < list.length; i++) if (MediaRecorder.isTypeSupported(list[i])) return list[i];
     return '';
   }
+  function openInputAudio(devId, label) {
+    return navigator.mediaDevices.getUserMedia({
+      audio: { deviceId: { exact: devId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    }).then(function (as) {
+      return as.getAudioTracks();
+    }, function (err) {
+      A.toast(t('errAudio', label || devId, err && err.message ? err.message : err));
+      return [];
+    });
+  }
+  function openSystemLoopback() {
+    if (!D) return Promise.resolve([]);
+    return navigator.mediaDevices.getDisplayMedia({ video: { width: 160, height: 90, frameRate: 1 }, audio: true }).then(function (vs) {
+      vs.getVideoTracks().forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } });
+      return vs.getAudioTracks();
+    }, function (err) {
+      A.toast(t('errAudio', t('audioSys'), err && err.message ? err.message : err));
+      return [];
+    });
+  }
+  function connectAudioNode(ac, dest, id, tracks, volume) {
+    var ms = new MediaStream(tracks);
+    var node = ac.createMediaStreamSource(ms);
+    var gain = ac.createGain();
+    gain.gain.value = clampVol(volume);
+    node.connect(gain);
+    gain.connect(dest);
+    return { id: id, node: node, gain: gain, tracks: tracks };
+  }
+  function disconnectAudioNode(entry) {
+    if (!entry) return;
+    try { entry.node.disconnect(); } catch (e) { /* */ }
+    try { entry.gain.disconnect(); } catch (e) { /* */ }
+    (entry.tracks || []).forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } });
+  }
+  function cleanupSource(s) {
+    if (!s) return;
+    if (s.audioNodes) Object.keys(s.audioNodes).forEach(function (k) { disconnectAudioNode(s.audioNodes[k]); });
+    (s.own || []).forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } });
+    if (s.ac && s.ac.close) try { s.ac.close(); } catch (e) { /* */ }
+  }
   function openSource(kind, id, label, base, baseAudio) {
     stopBuffer();
-    var wantSys = cfg.audio === 'system' && kind === 'screen', inDev = /^in:/.test(cfg.audio) ? cfg.audio.slice(3) : '';
+    var sources = cfg.audioSources || [];
+    var wantSys = sources.some(function (s) { return s.id === 'system'; });
     var video;
-    // own copies: stopping one does not stop the other; the detection's sound comes along unless "no sound" is chosen
-    if (base) video = Promise.resolve(new MediaStream([base.clone()].concat(cfg.audio ? (baseAudio || []).map(function (a) { return a.clone(); }) : [])));
+    // own copies: stopping one does not stop the other
+    if (base) video = Promise.resolve(new MediaStream([base.clone()]));
     else if (kind === 'camera') {
       var v = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
       if (id) v.deviceId = { exact: id };
@@ -73,18 +148,49 @@
       video = navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: wantSys });
     }
     return video.then(function (vs) {
-      var tracks = vs.getVideoTracks().map(function (tr) { return tr; });
-      var audio = wantSys || base ? vs.getAudioTracks() : [];
-      var more = inDev ? navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: inDev }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } }) : Promise.resolve(null);
-      return more.then(function (as) {
-        if (as) audio = audio.concat(as.getAudioTracks());
-        var vt = tracks[0];
-        if (!vt) throw new Error('no video');
+      var vt = vs.getVideoTracks()[0];
+      if (!vt) throw new Error('no video');
+      var screenSysTracks = kind === 'screen' && wantSys ? vs.getAudioTracks() : [];
+      var tasks = sources.map(function (item) {
+        if (item.id === 'system') {
+          var p = kind === 'screen' ? Promise.resolve(screenSysTracks) : openSystemLoopback();
+          return p.then(function (tracks) { return { item: item, tracks: tracks }; });
+        }
+        if (item.id === 'detect') {
+          var dt = base ? (baseAudio || []).map(function (a) { return a.clone(); }) : [];
+          return Promise.resolve({ item: item, tracks: dt });
+        }
+        if (/^in:/.test(item.id)) {
+          return openInputAudio(item.id.slice(3), item.label).then(function (tracks) { return { item: item, tracks: tracks }; });
+        }
+        return Promise.resolve({ item: item, tracks: [] });
+      });
+      return Promise.all(tasks).then(function (opened) {
         // smaller pictures for the buffer: less memory and CPU (the source itself stays as it is)
         var h = cfg.quality === '1080' ? 1080 : 720;
         return Promise.resolve(vt.applyConstraints({ height: { max: h }, frameRate: { max: 30 } })).catch(function () { /* keep the size */ }).then(function () {
-          var stream = new MediaStream([vt].concat(audio));
-          src = { stream: stream, own: stream.getTracks(), label: label, kind: kind };
+          var activeAudio = opened.filter(function (o) { return o.tracks && o.tracks.length > 0; });
+          var own = [vt];
+          var audioTracks = [];
+          var ac = null, dest = null, audioNodes = {};
+          var AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (activeAudio.length && AudioCtx) {
+            ac = new AudioCtx();
+            if (ac.state === 'suspended' && ac.resume) ac.resume().catch(function () {});
+            dest = ac.createMediaStreamDestination();
+            activeAudio.forEach(function (o) {
+              own = own.concat(o.tracks);
+              audioNodes[o.item.id] = connectAudioNode(ac, dest, o.item.id, o.tracks, o.item.volume);
+            });
+            audioTracks = dest.stream.getAudioTracks();
+          } else if (activeAudio.length) {
+            activeAudio.forEach(function (o) {
+              own = own.concat(o.tracks);
+              audioTracks = audioTracks.concat(o.tracks);
+            });
+          }
+          var stream = new MediaStream([vt].concat(audioTracks));
+          src = { stream: stream, own: own, ac: ac, dest: dest, audioNodes: audioNodes, label: label, kind: kind };
           if (kind !== 'detect') { cfg.source = { kind: kind, id: id || '', label: label || '' }; persist(); }
           vt.addEventListener('ended', function () { stopBuffer(); onChange(); });
           startBuffer();
@@ -97,9 +203,45 @@
     clearInterval(tickTimer); tickTimer = null;
     recs.forEach(function (r) { if (!r.keep) { try { r.mr.stop(); } catch (e) { /* stopped */ } } });
     recs = recs.filter(function (r) { return r.keep; });
-    if (src && !pending) src.own.forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } });
+    if (src && !pending) cleanupSource(src);
     if (!pending) src = null;
-    else { var s = src; pending.then(function () { s.own.forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } }); }); src = null; }
+    else { var s = src; pending.then(function () { cleanupSource(s); }); src = null; }
+  }
+  function setAudioVolume(id, vol) {
+    var v = clampVol(vol);
+    for (var i = 0; i < cfg.audioSources.length; i++) {
+      if (cfg.audioSources[i].id === id) { cfg.audioSources[i].volume = v; break; }
+    }
+    if (src && src.audioNodes && src.audioNodes[id]) {
+      src.audioNodes[id].gain.gain.value = v;
+    }
+  }
+  function removeAudioSource(id) {
+    cfg.audioSources = cfg.audioSources.filter(function (s) { return s.id !== id; });
+    persist();
+    if (src && src.audioNodes && src.audioNodes[id]) {
+      disconnectAudioNode(src.audioNodes[id]);
+      delete src.audioNodes[id];
+    }
+  }
+  function addAudioSource(id, label) {
+    if (!id || cfg.audioSources.some(function (s) { return s.id === id; })) return;
+    var item = { id: id, label: label || '', volume: 1 };
+    cfg.audioSources.push(item);
+    persist();
+    if (src) {
+      if (src.ac && src.dest && /^in:/.test(id)) {
+        var curSrc = src;
+        openInputAudio(id.slice(3), label).then(function (tracks) {
+          if (!tracks.length) return;
+          if (src !== curSrc) { tracks.forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } }); return; }
+          curSrc.own = curSrc.own.concat(tracks);
+          curSrc.audioNodes[id] = connectAudioNode(curSrc.ac, curSrc.dest, id, tracks, item.volume);
+        });
+      } else {
+        A.toast(t('audioRestart'));
+      }
+    }
   }
 
   // ---------------- replay buffer ----------------
@@ -197,9 +339,34 @@
   }
 
   // ---------------- panel ----------------
-  var box = null, ctx = null;
+  var box = null, ctx = null, autoFollow = true, lastDetStream = null;
+  function connectFromDetect(detStream) {
+    if (!canRecord() || !detStream || !detStream.getVideoTracks().length) return Promise.resolve(false);
+    lastDetStream = detStream;
+    return openSource('detect', '', t('fromDetect'), detStream.getVideoTracks()[0], detStream.getAudioTracks()).then(
+      function () { return true; },
+      function (e) { A.toast(t('errSource', e && e.message ? e.message : e)); return false; }
+    );
+  }
+  function syncDetect(huntId, detStream) {
+    if (ctx && ctx.hunt && ctx.hunt() !== huntId) return;
+    if (detStream && detStream.getVideoTracks().length) {
+      if (lastDetStream === detStream && src && src.kind === 'detect') return;
+      if (!src || src.kind === 'detect') {
+        autoFollow = true;
+        connectFromDetect(detStream);
+      }
+      return;
+    }
+    lastDetStream = null;
+    if (src && src.kind === 'detect') { stopBuffer(); onChange(); }
+  }
   function panel(b, c) {
     box = b; ctx = c || {};
+    var det = ctx.stream && ctx.stream();
+    if (!src && autoFollow && det && det.getVideoTracks().length && lastDetStream !== det) {
+      connectFromDetect(det);
+    }
     render();
   }
   function stateText() {
@@ -229,7 +396,7 @@
       var det = ctx.stream && ctx.stream();
       if (det && det.getVideoTracks().length) {
         var db = el('button', { class: 'tbtn', text: t('fromDetect') });
-        db.addEventListener('click', function () { go(openSource('detect', '', t('fromDetect'), det.getVideoTracks()[0], det.getAudioTracks())); });
+        db.addEventListener('click', function () { autoFollow = true; lastDetStream = det; go(openSource('detect', '', t('fromDetect'), det.getVideoTracks()[0], det.getAudioTracks())); });
         row.appendChild(db);
       }
       if (cfg.source && cfg.source.label) {
@@ -252,7 +419,7 @@
       sv.addEventListener('click', function () { trigger('manual', ctx.name ? ctx.name() : '', ctx.hunt ? ctx.hunt() : ''); });
       row.appendChild(sv);
       var xb = el('button', { class: 'tbtn', text: t('stop') });
-      xb.addEventListener('click', function () { stopBuffer(); render(); });
+      xb.addEventListener('click', function () { autoFollow = false; stopBuffer(); render(); });
       row.appendChild(xb);
     }
     box.appendChild(row);
@@ -273,29 +440,82 @@
     [['720', '720p'], ['1080', '1080p']].forEach(function (x) { var o = el('option', { value: x[0], text: x[1] }); if (cfg.quality === x[0]) o.selected = true; qs.appendChild(o); });
     qs.addEventListener('change', function () { cfg.quality = qs.value; persist(); });
     qw.appendChild(qs); opts.appendChild(qw);
-    var aw = el('label', { class: 'nc-sel' }); aw.appendChild(el('span', { text: t('audio') }));
-    var as = el('select');
-    as.appendChild(el('option', { value: '', text: t('audioNone') }));
-    if (D) as.appendChild(el('option', { value: 'system', text: t('audioSys') }));
-    as.value = cfg.audio === 'system' && D ? 'system' : '';
-    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) navigator.mediaDevices.enumerateDevices().then(function (devs) {
-      var i = 0;
-      devs.forEach(function (d) {
-        if (d.kind !== 'audioinput' || d.deviceId === 'default' || d.deviceId === 'communications') return;
-        i++;
-        as.appendChild(el('option', { value: 'in:' + d.deviceId, text: d.label ? t('audioIn', d.label) : t('audioInN', i) }));
-      });
-      as.value = cfg.audio;
-      if (as.value !== cfg.audio) as.value = '';
-    });
-    as.addEventListener('change', function () { cfg.audio = as.value; persist(); });
-    aw.appendChild(as); opts.appendChild(aw);
     [['autoFound', t('autoFound')], ['autoPhase', t('autoPhase')]].forEach(function (x) {
       var c = el('label', { class: 'nc-check sh-chk' }); var cb = el('input', { type: 'checkbox' }); cb.checked = !!cfg[x[0]];
       cb.addEventListener('change', function () { cfg[x[0]] = cb.checked; persist(); });
       c.appendChild(cb); c.appendChild(document.createTextNode(' ' + x[1])); opts.appendChild(c);
     });
     box.appendChild(opts);
+
+    // audio sources & volume mixer
+    var audioBox = el('div', { class: 'clip-audio' });
+    var ah = el('div', { class: 'det-row' });
+    var aw = el('label', { class: 'nc-sel' }); aw.appendChild(el('span', { text: t('audio') }));
+    var as = el('select');
+    as.appendChild(el('option', { value: '', text: t('audioAdd') }));
+    function hasAudioId(id) { return cfg.audioSources.some(function (s) { return s.id === id; }); }
+    function sourceLabel(item, devMap) {
+      if (item.id === 'system') return t('audioSys');
+      if (item.id === 'detect') return t('audioDetect');
+      if (devMap && devMap[item.id]) return devMap[item.id];
+      return item.label || item.id.slice(3);
+    }
+    if (D && !hasAudioId('system')) as.appendChild(el('option', { value: 'system', text: t('audioSys') }));
+    if (ctx.stream && ctx.stream() && !hasAudioId('detect')) as.appendChild(el('option', { value: 'detect', text: t('audioDetect') }));
+    as.addEventListener('change', function () {
+      if (!as.value) return;
+      var opt = as.options[as.selectedIndex];
+      addAudioSource(as.value, opt ? opt.text : '');
+      render();
+    });
+    aw.appendChild(as); ah.appendChild(aw);
+    audioBox.appendChild(ah);
+
+    var aList = el('div', { class: 'clip-audio-list' });
+    var nameEls = {};
+    if (!cfg.audioSources.length) {
+      aList.appendChild(el('div', { class: 'hint', text: t('audioNone') }));
+    } else {
+      cfg.audioSources.forEach(function (item) {
+        var r = el('div', { class: 'clip-audio-row' });
+        var nm = el('span', { class: 'clip-audio-name', text: sourceLabel(item, null), title: sourceLabel(item, null) });
+        nameEls[item.id] = nm;
+        r.appendChild(nm);
+        var pct = Math.round(clampVol(item.volume) * 100);
+        var sl = el('input', { type: 'range', min: 0, max: 200, step: 5, value: pct, title: t('audioVol') });
+        var vl = el('span', { class: 'clip-audio-vol', text: pct + ' %' });
+        sl.addEventListener('input', function () {
+          var v = Math.max(0, Math.min(200, Math.round(+sl.value) || 0));
+          vl.textContent = v + ' %';
+          setAudioVolume(item.id, v / 100);
+        });
+        sl.addEventListener('change', function () { persist(); });
+        r.appendChild(sl);
+        r.appendChild(vl);
+        var db = el('button', { class: 'tbtn', text: '✕', title: t('audioDel') });
+        db.addEventListener('click', function () { removeAudioSource(item.id); render(); });
+        r.appendChild(db);
+        aList.appendChild(r);
+      });
+    }
+    audioBox.appendChild(aList);
+    audioBox.appendChild(el('div', { class: 'hint', text: t('audioHint') }));
+    box.appendChild(audioBox);
+
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) navigator.mediaDevices.enumerateDevices().then(function (devs) {
+      var i = 0, devMap = {};
+      devs.forEach(function (d) {
+        if (d.kind !== 'audioinput' || d.deviceId === 'default' || d.deviceId === 'communications') return;
+        i++;
+        var id = 'in:' + d.deviceId;
+        var lbl = d.label ? t('audioIn', d.label) : t('audioInN', i);
+        devMap[id] = lbl;
+        if (!hasAudioId(id)) as.appendChild(el('option', { value: id, text: lbl }));
+      });
+      Object.keys(nameEls).forEach(function (id) {
+        if (devMap[id]) { nameEls[id].textContent = devMap[id]; nameEls[id].title = devMap[id]; }
+      });
+    });
 
     // recent clips
     if (cfg.list.length || D) {
@@ -326,7 +546,7 @@
 
   window.CCShinyClip = {
     init: function (c, p) { cfg = defaults(c); persist = p || persist; return cfg; },
-    panel: panel, trigger: trigger,
+    panel: panel, trigger: trigger, syncDetect: syncDetect,
     active: function () { return !!src; },
     open: function (path) { if (D && D.openClip && path) D.openClip(path); }
   };
