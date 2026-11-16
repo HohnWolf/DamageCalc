@@ -88,6 +88,22 @@ eq('withdraw without you is neutral', ev('< GS withdrew Pelipper!').side, '');
   State.onScene(st3, 'battle');
   eq('1-frame command flicker keeps turnN', st3.turnN, 1);
   eq('trick upgraded to trick room without dup', st3.turns[0].events.map(e => e.move || e.field), ['Trick Room']);
+
+  // Mega Raichu Y über Team-Item, oppcsing, battle->move_select->Turn 2, kein Teil-send_out-Duplikat:
+  const st4 = State.create();
+  ['Rillaboom', 'Goodra', 'Raichu', 'Floette', 'Arcanine', 'Basculegion'].forEach((sp, i) => {
+    State.noteTeamRow(st4, i, sp, sp === 'Raichu' ? 'Raichunite Y' : '');
+  });
+  State.noteText(st4, 'battle', 'Go Arcanine and Raichu!', ev('Go Arcanine and Raichu!'), 1);
+  State.onScene(st4, 'command');
+  State.onScene(st4, 'battle');
+  State.noteText(st4, 'battle', 'Gol - canine and Raichu!', ev('Gol - canine and Raichu!'), 1.5);
+  State.noteText(st4, 'battle', 'Raichu has Mega Evolved into Mega Raichu!', ev('Raichu has Mega Evolved into Mega Raichu!'), 2);
+  State.noteText(st4, 'battle', 'The oppcsing Azumarill used Aqua Jet!', ev('The oppcsing Azumarill used Aqua Jet!'), 3);
+  State.onScene(st4, 'move_select'); // direktes Springen von battle in move_select
+  eq('move_select from play bumps turnN', st4.turnN, 2);
+  eq('mega raichu y from stone', st4.turns[1].events[0].into, 'Mega Raichu Y');
+  eq('oppcsing is foe', st4.turns[1].events[1].side, 'foe');
 })();
 
 if (failed) { console.error(failed + ' parser checks failed'); process.exit(1); }

@@ -16,7 +16,14 @@
     save: 'JSON speichern',
     clear: 'Protokoll leeren',
     empty: 'Noch nichts erkannt.',
-    fps: 'Abtastung 8 Bilder/s'
+    fps: 'Abtastung 8 Bilder/s',
+    recStart: 'Match aufnehmen',
+    recStop: 'Aufnahme stoppen & Log erstellen',
+    saveVideo: 'Video speichern',
+    recRun: 'Aufnahme läuft: ',
+    analyzing: 'Auswertung: ',
+    doneVideo: 'Fertig: ',
+    recFail: 'Videoaufnahme wird hier nicht unterstützt.'
   } : {
     title: 'Matchlog (test)',
     sub: 'Reads doubles from the capture and writes the log itself. The in-game battle log stays closed.',
@@ -29,7 +36,14 @@
     save: 'Save JSON',
     clear: 'Clear log',
     empty: 'Nothing recognized yet.',
-    fps: 'Sampling 8 frames/s'
+    fps: 'Sampling 8 frames/s',
+    recStart: 'Record match',
+    recStop: 'Stop & build log',
+    saveVideo: 'Save video',
+    recRun: 'Recording: ',
+    analyzing: 'Analyzing: ',
+    doneVideo: 'Done: ',
+    recFail: 'Video recording is not supported here.'
   };
   function t(k) { return S[k]; }
 
@@ -37,6 +51,9 @@
   var hidden = null, cap = null, capTrack = null, capFailed = false;
   var grabCanvas = null, gctx = null, overlay = null, octx = null;
   var logEl = null, sceneEl = null, ocrEl = null, timeEl = null;
+  var btnRec = null, btnSaveVid = null, chkLive = null;
+  var recorder = null, recChunks = [], recTimer = null, recStartAt = 0, analyzing = false;
+  var recordedBlob = null, recordedUrl = '';
   var lastJobs = [];
 
   function makeEngine() {
@@ -210,6 +227,7 @@
   }
   function setOn(on) {
     enabled = !!on;
+    if (chkLive) chkLive.checked = enabled;
     if (enabled) {
       if (!engine) makeEngine();
       if (!timer) timer = setInterval(tick, 125);
@@ -221,6 +239,148 @@
       grabbing = false;
     }
   }
+  function fmtSec(sec) {
+    var s = Math.max(0, Math.floor(sec));
+    var m = Math.floor(s / 60), r = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function syncRecUi() {
+    var recOn = !!(recorder && recorder.state === 'recording');
+    if (btnRec) {
+      btnRec.textContent = recOn ? t('recStop') : t('recStart');
+      btnRec.classList.toggle('is-rec', recOn);
+      btnRec.disabled = analyzing;
+    }
+    if (btnSaveVid) btnSaveVid.disabled = !recordedBlob || recOn;
+  }
+  function runJobsSync(jobs, t0) {
+    var p = Promise.resolve();
+    (jobs || []).forEach(function (job) {
+      p = p.then(function () {
+        return recognize(job.image, job.whitelist).then(function (r) {
+          engine.apply(job, (r && r.text) || '', { t: t0 });
+          if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + ((r && (r.text || r.error)) || '–');
+        }, function () {});
+      });
+    });
+    return p;
+  }
+  function analyzeBlob(blob) {
+    if (!blob) return Promise.resolve();
+    analyzing = true;
+    syncRecUi();
+    makeEngine();
+    paint();
+    if (recordedUrl) { try { URL.revokeObjectURL(recordedUrl); } catch (e) {} }
+    recordedUrl = URL.createObjectURL(blob);
+    var v = document.createElement('video');
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    v.src = recordedUrl;
+    var ANALYZE_FPS = 12;
+    function waitEv(ev) {
+      return new Promise(function (res, rej) {
+        function ok() { cleanup(); res(); }
+        function bad() { cleanup(); rej(new Error('video')); }
+        function cleanup() { v.removeEventListener(ev, ok); v.removeEventListener('error', bad); }
+        v.addEventListener(ev, ok);
+        v.addEventListener('error', bad);
+      });
+    }
+    return waitEv('loadedmetadata').then(function () {
+      if (v.duration === Infinity || !isFinite(v.duration)) {
+        v.currentTime = 1e10;
+        return waitEv('timeupdate').then(function () {
+          v.currentTime = 0;
+          return waitEv('seeked');
+        });
+      }
+    }).then(function () {
+      var dur = isFinite(v.duration) && v.duration > 0 ? v.duration : 0;
+      var w = v.videoWidth, h = v.videoHeight;
+      if (!dur || w < 16 || h < 16) return;
+      var dt = 1 / ANALYZE_FPS;
+      var frames = 0;
+      var ts = 0;
+      function stepNext() {
+        if (!analyzing || ts > dur + 0.001) {
+          analyzing = false;
+          syncRecUi();
+          paint();
+          if (timeEl) timeEl.textContent = t('doneVideo') + frames + ' Frames @ ' + ANALYZE_FPS + ' fps';
+          return Promise.resolve();
+        }
+        v.currentTime = Math.min(dur, ts);
+        return waitEv('seeked').then(function () {
+          var image = drawSource(v, w, h);
+          frames++;
+          if (image) {
+            var step = engine.step(image, { t: ts });
+            if (sceneEl) sceneEl.textContent = t('scene') + ': ' + step.scene;
+            drawRoi(image);
+            if (step.jobs && step.jobs.length) return runJobsSync(step.jobs, ts);
+          }
+        }).then(function () {
+          if (frames % 6 === 0) {
+            paint();
+            if (timeEl) timeEl.textContent = t('analyzing') + Math.min(100, Math.round(100 * ts / dur)) + '% (' + ANALYZE_FPS + ' fps)';
+          }
+          ts += dt;
+          return stepNext();
+        });
+      }
+      return stepNext();
+    }).catch(function (err) {
+      analyzing = false;
+      syncRecUi();
+      if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + (err && err.message || err);
+    });
+  }
+  function startRec() {
+    var s = stream();
+    if (!s) {
+      if (sceneEl) sceneEl.textContent = t('need');
+      if (A && A.toast) A.toast(t('need'));
+      return;
+    }
+    var vt = liveTrack(s);
+    if (!vt || typeof window.MediaRecorder !== 'function') {
+      if (A && A.toast) A.toast(t('recFail'));
+      return;
+    }
+    if (enabled) setOn(false);
+    recChunks = [];
+    var recStream = new MediaStream([vt]);
+    var opts = {};
+    if (window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) opts.mimeType = 'video/webm;codecs=vp8';
+    else if (window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported('video/webm')) opts.mimeType = 'video/webm';
+    recorder = new window.MediaRecorder(recStream, opts);
+    recorder.ondataavailable = function (e) { if (e.data && e.data.size) recChunks.push(e.data); };
+    recorder.onstop = function () {
+      if (recTimer) { clearInterval(recTimer); recTimer = null; }
+      recordedBlob = new Blob(recChunks, { type: (recorder && recorder.mimeType) || 'video/webm' });
+      recorder = null;
+      syncRecUi();
+      analyzeBlob(recordedBlob);
+    };
+    recStartAt = Date.now();
+    recorder.start(500);
+    if (recTimer) clearInterval(recTimer);
+    recTimer = setInterval(function () {
+      if (timeEl) timeEl.textContent = t('recRun') + fmtSec((Date.now() - recStartAt) / 1000);
+    }, 500);
+    if (timeEl) timeEl.textContent = t('recRun') + '00:00';
+    syncRecUi();
+  }
+  function stopRec() {
+    if (recorder && recorder.state === 'recording') recorder.stop();
+  }
+  function toggleRec() {
+    if (analyzing) return;
+    if (recorder && recorder.state === 'recording') stopRec();
+    else startRec();
+  }
 
   function mount(host) {
     if (!host || host.querySelector('.ml-panel')) return;
@@ -229,10 +389,20 @@
     box.appendChild(el('h3', { text: t('title') }));
     box.appendChild(el('p', { class: 'ml-sub', text: t('sub') }));
     var row = el('div', { class: 'ml-row' });
-    var on = el('input', { type: 'checkbox', id: 'mlOn' });
-    on.addEventListener('change', function () { setOn(on.checked); });
+    btnRec = el('button', { type: 'button', class: 'tbtn ml-rec', id: 'mlRecBtn', text: t('recStart') });
+    btnRec.addEventListener('click', toggleRec);
+    row.appendChild(btnRec);
+    btnSaveVid = el('button', { type: 'button', class: 'tbtn', id: 'mlSaveVidBtn', text: t('saveVideo'), disabled: true });
+    btnSaveVid.addEventListener('click', function () {
+      if (!recordedBlob) return;
+      var stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+      A.saveFile('matchlog-' + stamp + '.webm', recordedBlob, recordedBlob.type || 'video/webm');
+    });
+    row.appendChild(btnSaveVid);
+    chkLive = el('input', { type: 'checkbox', id: 'mlOn' });
+    chkLive.addEventListener('change', function () { setOn(chkLive.checked); });
     var lab = el('label', { class: 'ml-check' });
-    lab.appendChild(on);
+    lab.appendChild(chkLive);
     lab.appendChild(el('span', { text: t('on') }));
     row.appendChild(lab);
     var roi = el('input', { type: 'checkbox' });

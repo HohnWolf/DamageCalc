@@ -12,3 +12,4 @@
 }
 .ml-roi { width: min(100%, 480px); height: auto; border-radius: 8px; background: #000; }
 .ml-roi[hidden] { display: none; }
+.ml-rec.is-rec { background: #dc2626; color: #fff; border-color: #ef4444; }

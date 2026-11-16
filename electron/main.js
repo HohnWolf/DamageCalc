@@ -175,10 +175,27 @@ function createWindow() {
           logText = logEl ? logEl.textContent : '';
           if (/Fake Out/i.test(logText) && /battle/.test(sceneText)) break;
         }
+        var liveOk = /Fake Out/i.test(logText) && /battle/.test(sceneText);
+
+        // Aufnahme-Modus testen: Record -> Stop -> 12fps Videoanalyse -> Video speichern aktiv
+        var recBtn = document.getElementById('mlRecBtn');
+        var saveVidBtn = document.getElementById('mlSaveVidBtn');
+        var recOk = false, recLog = '', recTime = '';
+        if (recBtn && saveVidBtn) {
+          host.querySelector('.ml-log').textContent = '';
+          recBtn.click();
+          await new Promise(function (r) { setTimeout(r, 700); });
+          recBtn.click();
+          for (var j = 0; j < 120; j++) {
+            await new Promise(function (r) { setTimeout(r, 100); });
+            recLog = host.querySelector('.ml-log').textContent || '';
+            recTime = host.querySelectorAll('.ml-debug')[2].textContent || '';
+            if (!saveVidBtn.disabled && /Fake Out/i.test(recLog) && /12 fps/.test(recTime)) { recOk = true; break; }
+          }
+        }
         clearInterval(pump);
         try { stream.getTracks().forEach(function (tr) { tr.stop(); }); } catch (e) {}
-        var ok = /Fake Out/i.test(logText) && /battle/.test(sceneText);
-        return { ok: ok, scene: sceneText, time: timeText, log: logText.slice(0, 500) };
+        return { ok: liveOk && recOk, liveOk: liveOk, recOk: recOk, scene: sceneText, time: recTime || timeText, log: (recLog || logText).slice(0, 500) };
       })()`, true).then((result) => {
         try { fs.mkdirSync(shot, { recursive: true }); fs.writeFileSync(path.join(shot, 'matchlog-smoke.json'), JSON.stringify(result)); } catch (e) { /* */ }
         setTimeout(() => { try { app.exit(result && result.ok ? 0 : 1); } catch (e) { process.exit(result && result.ok ? 0 : 1); } }, 50);

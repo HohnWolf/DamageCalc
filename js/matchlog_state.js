@@ -75,7 +75,7 @@
         else st.cmdPending = true;
       }
     } else if (scene === 'move_select' || scene === 'target_select') {
-      if (st.cmdPending) enterCommand(st);
+      if (st.cmdPending || st.phase === 'play' || st.phase === 'locked') enterCommand(st);
       if (st.phase === 'pre') { st.turnN = Math.max(1, st.turnN); st.phase = 'command'; }
     } else {
       st.cmdPending = false;
@@ -172,15 +172,24 @@
     if (a.kind === 'boost' && a.stat !== b.stat) return false;
     return true;
   }
+  function teamItemOf(st, monIdOrSpecies) {
+    var sp = st.mons[monIdOrSpecies] ? st.mons[monIdOrSpecies].species : String(monIdOrSpecies || '').replace(/^[^:]+:/, '');
+    var k = norm(sp);
+    for (var i = 0; i < st.teams.you.length; i++) {
+      if (norm(st.teams.you[i].species) === k && st.teams.you[i].item) return st.teams.you[i].item;
+    }
+    return '';
+  }
   function refine(st, ev) {
     var surge = {
       electricsurge: 'Electric Terrain', grassysurge: 'Grassy Terrain', mistysurge: 'Misty Terrain', psychicsurge: 'Psychic Terrain',
       snowwarning: 'Snow', drizzle: 'Rain', drought: 'Sun', sandstream: 'Sandstorm'
     };
     if (ev.kind === 'ability' && !ev.field && surge[norm(ev.ability || '')]) ev.field = surge[norm(ev.ability)];
-    if (ev.kind === 'mega' && st.lastItem) {
-      if (/raichunite x/i.test(st.lastItem) && /mega raichu$/i.test(ev.into || '')) ev.into = 'Mega Raichu X';
-      if (/raichunite y/i.test(st.lastItem) && /mega raichu$/i.test(ev.into || '')) ev.into = 'Mega Raichu Y';
+    if (ev.kind === 'mega' && /^Mega (Raichu|Charizard|Mewtwo)(?: [XY])?$/i.test(ev.into || '') && !/ [xy]\b/i.test(ev.line || '')) {
+      var stone = (ev.side === 'you' ? teamItemOf(st, ev.mon) : '') || st.lastItem || '';
+      if (/ite x\b/i.test(stone)) ev.into = ev.into.replace(/ [XY]$/, '') + ' X';
+      else if (/ite y\b/i.test(stone)) ev.into = ev.into.replace(/ [XY]$/, '') + ' Y';
     }
     if (ev.kind === 'boost' && !ev.stat) {
       if (st.lastAbility && norm(st.lastAbility) === 'speedboost') ev.stat = 'spe';
@@ -239,6 +248,10 @@
         return;
       }
     }
+    if (ev.kind === 'send_out' && ev.side === 'you' && st.leads.you.length && ev.mons && ev.mons.length) {
+      var allOnField = ev.mons.every(function (id) { return id === st.slotMon.ownA || id === st.slotMon.ownB; });
+      if (allOnField) return;
+    }
     if (ev.kind === 'send_out' && ev.side === 'you' && ev.mons) {
       ev.mons.forEach(function (id) {
         var sp = st.mons[id] ? st.mons[id].species : '';
@@ -296,7 +309,7 @@
     if (parsed.kind === 'team_mon' || parsed.kind === 'team_item' || parsed.kind === 'choice_move') return;
     if (parsed.kind === 'withdraw' && !parsed.side) {
       parsed.side = inYouTeam(st, parsed.mon) ? 'you' : 'foe';
-    } else if (parsed.mon && st.teams.you.length >= 4 && parsed.side === 'you' && !inYouTeam(st, parsed.mon) && st.foeSeen.indexOf(parsed.mon) >= 0) {
+    } else if (parsed.mon && st.teams.you.length >= 4 && parsed.side === 'you' && !inYouTeam(st, parsed.mon) && (st.teams.you.length >= 6 || st.foeSeen.indexOf(parsed.mon) >= 0)) {
       parsed.side = 'foe';
     }
     if (parsed.side === 'you' && st.teams.you.length >= 4) {

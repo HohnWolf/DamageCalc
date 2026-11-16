@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.5',
+      de: ['Matchlog (Test): Neuer Aufnahme-Modus („Match aufnehmen“ → „Aufnahme stoppen & Log erstellen“ mit 12 fps Video-Auswertung und „Video speichern“), plus Fix für Mega Raichu X/Y über Team-Item, oppcsing-Typos und direkte battle→move_select-Turn-Wechsel.'],
+      en: ['Matchlog (test): new record-and-analyze mode (“Record match” → “Stop & build log” at 12 fps with “Save video”), plus fixes for Mega Raichu X/Y via team item, oppcsing typos and direct battle→move_select turn transitions.'] },
     { v: '1.29.4',
       de: ['Matchlog (Test): Entprellte Zugwechsel (keine Turn-Sprünge mehr mitten in Animationen), sauberes Upgrade bei Teil-OCR (z. B. Trick -> Trick Room) und ohne doppelte Tailwind-/Trick-Room-Zeilen.'],
       en: ['Matchlog (test): debounced turn transitions (no mid-animation turn splits), prefix move upgrade (e.g. Trick -> Trick Room), and no duplicate Tailwind/Trick Room field lines.'] },

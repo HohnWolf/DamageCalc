@@ -16,7 +16,7 @@
     return flat(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
   }
   function opposing(s) {
-    return /oppos|(?:\b|[^a-z])p?posing\b|gegn/.test(s);
+    return /oppos|\bopp[a-z]{1,4}ing\b|(?:\b|[^a-z])p?posing\b|gegn/.test(s);
   }
   function oneMove(text, lex) {
     var L = lexApi();
@@ -88,8 +88,8 @@
       var megas = mons.filter(function (n) { return /^mega /i.test(n); });
       var bases = mons.filter(function (n) { return !/^mega /i.test(n); });
       var into = '';
-      if (megas.length > 1 && !/ x\b/.test(s) && !/ y\b/.test(s)) into = megas[0].replace(/ [XY]$/, '');
-      else if (megas.length) into = megas.slice().sort(function (a, b) { return b.length - a.length; })[0];
+      if (megas.length) into = megas.slice().sort(function (a, b) { return b.length - a.length; })[0];
+      if (into && !/\bx\b/.test(s) && !/\by\b/.test(s)) into = into.replace(/ [XY]$/, '');
       var actor = bases[0] || (into ? into.replace(/^Mega /, '').replace(/ [XY]$/, '') : mon);
       return { kind: 'mega', mon: actor, into: into || actor, side: opposing(s) ? 'foe' : 'you', line: raw };
     }
