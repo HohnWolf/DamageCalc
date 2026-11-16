@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.31.0',
+      de: ['Shiny-Clips: Live-Pegelanzeige (Audio-Meter wie in OBS) für jede Tonquelle, damit man direkt sieht, ob Ton ankommt und wie stark der Regler ausschlägt.'],
+      en: ['Shiny clips: live audio level meter (OBS-style) on each sound source so you can immediately see incoming audio and slider levels.'] },
     { v: '1.30.0',
       de: ['Projektor: Option „Quelle (nativ)“ entfernt – die Bildrate (10–60 Bilder/s) gilt nun direkt als Obergrenze für die Aufnahme.'],
       en: ['Projector: removed the “Source (native)” option — the frame rate (10–60 fps) now applies directly as the capture cap.'],

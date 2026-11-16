@@ -82,7 +82,7 @@
 
   // ---------------- source ----------------
   var src = null; // { stream, own, ac, dest, audioNodes, label, kind }
-  var recs = [], tickTimer = null, pending = null, mime = '';
+  var recs = [], tickTimer = null, pending = null, mime = '', meterRaf = 0;
   function canRecord() { return typeof MediaRecorder !== 'undefined'; }
   function pickMime(audio) {
     var list = audio
@@ -118,13 +118,36 @@
     gain.gain.value = clampVol(volume);
     node.connect(gain);
     gain.connect(dest);
-    return { id: id, node: node, gain: gain, tracks: tracks };
+    var analyser = null, buf = null;
+    if (ac.createAnalyser) {
+      analyser = ac.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.45;
+      gain.connect(analyser);
+      buf = new Uint8Array(analyser.fftSize);
+    }
+    return { id: id, node: node, gain: gain, analyser: analyser, buf: buf, level: 0, tracks: tracks };
   }
   function disconnectAudioNode(entry) {
     if (!entry) return;
     try { entry.node.disconnect(); } catch (e) { /* */ }
     try { entry.gain.disconnect(); } catch (e) { /* */ }
+    if (entry.analyser) { try { entry.analyser.disconnect(); } catch (e) { /* */ } }
     (entry.tracks || []).forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } });
+  }
+  function sampleAudioLevel(entry) {
+    if (!entry || !entry.analyser || !entry.buf) return 0;
+    entry.analyser.getByteTimeDomainData(entry.buf);
+    var sum = 0;
+    for (var i = 0; i < entry.buf.length; i++) {
+      var v = (entry.buf[i] - 128) / 128;
+      sum += v * v;
+    }
+    var rms = Math.sqrt(sum / entry.buf.length);
+    var db = 20 * Math.log10(Math.max(rms, 1e-5));
+    var pct = Math.max(0, Math.min(100, (db + 55) / 55 * 100));
+    entry.level = Math.max(pct, (entry.level || 0) * 0.82);
+    return entry.level;
   }
   function cleanupSource(s) {
     if (!s) return;
@@ -201,6 +224,7 @@
   }
   function stopBuffer() {
     clearInterval(tickTimer); tickTimer = null;
+    if (meterRaf && typeof cancelAnimationFrame === 'function') { cancelAnimationFrame(meterRaf); meterRaf = 0; }
     recs.forEach(function (r) { if (!r.keep) { try { r.mr.stop(); } catch (e) { /* stopped */ } } });
     recs = recs.filter(function (r) { return r.keep; });
     if (src && !pending) cleanupSource(src);
@@ -473,14 +497,22 @@
 
     var aList = el('div', { class: 'clip-audio-list' });
     var nameEls = {};
+    var meterEls = {};
     if (!cfg.audioSources.length) {
       aList.appendChild(el('div', { class: 'hint', text: t('audioNone') }));
     } else {
       cfg.audioSources.forEach(function (item) {
         var r = el('div', { class: 'clip-audio-row' });
+        var info = el('div', { class: 'clip-audio-info' });
         var nm = el('span', { class: 'clip-audio-name', text: sourceLabel(item, null), title: sourceLabel(item, null) });
         nameEls[item.id] = nm;
-        r.appendChild(nm);
+        info.appendChild(nm);
+        var meter = el('div', { class: 'clip-audio-meter', 'aria-hidden': 'true' });
+        var mFill = el('div', { class: 'clip-audio-meter-fill' });
+        meter.appendChild(mFill);
+        meterEls[item.id] = { bar: meter, fill: mFill };
+        info.appendChild(meter);
+        r.appendChild(info);
         var pct = Math.round(clampVol(item.volume) * 100);
         var sl = el('input', { type: 'range', min: 0, max: 200, step: 5, value: pct, title: t('audioVol') });
         var vl = el('span', { class: 'clip-audio-vol', text: pct + ' %' });
@@ -501,6 +533,27 @@
     audioBox.appendChild(aList);
     audioBox.appendChild(el('div', { class: 'hint', text: t('audioHint') }));
     box.appendChild(audioBox);
+
+    if (meterRaf) { cancelAnimationFrame(meterRaf); meterRaf = 0; }
+    if (src && cfg.audioSources.length && typeof requestAnimationFrame === 'function') {
+      var stepMeter = function () {
+        meterRaf = 0;
+        if (!src || box.isConnected === false) return;
+        Object.keys(meterEls).forEach(function (id) {
+          var node = src.audioNodes && src.audioNodes[id];
+          var lvl = sampleAudioLevel(node);
+          var m = meterEls[id];
+          if (m && m.fill && m.fill.style && m.fill.style.setProperty) {
+            m.fill.style.setProperty('--lvl', lvl.toFixed(1) + '%');
+          }
+          if (m && m.bar && m.bar.classList && m.bar.classList.toggle) {
+            m.bar.classList.toggle('is-active', lvl > 4);
+          }
+        });
+        meterRaf = requestAnimationFrame(stepMeter);
+      };
+      meterRaf = requestAnimationFrame(stepMeter);
+    }
 
     if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) navigator.mediaDevices.enumerateDevices().then(function (devs) {
       var i = 0, devMap = {};

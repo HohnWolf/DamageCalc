@@ -195,8 +195,11 @@
 .clip-row .tbtn { height: 24px; font-size: 12px; }
 .clip-audio { display: flex; flex-direction: column; gap: 6px; }
 .clip-audio-list { display: flex; flex-direction: column; gap: 4px; }
-.clip-audio-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); }
-.clip-audio-name { flex: 1; min-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.clip-audio-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); }
+.clip-audio-info { flex: 1; min-width: 110px; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.clip-audio-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.clip-audio-meter { position: relative; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.clip-audio-meter-fill { position: absolute; inset: 0; border-radius: 3px; background: linear-gradient(90deg, #22c55e 0%, #22c55e 65%, #eab308 82%, #ef4444 100%); clip-path: inset(0 calc(100% - var(--lvl, 0%)) 0 0); transition: clip-path 50ms linear; }
 .clip-audio-row input[type=range] { width: 120px; accent-color: var(--accent-2); }
 .clip-audio-vol { width: 42px; text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); }
 .clip-audio-row .tbtn { height: 24px; font-size: 12px; padding: 0 7px; }
