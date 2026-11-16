@@ -98,8 +98,8 @@ else ok('Übernahme-Skript wird geladen');
 
 const vp = pkg.version.split('-')[0].split('.').map(function (x) { return parseInt(x, 10) || 0; });
 const code = vp[0] * 10000 + vp[1] * 100 + vp[2];
-eq(pkg.version, '1.29.8', 'App-Version 1.29.8');
-eq(code, 12908, 'Android versionCode 12908');
+eq(pkg.version, '1.29.9', 'App-Version 1.29.9');
+eq(code, 12909, 'Android versionCode 12909');
 const gradle = fs.readFileSync(path.join(__dirname, '..', 'mobile/android/app/build.gradle'), 'utf8');
 if (!gradle.includes('versionName appVersion') || !gradle.includes('versionCode appVersionCode') || !gradle.includes("parse(file('../../../package.json'))")) fail('Android-Version kommt nicht aus der package.json');
 else ok('Android versionName folgt der package.json');

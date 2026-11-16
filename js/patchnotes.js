@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.29.9',
+      de: ['Game Projector: Umbenannt und wieder ein reiner Projektor ohne Matchlog.', 'Matchlog (Alpha): Eigenes Werkzeug unter VGC mit ALPHA-Kennzeichnung, eigener Quellen-Auswahl und Übernahme vom Game Projector.', 'Shiny-Clips: Multi-Audio-Quellen mit Lautstärke-Mixer und automatische Projektor-Verbindung.'],
+      en: ['Game Projector: renamed and restored to a pure projector without Matchlog.', 'Matchlog (Alpha): dedicated tool under VGC with an ALPHA badge, its own source picker, and Game Projector fallback.', 'Shiny clips: multi-audio sources with volume mixer and automatic projector connection.'] },
     { v: '1.29.8',
       de: ['Matchlog (Test): Turn-Erkennung über den gegnerischen Timer (07:00 = Turn 1, neuer Turn erst bei Timer-Veränderung nach Kampf-Events), kein falsches Tailwind bei „petered out“ und verbesserte opposing-Erkennung.'],
       en: ['Matchlog (test): turn tracking via the opponent timer (07:00 = Turn 1, new turn only when the timer drops after battle events), ignores “tailwind petered out”, and improved opposing OCR matching.'] },

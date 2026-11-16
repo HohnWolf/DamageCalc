@@ -179,7 +179,7 @@
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
-      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Schadensrechner, Teambuilder, Matchups', catRunsText: 'Soul Link, Nuzlocke, Randomizer', catDexText: 'Alle 1025 Pokémon mit 3D-Modellen', catGo: 'GO', catGoText: 'GO-Pokédex, Top Counter, Infos', catRestText: 'Shiny-Zähler, Overlays, Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navProjector: 'Capture-Projektor', startProjectorKo: 'Capture-Karte · Vollbild', startProjectorText: 'Zeigt das Bild deiner Capture-Karte oder eines Bildschirms in einem eigenen Fenster, ohne Zähler und Overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
+      proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Schadensrechner, Teambuilder, Matchups', catRunsText: 'Soul Link, Nuzlocke, Randomizer', catDexText: 'Alle 1025 Pokémon mit 3D-Modellen', catGo: 'GO', catGoText: 'GO-Pokédex, Top Counter, Infos', catRestText: 'Shiny-Zähler, Overlays, Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navMatchlog: 'Matchlog', startMatchlogKo: 'Alpha · Capture → Log', startMatchlogText: 'Frühe Alpha: Liest Doppelkämpfe in Pokémon Champions aus dem Capture-Bild und schreibt das Protokoll automatisch mit.', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navProjector: 'Game Projector', startProjectorKo: 'Capture-Karte · Vollbild', startProjectorText: 'Zeigt das Bild deiner Capture-Karte oder eines Bildschirms in einem eigenen Fenster, ohne Zähler und Overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
       startMatchText: 'Alle Spiele eines Teams aus dem Teambuilder: Replays, Nutzung, Leads und Matchups.',
       startOverlayText: 'OBS-Overlays fürs Match: beide Teams als Spalte mit KP und K.O., Teampreview mit Bank, Matchup-Banner und Startseite. Jedes einzeln ein- und ausschaltbar.',
@@ -335,7 +335,7 @@
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
-      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage calc, teambuilder, matchups', catRunsText: 'Soul Link, Nuzlocke, randomizer', catDexText: 'All 1025 Pokémon with 3D models', catGo: 'GO', catGoText: 'GO Pokédex, top counter, info', catRestText: 'Shiny counter, overlays, catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team Analysis', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Capture projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
+      proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage calc, teambuilder, matchups', catRunsText: 'Soul Link, Nuzlocke, randomizer', catDexText: 'All 1025 Pokémon with 3D models', catGo: 'GO', catGoText: 'GO Pokédex, top counter, info', catRestText: 'Shiny counter, overlays, catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team Analysis', navMatchlog: 'Matchlog', startMatchlogKo: 'Alpha · Capture → Log', startMatchlogText: 'Early alpha: reads Pokémon Champions doubles from the capture feed and writes the battle log automatically.', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Game Projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
       startMatchText: 'Every game with one teambuilder team: replays, usage, leads and matchups.',
       startOverlayText: 'OBS overlays for matches: both teams as a column with HP and KO, team preview with bench, matchup banner and start screen. Each one switches on and off.',
@@ -2266,7 +2266,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.29.8') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.29.9') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2407,7 +2407,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.29.8';
+      var ver = (updStatus && updStatus.current) || '1.29.9';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2537,10 +2537,10 @@
             onOff, window.CCShiny.getAuto('detect') ? '1' : '0', function (v) { window.CCShiny.setAuto('detect', v === '1'); });
         }
         if (window.CCProjectorView && window.CCProjectorView.setAuto) {
-          var gPv = makeGroup(de ? 'Capture-Projektor' : 'Capture projector');
+          var gPv = makeGroup('Game Projector');
           var onOffPv = [['1', de ? 'An' : 'On'], ['0', de ? 'Aus' : 'Off']];
           row(gPv, de ? 'Aufnahme automatisch wieder verbinden' : 'Reconnect the capture automatically',
-            de ? 'Verbindet beim Öffnen des Capture-Projektors die zuletzt genutzte Capture Card oder das Fenster erneut.' : 'Reconnects the last used capture card or window when the capture projector is opened.',
+            de ? 'Verbindet beim Öffnen des Game Projectors die zuletzt genutzte Capture Card oder das Fenster erneut.' : 'Reconnects the last used capture card or window when the Game Projector is opened.',
             onOffPv, window.CCProjectorView.getAuto('connect') ? '1' : '0', function (v) { window.CCProjectorView.setAuto('connect', v === '1'); });
         }
         var gTools = makeGroup(T('setTools'));
@@ -2598,7 +2598,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.29.8', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.29.9', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2702,13 +2702,13 @@
   }
 
   // ======================= views: start screen / calculator / teambuilder =======================
-  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype', 'btlrandom', 'btlchoice'];
-  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType'], ['btlrandom', 'navBtlRandom'], ['btlchoice', 'navBtlChoice']];
+  var VIEWS = ['start', 'calc', 'builder', 'soullink', 'nuz', 'shiny', 'match', 'matchlog', 'overlay', 'catch', 'projector', 'dex', 'godex', 'gocounter', 'goinfo', 'speedtier', 'randomizer', 'savedit', 'mgspeed', 'mgquiz', 'mgdmg', 'mgtype', 'btlrandom', 'btlchoice'];
+  var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['matchlog', 'navMatchlog', 'ALPHA'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType'], ['btlrandom', 'navBtlRandom'], ['btlchoice', 'navBtlChoice']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
-  var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']], ['vs', ['btlrandom', 'btlchoice']]];
+  var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier', 'matchlog']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']], ['vs', ['btlrandom', 'btlchoice']]];
   // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
   if (window.RL_ANDROID) {
-    var REST = ['shiny', 'overlay', 'projector']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
+    var REST = ['shiny', 'overlay', 'projector', 'matchlog']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
     CATS = CATS.map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; }).filter(function (c) { return c[1].length; });
@@ -2836,6 +2836,7 @@
     if (v === 'overlay' && window.CCOverlay) (window.CCOverlay.open || window.CCOverlay.render)();
     if (v === 'catch' && window.CCCatchCalc) window.CCCatchCalc.render();
     if (v === 'projector' && window.CCProjectorView) window.CCProjectorView.render();
+    if (v === 'matchlog' && window.CCMatchlogUI) window.CCMatchlogUI.render();
     if (v === 'dex' && window.CCDex) window.CCDex.render();
     if (v === 'godex' && window.CCGoDex) window.CCGoDex.render();
     if (v === 'gocounter' && window.CCGoCounter) window.CCGoCounter.render();
@@ -2934,7 +2935,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.29.8';
+    var ver = (updStatus && updStatus.current) || '1.29.9';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -3052,6 +3053,7 @@
     else if (location.hash === '#overlay') v = 'overlay';
     else if (location.hash === '#catch') v = 'catch';
     else if (location.hash === '#projector') v = 'projector';
+    else if (location.hash === '#matchlog') v = 'matchlog';
     else if (location.hash === '#dex') v = 'dex';
     else if (location.hash === '#godex') v = 'godex';
     else if (location.hash === '#gocounter') v = 'gocounter';

@@ -11,9 +11,9 @@
   var ID = 'capture-only';
 
   var S = de ? {
-    title: 'Capture-Projektor',
+    title: 'Game Projector',
     sub: 'Zeigt das Bild deiner Capture-Karte (oder eines Bildschirms) in einem eigenen Fenster. Ohne Zähler, Quote oder Timer, nur das reine Bild.',
-    desktopOnly: 'Den Capture-Projektor gibt es nur in der Desktop-App.',
+    desktopOnly: 'Den Game Projector gibt es nur in der Desktop-App.',
     source: 'Quelle', camera: 'Capture-Karte / Kamera …', screen: 'Bildschirm / Fenster', cameraN: 'Kamera {0}', refresh: 'Geräte neu suchen',
     reconnect: 'Verbinden: {0}', autoConnect: 'Aufnahme automatisch wieder verbinden',
     autoConnectT: 'Verbindet beim Öffnen automatisch wieder mit der zuletzt genutzten Capture-Karte bzw. dem Fenster.',
@@ -24,12 +24,12 @@
     sound: 'Ton', volume: 'Lautstärke', fps: 'Bilder/s', native: 'Quelle (nativ)',
     hint: 'Im Projektor: Rechtsklick öffnet das Menü, F11 schaltet Vollbild, Esc verlässt es.'
   } : {
-    title: 'Capture projector',
+    title: 'Game Projector',
     sub: 'Shows the picture of your capture card (or a screen) in its own window. No counter, odds or timer, just the raw picture.',
-    desktopOnly: 'The capture projector is only available in the desktop app.',
+    desktopOnly: 'The Game Projector is only available in the desktop app.',
     source: 'Source', camera: 'Capture card / camera …', screen: 'Screen / window', cameraN: 'Camera {0}', refresh: 'Rescan devices',
     reconnect: 'Connect: {0}', autoConnect: 'Reconnect the capture automatically',
-    autoConnectT: 'Reconnects to the last used capture card or window when the capture projector opens.',
+    autoConnectT: 'Reconnects to the last used capture card or window when the Game Projector opens.',
     connect: 'Connected: {0}', none: 'No source connected.', disconnect: 'Disconnect', fail: 'The source could not be opened.',
     project: 'Project', stop: 'Close projector', noVideo: 'Connect a source first.', openFail: 'The projector window could not be opened.',
     noAudio: 'This source has no audio. The picture is still shown.',
@@ -301,9 +301,6 @@
     opt.appendChild(fl);
     root.appendChild(opt);
     root.appendChild(el('p', { class: 'pv-note', text: t('hint') }));
-    var ml = el('div', { id: 'matchlogMount' });
-    root.appendChild(ml);
-    if (window.CCMatchlogUI) window.CCMatchlogUI.mount(ml);
 
     fillCameras();
     syncControls();

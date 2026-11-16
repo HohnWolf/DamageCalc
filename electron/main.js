@@ -132,10 +132,14 @@ function createWindow() {
       const frameUrl = fs.existsSync(frameFile) ? 'data:image/jpeg;base64,' + fs.readFileSync(frameFile).toString('base64') : '';
       win.webContents.executeJavaScript(`(async function () {
         try { window.CC.showView('projector'); } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
+        var pvHasMl = !!document.querySelector('#projectorView #matchlogMount');
+        if (pvHasMl) return { ok: false, error: 'projector still has matchlogMount' };
+        try { window.CC.showView('matchlog'); } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
+        var view = document.getElementById('matchlogView');
         var host = document.getElementById('matchlogMount');
-        var text = host ? host.innerText : '';
-        if (!host || !/Matchlog/.test(text) || !window.CCMatchlog || !window.CCMatchlogUI) {
-          return { ok: false, error: 'panel missing', text: text.slice(0, 500) };
+        var text = view ? view.innerText : '';
+        if (!host || !/Matchlog/.test(text) || !/ALPHA/.test(text) || !window.CCMatchlog || !window.CCMatchlogUI) {
+          return { ok: false, error: 'panel or ALPHA badge missing', text: text.slice(0, 500) };
         }
         var frameUrl = ${JSON.stringify(frameUrl)};
         if (!frameUrl) return { ok: true, text: text.slice(0, 500) };
@@ -152,14 +156,14 @@ function createWindow() {
         var pump = setInterval(function () { ctx.drawImage(img, 0, 0); }, 80);
         var stream = cv.captureStream(15);
         window.CCCapture.openStream = function () { return Promise.resolve(stream); };
-        var sel = document.querySelector('#projectorView select.det-cam');
+        var sel = document.querySelector('#matchlogView select.det-cam');
         if (!sel) { clearInterval(pump); return { ok: false, error: 'camSel missing' }; }
         var opt = document.createElement('option');
         opt.value = 'test-stream'; opt.textContent = 'Test-Stream';
         sel.appendChild(opt);
         sel.value = 'test-stream';
         sel.dispatchEvent(new Event('change'));
-        for (var k = 0; k < 40 && !(window.CCProjectorView && window.CCProjectorView.stream()); k++) {
+        for (var k = 0; k < 40 && !(window.CCMatchlogUI && window.CCMatchlogUI.stream()); k++) {
           await new Promise(function (r) { setTimeout(r, 50); });
         }
         var mlOn = document.getElementById('mlOn');

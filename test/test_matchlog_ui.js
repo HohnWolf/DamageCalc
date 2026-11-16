@@ -26,6 +26,6 @@ child.on('exit', (code) => {
     console.log('FAIL Matchlog-Panel', result, 'exit', code);
     process.exit(1);
   }
-  console.log('ok   Matchlog-Panel im Capture-Projektor');
+  console.log('ok   Matchlog-Alpha unter VGC (und Game Projector ohne Matchlog)');
   process.exit(0);
 });

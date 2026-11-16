@@ -1,12 +1,22 @@
-// Matchlog-Oberfläche im Capture-Projektor. Der Kern (js/matchlog*.js) bleibt ohne UI.
-// Liest denselben Capture-Strom wie der Projektor, etwa 8 Bilder/s, OCR über den Desktop-Prozess.
+// Matchlog-Oberfläche (Alpha) unter VGC. Der Kern (js/matchlog*.js) bleibt ohne UI.
+// Nutzt eine eigene Capture-Quelle oder übernimmt automatisch die laufende Quelle vom Game Projector.
 (function () {
-  var A = window.CC;
+  var A = window.CC, C = window.CCCapture;
   if (!A || !window.CCMatchlog) return;
   var el = A.el, de = A.LANG === 'de';
   var S = de ? {
-    title: 'Matchlog (Test)',
+    title: 'Matchlog',
+    alphaNote: 'Alpha-Version: Liest Pokémon-Champions-Doppelkämpfe automatisch aus dem Capture-Bild. Erkennung und KP-Werte können noch Lücken haben.',
     sub: 'Liest Doppelkämpfe aus dem Capture-Bild und schreibt das Protokoll selbst. Das Kampf-Log im Spiel bleibt zu.',
+    camera: 'Capture-Karte / Kamera …',
+    screen: 'Bildschirm / Fenster',
+    refresh: 'Geräte neu suchen',
+    disconnect: 'Trennen',
+    cameraN: 'Kamera {0}',
+    srcNone: 'Keine Quelle verbunden. Oben eine Quelle wählen oder zuerst im Game Projector verbinden.',
+    srcOwn: 'Verbunden: {0}',
+    srcProj: 'Nutzt laufende Quelle vom Game Projector.',
+    srcFail: 'Die Quelle konnte nicht geöffnet werden.',
     on: 'Matchlog lesen',
     need: 'Erst eine Quelle verbinden.',
     desk: 'Die Texterkennung läuft in der Desktop-App (im Prozess, ohne PowerShell).',
@@ -23,8 +33,18 @@
     recRun: 'Aufnahme + Live-Log: ',
     recFail: 'Videoaufnahme wird hier nicht unterstützt.'
   } : {
-    title: 'Matchlog (test)',
+    title: 'Matchlog',
+    alphaNote: 'Alpha version: automatically reads Pokémon Champions doubles from the capture feed. Recognition and HP values may still have gaps.',
     sub: 'Reads doubles from the capture and writes the log itself. The in-game battle log stays closed.',
+    camera: 'Capture card / camera …',
+    screen: 'Screen / window',
+    refresh: 'Rescan devices',
+    disconnect: 'Disconnect',
+    cameraN: 'Camera {0}',
+    srcNone: 'No source connected. Pick a source above or connect one in Game Projector first.',
+    srcOwn: 'Connected: {0}',
+    srcProj: 'Using active source from Game Projector.',
+    srcFail: 'The source could not be opened.',
     on: 'Read Matchlog',
     need: 'Connect a source first.',
     desk: 'Text recognition runs in the desktop app (in-process, no PowerShell).',
@@ -34,20 +54,22 @@
     save: 'Save JSON',
     clear: 'Clear log',
     empty: 'Nothing recognized yet.',
-    fps: 'Sampling 10 frames/s',
+    fps: 'Sampling 8 frames/s',
     recStart: 'Record match',
     recStop: 'Stop recording',
     saveVideo: 'Save video',
     recRun: 'Recording + live log: ',
     recFail: 'Video recording is not supported here.'
   };
-  function t(k) { return S[k]; }
+  function t(k, a) { var s = S[k] != null ? S[k] : k; return a == null ? s : s.replace('{0}', a); }
 
   var engine = null, timer = null, busy = false, grabbing = false, enabled = false, showRoi = false;
   var hidden = null, cap = null, capTrack = null, capFailed = false;
   var grabCanvas = null, gctx = null, overlay = null, octx = null;
   var logEl = null, sceneEl = null, ocrEl = null, timeEl = null;
   var btnRec = null, btnSaveVid = null, chkLive = null;
+  var root = null, camSel = null, statusEl = null, btnDisc = null;
+  var ownStream = null, ownLabel = '';
   var recorder = null, recChunks = [], recTimer = null, recStartAt = 0, analyzing = false;
   var recordedBlob = null, recordedUrl = '';
   var lastJobs = [];
@@ -57,11 +79,64 @@
     engine = window.CCMatchlog.create({ lex: lex, digits: window.CCMatchlogDigits || null });
   }
   function stream() {
+    if (ownStream) return ownStream;
     var V = window.CCProjectorView;
     var s = V && V.stream ? V.stream() : null;
     if (s) return s;
     var P = window.CCProjector;
     return P && P.stream ? P.stream() : null;
+  }
+  function syncSourceStatus() {
+    if (!statusEl) return;
+    if (ownStream) {
+      statusEl.textContent = t('srcOwn', ownLabel);
+      if (btnDisc) btnDisc.disabled = false;
+      return;
+    }
+    if (btnDisc) btnDisc.disabled = true;
+    statusEl.textContent = stream() ? t('srcProj') : t('srcNone');
+  }
+  function disconnectOwn() {
+    if (ownStream) {
+      ownStream.getTracks().forEach(function (tr) { try { tr.onended = null; tr.stop(); } catch (e) {} });
+    }
+    ownStream = null;
+    ownLabel = '';
+    resetSource();
+    syncSourceStatus();
+  }
+  function connectOwn(src) {
+    if (!C || !C.openStream) return Promise.resolve(null);
+    disconnectOwn();
+    if (statusEl) statusEl.textContent = '…';
+    return C.openStream(src).then(function (s) {
+      ownStream = s;
+      ownLabel = (src && src.label) || '';
+      s.getVideoTracks().forEach(function (tr) { tr.onended = function () { disconnectOwn(); }; });
+      syncSourceStatus();
+      return s;
+    }, function () {
+      ownStream = null;
+      syncSourceStatus();
+      if (A && A.toast) A.toast(t('srcFail'));
+      return null;
+    });
+  }
+  function fillCameras() {
+    if (!camSel || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    var keep = camSel.value || '';
+    navigator.mediaDevices.enumerateDevices().then(function (devs) {
+      if (!camSel) return;
+      camSel.innerHTML = '';
+      camSel.appendChild(el('option', { value: '', text: t('camera') }));
+      var n = 0;
+      devs.forEach(function (d) {
+        if (d.kind !== 'videoinput') return;
+        n++;
+        camSel.appendChild(el('option', { value: d.deviceId, text: d.label || t('cameraN', n) }));
+      });
+      if (keep) camSel.value = keep;
+    }, function () {});
   }
   function liveTrack(s) {
     var list = s && s.getVideoTracks ? s.getVideoTracks() : [];
@@ -300,7 +375,6 @@
     if (!host || host.querySelector('.ml-panel')) return;
     makeEngine();
     var box = el('section', { class: 'ml-panel' });
-    box.appendChild(el('h3', { text: t('title') }));
     box.appendChild(el('p', { class: 'ml-sub', text: t('sub') }));
     var row = el('div', { class: 'ml-row' });
     btnRec = el('button', { type: 'button', class: 'tbtn ml-rec', id: 'mlRecBtn', text: t('recStart') });
@@ -354,5 +428,53 @@
     box.appendChild(logEl);
     host.appendChild(box);
   }
-  window.CCMatchlogUI = { mount: mount, setOn: setOn };
+  function buildView() {
+    root.innerHTML = '';
+    var head = el('div', { class: 'ml-head' });
+    var back = el('button', { type: 'button', class: 'tbtn pv-back', text: '←' });
+    back.addEventListener('click', function () { A.showView('start'); });
+    head.appendChild(back);
+    var h2 = el('h2');
+    h2.appendChild(document.createTextNode(t('title') + ' '));
+    h2.appendChild(el('span', { class: 'alpha-badge', text: 'ALPHA' }));
+    head.appendChild(h2);
+    root.appendChild(head);
+    root.appendChild(el('p', { class: 'ml-alpha-note', text: t('alphaNote') }));
+
+    var srcRow = el('div', { class: 'ml-src-row' });
+    camSel = el('select', { class: 'det-cam', 'aria-label': t('camera') });
+    camSel.addEventListener('change', function () {
+      if (!camSel.value) return;
+      connectOwn({ kind: 'camera', id: camSel.value, label: camSel.options[camSel.selectedIndex].text });
+    });
+    srcRow.appendChild(camSel);
+    var rf = el('button', { class: 'tbtn', type: 'button', text: '↻', title: t('refresh') });
+    rf.addEventListener('click', fillCameras);
+    srcRow.appendChild(rf);
+    if (C && C.chooseScreen) {
+      var sb = el('button', { class: 'tbtn', type: 'button', text: t('screen') });
+      sb.addEventListener('click', function () { C.chooseScreen(connectOwn); });
+      srcRow.appendChild(sb);
+    }
+    btnDisc = el('button', { class: 'tbtn', type: 'button', text: t('disconnect'), disabled: true });
+    btnDisc.addEventListener('click', disconnectOwn);
+    srcRow.appendChild(btnDisc);
+    root.appendChild(srcRow);
+
+    statusEl = el('div', { class: 'ml-status' });
+    root.appendChild(statusEl);
+
+    var mountHost = el('div', { id: 'matchlogMount' });
+    root.appendChild(mountHost);
+    mount(mountHost);
+    fillCameras();
+    syncSourceStatus();
+  }
+  function render() {
+    root = document.getElementById('matchlogView');
+    if (!root) return;
+    if (!root.firstChild) buildView();
+    else { fillCameras(); syncSourceStatus(); }
+  }
+  window.CCMatchlogUI = { render: render, mount: mount, setOn: setOn, stream: stream };
 })();

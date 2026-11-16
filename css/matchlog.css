@@ -1,12 +1,21 @@
-/* Matchlog-Test im Capture-Projektor */
-.ml-panel { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line, #2a2a30); display: flex; flex-direction: column; gap: 8px; }
+/* Matchlog (Alpha) unter VGC (js/matchlog_ui.js) */
+.matchlog-view { display: flex; flex-direction: column; gap: 12px; max-width: 980px; margin: 0 auto; padding: 16px; }
+.ml-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ml-head h2 { margin: 0; display: inline-flex; align-items: center; gap: 8px; }
+.ml-alpha-note {
+  margin: 0; padding: 8px 12px; border-radius: 8px; font-size: 13px;
+  background: rgba(245, 158, 11, .12); border: 1px solid rgba(245, 158, 11, .35);
+}
+.ml-src-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ml-status { font-size: 13px; opacity: .82; }
+.ml-panel { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line, #2a2a30); display: flex; flex-direction: column; gap: 8px; }
 .ml-panel h3 { margin: 0; }
 .ml-sub { margin: 0; opacity: .75; font-size: 13px; }
 .ml-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .ml-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
 .ml-debug { font: 12px/1.4 ui-monospace, Consolas, monospace; opacity: .85; }
 .ml-log {
-  margin: 0; max-height: 360px; overflow: auto; white-space: pre-wrap;
+  margin: 0; max-height: 420px; overflow: auto; white-space: pre-wrap;
   font: 13px/1.45 ui-monospace, Consolas, monospace;
   background: rgba(0, 0, 0, .25); border-radius: 8px; padding: 10px 12px;
 }
