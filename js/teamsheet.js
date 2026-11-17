@@ -50,11 +50,22 @@
     if (m) return slugOf(m[1]) + '-mega' + (m[2] ? '-' + m[2].toLowerCase() : '');
     return String(name).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[.'’:]/g, '').replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
   }
-  function pokeapiId(name) {
-    var s = slugOf(name), IDS = window.POKEAPI_IDS || {}; // erst beim Aufruf lesen: die Daten werden nach diesem Skript geladen
-    while (s) { if (IDS[s]) return IDS[s]; var i = s.lastIndexOf('-'); if (i < 0) break; s = s.slice(0, i); }
+  // PokéAPI hängt bei manchen Formen Zusätze an, die der Showdown-Name nicht hat (-breed, -standard, -mask, -plumage, -cap);
+  // dazu ein paar Namen, die anders heißen. Ohne das fällt die Form auf die Basis-Art zurück.
+  var ID_SUFFIX = ['-breed', '-standard', '-mask', '-plumage', '-cap'];
+  var ID_ALIAS = { 'rockruff-dusk': 'rockruff-own-tempo', 'maushold-four': 'maushold-family-of-four', 'maushold-three': 'maushold-family-of-three', 'zygarde-10': 'zygarde-10-power-construct', 'zygarde-50': 'zygarde-50-power-construct' };
+  function pokeapiIdOf(s, IDS) {
+    while (s) {
+      if (IDS[s]) return IDS[s];
+      if (ID_ALIAS[s] && IDS[ID_ALIAS[s]]) return IDS[ID_ALIAS[s]];
+      for (var k = 0; k < ID_SUFFIX.length; k++) if (IDS[s + ID_SUFFIX[k]]) return IDS[s + ID_SUFFIX[k]];
+      var i = s.lastIndexOf('-');
+      if (i < 0) break;
+      s = s.slice(0, i);
+    }
     return null;
   }
+  function pokeapiId(name) { return pokeapiIdOf(slugOf(name), window.POKEAPI_IDS || {}); } // Daten erst beim Aufruf lesen: sie werden nach diesem Skript geladen
   function loadSprite(species) {
     var id = pokeapiId(species);
     if (!id) return Promise.resolve(null);

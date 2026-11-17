@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.33.0',
+      de: ['Match-Overlays und Teamsheet: Die Sprites weiterer Formen werden jetzt richtig angezeigt (Paldea-Tauros, Galar-Darmanitan, Ogerpon-Masken, Squawkabilly-Farben, Rockruff-Dusk, Maushold-Vierer, Pikachu-Mützen). Vorher erschien die Basis-Form.'],
+      en: ['Match overlays and team sheet: sprites of more forms now show correctly (Paldean Tauros, Galarian Darmanitan, Ogerpon masks, Squawkabilly colors, Dusk Rockruff, Family of Four Maushold, Pikachu caps). Previously the base form appeared.'] },
     { v: '1.32.0',
       de: ['Aufnahme-Match-Overlay: Neuer Knopf „Disconnect all Sources“, der alle aktiven und gespeicherten Quellen-Verknüpfungen bei Shiny-Zähler, Matchlog und Projektor auf einmal trennt.'],
       en: ['Recording Match overlay: new “Disconnect all Sources” button that disconnects all active and saved source connections across Shiny Counter, Matchlog and Projector at once.'] },

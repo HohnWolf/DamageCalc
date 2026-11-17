@@ -240,16 +240,22 @@
     if (m) return slugOf(m[1]) + '-mega' + (m[2] ? '-' + m[2].toLowerCase() : '');
     return String(name).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[.'’:]/g, '').replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
   }
-  function pokeapiId(name) {
-    var s = slugOf(name);
+  // PokéAPI hängt bei manchen Formen Zusätze an, die der Showdown-Name nicht hat (-breed, -standard, -mask, -plumage, -cap);
+  // dazu ein paar Namen, die anders heißen. Ohne das fällt die Form auf die Basis-Art zurück.
+  var ID_SUFFIX = ['-breed', '-standard', '-mask', '-plumage', '-cap'];
+  var ID_ALIAS = { 'rockruff-dusk': 'rockruff-own-tempo', 'maushold-four': 'maushold-family-of-four', 'maushold-three': 'maushold-family-of-three', 'zygarde-10': 'zygarde-10-power-construct', 'zygarde-50': 'zygarde-50-power-construct' };
+  function pokeapiIdOf(s, IDS) {
     while (s) {
       if (IDS[s]) return IDS[s];
+      if (ID_ALIAS[s] && IDS[ID_ALIAS[s]]) return IDS[ID_ALIAS[s]];
+      for (var k = 0; k < ID_SUFFIX.length; k++) if (IDS[s + ID_SUFFIX[k]]) return IDS[s + ID_SUFFIX[k]];
       var i = s.lastIndexOf('-');
       if (i < 0) break;
       s = s.slice(0, i);
     }
     return null;
   }
+  function pokeapiId(name) { return pokeapiIdOf(slugOf(name), IDS); }
   function sdId(name) {
     var m = /^Mega (.+?)(?: ([XYZ]))?$/.exec(name);
     if (m) return idOf(m[1]) + '-mega' + (m[2] ? m[2].toLowerCase() : '');
@@ -1057,6 +1063,16 @@
     eq(pokeapiId('Mega Raichu Y'), 10305, 'pokeapi mega');
     eq(pokeapiId('Basculegion-F'), 10248, 'pokeapi female');
     eq(pokeapiId('Ho-Oh'), 250, 'pokeapi hyphen name');
+    eq(pokeapiId('Tauros-Paldea-Combat'), 10250, 'pokeapi tauros combat');
+    eq(pokeapiId('Tauros-Paldea-Blaze'), 10251, 'pokeapi tauros blaze');
+    eq(pokeapiId('Tauros-Paldea-Aqua'), 10252, 'pokeapi tauros aqua');
+    eq(pokeapiId('Darmanitan-Galar'), 10177, 'pokeapi darmanitan galar');
+    eq(pokeapiId('Ogerpon-Wellspring'), 10273, 'pokeapi ogerpon mask');
+    eq(pokeapiId('Squawkabilly-Blue'), 10260, 'pokeapi squawkabilly');
+    eq(pokeapiId('Rockruff-Dusk'), 10151, 'pokeapi rockruff dusk');
+    eq(pokeapiId('Maushold-Four'), 925, 'pokeapi maushold four');
+    eq(pokeapiId('Pikachu-Partner'), 10148, 'pokeapi pikachu cap');
+    eq(pokeapiId('Zygarde-10%'), 10181, 'pokeapi zygarde 10');
     eq(plainName('Goodra-Hisui', 'en'), 'Goodra', 'plain name');
     eq(parseBank('Amoonguss\nTornadus, Dragonite').mons.length, 3, 'bench');
     eq(monText('Raichu', 'Raichunite Y', 'Static', 'Timid', ['Protect']).split('\n')[0], 'Raichu-Mega-Y @ Raichunite Y', 'mega text');
