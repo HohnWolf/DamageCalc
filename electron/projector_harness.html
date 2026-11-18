@@ -72,9 +72,20 @@
       });
     }).then(function (both) {
       D.set({ overlay: true });
-      D.testMenu();
-      return sleep(400).then(function () {
-        return D.testShot({ which: 'projector', file: 'projector-context-menu.png' }).then(function (menu) {
+      // Das Menü schließt sich, sobald das Fenster den Fokus verliert. Auf einem echten Desktop kann ein anderes
+      // Fenster ihn kurz an sich ziehen, deshalb bis zu dreimal öffnen.
+      function menuShot(left) {
+        D.testMenu();
+        return sleep(700).then(function () {
+          return D.testShot({ which: 'projector', file: 'projector-context-menu.png' });
+        }).then(function (shot) {
+          var s = shot && shot.sample && shot.sample.spot;
+          var covered = !!(s && !(s.r > 170 && s.b > 170 && s.g < 90) && s.g > 20);
+          return covered || left <= 1 ? shot : menuShot(left - 1);
+        });
+      }
+      return sleep(0).then(function () {
+        return menuShot(3).then(function (menu) {
           var m = both.main && both.main.sample, p = both.projector && both.projector.sample, u = menu && menu.sample;
           // Der Rahmen ist eine Kontur: die Mitte bleibt das Bild, die gelben Pixel sind die Linie.
           var mainYellow = m && m.yellow > 30;

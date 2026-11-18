@@ -1,10 +1,14 @@
 const { app, BrowserWindow } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const ROOT = path.join(__dirname, '..');
-app.setPath('userData', '/tmp/rl-click-' + process.pid);
+app.setPath('userData', path.join(os.tmpdir(), 'rl-click-' + process.pid));
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 const shots = process.argv.indexOf('--shots') >= 0;
+// screenshots: CI (Linux) keeps the artifacts folder, elsewhere a temp folder
+const ART = process.platform === 'linux' ? '/opt/cursor/artifacts' : path.join(os.tmpdir(), 'rl-battle-shots');
+if (shots) { try { fs.mkdirSync(ART, { recursive: true }); } catch (e) { /* */ } }
 
 app.whenReady().then(async function () {
   require(path.join(ROOT, 'electron/battle_host')).init();
@@ -44,6 +48,7 @@ app.whenReady().then(async function () {
     await win.webContents.executeJavaScript("var g=document.querySelector('.btl-go'); if(g) g.click();", true);
     const seen = { preview: false, target: false, move: false, switch: false, end: false, pivot: false, fit: [] };
     let turn = 0;
+    const t0 = Date.now();
     for (let step = 0; step < 220; step++) {
       await sleep(40);
       const state = await win.webContents.executeJavaScript(`(function () {
@@ -71,12 +76,13 @@ app.whenReady().then(async function () {
         };
       })()`, true);
       if (state.bad) { seen.bad = state.bad; break; }
+      if (state.what && !seen.firstAt) seen.firstAt = Date.now() - t0;
       if (state.cut.length || state.scroll > 2) seen.fit.push({ step: step, cut: state.cut, scroll: state.scroll, what: state.what });
       if (state.what.indexOf('Wähle') === 0) {
         seen.preview = true;
         if (shots && !seen.shotPreview) {
           seen.shotPreview = true;
-          fs.writeFileSync('/opt/cursor/artifacts/battle-preview-' + w + 'x' + h + '.png', (await win.webContents.capturePage()).toPNG());
+          fs.writeFileSync(ART + '/battle-preview-' + w + 'x' + h + '.png', (await win.webContents.capturePage()).toPNG());
         }
         await win.webContents.executeJavaScript(`(function () {
           var p = document.querySelectorAll('.switchmenu button');
@@ -91,7 +97,7 @@ app.whenReady().then(async function () {
         seen.switch = true;
         if (shots && !seen.shotSwitch) {
           seen.shotSwitch = true;
-          fs.writeFileSync('/opt/cursor/artifacts/battle-switch.png', (await win.webContents.capturePage()).toPNG());
+          fs.writeFileSync(ART + '/battle-switch.png', (await win.webContents.capturePage()).toPNG());
         }
         await win.webContents.executeJavaScript(`(function () {
           var p = document.querySelectorAll('.switchmenu button:not(:disabled)');
@@ -107,7 +113,7 @@ app.whenReady().then(async function () {
         seen.target = true;
         if (shots && !seen.shotTarget) {
           seen.shotTarget = true;
-          fs.writeFileSync('/opt/cursor/artifacts/battle-target.png', (await win.webContents.capturePage()).toPNG());
+          fs.writeFileSync(ART + '/battle-target.png', (await win.webContents.capturePage()).toPNG());
         }
         await win.webContents.executeJavaScript(`(function () {
           var b = document.querySelector('.movemenu button.btl-target, .movemenu button');
@@ -119,7 +125,7 @@ app.whenReady().then(async function () {
         seen.move = true;
         if (shots && !seen.shotMove) {
           seen.shotMove = true;
-          fs.writeFileSync('/opt/cursor/artifacts/battle-move-' + w + 'x' + h + '-z' + zoom + '.png', (await win.webContents.capturePage()).toPNG());
+          fs.writeFileSync(ART + '/battle-move-' + w + 'x' + h + '-z' + zoom + '.png', (await win.webContents.capturePage()).toPNG());
         }
         var want = state.moves.filter(function (t) { return pivots.some(function (p) { return t.indexOf(p) === 0; }); })[0];
         if (want) seen.pivot = true;
@@ -137,14 +143,15 @@ app.whenReady().then(async function () {
         if (now > turn) turn = now;
         continue;
       }
-      if (step > 8 && !state.what) break;
+      // the first fight after the start loads the engine and team data, which can take a few seconds
+      if (!state.what && (seen.firstAt ? step > 8 : Date.now() - t0 > 8000)) break;
     }
     if (!seen.end) {
       await win.webContents.executeJavaScript("window.confirm=function(){return true;}; var b=Array.prototype.find.call(document.querySelectorAll('button'), function(x){return x.textContent==='Aufgeben';}); if(b) b.click();", true);
       await sleep(300);
       seen.end = await win.webContents.executeJavaScript("/Sieger:|Unentschieden/.test(document.body.innerText)", true);
     }
-    if (shots && seen.end) fs.writeFileSync('/opt/cursor/artifacts/battle-end.png', (await win.webContents.capturePage()).toPNG());
+    if (shots && seen.end) fs.writeFileSync(ART + '/battle-end.png', (await win.webContents.capturePage()).toPNG());
     seen.turn = turn;
     seen.label = label + ' ' + w + 'x' + h + ' @' + zoom;
     report.games.push(seen);
@@ -159,15 +166,15 @@ app.whenReady().then(async function () {
       await boot(1280, 720, '130');
       await win.webContents.executeJavaScript("window.CC.showView('btlrandom'); document.querySelector('.btl-go').click();", true);
       await sleep(500);
-      fs.writeFileSync('/opt/cursor/artifacts/battle-zoom130.png', (await win.webContents.capturePage()).toPNG());
+      fs.writeFileSync(ART + '/battle-zoom130.png', (await win.webContents.capturePage()).toPNG());
       await boot(1280, 720, '150');
       await sleep(300);
-      fs.writeFileSync('/opt/cursor/artifacts/battle-zoom150.png', (await win.webContents.capturePage()).toPNG());
+      fs.writeFileSync(ART + '/battle-zoom150.png', (await win.webContents.capturePage()).toPNG());
     }
   } catch (e) {
     report.errors.push(String(e && e.stack || e));
   }
-  fs.writeFileSync('/tmp/battle-click-report.json', JSON.stringify(report, null, 2));
+  fs.writeFileSync(path.join(os.tmpdir(), 'battle-click-report.json'), JSON.stringify(report, null, 2));
   console.log('REPORT ' + JSON.stringify(report));
   app.exit(report.errors.length ? 1 : 0);
 });

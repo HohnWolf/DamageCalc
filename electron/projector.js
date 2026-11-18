@@ -280,7 +280,8 @@ function init(win) {
       }
       return { ok: true, file: file, sample: sampleImage(image) };
     });
-    ipcMain.on('projector-test-menu', () => sendProj('projector-show-menu', { x: 28, y: 28 }));
+    // a real right click focuses the window first; without focus the next blur closes the menu at once
+    ipcMain.on('projector-test-menu', () => { if (alive(proj)) safe(() => proj.focus()); setTimeout(() => sendProj('projector-show-menu', { x: 28, y: 28 }), 250); });
     const race = (p, ms) => Promise.race([p, new Promise((resolve) => setTimeout(() => resolve({ timeout: true }), ms))]);
     ipcMain.handle('projector-test-info', async (e, spec) => {
       spec = spec || {};

@@ -1,5 +1,5 @@
 // Klickt die echte Kampfansicht in Electron durch: Vorschau, Attacke, Ziel, Wechsel, Ende.
-const fs = require('fs'), path = require('path'), cp = require('child_process');
+const fs = require('fs'), path = require('path'), os = require('os'), cp = require('child_process');
 let electron = '';
 try { electron = require('electron'); } catch (e) { electron = ''; }
 if (!electron || typeof electron !== 'string' || !fs.existsSync(electron)) {
@@ -13,7 +13,7 @@ const r = cp.spawnSync(electron, [harness, '--shots', '--no-sandbox', '--disable
 const out = (r.stdout || '') + (r.stderr || '');
 const line = (out.split('\n').filter(function (s) { return s.indexOf('REPORT ') === 0; }).pop() || '').slice(7);
 let report = null;
-try { report = JSON.parse(line || fs.readFileSync('/tmp/battle-click-report.json', 'utf8')); } catch (e) { report = null; }
+try { report = JSON.parse(line || fs.readFileSync(path.join(os.tmpdir(), 'battle-click-report.json'), 'utf8')); } catch (e) { report = null; }
 let bad = 0;
 function fail(m) { bad++; console.log('FAIL ' + m); }
 function ok(m) { console.log('ok   ' + m); }
