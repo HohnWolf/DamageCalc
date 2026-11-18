@@ -9,6 +9,15 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.36.2',
+      de: ['Damage Calculator: Der Rechenkern rechnet jetzt wie der NCP VGC Damage Calculator: Reihenfolge und Rundung der Modifikatoren, Wetter (Utility Umbrella, Harsh Sun, Heavy Rain, Strong Winds), viele Fähigkeiten (Sharpness, Huge Power bei Body Press, Mold Breaker, Flare/Toxic Boost, Heavy/Light Metal, Unburden, Steely Spirit, Analytic) und Immunitäten (Psycho-Feld gegen Vorrang, Queenly Majesty, Armor Tail, Damp, Sturdy gegen OHKO).',
+        'Damage Calculator: Mehrfachtreffer werden Treffer für Treffer gerechnet (Parental Bond, Resist-Beere und Multiscale nur beim ersten Treffer, Stamina und Weak Armor pro Treffer). Die KO-Chance kombiniert die Treffer unabhängig und zeigt 2 Nachkommastellen. Knock Off wird gegen einen eigenen Mega-Stein nicht mehr verstärkt.',
+        'Teambuilder: Ein Klick auf ein Pokémon in der Typ-Abdeckung oder im Versionsvergleich öffnet es im Editor. Ein Klick auf die Karten oben schließt die Ansicht.',
+        'Teambuilder: Beim Teilen wählst du die aktive Version, eine andere oder alle Versionen. QR-Code und PokéPaste tragen dann alle Versionen, und der Import legt sie wieder als Versionen an.'],
+      en: ['Damage calculator: the calculation now matches the NCP VGC Damage Calculator: order and rounding of modifiers, weather (Utility Umbrella, Harsh Sun, Heavy Rain, Strong Winds), many abilities (Sharpness, Huge Power with Body Press, Mold Breaker, Flare/Toxic Boost, Heavy/Light Metal, Unburden, Steely Spirit, Analytic) and immunities (Psychic Terrain against priority, Queenly Majesty, Armor Tail, Damp, Sturdy against OHKO).',
+        'Damage calculator: multi-hit moves are calculated hit by hit (Parental Bond, resist berries and Multiscale only on the first hit, Stamina and Weak Armor per hit). The KO chance combines the hits independently and shows 2 decimals. Knock Off is no longer boosted against the target’s own Mega Stone.',
+        'Team builder: clicking a Pokémon in type coverage or the version comparison opens it in the editor. Clicking the cards at the top closes the view.',
+        'Team builder: when sharing you pick the active version, another one or all versions. The QR code and PokéPaste then carry every version, and importing creates them as versions again.'] },
     { v: '1.36.1',
       de: ['Teambuilder: Die Versionen wählst du jetzt in einem Dropdown. Daneben liegen Typ-Abdeckung, „Versionen vergleichen“ (Unterschiede zweier Versionen farbig: rot entfernt, grün neu, gelb geändert) und der Regel-Check (Species- und Item-Klausel, erlaubte Pokémon und Items, Fähigkeiten, Lernsets, SP).',
         'Teambuilder: „Teilen“ erzeugt einen QR-Code mit Team und Teamname und lädt das Team mit einem Klick auf PokéPaste hoch. „QR importieren“ liest einen QR-Code aus einem Bild (wählen, einfügen oder hineinziehen, auf Android auch per Kamera).',
