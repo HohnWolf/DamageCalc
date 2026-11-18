@@ -9,6 +9,25 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.0.0',
+      de: ['Rattata Labs 2.0: Alle Neuerungen aus 1.36.1 und 1.36.2 sind jetzt eine Vollversion.'],
+      en: ['Rattata Labs 2.0: everything from 1.36.1 and 1.36.2 is now a full release.'],
+      full: {
+        de: [
+          'Damage Calculator: Der Rechenkern rechnet jetzt wie der NCP VGC Damage Calculator: Reihenfolge und Rundung der Modifikatoren, Wetter, viele Fähigkeiten und Immunitäten. Mehrfachtreffer werden Treffer für Treffer gerechnet, die KO-Chance zeigt 2 Nachkommastellen.',
+          'Teambuilder: Versionen wählst du in einem Dropdown. Daneben liegen Typ-Abdeckung, „Versionen vergleichen“ (rot entfernt, grün neu, gelb geändert) und der Regel-Check (Species- und Item-Klausel, erlaubte Pokémon und Items, Fähigkeiten, Lernsets, SP). Ein Klick auf ein Pokémon dort öffnet es im Editor.',
+          'Teambuilder: „Teilen“ erzeugt einen QR-Code mit Team und Teamname und lädt das Team auf PokéPaste hoch, wahlweise eine Version oder alle. „QR importieren“ liest den Code aus einem Bild (auf Android auch per Kamera).',
+          'Shiny-Zähler: Bei „Gefunden!“ gehen Screenshot und Clip auf Wunsch in einen Discord-Kanal (Webhook, unter „Hotkeys & OBS“).',
+          'Einstellungen: Animationen, Schriftart und Schriftgröße, Sprite-Stil je Werkzeug und ein neuer Bereich „Tastenkürzel“ zum freien Belegen. Die Standardwerte entsprechen dem bisherigen Verhalten.'
+        ],
+        en: [
+          'Damage calculator: the calculation now matches the NCP VGC Damage Calculator: order and rounding of modifiers, weather, many abilities and immunities. Multi-hit moves are calculated hit by hit, the KO chance shows 2 decimals.',
+          'Team builder: versions are picked from a dropdown. Next to it are type coverage, “Compare versions” (red removed, green new, yellow changed) and the rule check (species and item clause, allowed Pokémon and items, abilities, learnsets, SP). Clicking a Pokémon there opens it in the editor.',
+          'Team builder: “Share” creates a QR code with the team and its name and uploads the team to PokéPaste, one version or all of them. “Import QR” reads the code from an image (on Android also with the camera).',
+          'Shiny counter: on “Found!” the screenshot and clip can go to a Discord channel (webhook, under “Hotkeys & OBS”).',
+          'Settings: animations, font and text size, sprite style per tool and a new “Shortcuts” section to assign keys freely. The defaults match the previous behaviour.'
+        ]
+      } },
     { v: '1.36.2',
       de: ['Damage Calculator: Der Rechenkern rechnet jetzt wie der NCP VGC Damage Calculator: Reihenfolge und Rundung der Modifikatoren, Wetter (Utility Umbrella, Harsh Sun, Heavy Rain, Strong Winds), viele Fähigkeiten (Sharpness, Huge Power bei Body Press, Mold Breaker, Flare/Toxic Boost, Heavy/Light Metal, Unburden, Steely Spirit, Analytic) und Immunitäten (Psycho-Feld gegen Vorrang, Queenly Majesty, Armor Tail, Damp, Sturdy gegen OHKO).',
         'Damage Calculator: Mehrfachtreffer werden Treffer für Treffer gerechnet (Parental Bond, Resist-Beere und Multiscale nur beim ersten Treffer, Stamina und Weak Armor pro Treffer). Die KO-Chance kombiniert die Treffer unabhängig und zeigt 2 Nachkommastellen. Knock Off wird gegen einen eigenen Mega-Stein nicht mehr verstärkt.',
