@@ -43,7 +43,7 @@
       try { res = Calc.calculate(A, D, move, field, {}, {}); }
       catch (e) { return; }
       if (!res || !res.damage || res.status || res.empty) return;
-      var ko = Calc.koChance(res.damage, D, { sitrus: def.item === 'Sitrus Berry' });
+      var ko = Calc.koChance(res.damage, D, { sitrus: def.item === 'Sitrus Berry', perHit: res.perHit });
       var score = ko.n === 1 ? (1 + (ko.chance || 0)) : ko.n === 2 ? (0.4 + 0.3 * (ko.chance || 0)) : (ko.n ? 0.15 : 0);
       if (!best || score > best.score) best = { move: mv.name, ko: ko, score: score, acc: move.accuracy };
     });

@@ -177,7 +177,7 @@
       inWeather: 'bei {0}', inTerrain: 'auf {0}-Feld', withX: 'mit {0}', throughX: 'durch {0}', afterX: 'nach {0}', onCrit: 'bei Volltreffer',
       and: ' und ', after: ' nach ', recovery: 'Heilung durch {0}', sandDmg: 'Sandsturm-Schaden', burnDmg: 'Verbrennungs-Schaden',
       poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
-      koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. 5+HKO', koHazards: 'durch Hazards K.O.',
+      koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. {0}', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
       proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Schadensrechner, Teambuilder, Matchups', catRunsText: 'Soul Link, Nuzlocke, Randomizer', catDexText: 'Alle 1025 Pokémon mit 3D-Modellen', catGo: 'GO', catGoText: 'GO-Pokédex, Top Counter, Infos', catRestText: 'Shiny-Zähler, Overlays, Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navMatchlog: 'Matchlog', startMatchlogKo: 'Alpha · Capture → Log', startMatchlogText: 'Frühe Alpha: Liest Doppelkämpfe in Pokémon Champions aus dem Capture-Bild und schreibt das Protokoll automatisch mit.', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navProjector: 'Game Projector', startProjectorKo: 'Capture-Karte · Vollbild', startProjectorText: 'Zeigt das Bild deiner Capture-Karte oder eines Bildschirms in einem eigenen Fenster, ohne Zähler und Overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
       startShinyText: 'Shiny-Hunts zählen: Quoten für alle Spiele und Methoden, Phasen, Timer, Sammlung, globale Hotkeys, OBS-Overlay und automatische Erkennung (Alpha).',
@@ -333,7 +333,7 @@
       inWeather: 'in {0}', inTerrain: 'in {0} Terrain', withX: 'with {0}', throughX: 'through {0}', afterX: 'after {0}', onCrit: 'on a critical hit',
       and: ' and ', after: ' after ', recovery: '{0} recovery', sandDmg: 'sandstorm damage', burnDmg: 'burn damage',
       poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
-      koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible 5+HKO', koHazards: 'KO from hazards',
+      koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible {0}', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
       proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage calc, teambuilder, matchups', catRunsText: 'Soul Link, Nuzlocke, randomizer', catDexText: 'All 1025 Pokémon with 3D models', catGo: 'GO', catGoText: 'GO Pokédex, top counter, info', catRestText: 'Shiny counter, overlays, catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team Analysis', navMatchlog: 'Matchlog', startMatchlogKo: 'Alpha · Capture → Log', startMatchlogText: 'Early alpha: reads Pokémon Champions doubles from the capture feed and writes the battle log automatically.', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Game Projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
       startShinyText: 'Count shiny hunts: odds for every game and method, phases, timer, collection, global hotkeys, OBS overlay and auto detection (alpha).',
@@ -1508,8 +1508,8 @@
     var label = ko.n === 1 ? 'OHKO' : ko.n + 'HKO';
     if (ko.n === 0) ko.text = T('koHazards');
     else if (ko.chance === 1) ko.text = T('koGuaranteed', label);
-    else if (ko.n <= 4 && ko.chance > 0) ko.text = T('koChance', Math.round(ko.chance * 1000) / 10, label);
-    else if (ko.n === 5) ko.text = T('koPossible');
+    else if (ko.n <= 4 && ko.chance > 0) ko.text = T('koChance', Math.round(ko.chance * 10000) / 100, label);
+    else if (ko.possible) ko.text = T('koPossible', ko.n > 9 ? '10+HKO' : label);
     return ko;
   }
 
@@ -1598,7 +1598,7 @@
             var ko = null;
             if (!r.empty && !r.status && r.damage[r.damage.length - 1] > 0) {
               ko = localKO(C.koChance(r.damage, def, {
-                hazards: info.hazards, residual: info.residual, sitrus: info.sitrus,
+                hazards: info.hazards, residual: info.residual, sitrus: info.sitrus, perHit: r.perHit,
                 sash: (def.item === 'Focus Sash' || def.ability === 'Sturdy') && def.curHP === def.maxHP && !info.hazards
               }));
               if (ko) ko.text = koText(ko, info);
