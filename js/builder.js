@@ -68,7 +68,7 @@
   }
   var dragFrom = -1; // slot being dragged
   var sel = 0; // selected slot (0-5); equal to mons.length = "add a new Pokémon"
-  var tab = 'edit'; // lower panel: 'edit' (Pokémon editor) or 'cover' (type coverage)
+  var tab = 'edit'; // lower panel: 'edit' (Pokémon editor), 'cover' (type coverage) or 'io' (import/export of one Pokémon)
 
   // ---------------- helpers ----------------
   // ---------- forms: battle forms (Mega, Blade …), other formes/regional forms, cosmetic variants, gender ----------
@@ -240,7 +240,7 @@
   function render() {
     root = document.getElementById('builderView');
     if (!root) return;
-    if (tab !== 'edit' && tab !== 'cover') tab = 'edit';
+    if (tab !== 'edit' && tab !== 'cover' && tab !== 'io') tab = 'edit';
     var t = team();
     var cv = curVersion(t);
     if (sel > t.mons.length || sel > 5) sel = Math.min(t.mons.length, 5);
@@ -273,14 +273,15 @@
       '</div>' +
       '<div class="tb-slots" id="tbSlots"></div>' +
       '<div class="panel tb-work tab-' + tab + '" id="tbWork">' +
-      '<div class="tb-tabs"><button data-tab="edit">' + T('tbTabMon') + '</button><button data-tab="cover">' + T('tbWeak') + '</button></div>' +
+      '<div class="tb-tabs"><button data-tab="edit">' + T('tbTabMon') + '</button><button data-tab="cover">' + T('tbWeak') + '</button><button data-tab="io">' + (de ? 'Pokémon Import/Export' : 'Pokémon import/export') + '</button></div>' +
       '<div class="tb-edit" id="tbEdit"></div>' +
       '<div class="tb-cover" id="tbCover"></div>' +
+      '<div class="tb-io" id="tbIO"></div>' +
       '</div>' +
       '</section></div>';
     R = {
       list: root.querySelector('#tbList'), slots: root.querySelector('#tbSlots'), edit: root.querySelector('#tbEdit'),
-      cover: root.querySelector('#tbCover'), name: root.querySelector('#tbName'), count: root.querySelector('#tbCount'),
+      cover: root.querySelector('#tbCover'), io: root.querySelector('#tbIO'), name: root.querySelector('#tbName'), count: root.querySelector('#tbCount'),
       verPills: root.querySelector('#tbVerPills'), verName: root.querySelector('#tbVerName')
     };
     R.name.value = t.name;
@@ -292,6 +293,7 @@
         tab = b.dataset.tab;
         work.className = 'panel tb-work tab-' + tab;
         work.querySelectorAll('.tb-tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+        if (tab === 'io') renderIO(true);
       });
     });
     R.name.addEventListener('input', function () { team().name = R.name.value; persist(); renderList(); });
@@ -329,7 +331,11 @@
     root.querySelector('#tbExport').addEventListener('click', function () {
       var tm = team(), v = curVersion(tm);
       var title = tm.name + (tm.versions.length > 1 ? ' (' + v.name + ')' : '');
-      A.showModal(T('tbExportTitle') + ': ' + title, tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n'));
+      // the export dialog doubles as import: copy the text, or edit/replace it and import it back
+      openImport({
+        title: (de ? 'Team exportieren / importieren' : 'Export / import team') + ': ' + title,
+        text: tm.mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n')
+      });
     });
     root.querySelector('#tbSheet').addEventListener('click', function () {
       var tm = team();
@@ -593,6 +599,7 @@
 
   // ---------------- editor for one team member ----------------
   function renderEditor() {
+    renderIO(true);
     var tm = team(), m = tm.mons[sel];
     R.edit.innerHTML = '';
     if (!m) {
@@ -1356,6 +1363,7 @@
     return String(Math.round(x * 100) / 100).replace('.', de ? ',' : '.');
   }
   function renderCover() {
+    renderIO(false);
     var tm = team();
     R.cover.innerHTML = '';
     if (!tm.mons.length) { R.cover.appendChild(el('div', { class: 'tb-empty', text: T('tbEmptyTeam') })); return; }
@@ -1389,15 +1397,76 @@
     R.cover.appendChild(el('div', { class: 'hint tb-cv-hint', text: T('tbWeakHint') }));
   }
 
+  // ---------------- import/export of a single Pokémon (tab next to type coverage) ----------------
+  var ioFor = null; // the member whose text is shown; keeps the user's edits while nothing else changed
+  function renderIO(force) {
+    if (!R.io) return;
+    var tm = team(), m = tm.mons[sel] || null;
+    var ta = R.io.querySelector('textarea');
+    if (ta && !force && ioFor === m && document.activeElement === ta) return;
+    ioFor = m;
+    R.io.innerHTML = '';
+    var head = el('div', { class: 'tb-io-head' });
+    if (m) { var sp = el('span', { class: 'tb-cv-mon tb-io-mon' }); sp.appendChild(A.spriteFit(spriteOf(m), m.set.shiny)); head.appendChild(sp); }
+    head.appendChild(el('span', { class: 'hint', text: m
+      ? (de ? 'Set von ' + A.nSpecies(m.species) + ' im Textformat (Showdown). Kopieren, oder Text einfügen und übernehmen.' : 'Set of ' + A.nSpecies(m.species) + ' in text format (Showdown). Copy it, or paste a set and apply it.')
+      : (de ? 'Ein Pokémon im Textformat (Showdown) einfügen und zum Team hinzufügen.' : 'Paste one Pokémon in text format (Showdown) and add it to the team.') }));
+    R.io.appendChild(head);
+    ta = el('textarea', { spellcheck: 'false', class: 'tb-io-text' });
+    ta.placeholder = 'Garchomp @ Garchompite\nAbility: Rough Skin\nLevel: 50\nSPs: 2 HP / 32 Atk / 32 Spe\nJolly Nature\n- Earthquake\n- Dragon Claw\n- Rock Slide\n- Protect';
+    ta.value = m ? A.exportSet(m.set, m.setName, m.species) : '';
+    R.io.appendChild(ta);
+    var acts = el('div', { class: 'import-actions' }), msg = el('span', { class: 'hint' });
+    function parseOne() {
+      var res = A.parseShowdown(ta.value);
+      if (!res.mons.length) { msg.textContent = T('importNothing') + (res.errors.length ? ' (' + T('unknown', res.errors.join(', ')) + ')' : ''); return null; }
+      var n = res.mons[0]; n.set.species = n.species; fixGender(n);
+      var note = res.errors.length ? ' · ' + T('unknown', res.errors.join(', ')) : '';
+      if (res.mons.length > 1) note += ' · ' + (de ? 'nur das erste Pokémon übernommen' : 'only the first Pokémon was used');
+      return { mon: n, note: note };
+    }
+    function done(text) { sel = Math.min(sel, tm.mons.length - 1); persist(); renderSlots(); renderList(); renderCover(); renderEditor(); A.toast(text); }
+    if (m) {
+      var bCopy = el('button', { class: 'primary-btn', text: de ? 'Kopieren' : 'Copy' });
+      bCopy.addEventListener('click', function () { A.copy(ta.value); });
+      acts.appendChild(bCopy);
+      var bApply = el('button', { text: de ? 'Dieses Pokémon ersetzen' : 'Replace this Pokémon' });
+      bApply.addEventListener('click', function () {
+        var r = parseOne(); if (!r) return;
+        var i = tm.mons.indexOf(m); if (i < 0) return;
+        snapUndo(de ? 'Pokémon ersetzt' : 'Pokémon replaced');
+        tm.mons[i] = r.mon; sel = i;
+        done((de ? A.nSpecies(r.mon.species) + ' übernommen' : A.nSpecies(r.mon.species) + ' applied') + r.note);
+      });
+      acts.appendChild(bApply);
+    }
+    var bAdd = el('button', { text: de ? 'Als neues Pokémon hinzufügen' : 'Add as new Pokémon' });
+    if (!m) bAdd.className = 'primary-btn';
+    bAdd.disabled = tm.mons.length >= 6;
+    if (bAdd.disabled) bAdd.title = de ? 'Das Team ist voll (6/6).' : 'The team is full (6/6).';
+    bAdd.addEventListener('click', function () {
+      if (tm.mons.length >= 6) return;
+      var r = parseOne(); if (!r) return;
+      tm.mons.push(r.mon); sel = tm.mons.length - 1;
+      done((de ? A.nSpecies(r.mon.species) + ' hinzugefügt' : A.nSpecies(r.mon.species) + ' added') + r.note);
+    });
+    acts.appendChild(bAdd);
+    acts.appendChild(msg);
+    R.io.appendChild(acts);
+  }
+
   // ---------------- import ----------------
   var imp = null;
-  function openImport() {
+  // opts (optional): { title, text } – used by the export button, which prefills the text
+  function openImport(opts) {
+    opts = opts && opts.title ? opts : {};
     if (!imp) {
       imp = el('div', { class: 'modal hidden', id: 'tbImportModal' });
       imp.innerHTML = '<div class="modal-box wide"><div class="modal-head"><h3>' + A.esc(T('tbImportTitle')) + '</h3><button class="icon-btn" data-x>✕</button></div>' +
         '<p class="hint">' + T('importHintH') + '</p><textarea spellcheck="false"></textarea>' +
         '<div class="import-actions"><button data-new class="primary-btn">' + A.esc(T('tbImportNew')) + '</button><button data-newver>' + (de ? 'Als neue Version' : 'As new version') + '</button><button data-into>' + A.esc(T('tbImportInto')) + '</button>' +
         '<button data-calcyou class="tbtn">' + A.esc(T('tbFromCalcYou')) + '</button><button data-calcfoe class="tbtn">' + A.esc(T('tbFromCalcFoe')) + '</button>' +
+        '<button data-copy class="tbtn">' + (de ? 'Kopieren' : 'Copy') + '</button>' +
         '<span class="hint" data-msg></span></div></div>';
       document.body.appendChild(imp);
       var close = function () { imp.classList.add('hidden'); };
@@ -1428,6 +1497,7 @@
       imp.querySelector('[data-new]').addEventListener('click', function () { run('new'); });
       imp.querySelector('[data-newver]').addEventListener('click', function () { run('ver'); });
       imp.querySelector('[data-into]').addEventListener('click', function () { run('into'); });
+      imp.querySelector('[data-copy]').addEventListener('click', function () { A.copy(imp.querySelector('textarea').value); });
       [['[data-calcyou]', 0], ['[data-calcfoe]', 1]].forEach(function (pair) {
         imp.querySelector(pair[0]).addEventListener('click', function () {
           var ct = A.getCalcTeams ? A.getCalcTeams() : [[], []];
@@ -1438,8 +1508,11 @@
       });
     }
     imp.querySelector('[data-msg]').textContent = '';
+    imp.querySelector('h3').textContent = opts.title || T('tbImportTitle');
+    var ta = imp.querySelector('textarea');
+    if (opts.title) ta.value = opts.text || '';
     imp.classList.remove('hidden');
-    setTimeout(function () { imp.querySelector('textarea').focus(); }, 30);
+    setTimeout(function () { ta.focus(); if (opts.title) ta.select(); }, 30);
   }
 
   function takeFromCalc(mon) {

@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.34.0',
+      de: ['Teambuilder: Der Export-Dialog kann jetzt auch importieren. Text kopieren oder einen anderen einfügen und direkt als neues Team, neue Version oder Ersatz für das aktuelle Team übernehmen.', 'Teambuilder: Neuer Tab „Pokémon Import/Export“ neben der Typ-Abdeckung. Damit lässt sich ein einzelnes Pokémon im Textformat (Showdown) kopieren, ersetzen oder neu hinzufügen.'],
+      en: ['Team builder: the export dialog can now import as well. Copy the text, or paste another one and apply it as a new team, a new version or a replacement for the current team.', 'Team builder: new “Pokémon import/export” tab next to type coverage, to copy, replace or add a single Pokémon in text format (Showdown).'] },
     { v: '1.33.0',
       de: ['Match-Overlays und Teamsheet: Die Sprites weiterer Formen werden jetzt richtig angezeigt (Paldea-Tauros, Galar-Darmanitan, Ogerpon-Masken, Squawkabilly-Farben, Rockruff-Dusk, Maushold-Vierer, Pikachu-Mützen). Vorher erschien die Basis-Form.'],
       en: ['Match overlays and team sheet: sprites of more forms now show correctly (Paldean Tauros, Galarian Darmanitan, Ogerpon masks, Squawkabilly colors, Dusk Rockruff, Family of Four Maushold, Pikachu caps). Previously the base form appeared.'] },

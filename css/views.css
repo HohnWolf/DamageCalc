@@ -410,7 +410,13 @@ body.is-maximized #winMax .ic-restore { display: block; }
 }
 .tb-tabs button:hover { color: var(--text); background: var(--btn-hover); }
 .tb-tabs button.on { color: var(--text); border-bottom-color: var(--accent-2); }
-.tb-work.tab-edit .tb-cover, .tb-work.tab-cover .tb-edit { display: none; }
+.tb-work.tab-edit .tb-cover, .tb-work.tab-cover .tb-edit,
+.tb-work.tab-io .tb-edit, .tb-work.tab-io .tb-cover, .tb-work.tab-edit .tb-io, .tb-work.tab-cover .tb-io { display: none; }
+.tb-io { flex: 1; min-height: 0; overflow: auto; padding: 6px 8px; display: flex; flex-direction: column; gap: 6px; }
+.tb-io-head { display: flex; align-items: center; gap: 8px; flex: none; }
+.tb-io-mon { flex: none; }
+.tb-io-text { width: 100%; max-width: 760px; flex: 1; min-height: 180px; font-family: Consolas, monospace; font-size: 13px; padding: 8px; resize: vertical; }
+.tb-io .import-actions { flex: none; }
 .tb-edit { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 6px; display: flex; flex-direction: column; }
 .tb-cover { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 6px; }
 
