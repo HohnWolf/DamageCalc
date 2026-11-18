@@ -139,3 +139,10 @@ img.spr-styled { object-fit: contain; image-rendering: auto !important; }
 .sh-notify-st.bad { color: var(--bad); }
 .tb-legal-mon-head .tb-cv-mon, .tb-diff-card-head .tb-cv-mon { width: 30px; height: 24px; flex: none; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; }
 .tb-legal-mon-head .tb-cv-mon svg, .tb-legal-mon-head .tb-cv-mon img, .tb-diff-card-head .tb-cv-mon svg, .tb-diff-card-head .tb-cv-mon img { max-width: 100%; max-height: 100%; }
+/* clicking a Pokémon in type coverage or the comparison opens it in the editor */
+.tb-cover-table .tb-jump { background: transparent; border: 1px solid transparent; padding: 0; cursor: pointer; }
+.tb-cover-table .tb-jump:hover { border-color: var(--accent-2); background: var(--accent-soft); }
+.tb-diff-card.tb-jump { cursor: pointer; }
+.tb-diff-card.tb-jump:hover { border-color: var(--accent-2); }
+.rl-share-ver { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; }
+.rl-share-versel { height: 28px; min-width: 200px; }

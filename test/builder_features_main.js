@@ -65,6 +65,14 @@ app.whenReady().then(async () => {
       check('Typ-Abdeckung neben Versionsauswahl', root.querySelector('#tbVerBar .tb-view-btn[data-view="cover"]') && !root.querySelector('.tb-tabs [data-tab="cover"]'));
       root.querySelector('.tb-view-btn[data-view="diff"]').click(); await wait(50);
       check('Vergleich-Ansicht offen', root.querySelector('#tbWork').classList.contains('tab-diff') && root.querySelector('.tb-diff-head'));
+      root.querySelector('.tb-view-btn[data-view="cover"]').click(); await wait(50);
+      var jumps = root.querySelectorAll('.tb-cover-table .tb-jump');
+      jumps[2].click(); await wait(50);
+      check('Klick in Typ-Abdeckung öffnet Pokémon', root.querySelector('#tbWork').classList.contains('tab-edit') && root.querySelectorAll('.tb-slot')[2].classList.contains('on'));
+      root.querySelector('.tb-view-btn[data-view="diff"]').click(); await wait(50);
+      root.querySelectorAll('.tb-slot')[0].click(); await wait(50);
+      check('Klick auf Karte oben verlässt die Ansicht', root.querySelector('#tbWork').classList.contains('tab-edit'));
+      root.querySelector('.tb-view-btn[data-view="diff"]').click(); await wait(50);
       check('Regel-Knopf zeigt Fehler', /⛔/.test(root.querySelector('#tbLegalBtn').textContent), root.querySelector('#tbLegalBtn').textContent);
 
       // Tastenkürzel: Alt+L öffnet den Regel-Check, eigene Belegung wirkt
@@ -81,6 +89,29 @@ app.whenReady().then(async () => {
       H.reset();
       check('Zurücksetzen', H.get('builder.cover') === 'Alt+T' && H.get('builder.diff') === 'Alt+D');
       check('Plus/Minus im Shiny-Zähler', H.get('shiny.inc') === 'Plus' && H.fromEvent(new KeyboardEvent('keydown', { key: '+', shiftKey: true })) === 'Plus');
+
+      // alle Versionen: QR-Code und PokéPaste-Text mit "=== … ===" tragen jede Version
+      var parts = text.split('\\n\\n');
+      var allV = [{ name: 'v1', text: parts[0] }, { name: 'v2 · Turnier', text: parts.slice(0, 2).join('\\n\\n') }, { name: 'v3', text: parts[1] }];
+      var encAll = await S.encode({ name: 'Mehrere', ver: 'v2 · Turnier', text: allV[1].text, versions: allV });
+      var cvA = document.createElement('canvas'); S.draw(cvA, encAll, 500);
+      var decAll = await S.decode(await S.readImage(await new Promise(function (r) { cvA.toBlob(r, 'image/png'); })));
+      check('QR mit allen Versionen', decAll && decAll.versions && decAll.versions.length === 3 && decAll.versions[1].name === 'v2 · Turnier' && decAll.text === allV[1].text);
+      B.importShared(decAll);
+      var stA = JSON.parse(localStorage.getItem('cc_builder')), tA = stA.teams[stA.teams.length - 1];
+      check('Import legt alle Versionen an', tA.name === 'Mehrere' && tA.versions.length === 3 && tA.versions.filter(function (v) { return v.id === tA.curVer; })[0].name === 'v2 · Turnier', tA.versions.map(function (v) { return v.name; }).join(','));
+      var joined = S.joinVersions('Paste-Team', allV), sp = S.splitVersions(joined);
+      check('PokéPaste-Text mit Versionen', sp && sp.length === 3 && sp[1].name === 'v2 · Turnier' && sp[0].title === 'Paste-Team' && sp[2].text === allV[2].text);
+      B.importShared({ name: '', text: joined });
+      stA = JSON.parse(localStorage.getItem('cc_builder')); tA = stA.teams[stA.teams.length - 1];
+      check('Import aus PokéPaste mit Versionen', tA.name === 'Paste-Team' && tA.versions.length === 3);
+      A.showView('builder'); await wait(80);
+      document.getElementById('tbShare').click(); await wait(300);
+      var vs = document.querySelector('.rl-share-versel');
+      check('Teilen: Auswahl Version oder alle', vs && vs.options.length === 4 && vs.options[3].value === 'all' && vs.value === '2');
+      vs.value = 'all'; vs.dispatchEvent(new Event('change')); await wait(400);
+      check('Teilen: alle Versionen im QR', /alle 3 Versionen|all 3 versions/.test(document.querySelector('.rl-share-qr .hint').textContent), document.querySelector('.rl-share-qr .hint').textContent);
+      document.querySelector('.rl-share-wrap .icon-btn').click();
 
       // Einstellungen: Schriftgröße, Schriftart, Animationen, Sprite-Stil im Calc
       A.openSettings(); await wait(50);

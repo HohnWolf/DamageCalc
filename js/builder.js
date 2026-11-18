@@ -441,6 +441,15 @@
     root.querySelectorAll('.tb-view-btn').forEach(function (x) { var on = x.dataset.view === tab; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     if (R.viewTitle) R.viewTitle.textContent = VIEW_TITLES[tab] ? VIEW_TITLES[tab]() : '';
   }
+  // opens one Pokémon in the editor, switching to its version first (comparison cards can come from another version)
+  function openMon(verId, mon) {
+    var tm = team();
+    tab = 'edit';
+    if (verId && tm.curVer !== verId && tm.versions.some(function (v) { return v.id === verId; })) { tm.curVer = verId; ensureVersions(tm); persist(); }
+    var i = tm.mons.indexOf(mon);
+    sel = i >= 0 ? i : Math.min(sel, tm.mons.length);
+    render();
+  }
   function setTab(t) {
     tab = VIEW_TABS.indexOf(t) === -1 ? 'edit' : t;
     syncTab();
@@ -526,7 +535,10 @@
       del.addEventListener('click', function (ev) { ev.stopPropagation(); removeMember(i); });
       tools.appendChild(del);
       card.appendChild(tools);
-      card.addEventListener('click', function () { if (sel !== i) { sel = i; renderSlots(); renderEditor(); } });
+      card.addEventListener('click', function () {
+        if (sel !== i) { sel = i; renderSlots(); renderEditor(); renderLegal(); }
+        if (tab !== 'edit' && tab !== 'io') setTab('edit'); // aus Typ-Abdeckung, Vergleich oder Regel-Check in die Pokémon-Ansicht
+      });
       card.draggable = true;
       card.addEventListener('dragstart', function (ev) {
         ev.dataTransfer.effectAllowed = 'move';
@@ -1407,7 +1419,11 @@
     });
     tbl.innerHTML = '';
     var trh = el('tr'); trh.appendChild(el('th'));
-    defs.forEach(function (d) { var th = el('th'); var s = el('span', { class: 'tb-cv-mon' }); s.appendChild(A.spriteFit(spriteOf(d.m), d.m.set.shiny)); th.appendChild(s); trh.appendChild(th); });
+    defs.forEach(function (d) {
+      var th = el('th'); var s = el('button', { type: 'button', class: 'tb-cv-mon tb-jump', title: (de ? 'Öffnen: ' : 'Open: ') + A.nSpecies(d.f) });
+      s.appendChild(A.spriteFit(spriteOf(d.m), d.m.set.shiny)); th.appendChild(s); trh.appendChild(th);
+      s.addEventListener('click', function () { openMon(curVersion().id, d.m); });
+    });
     trh.appendChild(el('th', { class: 'tb-cv-sum', text: T('tbWeakCol') }));
     trh.appendChild(el('th', { class: 'tb-cv-sum', text: T('tbResCol') }));
     var th = el('thead'); th.appendChild(trh); tbl.appendChild(th);
@@ -1529,7 +1545,8 @@
       n[kind]++;
       if (kind === 'same' && !diffSel.same) return;
       var m = p.b || p.a;
-      var card = el('div', { class: 'tb-diff-card is-' + kind });
+      var card = el('div', { class: 'tb-diff-card tb-jump is-' + kind, title: (de ? 'Öffnen: ' : 'Open: ') + A.nSpecies(baseForme(m)) + ' (' + ((p.b ? vb : va).name || '') + ')' });
+      card.addEventListener('click', function (ev) { if (ev.target.closest('select, input, label')) return; openMon((p.b ? vb : va).id, m); });
       var ch = el('div', { class: 'tb-diff-card-head' });
       var spr = el('span', { class: 'tb-cv-mon' }); spr.appendChild(A.spriteFit(spriteOf(m), m.set.shiny)); ch.appendChild(spr);
       ch.appendChild(el('strong', { text: A.nSpecies(baseForme(m)) }));
@@ -1698,23 +1715,38 @@
     var tm = team(), v = curVersion(tm);
     if (!tm.mons.length) { A.toast(T('tbEmptyTeam')); return; }
     if (!window.RLTeamShare) return;
-    window.RLTeamShare.openShare({ name: tm.name, ver: tm.versions.length > 1 ? (v.name || '') : '', text: exportText(tm.mons) });
+    // the dialog offers the active version, any other one or all of them
+    window.RLTeamShare.openShare({ name: tm.name, cur: Math.max(0, tm.versions.indexOf(v)),
+      versions: tm.versions.map(function (x, i) { return { name: x.name || ('v' + (i + 1)), text: exportText(x.mons || []) }; }) });
   }
   function scanTeam() {
     if (window.RLTeamShare) window.RLTeamShare.openScan(importShared);
   }
   // { name, ver, text } from a QR code or a PokéPaste -> new team with that name; returns true when it worked
+  // with t.versions (QR code "all versions") or "=== Name (v1) ===" headers (PokéPaste) every version becomes one
   function importShared(t) {
-    var res = A.parseShowdown((t && t.text) || '');
-    if (!res.mons.length) { A.toast(T('importNothing')); return false; }
+    t = t || {};
+    var list = t.versions && t.versions.length ? t.versions : null;
+    var split = !list && window.RLTeamShare ? window.RLTeamShare.splitVersions(t.text || '') : null;
+    if (split && split.length) { list = split; if (!t.name && split[0].title) t.name = split[0].title; }
+    if (!list) list = [{ name: t.ver, text: t.text }];
+    var errors = [], vers = [];
+    list.forEach(function (x, i) {
+      var res = A.parseShowdown(x.text || '');
+      res.errors.forEach(function (e) { if (errors.indexOf(e) === -1) errors.push(e); });
+      if (!res.mons.length) return;
+      var mons = res.mons.slice(0, 6).map(function (m) { m.set.species = m.species; fixGender(m); return m; });
+      vers.push({ id: newId(), name: String(x.name || '').trim() || ('v' + (i + 1)), mons: mons });
+    });
+    if (!vers.length) { A.toast(T('importNothing')); return false; }
     snapUndo(de ? 'Team aus QR-Code importiert' : 'Team imported from QR code');
-    var mons = res.mons.slice(0, 6).map(function (m) { m.set.species = m.species; fixGender(m); return m; });
-    var v0 = { id: newId(), name: String(t.ver || '').trim() || 'v1', mons: mons };
+    var curV = vers.filter(function (v) { return t.ver && v.name === String(t.ver).trim(); })[0] || vers[vers.length - 1];
     var name = String(t.name || '').trim() || T('tbDefaultName', store.teams.length + 1);
-    var nt = { id: newId(), name: name, mons: mons, versions: [v0], curVer: v0.id };
+    var nt = { id: newId(), name: name, mons: curV.mons, versions: vers, curVer: curV.id };
     store.teams.push(nt); store.cur = nt.id; sel = 0; persist();
     if (document.body.dataset.view === 'builder') render();
-    A.toast((de ? 'Team „' + name + '“ importiert' : 'Imported team “' + name + '”') + (res.errors.length ? ' · ' + T('unknown', res.errors.join(', ')) : ''));
+    A.toast((de ? 'Team „' + name + '“ importiert' : 'Imported team “' + name + '”') + (vers.length > 1 ? ' · ' + vers.length + (de ? ' Versionen' : ' versions') : '') +
+      (errors.length ? ' · ' + T('unknown', errors.join(', ')) : ''));
     return true;
   }
 
