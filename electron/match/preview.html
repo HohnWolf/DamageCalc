@@ -104,7 +104,7 @@ const TRIM=new Map();
 function trim(img){
   if(img.dataset.t)return;
   const u=img.getAttribute('src');
-  if(!u||u.indexOf('data:')===0)return;
+  if(!u||u.indexOf('data:')===0||/\.gif|%2Fani(-shiny)?%2F/i.test(u))return; // animierte 3D-Modelle nicht zuschneiden (das Bild bliebe stehen)
   img.dataset.t=1;
   let c=TRIM.get(u);
   if(c===undefined){

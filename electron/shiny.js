@@ -39,6 +39,63 @@ function obsDir() { return path.join(app.getPath('userData'), 'OBS'); }
 function clipDir() { return path.join(app.getPath('videos'), 'Rattata Lab Clips'); }
 // nur Dateien in diesem Ordner dürfen geöffnet werden
 function inClipDir(p) { const r = path.relative(clipDir(), path.resolve(String(p || ''))); return !!r && !r.startsWith('..') && !path.isAbsolute(r); }
+// ---------------- Discord: Nachricht bei "Gefunden!" ----------------
+// Nur Discord-Webhooks (https://discord.com/api/webhooks/<id>/<token>) und nur Dateien aus dem Clip-Ordner.
+// o = { webhook, content, files: [Pfade], limitMb } -> { ok, sent: [Namen], skipped: [{ name, mb }] } | { ok: false, error }
+const HOOK_HOSTS = { 'discord.com': 1, 'discordapp.com': 1, 'ptb.discord.com': 1, 'canary.discord.com': 1 };
+function webhookUrl(raw) {
+  try {
+    const u = new URL(String(raw || '').trim());
+    if (u.protocol !== 'https:' || !HOOK_HOSTS[u.hostname] || !/^\/api(\/v\d+)?\/webhooks\/\d+\/[\w-]+\/?$/.test(u.pathname)) return null;
+    u.search = '?wait=true'; u.hash = '';
+    return u.href;
+  } catch (e) { return null; }
+}
+async function postHook(url, content, files) {
+  const fd = new FormData();
+  fd.append('payload_json', JSON.stringify({ content: String(content || '').slice(0, 1900), username: 'Rattata Labs', allowed_mentions: { parse: [] } }));
+  files.forEach((f, i) => fd.append('files[' + i + ']', new Blob([fs.readFileSync(f.path)]), f.name));
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 120000);
+  try {
+    const res = await fetch(url, { method: 'POST', body: fd, signal: ctrl.signal });
+    if (!res.ok) {
+      let msg = 'Discord antwortet mit ' + res.status;
+      try { const j = await res.json(); if (j && j.message) msg += ': ' + j.message; } catch (e) { /* kein JSON */ }
+      throw new Error(msg);
+    }
+  } finally { clearTimeout(timer); }
+}
+async function notify(o) {
+  o = o || {};
+  const url = webhookUrl(o.webhook);
+  if (!url) return { ok: false, error: 'webhook' };
+  const limit = Math.max(1, Math.min(500, +o.limitMb || 10)) * 1024 * 1024;
+  const files = [], skipped = [];
+  (Array.isArray(o.files) ? o.files : []).slice(0, 4).forEach((p) => {
+    if (!p || !inClipDir(p) || !fs.existsSync(p)) return;
+    const size = fs.statSync(p).size, name = path.basename(p);
+    if (size > limit) skipped.push({ name, mb: Math.round(size / 104857.6) / 10 });
+    else files.push({ path: p, name, size });
+  });
+  try {
+    // eine Nachricht, solange alles zusammen ins Limit passt; sonst der Rest in weiteren Nachrichten
+    const groups = [];
+    let cur = [], sum = 0;
+    files.forEach((f) => {
+      if (cur.length && sum + f.size > limit) { groups.push(cur); cur = []; sum = 0; }
+      cur.push(f); sum += f.size;
+    });
+    if (cur.length || !groups.length) groups.push(cur);
+    const tpl = String(o.tooBig || '{0} ({1} MB) is too large for Discord.');
+    const content = String(o.content || '') + skipped.map((s) => '\n' + tpl.replace('{0}', s.name).replace('{1}', String(s.mb))).join('');
+    for (let i = 0; i < groups.length; i++) await postHook(url, i === 0 ? content : '', groups[i]);
+    return { ok: true, sent: files.map((f) => f.name), skipped };
+  } catch (err) {
+    return { ok: false, error: err && err.name === 'AbortError' ? 'Zeitüberschreitung' : String(err && err.message || err) };
+  }
+}
+
 let writeTimer = null;
 let obsDirReady = false;
 const lastFiles = {};
@@ -154,6 +211,7 @@ function init(mainWindow) {
   ipcMain.on('shiny-clip-open', (e, p) => { if (inClipDir(p) && fs.existsSync(p)) shell.openPath(p); });
   ipcMain.on('shiny-clip-show', (e, p) => { if (inClipDir(p) && fs.existsSync(p)) shell.showItemInFolder(p); });
   ipcMain.on('shiny-clip-dir', () => { try { fs.mkdirSync(clipDir(), { recursive: true }); } catch (err) { /* */ } shell.openPath(clipDir()); });
+  ipcMain.handle('shiny-notify', (e, o) => notify(o));
   startServer();
 }
 

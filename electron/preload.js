@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('desktop', {
     openClip: (p) => ipcRenderer.send('shiny-clip-open', String(p)),
     showClip: (p) => ipcRenderer.send('shiny-clip-show', String(p)),
     openClipDir: () => ipcRenderer.send('shiny-clip-dir'),
+    // Shiny gefunden: Nachricht mit Screenshot und Clip an einen Discord-Kanal (Webhook)
+    notify: (o) => ipcRenderer.invoke('shiny-notify', o || {}),
     // Text im markierten Bereich lesen (PNG als Base64) → { text } oder { error } (electron/ocr.js).
     // Windows.Media.Ocr gibt es nur unter Windows. Auf anderen Systemen bleibt die Brücke weg,
     // damit die Seite denselben Hinweis zeigt wie im Browser, statt PowerShell zu starten.
@@ -77,6 +79,11 @@ contextBridge.exposeInMainWorld('desktop', {
     start: (opts) => ipcRenderer.invoke('battle-start', opts || {}),
     choose: (choice) => ipcRenderer.invoke('battle-choose', String(choice || '')),
     forfeit: () => ipcRenderer.invoke('battle-forfeit'),
+  },
+  // Teams teilen (electron/share.js): PokéPaste hochladen und laden
+  share: {
+    uploadPaste: (o) => ipcRenderer.invoke('paste-upload', o || {}),
+    fetchPaste: (id) => ipcRenderer.invoke('paste-get', String(id || '')),
   },
   // Updates über GitHub-Releases (electron/updater.js)
   update: {

@@ -39,7 +39,7 @@
 }
 
 .catch-gen-badge {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 99px;
@@ -76,7 +76,7 @@
 }
 
 .catch-sec-title {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
@@ -97,7 +97,7 @@
 
 .catch-lbl {
   display: block;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--fs, 1));
   font-weight: 600;
   color: var(--muted);
   margin-bottom: 2px;
@@ -107,7 +107,7 @@
   width: 100%;
   height: 30px;
   padding: 0 8px;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
   box-sizing: border-box;
 }
 
@@ -177,7 +177,7 @@
   padding: 5px 9px;
   cursor: pointer;
   border-bottom: 1px solid var(--line-soft);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs, 1));
 }
 
 .catch-dd-row:hover, .catch-dd-row.on {
@@ -201,7 +201,7 @@
 }
 
 .catch-dd-rate {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   color: var(--muted);
   flex: none;
 }
@@ -210,7 +210,7 @@
   padding: 10px;
   color: var(--muted);
   text-align: center;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
 }
 
 .catch-mon-meta {
@@ -226,7 +226,7 @@
 }
 
 .catch-meta-pill {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   color: var(--muted);
   background: var(--input);
   border: 1px solid var(--line-soft);
@@ -241,7 +241,7 @@
 /* KP-Steuerung */
 .catch-hp-tabs button {
   height: 24px;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--fs, 1));
   padding: 0 8px;
 }
 
@@ -260,7 +260,7 @@
   min-width: 56px;
   text-align: right;
   font-weight: 800;
-  font-size: 14px;
+  font-size: calc(14px * var(--fs, 1));
   font-variant-numeric: tabular-nums;
 }
 
@@ -274,7 +274,7 @@
 .catch-hp-presets .tbtn {
   height: 25px;
   padding: 0 8px;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--fs, 1));
 }
 
 .catch-hp-presets .tbtn.on {
@@ -290,7 +290,7 @@
 
 .catch-hp-range-hint {
   margin-top: 4px;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--fs, 1));
 }
 
 /* Status-Buttons */
@@ -302,7 +302,7 @@
 
 .catch-status-btns button {
   height: 28px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   font-weight: 600;
 }
 
@@ -354,7 +354,7 @@
   border: 1px solid var(--line-soft);
   background: var(--input);
   color: var(--text);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--fs, 1));
   font-weight: 700;
   cursor: pointer;
   text-align: left;
@@ -420,7 +420,7 @@
 }
 
 .catch-ball-active-text b {
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
   color: var(--text);
 }
 
@@ -455,7 +455,7 @@
 .catch-turn-ctrl .tbtn {
   height: 30px;
   padding: 0 8px;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--fs, 1));
   white-space: nowrap;
 }
 
@@ -481,7 +481,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--fs, 1));
   cursor: pointer;
   user-select: none;
 }
@@ -530,7 +530,7 @@
 }
 
 .catch-hero-ball {
-  font-size: 16px;
+  font-size: calc(16px * var(--fs, 1));
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -538,7 +538,7 @@
 }
 
 .catch-mult-tag {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   font-weight: 700;
   padding: 1px 7px;
   border-radius: 99px;
@@ -548,7 +548,7 @@
 }
 
 .catch-hero-sub {
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   color: var(--muted);
   margin-top: 1px;
 }
@@ -561,7 +561,7 @@
 }
 
 .catch-big-num {
-  font-size: 26px;
+  font-size: calc(26px * var(--fs, 1));
   font-weight: 900;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
@@ -569,7 +569,7 @@
 }
 
 .catch-big-lbl {
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--fs, 1));
   color: var(--muted);
   font-weight: 600;
 }
@@ -617,13 +617,13 @@
 }
 
 .cs-val {
-  font-size: 16px;
+  font-size: calc(16px * var(--fs, 1));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .cs-lbl {
-  font-size: 10px;
+  font-size: calc(10px * var(--fs, 1));
   color: var(--muted);
 }
 
@@ -634,7 +634,7 @@
 }
 
 .catch-dpill {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   color: var(--muted);
   background: var(--input);
   border: 1px solid var(--line-soft);
@@ -653,7 +653,7 @@
   border-left: 3px solid var(--accent-2);
   border-radius: var(--radius);
   padding: 9px 12px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -668,12 +668,12 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   font-variant-numeric: tabular-nums;
 }
 
 .catch-iv-table th {
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;

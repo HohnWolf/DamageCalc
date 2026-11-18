@@ -21,6 +21,13 @@
     } catch (e) { /* keep defaults */ }
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-ui-style', uiStyle);
+    /* animations, font and text size (Einstellungen → Darstellung); js/app.js applyLook() does the same later */
+    var motion = st && st.motion || 'on';
+    if (motion === 'system') motion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'on';
+    document.documentElement.setAttribute('data-motion', motion);
+    if (st && st.font && st.font !== 'default') document.documentElement.setAttribute('data-font', st.font);
+    var fs = st && +st.fontSize;
+    if (fs && fs !== 100 && fs >= 80 && fs <= 150) document.documentElement.style.setProperty('--fs', String(fs / 100));
   })();
   </script>
   <style>
@@ -30,26 +37,27 @@
   </style>
   <meta name="description" content="Damage Calculator, Teambuilder, Shiny-Zähler, Fangrechner und Team-Analyse für Pokémon Champions (VGC 2026).">
   <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=91">
-  <link rel="stylesheet" href="css/views.css?v=106">
-  <link rel="stylesheet" href="css/nuz.css?v=88">
-  <link rel="stylesheet" href="css/shiny.css?v=89">
-  <link rel="stylesheet" href="css/match.css?v=86">
-  <link rel="stylesheet" href="css/meta.css?v=1">
-  <link rel="stylesheet" href="css/overlay.css?v=91">
-  <link rel="stylesheet" href="css/catch.css?v=86">
-  <link rel="stylesheet" href="css/pokedex.css?v=86">
-  <link rel="stylesheet" href="css/godex.css?v=7">
-  <link rel="stylesheet" href="css/goinfo.css?v=2">
-  <link rel="stylesheet" href="css/speedtier.css?v=1">
-  <link rel="stylesheet" href="css/projector_view.css?v=1">
-  <link rel="stylesheet" href="css/matchlog.css?v=1">
-  <link rel="stylesheet" href="css/randomizer.css?v=5">
-  <link rel="stylesheet" href="css/savedit.css?v=8">
-  <link rel="stylesheet" href="css/pro.css?v=23">
-  <link rel="stylesheet" href="css/studio.css?v=18">
-  <link rel="stylesheet" href="css/minigames.css?v=1">
+  <link rel="stylesheet" href="css/style.css?v=92">
+  <link rel="stylesheet" href="css/views.css?v=107">
+  <link rel="stylesheet" href="css/nuz.css?v=89">
+  <link rel="stylesheet" href="css/shiny.css?v=90">
+  <link rel="stylesheet" href="css/match.css?v=87">
+  <link rel="stylesheet" href="css/meta.css?v=2">
+  <link rel="stylesheet" href="css/overlay.css?v=92">
+  <link rel="stylesheet" href="css/catch.css?v=87">
+  <link rel="stylesheet" href="css/pokedex.css?v=87">
+  <link rel="stylesheet" href="css/godex.css?v=8">
+  <link rel="stylesheet" href="css/goinfo.css?v=3">
+  <link rel="stylesheet" href="css/speedtier.css?v=2">
+  <link rel="stylesheet" href="css/projector_view.css?v=2">
+  <link rel="stylesheet" href="css/matchlog.css?v=2">
+  <link rel="stylesheet" href="css/randomizer.css?v=6">
+  <link rel="stylesheet" href="css/savedit.css?v=9">
+  <link rel="stylesheet" href="css/pro.css?v=24">
+  <link rel="stylesheet" href="css/studio.css?v=19">
+  <link rel="stylesheet" href="css/minigames.css?v=2">
   <link rel="stylesheet" href="css/battle.css?v=1">
+  <link rel="stylesheet" href="css/extras.css?v=2">
   </head>
 <body data-view="start">
   <aside id="sidebar" class="sidebar" aria-label="Navigation"></aside>
@@ -420,10 +428,14 @@
   <script src="js/online.js?v=87"></script>
   <script src="js/calc.js?v=87"></script>
   <script src="js/update_channel.js?v=1"></script>
-  <script src="js/app.js?v=125"></script>
-  <script src="js/patchnotes.js?v=6"></script>
+  <script src="js/hotkeys.js?v=1"></script>
+  <script src="js/app.js?v=127"></script>
+  <script src="js/patchnotes.js?v=7"></script>
   <script src="js/builder_adopt.js?v=1"></script>
-  <script src="js/builder.js?v=91"></script>
+  <script src="js/lib/qrcode.js?v=1"></script>
+  <script src="js/lib/jsqr.min.js?v=1"></script>
+  <script src="js/teamshare.js?v=1"></script>
+  <script src="js/builder.js?v=92"></script>
   <script src="data/meta_teams.js?v=1"></script>
   <script src="data/meta_spreads.js?v=1"></script>
   <script src="js/meta/format.js?v=1"></script>
@@ -477,14 +489,14 @@
   <script src="js/shiny_detect.js?v=125"></script>
   <script src="js/shiny_clip.js?v=89"></script>
   <script src="js/shiny_projector.js?v=125"></script>
-  <script src="js/shiny.js?v=129"></script>
+  <script src="js/shiny.js?v=131"></script>
   <script src="js/match_parse.js?v=87"></script>
   <script src="js/match.js?v=86"></script>
   <script src="data/pokeapi_ids.js?v=86"></script>
-  <script src="js/overlay.js?v=91"></script>
+  <script src="js/overlay.js?v=92"></script>
   <script src="js/catch_calc.js?v=87"></script>
   <script src="data/dex_gen1.js?v=86"></script>
-  <script src="js/pokedex.js?v=89"></script>
+  <script src="js/pokedex.js?v=90"></script>
   <script src="data/godex.js?v=2"></script>
   <script src="js/godex.js?v=7"></script>
   <script src="js/gocounter.js?v=7"></script>

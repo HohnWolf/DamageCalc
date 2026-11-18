@@ -262,8 +262,13 @@
     var i = name.indexOf('-');
     return natOf(name) || i < 0 ? idOf(name) : idOf(name.slice(0, i)) + '-' + idOf(name.slice(i + 1));
   }
+  // style from Einstellungen → Sprite-Stil → Match-Overlay: 'home' (default), 'art' (official artwork), '3d' (animated), 'pixel'
+  function spriteStyle() { var v = A.setting ? A.setting('spriteOverlay') : 'home'; return ['home', 'art', '3d', 'pixel'].indexOf(v) === -1 ? 'home' : v; }
   function sprites(name) {
-    var out = [], id = pokeapiId(name), sd = sdId(name);
+    var out = [], id = pokeapiId(name), sd = sdId(name), st = spriteStyle();
+    if (st === '3d') out.push(SD + 'ani/' + sd + '.gif');
+    if (st === 'pixel') out.push(SD + 'gen5/' + sd + '.png');
+    if (st === 'art' && id) out.push(SPR + 'pokemon/other/official-artwork/' + id + '.png', JSD + 'pokemon/other/official-artwork/' + id + '.png');
     if (id) out.push(SPR + 'pokemon/other/home/' + id + '.png', JSD + 'pokemon/other/home/' + id + '.png', SPR + 'pokemon/other/official-artwork/' + id + '.png');
     out.push(SD + 'home-centered/' + sd + '.png', SD + 'gen5/' + sd + '.png');
     var base = idOf(name.replace(/^Mega /, '').replace(/ [XYZ]$/, '').replace(/-.*$/, ''));

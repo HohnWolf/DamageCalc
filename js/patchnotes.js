@@ -9,6 +9,15 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.36.1',
+      de: ['Teambuilder: Die Versionen wählst du jetzt in einem Dropdown. Daneben liegen Typ-Abdeckung, „Versionen vergleichen“ (Unterschiede zweier Versionen farbig: rot entfernt, grün neu, gelb geändert) und der Regel-Check (Species- und Item-Klausel, erlaubte Pokémon und Items, Fähigkeiten, Lernsets, SP).',
+        'Teambuilder: „Teilen“ erzeugt einen QR-Code mit Team und Teamname und lädt das Team mit einem Klick auf PokéPaste hoch. „QR importieren“ liest einen QR-Code aus einem Bild (wählen, einfügen oder hineinziehen, auf Android auch per Kamera).',
+        'Shiny-Zähler: Unter „Hotkeys & OBS“ lässt sich ein Discord-Kanal (Webhook) festlegen. Bei „Gefunden!“ gehen Screenshot und, falls aufgenommen, der Clip dorthin.',
+        'Einstellungen: Animationen, Schriftart und Schriftgröße, Sprite-Stil getrennt für Teambuilder, Damage Calculator, Pokédex und Match-Overlay sowie ein neuer Bereich „Tastenkürzel“ zum freien Belegen. Die Standardwerte entsprechen dem bisherigen Verhalten.'],
+      en: ['Team builder: versions are now picked from a dropdown. Next to it are type coverage, “Compare versions” (differences between two versions in colour: red removed, green new, yellow changed) and the rule check (species and item clause, allowed Pokémon and items, abilities, learnsets, SP).',
+        'Team builder: “Share” creates a QR code with the team and its name and uploads the team to PokéPaste with one click. “Import QR” reads a QR code from an image (choose, paste or drop it, on Android also with the camera).',
+        'Shiny counter: under “Hotkeys & OBS” you can set a Discord channel (webhook). On “Found!” the screenshot and, if recorded, the clip are sent there.',
+        'Settings: animations, font and text size, sprite style per tool (team builder, damage calculator, Pokédex, match overlay) and a new “Shortcuts” section to assign keys freely. The defaults match the previous behaviour.'] },
     { v: '1.36.0',
       de: ['Weniger Speicher und CPU: Die Vorschau im Game Projector pausiert, solange die Ansicht nicht offen ist. Die Verbindung zur Capture-Karte bleibt bestehen, Projektor, Matchlog und Clips laufen unverändert weiter.', 'Die Texterkennung von Matchlog und Shiny-Zähler gibt ihren Speicher nach 3 Minuten ohne Bilder frei und startet beim nächsten Bild von selbst wieder.', 'Pokédex und GO-Pokédex geben beim Verlassen ihren Speicher frei. Filter, Suche und Auswahl bleiben erhalten.', 'Die Pegelanzeige der Shiny-Clips zeichnet im Hintergrund nicht mehr ständig neu.'],
       en: ['Less memory and CPU: the Game Projector preview pauses while its view is not open. The capture card stays connected, and projector, Matchlog and clips keep running as before.', 'Text recognition for Matchlog and the shiny counter frees its memory after 3 minutes without frames and restarts by itself on the next frame.', 'The Pokédex and GO Pokédex free their memory when you leave them. Filters, search and selection are kept.', 'The shiny clip level meter no longer redraws constantly in the background.'] },

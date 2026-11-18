@@ -566,13 +566,9 @@
     toast((LANG === 'de' ? 'Wiederhergestellt: ' : 'Restored: ') + u.label);
     return true;
   }
-  document.addEventListener('keydown', function (ev) {
-    if (!(ev.ctrlKey || ev.metaKey) || ev.shiftKey || ev.altKey || String(ev.key).toLowerCase() !== 'z') return;
-    var t = ev.target;
-    if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return; // Textfelder behalten ihr eigenes Rückgängig
-    if (!undoStack.length) return;
-    ev.preventDefault(); doUndo();
-  });
+  // Strg+Z (frei belegbar, js/hotkeys.js); Textfelder behalten ihr eigenes Rückgängig
+  if (window.RLHotkeys) window.RLHotkeys.register('undo', { label: ['Rückgängig (Löschen von Teams, Versionen, Sets)', 'Undo (deleted teams, versions, sets)'], group: 'app', def: 'Ctrl+Z', inModal: true,
+    run: function () { if (!undoStack.length) return false; doUndo(); } });
   function megaFormeFor(base, item) {
     if (!item || typeof MEGA_STONE_USER_LOOKUP === 'undefined' || !MEGA_STONE_USER_LOOKUP[item]) return null;
     var b = base.replace(/-.*$/, '');
@@ -632,7 +628,7 @@
         title: m ? (doubles ? T('slotEdit', k ? 'B' : 'A') : (k === side.active ? T('slotActive') : T('slotBench'))) : T('addPartnerTitle') });
       tab.appendChild(el('span', { class: 'slot-letter', text: k ? 'B' : 'A' }));
       if (m) {
-        var sp = el('span', { class: 'slot-sprite' }); sp.appendChild(spriteImg(m.species)); tab.appendChild(sp);
+        var sp = el('span', { class: 'slot-sprite' }); sp.appendChild(calcSprite(m.species)); tab.appendChild(sp);
         var tx = el('span', { class: 'slot-text' });
         tx.appendChild(el('span', { class: 'slot-name', text: nSpecies(m.species) }));
         var sub = el('span', { class: 'slot-sub' });
@@ -658,6 +654,18 @@
     };
     return img;
   }
+  // sprite in the style chosen for a tool (Einstellungen → Darstellung → Sprite-Stil): 'pixel', 'home' (HD render) or '3d' (animated);
+  // falls back to the pixel sprite. fit: the pixel version is cropped to its visible area (spriteFit).
+  function styledSprite(species, shiny, mode, fit) {
+    if (mode !== 'home' && mode !== '3d') return fit ? spriteFit(species, shiny) : spriteImg(species, shiny);
+    var still = spriteUrl(species);
+    var url = mode === 'home' ? still.replace('/gen5/', shiny ? '/home-centered-shiny/' : '/home-centered/')
+      : still.replace('/gen5/', shiny ? '/ani-shiny/' : '/ani/').replace(/\.png$/, '.gif');
+    var img = el('img', { class: 'spr-styled spr-' + mode, alt: nSpecies(species), title: nSpecies(species), src: url, loading: 'lazy' });
+    img.onerror = function () { img.onerror = null; img.replaceWith(fit ? spriteFit(species, shiny) : spriteImg(species, shiny)); };
+    return img;
+  }
+  function calcSprite(species, shiny, fit) { return styledSprite(species, shiny, setting('spriteCalc'), fit); }
   // Sprite cropped to its visible area (data/sprite_boxes.js), so it fills small boxes without being cut off.
   // Falls back to the plain image when the sprite was not measured.
   var pendingReload = false;
@@ -1631,7 +1639,7 @@
         box.appendChild(el('span', { class: 'to-sep', text: tie ? '=' : '›', title: tie ? T('tie') : '' }));
       }
       var c = el('span', { class: 'to-chip s' + (x.s + 1), title: T('speedTitle', nSpecies(x.m.species), x.sp) });
-      var ic = el('span', { class: 'to-ic' }); ic.appendChild(spriteImg(x.m.species)); c.appendChild(ic);
+      var ic = el('span', { class: 'to-ic' }); ic.appendChild(calcSprite(x.m.species)); c.appendChild(ic);
       c.appendChild(el('span', { text: String(x.sp) }));
       box.appendChild(c);
     });
@@ -1650,7 +1658,7 @@
       h.style.visibility = visible ? '' : 'hidden';
       var target = doubles ? m : lastMons[o][sides[o].active];
       if (visible && target) {
-        var ic = el('span', { class: 'mh-ic' }); ic.appendChild(spriteImg(target.species)); h.appendChild(ic);
+        var ic = el('span', { class: 'mh-ic' }); ic.appendChild(calcSprite(target.species)); h.appendChild(ic);
         h.appendChild(el('span', { class: 'mh-name', text: T('vs') + ' ' + nSpecies(target.species) }));
       } else if (visible) h.appendChild(el('span', { class: 'mh-name', text: T('noFoe') }));
     });
@@ -1730,7 +1738,7 @@
     var current = sides[idx].setLabel;
     teams[idx].forEach(function (m, i) {
       var slot = el('div', { class: 'team-slot' + (current === m.species + ' (' + m.setName + ')' ? ' current' : ''), title: T('teamLoad', nSpecies(m.species) + ' (' + nSetName(m.setName) + ')') });
-      slot.appendChild(spriteFit(m.set.look || (m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species), m.set.shiny));
+      slot.appendChild(calcSprite(m.set.look || (m.set.forme && m.set.forme.indexOf('Mega ') !== 0 ? m.set.forme : m.species), m.set.shiny, true));
       slot.addEventListener('click', function () { loadSet(sides[idx], m.species, m.set, m.setName); sides[idx].src = m.src || null; sides[idx].$('toBuilder').disabled = !sides[idx].src; recalc(); });
       var toOther = el('button', { class: 'slot-btn other', title: T('toOther'), text: '⇄' });
       toOther.addEventListener('click', function (ev) { ev.stopPropagation(); loadSet(sides[1 - idx], m.species, m.set, m.setName); sides[1 - idx].src = m.src || null; sides[1 - idx].$('toBuilder').disabled = !sides[1 - idx].src; recalc(); });
@@ -2019,6 +2027,7 @@
     setTheme = function (theme) { applyTheme(theme, true); };
     applyTheme(currentTheme(), false);
     applyUiStyle(setting('uiStyle'));
+    applyLook();
     var skipUnloadSave = false;
     function saveState() {
       if (skipUnloadSave) return;
@@ -2191,7 +2200,84 @@
 
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
-  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [], updateChannel: 'full' };
+  var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [], updateChannel: 'full',
+    motion: 'on', font: 'default', fontSize: 100, spriteCalc: 'pixel', spriteDex: null, spriteOverlay: 'home', pasteAuthor: '' };
+  // fonts of the setting "Schriftart": [id, de, en]; the CSS for html[data-font] is in css/teamshare.css
+  var FONTS = [['default', 'Standard (Segoe UI)', 'Default (Segoe UI)'], ['system', 'System', 'System'], ['verdana', 'Verdana (gut lesbar)', 'Verdana (very legible)'],
+    ['rounded', 'Rund (Trebuchet)', 'Rounded (Trebuchet)'], ['serif', 'Serifen (Georgia)', 'Serif (Georgia)'], ['mono', 'Monospace (Consolas)', 'Monospace (Consolas)']];
+  // animations, font and text size: html[data-motion], html[data-font], --fs (also set before first paint in index.html)
+  var motionMq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+  function applyLook() {
+    var h = document.documentElement, m = setting('motion');
+    if (m === 'system' || ['on', 'reduced', 'off'].indexOf(m) === -1) m = motionMq && motionMq.matches ? 'reduced' : 'on';
+    h.setAttribute('data-motion', m);
+    var f = setting('font');
+    if (f && f !== 'default' && FONTS.some(function (x) { return x[0] === f; })) h.setAttribute('data-font', f); else h.removeAttribute('data-font');
+    var fs = +setting('fontSize') || 100;
+    if (fs !== 100 && fs >= 80 && fs <= 150) h.style.setProperty('--fs', String(fs / 100)); else h.style.removeProperty('--fs');
+  }
+  if (motionMq && motionMq.addEventListener) motionMq.addEventListener('change', function () { if (setting('motion') === 'system') applyLook(); });
+  // Einstellungen → Tastenkürzel: every action of js/hotkeys.js, click to record a new key, × clears, ↺ restores the default
+  var HK_GROUPS = [['app', 'Allgemein', 'General'], ['tools', 'Werkzeug öffnen', 'Open tool'], ['calc', 'Damage Calculator', 'Damage Calculator'], ['builder', 'Teambuilder', 'Teambuilder'], ['shiny', 'Shiny-Zähler (im Fenster)', 'Shiny counter (in the window)']];
+  function hotkeyPage(makeGroup, redraw) {
+    var H = window.RLHotkeys;
+    if (!H) return;
+    var de = LANG === 'de';
+    var gTop = makeGroup('');
+    var top = el('div', { class: 'set-row' });
+    var lab = el('div', { class: 'set-label' });
+    lab.appendChild(el('div', { class: 'set-name', text: de ? 'Tastenkürzel' : 'Keyboard shortcuts' }));
+    lab.appendChild(el('div', { class: 'hint', text: de
+      ? 'Auf ein Kürzel klicken und die neue Taste drücken. Esc bricht ab, Entf oder Rücktaste entfernt das Kürzel. Belegt eine Taste schon eine andere Aktion, wird sie dort frei. Fest bleiben F5 (neu laden), F11 (Vollbild) und F12 (Entwicklertools). Die globalen Hotkeys des Shiny-Zählers (wirken auch im Spiel) stehen im Shiny-Zähler unter „Hotkeys & OBS“.'
+      : 'Click a shortcut and press the new key. Esc cancels, Delete or Backspace removes it. If another action already uses the key, it is freed there. F5 (reload), F11 (full screen) and F12 (developer tools) stay fixed. The global hotkeys of the shiny counter (they work in the game too) are in the shiny counter under “Hotkeys & OBS”.' }));
+    top.appendChild(lab);
+    var all = el('button', { type: 'button', class: 'set-btn', text: de ? 'Alle zurücksetzen' : 'Reset all' });
+    all.addEventListener('click', function () { H.reset(); redraw(); });
+    top.appendChild(all);
+    gTop.appendChild(top);
+    HK_GROUPS.forEach(function (g) {
+      var acts = H.list().filter(function (a) { return a.group === g[0] && (g[0] !== 'tools' || isToolEnabled(a.id.slice(5))); });
+      if (!acts.length) return;
+      var grp = makeGroup(de ? g[1] : g[2]);
+      acts.forEach(function (a) {
+        var r = el('div', { class: 'set-row set-hk-row' });
+        r.appendChild(el('div', { class: 'set-name', text: de ? a.label[0] : a.label[1] }));
+        var act = el('div', { class: 'set-hk-act' });
+        var cur = H.get(a.id);
+        var kb = el('button', { type: 'button', class: 'set-hk-key' + (cur ? '' : ' none'), text: H.label(cur), title: de ? 'Klicken und neue Taste drücken' : 'Click and press the new key' });
+        kb.addEventListener('click', function () {
+          kb.textContent = de ? 'Taste drücken …' : 'Press a key …';
+          kb.classList.add('rec');
+          H.setRecording(true);
+          function done() { H.setRecording(false); document.removeEventListener('keydown', onKey, true); document.removeEventListener('mousedown', cancel, true); }
+          function cancel(ev) { if (ev.target !== kb) { done(); redraw(); } }
+          function onKey(ev) {
+            ev.preventDefault(); ev.stopPropagation();
+            if (ev.key === 'Escape') { done(); redraw(); return; }
+            if (ev.key === 'Delete' || ev.key === 'Backspace') { H.set(a.id, ''); done(); redraw(); return; }
+            var c = H.fromEvent(ev);
+            if (!c) return; // nur eine Zusatztaste gedrückt
+            if (/^F(5|11|12)$/.test(c) || c === 'Ctrl+R') { toast(de ? 'Diese Taste ist fest belegt.' : 'This key is reserved.'); return; }
+            var clash = H.set(a.id, c);
+            done(); redraw();
+            if (clash) toast((de ? 'War bei „' : 'Was used by “') + (de ? clash.label[0] : clash.label[1]) + (de ? '“, dort jetzt frei.' : '”, freed there.'));
+          }
+          document.addEventListener('keydown', onKey, true);
+          setTimeout(function () { document.addEventListener('mousedown', cancel, true); }, 0);
+        });
+        act.appendChild(kb);
+        var clr = el('button', { type: 'button', class: 'set-hk-mini', text: '×', title: de ? 'Kürzel entfernen' : 'Remove shortcut' });
+        clr.disabled = !cur;
+        clr.addEventListener('click', function () { H.set(a.id, ''); redraw(); });
+        var rs = el('button', { type: 'button', class: 'set-hk-mini', text: '↺', title: (de ? 'Standard: ' : 'Default: ') + H.label(a.def) });
+        rs.disabled = !H.isCustom(a.id);
+        rs.addEventListener('click', function () { H.reset(a.id); redraw(); });
+        act.appendChild(clr); act.appendChild(rs);
+        r.appendChild(act);
+        grp.appendChild(r);
+      });
+    });
+  }
   function disabledToolsList() {
     var d = setting('disabledTools');
     return Array.isArray(d) ? d : [];
@@ -2266,7 +2352,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.36.0') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '1.36.1') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2377,6 +2463,7 @@
       var SECS = [
         ['look', de ? 'Darstellung' : 'Appearance', 'look', de ? 'Design, Layout, Skalierung und Sprache der Oberfläche' : 'Theme, layout style, UI scaling and language'],
         ['tools', de ? 'Werkzeuge & Start' : 'Tools & start', 'tools', de ? 'Startbildschirm, obere Leiste und sichtbare Werkzeuge anpassen' : 'Customize startup behavior, top bar and active tools'],
+        ['keys', de ? 'Tastenkürzel' : 'Shortcuts', 'keys', de ? 'Tastenkürzel der App frei belegen' : 'Assign the keyboard shortcuts of the app'],
         ['data', de ? 'Daten & Import' : 'Data & import', 'data', de ? 'Backups verwalten, Online-Daten aktualisieren und Teams importieren' : 'Manage backups, update online data and import teams'],
         ['about', de ? 'Lizenzen' : 'Licenses', 'data', de ? 'Pokémon Showdown und andere Hinweise' : 'Pokémon Showdown and other notices']
       ];
@@ -2407,7 +2494,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '1.36.0';
+      var ver = (updStatus && updStatus.current) || '1.36.1';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2498,14 +2585,38 @@
           renderNav();
           fitToWindow();
         });
-        row(gLook, T('setModel'), T('setModelHint'), [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]], setting('model'), function (v) {
+        row(gLook, de ? 'Animationen' : 'Animations', de ? 'Übergänge und bewegte Effekte der Oberfläche. „System“ folgt der Windows-Einstellung „Animationseffekte“.' : 'Transitions and moving effects of the interface. “System” follows the OS setting for animation effects.',
+          [['on', de ? 'An' : 'On'], ['system', de ? 'System' : 'System'], ['reduced', de ? 'Reduziert' : 'Reduced'], ['off', de ? 'Aus' : 'Off']], setting('motion'), function (v) {
+            setSetting('motion', v); applyLook();
+          });
+        selectRow(gLook, de ? 'Schriftart' : 'Font', de ? 'Schrift der ganzen Oberfläche (Zahlen in Rechnungen bleiben gleich breit).' : 'Font of the whole interface (numbers in calculations keep their width).',
+          FONTS.map(function (f) { return [f[0], de ? f[1] : f[2]]; }), setting('font'), function (v) { setSetting('font', v); applyLook(); });
+        row(gLook, de ? 'Schriftgröße' : 'Text size', de ? 'Nur die Schrift, unabhängig von der Oberflächengröße. Große Werte brauchen mehr Platz.' : 'Text only, independent of the interface size. Large values need more room.',
+          [['90', '90 %'], ['100', '100 %'], ['110', '110 %'], ['120', '120 %'], ['135', '135 %']], String(setting('fontSize')), function (v) { setSetting('fontSize', +v); applyLook(); });
+
+        var gSpr = makeGroup(de ? 'Sprite-Stil' : 'Sprite style');
+        var SPR3 = [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]];
+        row(gSpr, T('setModel'), T('setModelHint'), SPR3, setting('model'), function (v) {
           setSetting('model', v);
           if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
-          if (window.CCDex && document.body.dataset.view === 'dex') window.CCDex.render();
           if (window.CCGoDex && document.body.dataset.view === 'godex') window.CCGoDex.render();
           if (window.CCGoCounter && document.body.dataset.view === 'gocounter') window.CCGoCounter.render();
           if (window.CCGoInfo && document.body.dataset.view === 'goinfo') window.CCGoInfo.render();
         });
+        row(gSpr, 'Damage Calculator', de ? 'Kleine Bilder in den Reitern A/B, der Team-Leiste, der Zugreihenfolge und bei den Attacken.' : 'Small pictures in the A/B tabs, the team bar, the turn order and next to the moves.',
+          [['pixel', T('setSprite')], ['home', T('setHome')], ['3d', T('set3d')]], setting('spriteCalc'), function (v) {
+            setSetting('spriteCalc', v);
+            if (window.CCApp && window.CCApp.redrawSprites) window.CCApp.redrawSprites();
+          });
+        row(gSpr, de ? 'Pokédex' : 'Pokédex', de ? 'Großes Bild im Nationalen Pokédex.' : 'Large picture in the National Pokédex.', SPR3, setting('spriteDex') || setting('model'), function (v) {
+          setSetting('spriteDex', v);
+          if (window.CCDex && document.body.dataset.view === 'dex') window.CCDex.render();
+        });
+        row(gSpr, de ? 'Match-Overlay (OBS)' : 'Match overlay (OBS)', de ? 'Bilder in Team-Overlay und Teampreview. Offene Overlays übernehmen es beim nächsten Abruf.' : 'Pictures in the team overlay and team preview. Open overlays pick it up with the next update.',
+          [['home', 'HOME'], ['art', de ? 'Artwork' : 'Artwork'], ['3d', T('set3d')], ['pixel', T('setSprite')]], setting('spriteOverlay'), function (v) {
+            setSetting('spriteOverlay', v);
+            if (window.CCOverlay && window.CCOverlay.push) window.CCOverlay.push();
+          });
 
         var gScale = makeGroup(de ? 'Anzeige & Sprache' : 'Display & language');
         row(gScale, T('setZoom'), T('setZoomHint'), [['auto', T('setZoomAuto')], ['85', '85 %'], ['100', '100 %'], ['115', '115 %'], ['130', '130 %'], ['150', '150 %']], String(setting('zoom') || 'auto'), function (v) {
@@ -2513,6 +2624,8 @@
           fitToWindow();
         });
         row(gScale, T('setLang'), T('setLangHint'), [['de', 'Deutsch'], ['en', 'English']], LANG, function (v) { close(); setLang(v); });
+      } else if (settingsTab === 'keys') {
+        hotkeyPage(makeGroup, draw);
       } else if (settingsTab === 'tools') {
         var gNav = makeGroup(de ? 'Navigation & Startverhalten' : 'Navigation & startup');
         var startOpts = [['start', T('setStartScreen')]];
@@ -2598,7 +2711,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.36.0', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '1.36.1', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -2943,7 +3056,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '1.36.0';
+    var ver = (updStatus && updStatus.current) || '1.36.1';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -2998,6 +3111,32 @@
       if (from >= 0 && from !== i && window.CCBuilder.move(from, i)) renderStartTeam();
     });
   }
+  // frei belegbare Tastenkürzel (js/hotkeys.js, Einstellungen → Tastenkürzel)
+  function registerHotkeys() {
+    var H = window.RLHotkeys;
+    if (!H) return;
+    var view = function () { return document.body.dataset.view; };
+    H.register('home', { label: ['Startbildschirm', 'Start screen'], group: 'app', def: 'Alt+0', inFields: true, run: function () { showView('start'); } });
+    H.register('settings', { label: ['Einstellungen öffnen', 'Open settings'], group: 'app', def: 'Ctrl+,', inFields: true, run: function () { openSettings(); } });
+    var n = 0;
+    MODES.forEach(function (m) {
+      var def = n < 9 ? 'Alt+' + (++n) : '';
+      H.register('tool:' + m[0], { label: [T(m[1]), T(m[1])], group: 'tools', def: def, inFields: true,
+        run: function () { if (!isToolEnabled(m[0])) return false; showView(m[0]); } });
+    });
+    function click(id) { return function () { var b = document.getElementById(id); if (!b || b.disabled) return false; b.click(); }; }
+    var inCalc = function () { return view() === 'calc'; };
+    H.register('calc.swap', { label: ['Seiten tauschen', 'Swap sides'], group: 'calc', def: 'Alt+S', inFields: true, when: inCalc, run: click('btnSwap') });
+    H.register('calc.reset', { label: ['Gegner und Feld zurücksetzen', 'Reset opponent and field'], group: 'calc', def: 'Alt+R', inFields: true, when: inCalc, run: click('btnReset') });
+    var inBuilder = function () { return view() === 'builder' && !!window.CCBuilder; };
+    [['newTeam', 'Neues Team', 'New team', 'Alt+N'], ['newVersion', 'Neue Version', 'New version', 'Alt+V'], ['exportTeam', 'Team exportieren', 'Export team', 'Ctrl+E'],
+      ['share', 'Team teilen (QR-Code, PokéPaste)', 'Share team (QR code, PokéPaste)', 'Ctrl+Shift+E'], ['qr', 'Team aus QR-Code importieren', 'Import team from QR code', 'Ctrl+Shift+I'],
+      ['cover', 'Typ-Abdeckung ein/aus', 'Toggle type coverage', 'Alt+T'], ['diff', 'Versionen vergleichen ein/aus', 'Toggle version compare', 'Alt+D'], ['legal', 'Regel-Check ein/aus', 'Toggle rule check', 'Alt+L']
+    ].forEach(function (x) {
+      H.register('builder.' + x[0], { label: [x[1], x[2]], group: 'builder', def: x[3], inFields: /^(Alt|Ctrl)\+/.test(x[3]), when: inBuilder,
+        run: function () { return window.CCBuilder.action(x[0]) ? undefined : false; } });
+    });
+  }
   function initViews() {
     try { localStorage.removeItem('cc_battlelog'); } catch (e) { /* Speicher gesperrt */ }
     if (VIEWS.indexOf(setting('start')) === -1) setSetting('start', 'start');
@@ -3021,6 +3160,7 @@
     });
     document.getElementById('catBack').addEventListener('click', function () { showView('start'); });
     document.getElementById('btnSettings').addEventListener('click', openSettings);
+    registerHotkeys();
     var vNav = document.getElementById('viewNav');
     if (vNav) {
       vNav.addEventListener('wheel', function (ev) {
@@ -3102,7 +3242,7 @@
     showView: function (v) { showView(v); },
     C: C, DEX: DEX, MOVES: MOVES, ITEMS: ITEMS, ABILITIES: ABILITIES, SPECIES: SPECIES, NATURE_NAMES: NATURE_NAMES, LANG: LANG,
     TYPE_COLORS: TYPE_COLORS, DARK_TEXT_TYPES: DARK_TEXT_TYPES,
-    baseOf: baseOf, formesOf: formesOf, megaFormeFor: megaFormeFor, legalMoves: legalMoves, legalAbilities: legalAbilities,
+    baseOf: baseOf, formesOf: formesOf, megaFormeFor: megaFormeFor, legalMoves: legalMoves, legalAbilities: legalAbilities, hasLearn: HAS_LEARN, REG_NAME: REG_NAME,
     nSpecies: nSpecies, nMove: nMove, nItem: nItem, nAbility: nAbility, nNature: nNature, nType: nType, nStat: nStat, nStatLong: nStatLong,
     natureLabel: natureLabel, kindLabel: kindLabel, sortedBy: sortedBy, nSetName: nSetName,
     el: el, esc: esc, opt: opt, toast: toast, pushUndo: pushUndo, showModal: showModal, copy: copy, load: load, save: save, T: T,
@@ -3120,6 +3260,8 @@
     setting: setting, setSetting: setSetting, saveFile: saveFile, openSettings: openSettings, saveCustomSet: saveCustomSet
   };
   // expose for debugging
-  window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES };
+  window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES,
+    // setting "Sprite-Stil → Damage Calculator": draw the tabs, team bars and turn order again
+    redrawSprites: function () { [0, 1].forEach(function (i) { var b = sides[i] && sides[i].$('tabs'); if (b) b._key = null; renderTeam(i); }); recalc(); } };
   document.addEventListener('DOMContentLoaded', init);
 })();

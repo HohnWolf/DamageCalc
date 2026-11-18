@@ -187,6 +187,8 @@
   store.auto = { connect: !!(store.auto && store.auto.connect), detect: !!(store.auto && store.auto.detect) };
   if (store.hotkeys.clip == null) store.hotkeys.clip = '';
   if (store.hotkeys.projector == null) store.hotkeys.projector = 'CommandOrControl+Alt+P';
+  // Discord-Kanal (Webhook) für die Nachricht bei "Gefunden!": Screenshot und, falls aufgenommen, der Clip
+  store.notify = Object.assign({ on: false, webhook: '', shot: true, clip: true, limit: 10 }, store.notify || {});
   function cleanProjector(p) {
     p = p && typeof p === 'object' ? p : {};
     var b = p.bounds && typeof p.bounds === 'object' ? p.bounds : null;
@@ -360,6 +362,90 @@
       }).then(function (r) { if (r && r.path) res.shot = r.path; return res; }, function () { return res; });
     }).catch(function () { return null; });
   }
+  // ---------------- Discord: message at "Found!" ----------------
+  function hookOk(u) { return /^https:\/\/(?:(?:ptb|canary)\.)?discord(?:app)?\.com\/api(?:\/v\d+)?\/webhooks\/\d+\/[\w-]+\/?$/.test(String(u || '').trim()); }
+  function notifyText(h, v) {
+    var g = O.game(h.game), m = O.method(h.method), name = monName(v.species) || huntName(h);
+    var bits = [de ? g.de : g.en, de ? m.de : m.en, v.ball, v.location];
+    var line = '✨ ' + (de ? '**Shiny ' + name + '** gefunden' : 'Found **shiny ' + name + '**') + (v.nick ? ' („' + v.nick + '“)' : '') +
+      (de ? ' nach ' : ' after ') + fmt(v.encounters || h.count || 0) + (de ? ' Begegnungen' : ' encounters') +
+      (h.phases.length ? ' · ' + t('phaseN', h.phases.length + 1) : '') + ' · ' + dur(timeOf(h));
+    return line + '\n' + bits.filter(Boolean).join(' · ') + (v.notes ? '\n' + v.notes : '');
+  }
+  // waits for the screenshot and the clip of the dialog (they may still be recording), then sends one message
+  function notifyFound(h, v, media) {
+    var n = store.notify;
+    if (!n.on || !hookOk(n.webhook) || !D || !D.notify) return;
+    function wait(p) { return p ? Promise.race([p, new Promise(function (r) { setTimeout(function () { r(null); }, 180000); })]).catch(function () { return null; }) : Promise.resolve(null); }
+    Promise.all([wait(media && media.shot), wait(media && media.clip)]).then(function (got) {
+      var files = [];
+      var shot = v.shot || (got[0] && got[0].shot) || '';
+      if (n.shot && shot) files.push(shot);
+      var clip = v.clip || (got[1] && got[1].path) || (h.lastClip && Date.now() - (h.lastClipAt || 0) < 15 * 60000 ? h.lastClip : '');
+      if (n.clip && clip) files.push(clip);
+      return D.notify({ webhook: n.webhook, content: notifyText(h, v), files: files, limitMb: n.limit,
+        tooBig: de ? '🎬 {0} ({1} MB) ist zu groß für Discord und liegt nur lokal.' : '🎬 {0} ({1} MB) is too large for Discord and stays local.' });
+    }).then(function (r) {
+      var big = r && r.skipped && r.skipped.length;
+      if (r && r.ok) A.toast(de ? 'An Discord geschickt' + (big ? ' (Clip zu groß)' : '') : 'Sent to Discord' + (big ? ' (clip too large)' : ''));
+      else A.toast((de ? 'Discord: Senden fehlgeschlagen' : 'Discord: sending failed') + (r && r.error ? ' – ' + r.error : ''));
+    }, function (e) { A.toast((de ? 'Discord: Senden fehlgeschlagen – ' : 'Discord: sending failed – ') + (e && e.message || e)); });
+  }
+  function notifyCard(wrap) {
+    var n = store.notify;
+    var np = el('div', { class: 'panel sh-card sh-notify' });
+    np.appendChild(el('h3', { text: de ? 'Benachrichtigung bei „Gefunden!“ (Discord)' : 'Notification on “Found!” (Discord)' }));
+    if (!D || !D.notify) { np.appendChild(el('div', { class: 'hint', text: de ? 'Gibt es nur in der Desktop-App.' : 'Only available in the desktop app.' })); wrap.appendChild(np); return; }
+    np.appendChild(el('div', { class: 'hint', text: de
+      ? 'Schickt nach dem Speichern eines Shinys eine Nachricht mit Screenshot und, falls aufgenommen, dem Clip in einen Discord-Kanal. In Discord: Kanal bearbeiten → Integrationen → Webhooks → Neuer Webhook → Webhook-URL kopieren. Wer die URL kennt, kann in den Kanal schreiben: nicht weitergeben.'
+      : 'After a shiny is saved, sends a message with the screenshot and, if recorded, the clip to a Discord channel. In Discord: Edit channel → Integrations → Webhooks → New webhook → Copy webhook URL. Anyone with the URL can post to the channel: keep it private.' }));
+    var on = el('label', { class: 'nc-check sh-chk' }); var onb = el('input', { type: 'checkbox' }); onb.checked = !!n.on;
+    on.appendChild(onb); on.appendChild(document.createTextNode(' ' + (de ? 'Bei „Gefunden!“ an Discord schicken' : 'Send to Discord on “Found!”')));
+    np.appendChild(on);
+    var row = el('div', { class: 'sh-url' });
+    var hook = el('input', { type: 'password', spellcheck: 'false', autocomplete: 'off', placeholder: 'https://discord.com/api/webhooks/…' });
+    hook.value = n.webhook || '';
+    var eye = el('button', { class: 'tbtn', type: 'button', text: de ? 'Zeigen' : 'Show' });
+    eye.addEventListener('click', function () { var pw = hook.type === 'password'; hook.type = pw ? 'text' : 'password'; eye.textContent = pw ? (de ? 'Verbergen' : 'Hide') : (de ? 'Zeigen' : 'Show'); });
+    var test = el('button', { class: 'tbtn', type: 'button', text: de ? 'Test senden' : 'Send test' });
+    row.appendChild(hook); row.appendChild(eye); row.appendChild(test);
+    np.appendChild(row);
+    var st = el('div', { class: 'hint sh-notify-st' });
+    function check() {
+      var v = hook.value.trim();
+      st.className = 'hint sh-notify-st' + (v && !hookOk(v) ? ' bad' : '');
+      st.textContent = v && !hookOk(v) ? (de ? 'Das ist keine Discord-Webhook-URL.' : 'This is not a Discord webhook URL.') : '';
+      test.disabled = !hookOk(v);
+    }
+    hook.addEventListener('input', function () { n.webhook = hook.value.trim(); check(); persist(); });
+    onb.addEventListener('change', function () { n.on = onb.checked; persist(); });
+    var opts = el('div', { class: 'sh-obs-opts' });
+    [['shot', de ? 'Screenshot mitschicken' : 'Attach screenshot'], ['clip', de ? 'Clip mitschicken (falls aufgenommen)' : 'Attach clip (if recorded)']].forEach(function (x) {
+      var c = el('label', { class: 'nc-check sh-chk' }); var cb = el('input', { type: 'checkbox' }); cb.checked = !!n[x[0]];
+      cb.addEventListener('change', function () { n[x[0]] = cb.checked; persist(); });
+      c.appendChild(cb); c.appendChild(document.createTextNode(' ' + x[1])); opts.appendChild(c);
+    });
+    var lw = el('label', { class: 'nc-sel' }); lw.appendChild(el('span', { text: de ? 'Dateigröße höchstens' : 'Max. file size' }));
+    var ls = el('select');
+    [[10, de ? '10 MB (Standard)' : '10 MB (default)'], [50, de ? '50 MB (Server-Boost Stufe 2)' : '50 MB (server boost level 2)'], [100, de ? '100 MB (Stufe 3)' : '100 MB (level 3)']].forEach(function (x) {
+      var q = el('option', { value: x[0], text: x[1] }); if (+n.limit === x[0]) q.selected = true; ls.appendChild(q);
+    });
+    ls.addEventListener('change', function () { n.limit = +ls.value; persist(); });
+    lw.appendChild(ls); opts.appendChild(lw);
+    np.appendChild(opts);
+    np.appendChild(st);
+    test.addEventListener('click', function () {
+      test.disabled = true; st.className = 'hint sh-notify-st'; st.textContent = de ? 'Sende …' : 'Sending …';
+      D.notify({ webhook: n.webhook, content: de ? '✨ Testnachricht von Rattata Labs: Shinys landen ab jetzt hier.' : '✨ Test message from Rattata Labs: shinies will show up here.', files: [] })
+        .then(function (r) {
+          st.className = 'hint sh-notify-st ' + (r && r.ok ? 'ok' : 'bad');
+          st.textContent = r && r.ok ? (de ? '✓ Testnachricht angekommen.' : '✓ Test message delivered.') : (de ? '✕ Fehlgeschlagen: ' : '✕ Failed: ') + (r && r.error || '?');
+        }, function (e) { st.className = 'hint sh-notify-st bad'; st.textContent = String(e && e.message || e); })
+        .then(function () { test.disabled = !hookOk(n.webhook); });
+    });
+    check();
+    wrap.appendChild(np);
+  }
   // all balls for the catch dialog (names from the catch calculator plus the ones it does not cover)
   function ballNames() {
     var list = window.CCCatchCalc && window.CCCatchCalc.BALLS ? window.CCCatchCalc.BALLS.map(function (b) { return de ? b.nameDe : b.nameEn; }) : [];
@@ -415,14 +501,14 @@
     return D.setHotkeys(store.hotkeys).then(function (r) { hkResult = r || {}; return hkResult; }, function () { return {}; });
   }
   var hkResult = {};
-  document.addEventListener('keydown', function (ev) {
-    if (document.body.dataset.view !== 'shiny' || recording) return;
-    var tg = ev.target;
-    if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'SELECT' || tg.tagName === 'TEXTAREA')) return;
-    if (document.querySelector('.modal:not(.hidden)')) return;
-    if (ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') { ev.preventDefault(); count(sel(), 1); }
-    else if (ev.key === '-' || ev.code === 'NumpadSubtract') { ev.preventDefault(); count(sel(), -1); }
-  });
+  // Tasten im Fenster (frei belegbar unter Einstellungen → Tastenkürzel, js/hotkeys.js); die globalen Hotkeys oben gelten auch im Spiel
+  var inShiny = function () { return document.body.dataset.view === 'shiny' && !recording; };
+  if (window.RLHotkeys) {
+    window.RLHotkeys.register('shiny.inc', { label: ['Begegnung zählen (+)', 'Count encounter (+)'], group: 'shiny', def: 'Plus', when: inShiny, run: function () { count(sel(), 1); } });
+    // wie bisher zählt auch '=' (US-Tastatur ohne Shift); eigene Belegung, frei änderbar
+    window.RLHotkeys.register('shiny.incEq', { label: ['Begegnung zählen (=)', 'Count encounter (=)'], group: 'shiny', def: '=', when: inShiny, run: function () { count(sel(), 1); } });
+    window.RLHotkeys.register('shiny.dec', { label: ['Begegnung abziehen (−)', 'Remove encounter (−)'], group: 'shiny', def: 'Minus', when: inShiny, run: function () { count(sel(), -1); } });
+  }
 
   // ---------------- OBS state for the desktop app ----------------
   function oddsText(h) { var p = O.probability(h); return (O.isApprox(h) ? t('approx') + ' ' : '') + '1/' + fmt(1 / p); }
@@ -888,6 +974,7 @@
         if (!v.clip && !(media && media.clip) && h.lastClip && Date.now() - (h.lastClipAt || 0) < 15 * 60000) v.clip = h.lastClip;
         store.collection.unshift(v);
         A.toast(t('huntFound', monName(v.species)));
+        notifyFound(h, v, media);
       } else if (isNew) store.collection.unshift(v);
       else store.collection = store.collection.map(function (c) { return c.id === v.id ? v : c; });
       persist(); render();
@@ -1072,6 +1159,7 @@
       hp.appendChild(r);
     });
     wrap.appendChild(hp);
+    notifyCard(wrap);
 
     // OBS overlay
     var op = el('div', { class: 'panel sh-card' });

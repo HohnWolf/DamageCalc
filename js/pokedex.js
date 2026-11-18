@@ -124,7 +124,7 @@
   if (!st.num || st.num < 1) st.num = 6;
   if (st.formIdx == null) st.formIdx = 0;
   if (st.shiny == null) st.shiny = false;
-  if (!st.artMode) st.artMode = A.setting ? (A.setting('model') || '3d') : '3d';
+  if (!st.artMode) st.artMode = A.setting ? (A.setting('spriteDex') || A.setting('model') || '3d') : '3d';
   if (!st.search) st.search = '';
   if (!st.typeFilter) st.typeFilter = '';
   if (!st.genFilter) st.genFilter = '';
@@ -370,7 +370,7 @@
   function renderDetail() {
     var main = document.getElementById('dexMain');
     if (!main) return;
-    st.artMode = (A.setting && A.setting('model')) || st.artMode || '3d';
+    st.artMode = (A.setting && (A.setting('spriteDex') || A.setting('model'))) || st.artMode || '3d';
     var dex = getDexData();
     var totalMax = maxDexNum();
     var mon = dex[st.num] || dex[1];
@@ -625,7 +625,7 @@
     main.querySelectorAll('[data-art]').forEach(function (b) {
       b.addEventListener('click', function () {
         st.artMode = b.getAttribute('data-art') || '3d';
-        if (A.setSetting) A.setSetting('model', st.artMode);
+        if (A.setSetting) A.setSetting('spriteDex', st.artMode);
         saveState();
         renderDetail();
       });

@@ -1,6 +1,6 @@
 /* Android-App: Seiten scrollen, Spalten werden einspaltig, größere Touch-Ziele. Wird nur im Android-Build geladen (mobile/build-web.js). */
 html.rl-android, html.rl-android body { height: auto !important; min-height: 100%; overflow-x: hidden !important; overflow-y: auto !important; -webkit-text-size-adjust: 100%; }
-html.rl-android body { display: block !important; font-size: 14px; padding-bottom: env(safe-area-inset-bottom); -webkit-tap-highlight-color: transparent; }
+html.rl-android body { display: block !important; font-size: calc(14px * var(--fs, 1)); padding-bottom: env(safe-area-inset-bottom); -webkit-tap-highlight-color: transparent; }
 html.rl-android .app-main { display: block; overflow: visible; min-height: 100vh; }
 html.rl-android .wrap { height: auto !important; min-height: 0; overflow: visible !important; padding: 8px 10px 12px; flex: none; }
 html.rl-android img { max-width: 100%; }
@@ -12,7 +12,7 @@ html.rl-android .sidebar .sb-list { overflow-x: auto !important; scrollbar-width
 html.rl-android .sidebar .sb-list::-webkit-scrollbar { display: none; }
 html.rl-android .sb-head .sb-title { display: none; }
 html.rl-android .topbar, html.rl-android .win-controls { display: none !important; }
-html.rl-android button, html.rl-android select, html.rl-android input { min-height: 36px; font-size: 14px; }
+html.rl-android button, html.rl-android select, html.rl-android input { min-height: 36px; font-size: calc(14px * var(--fs, 1)); }
 
 /* alle mehrspaltigen Raster einspaltig */
 html.rl-android .columns, html.rl-android .results, html.rl-android .tb, html.rl-android .look-body,
@@ -29,8 +29,8 @@ html.rl-android .start-card { width: 100%; }
 html.rl-android .start-view { overflow: visible; height: auto; }
 
 /* Listen */
-html.rl-android .gd-cp-row { grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); font-size: 12px; }
-html.rl-android .gd-mv { grid-template-columns: 62px minmax(0, 1fr) 38px 40px 38px 38px; font-size: 12px; }
+html.rl-android .gd-cp-row { grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); font-size: calc(12px * var(--fs, 1)); }
+html.rl-android .gd-mv { grid-template-columns: 62px minmax(0, 1fr) 38px 40px 38px 38px; font-size: calc(12px * var(--fs, 1)); }
 html.rl-android .gd-list, html.rl-android .dex-list, html.rl-android .gd-listbox { max-height: 60vh; }
 html.rl-android .set-box { width: 96vw; height: calc(100vh - 24px); }
 html.rl-android .set-shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
@@ -55,10 +55,10 @@ html.rl-android .dex-row { flex: none; min-height: 48px; }
 html.rl-android .gc-layout { grid-template-columns: minmax(0, 1fr) !important; }
 html.rl-android .gc-main, html.rl-android .gc-sidebar { min-width: 0; max-width: 100%; }
 html.rl-android .gc-sidebar, html.rl-android .gc-side-body { overflow: visible !important; height: auto !important; }
-html.rl-android .gc-mode-tab { min-height: 44px; font-size: 13.5px; }
-html.rl-android .gc-seg > button { min-height: 36px; font-size: 12.5px; }
-html.rl-android .gc-type-pill { min-height: 34px; font-size: 12px; }
-html.rl-android .gc-flt-chip { min-height: 40px; font-size: 12.5px; }
+html.rl-android .gc-mode-tab { min-height: 44px; font-size: calc(13.5px * var(--fs, 1)); }
+html.rl-android .gc-seg > button { min-height: 36px; font-size: calc(12.5px * var(--fs, 1)); }
+html.rl-android .gc-type-pill { min-height: 34px; font-size: calc(12px * var(--fs, 1)); }
+html.rl-android .gc-flt-chip { min-height: 40px; font-size: calc(12.5px * var(--fs, 1)); }
 html.rl-android .gc-boss-Quicklist { max-height: 40vh; }
 html.rl-android .gc-boss-item { min-height: 40px; }
 html.rl-android .gc-head-top { flex-direction: column; align-items: stretch; }
@@ -76,8 +76,8 @@ html.rl-android .gi-out { overflow: visible; flex: none; }
 html.rl-android .gi-canvas { width: 100%; max-height: none; }
 
 /* ===== Handy-Überarbeitung: größere Ziele, kompaktere Startseite, Ergebnis zuerst, ruhigere Flächen ===== */
-html.rl-android body { font-size: 15px; line-height: 1.4; }
-html.rl-android button, html.rl-android select, html.rl-android input, html.rl-android textarea { min-height: 44px; font-size: 16px; border-radius: 10px; }
+html.rl-android body { font-size: calc(15px * var(--fs, 1)); line-height: 1.4; }
+html.rl-android button, html.rl-android select, html.rl-android input, html.rl-android textarea { min-height: 44px; font-size: calc(16px * var(--fs, 1)); border-radius: 10px; }
 html.rl-android input[type="checkbox"], html.rl-android input[type="radio"] { min-height: 0; width: 22px; height: 22px; flex: none; }
 html.rl-android input[type="range"] { min-height: 32px; }
 html.rl-android label { -webkit-user-select: none; user-select: none; }
@@ -97,12 +97,12 @@ html.rl-android .start-cards.is-all { display: grid !important; grid-template-co
 html.rl-android .start-cards .cat-card { min-height: 0; padding: 10px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px; }
 html.rl-android .start-cards .cat-card .sc-art { height: 64px !important; max-height: 64px !important; min-height: 0; overflow: hidden; transform: none; }
 html.rl-android .start-cards .cat-card .sc-art .sc-mon { transform: scale(.78); }
-html.rl-android .start-cards .cat-card .sc-title { font-size: 16px; }
-html.rl-android .start-cards .cat-card .sc-text { font-size: 12px; opacity: .75; line-height: 1.3; }
+html.rl-android .start-cards .cat-card .sc-title { font-size: calc(16px * var(--fs, 1)); }
+html.rl-android .start-cards .cat-card .sc-text { font-size: calc(12px * var(--fs, 1)); opacity: .75; line-height: 1.3; }
 html.rl-android .start-cards .sg-cards .start-card { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; min-height: 64px; border-radius: 14px; }
 html.rl-android .start-cards .sg-cards .start-card .sc-art { display: none !important; }
-html.rl-android .start-cards .sg-cards .start-card .sc-title { font-size: 17px; }
-html.rl-android .start-cards .sg-cards .start-card .sc-text { font-size: 13px; opacity: .75; }
+html.rl-android .start-cards .sg-cards .start-card .sc-title { font-size: calc(17px * var(--fs, 1)); }
+html.rl-android .start-cards .sg-cards .start-card .sc-text { font-size: calc(13px * var(--fs, 1)); opacity: .75; }
 html.rl-android .cat-back { min-height: 44px; padding: 0 16px; border-radius: 12px; margin-bottom: 8px; }
 
 /* GO-Infografik: Ergebnis zuerst, Speichern-Leiste fest unten */

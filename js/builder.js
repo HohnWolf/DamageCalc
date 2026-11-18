@@ -68,7 +68,10 @@
   }
   var dragFrom = -1; // slot being dragged
   var sel = 0; // selected slot (0-5); equal to mons.length = "add a new Pokémon"
-  var tab = 'edit'; // lower panel: 'edit' (Pokémon editor), 'cover' (type coverage) or 'io' (import/export of one Pokémon)
+  var tab = 'edit'; // lower panel: 'edit' (Pokémon editor), 'io' (import/export of one Pokémon); views: 'cover' (type coverage), 'diff' (compare versions), 'legal' (rule check)
+  var VIEW_TABS = ['edit', 'io', 'cover', 'diff', 'legal'];
+  var work = null; // the lower panel
+  var diffSel = { a: null, b: null, same: false }; // compared versions (ids); same: also show unchanged fields
 
   // ---------------- helpers ----------------
   // ---------- forms: battle forms (Mega, Blade …), other formes/regional forms, cosmetic variants, gender ----------
@@ -240,7 +243,7 @@
   function render() {
     root = document.getElementById('builderView');
     if (!root) return;
-    if (tab !== 'edit' && tab !== 'cover' && tab !== 'io') tab = 'edit';
+    if (VIEW_TABS.indexOf(tab) === -1) tab = 'edit';
     var t = team();
     var cv = curVersion(t);
     if (sel > t.mons.length || sel > 5) sel = Math.min(t.mons.length, 5);
@@ -249,7 +252,8 @@
       '<aside class="panel tb-side">' +
       '<h2 class="field-head"><span>' + T('tbTeams') + '</span><button class="tbtn" id="tbNew">' + T('tbNew') + '</button></h2>' +
       '<div class="tb-list" id="tbList"></div>' +
-      '<div class="tb-side-foot"><button class="tbtn" id="tbImport">' + T('tbImport') + '</button></div>' +
+      '<div class="tb-side-foot"><button class="tbtn" id="tbImport">' + T('tbImport') + '</button>' +
+      '<button class="tbtn" id="tbQrImport" title="' + (de ? 'Team aus einem QR-Code-Bild importieren (mit Teamname)' : 'Import a team from a QR code image (with team name)') + '">' + (de ? 'QR importieren' : 'Import QR') + '</button></div>' +
       '</aside>' +
       '<section class="tb-main">' +
       '<div class="tb-head">' +
@@ -258,6 +262,7 @@
       '<button type="button" class="primary-btn tb-meta" id="tbMeta" title="' + (de ? 'Dieses Team lokal gegen Meta-Teams testen' : 'Test this team against meta teams, locally') + '">' + (de ? 'Meta-Test' : 'Meta test') + '</button>' +
       '<span class="tb-acts">' +
       '<button class="tbtn" id="tbExport">' + T('tbExport') + '</button>' +
+      '<button class="tbtn" id="tbShare" title="' + (de ? 'QR-Code und PokéPaste-Link für dieses Team' : 'QR code and PokéPaste link for this team') + '">' + (de ? 'Teilen' : 'Share') + '</button>' +
       '<button class="tbtn" id="tbSheet" title="' + (de ? 'Teamsheet als Bild (Deutsch / Englisch)' : 'Team sheet as image (German / English)') + '">' + (de ? 'Teamsheet' : 'Team sheet') + '</button>' +
       '<button class="tbtn" id="tbDup">' + T('tbDuplicate') + '</button>' +
       '<button class="tbtn danger" id="tbDel">' + T('tbDelete') + '</button>' +
@@ -266,36 +271,49 @@
       '<button class="tbtn to-foe" id="tbToFoe">' + T('tbToCalcFoe') + '</button>' +
       '</span></div>' +
       '<div class="tb-ver-bar" id="tbVerBar">' +
-      '<span class="tb-ver-lbl">' + (de ? 'Versionen:' : 'Versions:') + '</span>' +
-      '<div class="tb-ver-pills" id="tbVerPills"></div>' +
-      '<button class="tbtn tb-ver-add" id="tbVerAdd" title="' + (de ? 'Aktuelle Version kopieren und als neue Version anlegen' : 'Clone current version as a new version') + '">' + (de ? '+ Neue Version' : '+ New version') + '</button>' +
+      '<label class="tb-ver-lbl" for="tbVerSel">' + (de ? 'Version' : 'Version') + '</label>' +
+      '<select id="tbVerSel" class="tb-ver-sel" title="' + (de ? 'Aktive Version wählen' : 'Choose the active version') + '"></select>' +
+      '<span class="tb-views" role="group" aria-label="' + (de ? 'Ansichten' : 'Views') + '">' +
+      '<button type="button" class="tbtn tb-view-btn" data-view="cover" title="' + (de ? 'Typ-Abdeckung des Teams (Schwächen und Resistenzen)' : 'Type coverage of the team (weaknesses and resistances)') + '">' + T('tbWeak') + '</button>' +
+      '<button type="button" class="tbtn tb-view-btn" data-view="diff" title="' + (de ? 'Zwei Versionen farbig vergleichen' : 'Compare two versions, colour-coded') + '">' + (de ? 'Versionen vergleichen' : 'Compare versions') + '</button>' +
+      '<button type="button" class="tbtn tb-view-btn tb-legal-btn" data-view="legal" id="tbLegalBtn"></button>' +
+      '</span>' +
       '<input id="tbVerName" class="tb-ver-name" spellcheck="false" placeholder="' + (de ? 'Versionsname (z. B. v1, Turnier …)' : 'Version name (e.g. v1, Tournament …)') + '" title="' + (de ? 'Name der aktiven Version bearbeiten' : 'Edit active version name') + '">' +
+      '<button class="tbtn tb-ver-add" id="tbVerAdd" title="' + (de ? 'Aktuelle Version kopieren und als neue Version anlegen' : 'Clone current version as a new version') + '">' + (de ? '+ Neue Version' : '+ New version') + '</button>' +
+      '<button class="tbtn tb-ver-delbtn" id="tbVerDel" title="' + (de ? 'Aktive Version löschen' : 'Delete the active version') + '" aria-label="' + (de ? 'Aktive Version löschen' : 'Delete the active version') + '">✕</button>' +
       '</div>' +
       '<div class="tb-slots" id="tbSlots"></div>' +
       '<div class="panel tb-work tab-' + tab + '" id="tbWork">' +
-      '<div class="tb-tabs"><button data-tab="edit">' + T('tbTabMon') + '</button><button data-tab="cover">' + T('tbWeak') + '</button><button data-tab="io">' + (de ? 'Pokémon Import/Export' : 'Pokémon import/export') + '</button></div>' +
+      '<div class="tb-tabs"><button data-tab="edit">' + T('tbTabMon') + '</button><button data-tab="io">' + (de ? 'Pokémon Import/Export' : 'Pokémon import/export') + '</button>' +
+      '<span class="tb-tabs-view" id="tbViewTitle"></span></div>' +
       '<div class="tb-edit" id="tbEdit"></div>' +
       '<div class="tb-cover" id="tbCover"></div>' +
       '<div class="tb-io" id="tbIO"></div>' +
+      '<div class="tb-diff" id="tbDiff"></div>' +
+      '<div class="tb-legal" id="tbLegal"></div>' +
       '</div>' +
       '</section></div>';
     R = {
       list: root.querySelector('#tbList'), slots: root.querySelector('#tbSlots'), edit: root.querySelector('#tbEdit'),
       cover: root.querySelector('#tbCover'), io: root.querySelector('#tbIO'), name: root.querySelector('#tbName'), count: root.querySelector('#tbCount'),
-      verPills: root.querySelector('#tbVerPills'), verName: root.querySelector('#tbVerName')
+      verSel: root.querySelector('#tbVerSel'), verName: root.querySelector('#tbVerName'), verDel: root.querySelector('#tbVerDel'),
+      diff: root.querySelector('#tbDiff'), legal: root.querySelector('#tbLegal'), legalBtn: root.querySelector('#tbLegalBtn'), work: root.querySelector('#tbWork'),
+      viewTitle: root.querySelector('#tbViewTitle')
     };
     R.name.value = t.name;
     R.verName.value = cv.name || 'v1';
-    var work = root.querySelector('#tbWork');
+    work = R.work;
     work.querySelectorAll('.tb-tabs button').forEach(function (b) {
-      b.classList.toggle('on', b.dataset.tab === tab);
-      b.addEventListener('click', function () {
-        tab = b.dataset.tab;
-        work.className = 'panel tb-work tab-' + tab;
-        work.querySelectorAll('.tb-tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
-        if (tab === 'io') renderIO(true);
-      });
+      b.addEventListener('click', function () { setTab(b.dataset.tab); });
     });
+    root.querySelectorAll('.tb-view-btn').forEach(function (b) {
+      b.addEventListener('click', function () { setTab(tab === b.dataset.view ? 'edit' : b.dataset.view); });
+    });
+    syncTab();
+    R.verSel.addEventListener('change', function () { switchVersion(R.verSel.value); });
+    R.verDel.addEventListener('click', deleteVersion);
+    root.querySelector('#tbShare').addEventListener('click', shareTeam);
+    root.querySelector('#tbQrImport').addEventListener('click', scanTeam);
     R.name.addEventListener('input', function () { team().name = R.name.value; persist(); renderList(); });
     R.name.addEventListener('blur', function () { if (!team().name.trim()) { team().name = T('tbDefaultName', store.teams.indexOf(team()) + 1); R.name.value = team().name; persist(); renderList(); } });
     R.verName.addEventListener('input', function () {
@@ -375,46 +393,60 @@
     renderVersions(); renderList(); renderSlots(); renderEditor(); renderCover();
   }
 
+  function versionLabel(v, idx) { return (v.name || ('v' + (idx + 1))) + ' · ' + T('tbMonCount', (v.mons || []).length); }
   function renderVersions() {
-    if (!R.verPills) return;
+    if (!R.verSel) return;
     var tm = team();
     ensureVersions(tm);
-    R.verPills.innerHTML = '';
+    R.verSel.innerHTML = '';
     tm.versions.forEach(function (v, idx) {
-      var isCur = v.id === tm.curVer;
-      var pill = el('button', { type: 'button', class: 'tb-ver-pill' + (isCur ? ' on' : '') });
-      pill.appendChild(el('span', { class: 'tb-ver-txt', text: v.name || ('v' + (idx + 1)) }));
-      if (tm.versions.length > 1) {
-        var del = el('span', { class: 'tb-ver-del', text: '×', title: de ? 'Diese Version löschen' : 'Delete this version' });
-        del.addEventListener('click', function (ev) {
-          ev.stopPropagation();
-          var vName = v.name || ('v' + (idx + 1));
-          ccConfirm(de ? 'Version „' + vName + '“ wirklich löschen?' : 'Delete version “' + vName + '”?', function () {
-            var vi = tm.versions.indexOf(v);
-            snapUndo(de ? 'Version „' + vName + '“ gelöscht' : 'Version “' + vName + '” deleted');
-            if (vi !== -1) tm.versions.splice(vi, 1);
-            if (tm.curVer === v.id) {
-              tm.curVer = tm.versions[Math.max(0, vi - 1)].id;
-            }
-            ensureVersions(tm);
-            if (sel > tm.mons.length) sel = tm.mons.length;
-            persist();
-            render();
-          }, { danger: true, title: ['Version löschen', 'Delete version'] });
-        });
-        pill.appendChild(del);
-      }
-      pill.addEventListener('click', function () {
-        if (tm.curVer !== v.id) {
-          tm.curVer = v.id;
-          ensureVersions(tm);
-          if (sel > tm.mons.length) sel = Math.min(tm.mons.length, 5);
-          persist();
-          render();
-        }
-      });
-      R.verPills.appendChild(pill);
+      var o = el('option', { value: v.id, text: versionLabel(v, idx) });
+      if (v.id === tm.curVer) o.selected = true;
+      R.verSel.appendChild(o);
     });
+    R.verDel.disabled = tm.versions.length < 2;
+  }
+  function switchVersion(id) {
+    var tm = team();
+    if (tm.curVer === id) return;
+    tm.curVer = id;
+    ensureVersions(tm);
+    if (sel > tm.mons.length) sel = Math.min(tm.mons.length, 5);
+    persist();
+    render();
+  }
+  function deleteVersion() {
+    var tm = team(), v = curVersion(tm);
+    if (tm.versions.length < 2) return;
+    var vName = v.name || ('v' + (tm.versions.indexOf(v) + 1));
+    ccConfirm(de ? 'Version „' + vName + '“ wirklich löschen?' : 'Delete version “' + vName + '”?', function () {
+      var vi = tm.versions.indexOf(v);
+      snapUndo(de ? 'Version „' + vName + '“ gelöscht' : 'Version “' + vName + '” deleted');
+      if (vi !== -1) tm.versions.splice(vi, 1);
+      tm.curVer = tm.versions[Math.max(0, vi - 1)].id;
+      if (diffSel.a === v.id) diffSel.a = null;
+      if (diffSel.b === v.id) diffSel.b = null;
+      ensureVersions(tm);
+      if (sel > tm.mons.length) sel = tm.mons.length;
+      persist();
+      render();
+    }, { danger: true, title: ['Version löschen', 'Delete version'] });
+  }
+  // lower panel: tabs (Pokémon, import/export) and the views from the version bar (coverage, compare, rules)
+  var VIEW_TITLES = { cover: function () { return T('tbWeak'); }, diff: function () { return de ? 'Versionen vergleichen' : 'Compare versions'; }, legal: function () { return de ? 'Regel-Check' : 'Rule check'; } };
+  function syncTab() {
+    if (!work) return;
+    work.className = 'panel tb-work tab-' + tab;
+    work.querySelectorAll('.tb-tabs button').forEach(function (x) { x.classList.toggle('on', x.dataset.tab === tab); });
+    root.querySelectorAll('.tb-view-btn').forEach(function (x) { var on = x.dataset.view === tab; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    if (R.viewTitle) R.viewTitle.textContent = VIEW_TITLES[tab] ? VIEW_TITLES[tab]() : '';
+  }
+  function setTab(t) {
+    tab = VIEW_TABS.indexOf(t) === -1 ? 'edit' : t;
+    syncTab();
+    if (tab === 'io') renderIO(true);
+    if (tab === 'diff') renderDiff();
+    if (tab === 'legal') renderLegal();
   }
 
   function renderList() {
@@ -1366,6 +1398,7 @@
     renderIO(false);
     var tm = team();
     R.cover.innerHTML = '';
+    renderViews();
     if (!tm.mons.length) { R.cover.appendChild(el('div', { class: 'tb-empty', text: T('tbEmptyTeam') })); return; }
     var tbl = el('table', { class: 'tb-cover-table' });
     var defs = tm.mons.map(function (m) {
@@ -1395,6 +1428,294 @@
     tbl.appendChild(tb);
     R.cover.appendChild(tbl);
     R.cover.appendChild(el('div', { class: 'hint tb-cv-hint', text: T('tbWeakHint') }));
+  }
+  // after every change of the team: rule check, version list and (when open) the comparison
+  function renderViews() {
+    renderVersions();
+    renderLegal();
+    if (tab === 'diff') renderDiff();
+  }
+
+  // ---------------- compare versions ----------------
+  function exportText(mons) { return mons.map(function (m) { return A.exportSet(m.set, m.setName, m.species); }).join('\n\n'); }
+  function noItem(x) { return !x || x === '(none)'; }
+  function itemText(x) { return noItem(x) ? (de ? 'kein Item' : 'no item') : A.nItem(x); }
+  function genderText(g) { return g === 'M' ? '♂' : g === 'F' ? '♀' : '–'; }
+  function movesOf(m) { return ((m.set && m.set.moves) || []).filter(function (x) { return x && x !== '(No Move)'; }); }
+  // pairs the Pokémon of two versions by species: [{ a, b }] (a or b missing = removed / added)
+  function pairMons(A1, B1) {
+    var used = {}, out = [];
+    B1.forEach(function (mb) {
+      var k = A.baseOf(mb.species), hit = -1;
+      A1.some(function (ma, i) { if (!used[i] && A.baseOf(ma.species) === k) { hit = i; return true; } return false; });
+      if (hit >= 0) used[hit] = 1;
+      out.push({ a: hit >= 0 ? A1[hit] : null, b: mb });
+    });
+    A1.forEach(function (ma, i) { if (!used[i]) out.push({ a: ma, b: null }); });
+    return out;
+  }
+  function diffFields(a, b) {
+    var sa = a.set || {}, sb = b.set || {};
+    var rows = [
+      { k: 'forme', label: de ? 'Form' : 'Form', a: A.nSpecies(baseForme(a)), b: A.nSpecies(baseForme(b)) },
+      { k: 'item', label: T('item'), a: itemText(sa.item), b: itemText(sb.item) },
+      { k: 'ability', label: de ? 'Fähigkeit' : 'Ability', a: sa.ability ? A.nAbility(sa.ability) : '–', b: sb.ability ? A.nAbility(sb.ability) : '–' },
+      { k: 'nature', label: de ? 'Wesen' : 'Nature', a: A.nNature(sa.nature || 'Hardy'), b: A.nNature(sb.nature || 'Hardy') },
+      { k: 'gender', label: de ? 'Geschlecht' : 'Gender', a: genderText(sa.gender), b: genderText(sb.gender) },
+      { k: 'shiny', label: 'Shiny', a: sa.shiny ? '★' : '–', b: sb.shiny ? '★' : '–' }
+    ];
+    rows.forEach(function (r) { r.chg = r.a !== r.b; });
+    var sp = C.STAT_KEYS.map(function (k) {
+      var x = (sa.sps && sa.sps[k]) || 0, y = (sb.sps && sb.sps[k]) || 0;
+      return { k: k, a: x, b: y, chg: x !== y };
+    });
+    var ma = movesOf(a), mb = movesOf(b);
+    var moves = [];
+    mb.forEach(function (mv) { moves.push({ mv: mv, st: ma.indexOf(mv) !== -1 ? 'same' : 'add' }); });
+    ma.forEach(function (mv) { if (mb.indexOf(mv) === -1) moves.push({ mv: mv, st: 'del' }); });
+    var any = rows.some(function (r) { return r.chg; }) || sp.some(function (x) { return x.chg; }) || moves.some(function (x) { return x.st !== 'same'; });
+    return { rows: rows, sp: sp, moves: moves, changed: any };
+  }
+  function renderDiff() {
+    if (!R.diff) return;
+    var tm = team(), vs = tm.versions;
+    R.diff.innerHTML = '';
+    if (vs.length < 2) {
+      var empty = el('div', { class: 'tb-empty tb-diff-empty' });
+      empty.appendChild(el('p', { text: de ? 'Zum Vergleichen braucht das Team mindestens zwei Versionen.' : 'Comparing needs at least two versions of the team.' }));
+      var mk = el('button', { type: 'button', class: 'primary-btn', text: de ? '+ Neue Version aus der aktuellen' : '+ New version from the current one' });
+      mk.addEventListener('click', function () { root.querySelector('#tbVerAdd').click(); setTab('diff'); });
+      empty.appendChild(mk);
+      R.diff.appendChild(empty);
+      return;
+    }
+    function byId(id) { var r = null; vs.some(function (v) { if (v.id === id) { r = v; return true; } return false; }); return r; }
+    var ci = Math.max(0, vs.indexOf(curVersion(tm)));
+    if (!byId(diffSel.b)) diffSel.b = vs[ci].id;
+    if (!byId(diffSel.a)) diffSel.a = vs[ci > 0 ? ci - 1 : 1].id;
+    if (diffSel.a === diffSel.b) diffSel.a = vs[ci > 0 ? ci - 1 : 1].id === diffSel.b ? vs[ci].id : vs[ci > 0 ? ci - 1 : 1].id;
+    var va = byId(diffSel.a), vb = byId(diffSel.b);
+    // head: A → B, swap, show unchanged
+    var head = el('div', { class: 'tb-diff-head' });
+    function verSelect(cur, onPick, cls) {
+      var s = el('select', { class: 'tb-diff-sel ' + cls });
+      vs.forEach(function (v, i) { var o = el('option', { value: v.id, text: versionLabel(v, i) }); if (v.id === cur) o.selected = true; s.appendChild(o); });
+      s.addEventListener('change', function () { onPick(s.value); renderDiff(); });
+      return s;
+    }
+    head.appendChild(el('span', { class: 'tb-diff-tag del', text: 'A' }));
+    head.appendChild(verSelect(diffSel.a, function (v) { diffSel.a = v; }, 'is-a'));
+    var sw = el('button', { type: 'button', class: 'tbtn tb-diff-swap', text: '⇄', title: de ? 'Seiten tauschen' : 'Swap sides' });
+    sw.addEventListener('click', function () { var x = diffSel.a; diffSel.a = diffSel.b; diffSel.b = x; renderDiff(); });
+    head.appendChild(sw);
+    head.appendChild(el('span', { class: 'tb-diff-tag add', text: 'B' }));
+    head.appendChild(verSelect(diffSel.b, function (v) { diffSel.b = v; }, 'is-b'));
+    var same = el('label', { class: 'nc-check tb-diff-same' });
+    var cb = el('input', { type: 'checkbox' }); cb.checked = diffSel.same;
+    cb.addEventListener('change', function () { diffSel.same = cb.checked; renderDiff(); });
+    same.appendChild(cb); same.appendChild(document.createTextNode(' ' + (de ? 'Unverändertes zeigen' : 'Show unchanged')));
+    head.appendChild(same);
+    R.diff.appendChild(head);
+    if (va === vb) { R.diff.appendChild(el('div', { class: 'tb-empty', text: de ? 'Wähle zwei verschiedene Versionen.' : 'Pick two different versions.' })); return; }
+
+    var pairs = pairMons(va.mons || [], vb.mons || []);
+    var n = { chg: 0, add: 0, del: 0, same: 0 };
+    var list = el('div', { class: 'tb-diff-list' });
+    var LBL = { add: de ? 'Neu in B' : 'New in B', del: de ? 'Nur in A' : 'Only in A', chg: de ? 'Geändert' : 'Changed', same: de ? 'Unverändert' : 'Unchanged' };
+    pairs.forEach(function (p) {
+      var kind, d = null;
+      if (!p.a) kind = 'add'; else if (!p.b) kind = 'del';
+      else { d = diffFields(p.a, p.b); kind = d.changed ? 'chg' : 'same'; }
+      n[kind]++;
+      if (kind === 'same' && !diffSel.same) return;
+      var m = p.b || p.a;
+      var card = el('div', { class: 'tb-diff-card is-' + kind });
+      var ch = el('div', { class: 'tb-diff-card-head' });
+      var spr = el('span', { class: 'tb-cv-mon' }); spr.appendChild(A.spriteFit(spriteOf(m), m.set.shiny)); ch.appendChild(spr);
+      ch.appendChild(el('strong', { text: A.nSpecies(baseForme(m)) }));
+      ch.appendChild(el('span', { class: 'tb-diff-badge is-' + kind, text: LBL[kind] }));
+      card.appendChild(ch);
+      if (kind === 'add' || kind === 'del') {
+        var one = el('div', { class: 'tb-diff-one' });
+        one.appendChild(el('span', { text: itemText(m.set.item) + ' · ' + (m.set.ability ? A.nAbility(m.set.ability) : '–') + ' · ' + A.nNature(m.set.nature || 'Hardy') }));
+        var mv1 = el('div', { class: 'tb-diff-moves' });
+        movesOf(m).forEach(function (mv) { mv1.appendChild(el('span', { class: 'tb-diff-mv ' + kind, text: A.nMove(mv) })); });
+        one.appendChild(mv1);
+        card.appendChild(one);
+      } else {
+        var tbl = el('table', { class: 'tb-diff-table' });
+        var thr = el('tr'); thr.appendChild(el('th')); thr.appendChild(el('th', { text: 'A · ' + (va.name || '') })); thr.appendChild(el('th', { text: 'B · ' + (vb.name || '') }));
+        tbl.appendChild(thr);
+        d.rows.forEach(function (r) {
+          if (!r.chg && !diffSel.same) return;
+          var tr = el('tr', { class: r.chg ? 'chg' : '' });
+          tr.appendChild(el('td', { class: 'tb-diff-k', text: r.label }));
+          tr.appendChild(el('td', { class: r.chg ? 'del' : '', text: r.a }));
+          tr.appendChild(el('td', { class: r.chg ? 'add' : '', text: r.b }));
+          tbl.appendChild(tr);
+        });
+        var spChg = d.sp.some(function (x) { return x.chg; });
+        if (diffSel.same || spChg) {
+          var trs = el('tr', { class: spChg ? 'chg' : '' });
+          trs.appendChild(el('td', { class: 'tb-diff-k', text: 'SP' }));
+          var td = el('td', { colspan: '2' });
+          var spBox = el('div', { class: 'tb-diff-sp' });
+          d.sp.forEach(function (x) {
+            if (!x.chg && !diffSel.same) return;
+            var c = el('span', { class: 'tb-diff-spc' + (x.chg ? (x.b > x.a ? ' up' : ' down') : '') });
+            c.appendChild(el('b', { text: A.nStat(x.k) }));
+            c.appendChild(document.createTextNode(' ' + (x.chg ? x.a + ' → ' + x.b + ' (' + (x.b > x.a ? '+' : '') + (x.b - x.a) + ')' : String(x.a))));
+            spBox.appendChild(c);
+          });
+          td.appendChild(spBox); trs.appendChild(td); tbl.appendChild(trs);
+        }
+        var mvChg = d.moves.some(function (x) { return x.st !== 'same'; });
+        if (diffSel.same || mvChg) {
+          var trm = el('tr', { class: mvChg ? 'chg' : '' });
+          trm.appendChild(el('td', { class: 'tb-diff-k', text: de ? 'Attacken' : 'Moves' }));
+          var tdm = el('td', { colspan: '2' });
+          var mvb = el('div', { class: 'tb-diff-moves' });
+          d.moves.forEach(function (x) {
+            mvb.appendChild(el('span', { class: 'tb-diff-mv ' + x.st, text: (x.st === 'add' ? '+ ' : x.st === 'del' ? '− ' : '') + A.nMove(x.mv), title: x.st === 'add' ? (de ? 'neu in B' : 'new in B') : x.st === 'del' ? (de ? 'nur in A' : 'only in A') : '' }));
+          });
+          tdm.appendChild(mvb); trm.appendChild(tdm); tbl.appendChild(trm);
+        }
+        card.appendChild(tbl);
+      }
+      list.appendChild(card);
+    });
+    var sum = el('div', { class: 'tb-diff-sum' });
+    [['chg', de ? 'geändert' : 'changed'], ['add', de ? 'neu' : 'new'], ['del', de ? 'entfernt' : 'removed'], ['same', de ? 'gleich' : 'unchanged']].forEach(function (x) {
+      sum.appendChild(el('span', { class: 'tb-diff-badge is-' + x[0] + (n[x[0]] ? '' : ' zero'), text: n[x[0]] + ' ' + x[1] }));
+    });
+    R.diff.appendChild(sum);
+    if (!list.childNodes.length) list.appendChild(el('div', { class: 'tb-empty', text: de ? 'Beide Versionen sind gleich.' : 'Both versions are the same.' }));
+    R.diff.appendChild(list);
+  }
+
+  // ---------------- rule check (regulation legality) ----------------
+  // issues: [{ sev: 'err' | 'warn', i: slot or -1 for the team, text }]
+  function legalIssues(mons) {
+    var out = [], REG = A.REG_NAME || 'Reg';
+    if (!mons.length) return out;
+    var bySpecies = {}, byItem = {};
+    mons.forEach(function (m, i) {
+      var set = m.set || {}, f = baseForme(m), nm = A.nSpecies(f);
+      function err(t) { out.push({ sev: 'err', i: i, text: t }); }
+      function warn(t) { out.push({ sev: 'warn', i: i, text: t }); }
+      var lm = A.legalMoves(f);
+      if (A.hasLearn && !lm) err(de ? nm + ' ist in ' + REG + ' nicht zugelassen.' : nm + ' is not allowed in ' + REG + '.');
+      var sk = A.baseOf(m.species);
+      if (bySpecies[sk] != null) err(de ? 'Species-Klausel: ' + nm + ' steht doppelt im Team (auch Platz ' + (bySpecies[sk] + 1) + ').' : 'Species clause: ' + nm + ' is on the team twice (also slot ' + (bySpecies[sk] + 1) + ').');
+      else bySpecies[sk] = i;
+      if (!noItem(set.item)) {
+        if (A.ITEMS.indexOf(set.item) === -1) err(de ? 'Item „' + A.nItem(set.item) + '“ ist in ' + REG + ' nicht erlaubt.' : 'Item “' + A.nItem(set.item) + '” is not allowed in ' + REG + '.');
+        if (byItem[set.item] != null) err(de ? 'Item-Klausel: ' + A.nItem(set.item) + ' trägt schon Platz ' + (byItem[set.item] + 1) + '.' : 'Item clause: slot ' + (byItem[set.item] + 1) + ' already holds ' + A.nItem(set.item) + '.');
+        else byItem[set.item] = i;
+      }
+      var la = A.legalAbilities(f);
+      if (!set.ability) warn(de ? 'Keine Fähigkeit gesetzt.' : 'No ability set.');
+      else if (la && la.indexOf(set.ability) === -1) err(de ? nm + ' kann die Fähigkeit „' + A.nAbility(set.ability) + '“ nicht haben.' : nm + ' cannot have the ability “' + A.nAbility(set.ability) + '”.');
+      var mv = movesOf(m), seen = {};
+      if (!mv.length) err(de ? 'Keine Attacke.' : 'No moves.');
+      mv.forEach(function (x) {
+        if (seen[x]) err(de ? 'Attacke „' + A.nMove(x) + '“ doppelt.' : 'Move “' + A.nMove(x) + '” twice.');
+        seen[x] = 1;
+        if (lm && lm.indexOf(x) === -1) err(de ? nm + ' kann „' + A.nMove(x) + '“ nicht lernen.' : nm + ' cannot learn “' + A.nMove(x) + '”.');
+      });
+      if (mv.length && mv.length < 4) warn(de ? 'Nur ' + mv.length + ' von 4 Attacken.' : 'Only ' + mv.length + ' of 4 moves.');
+      var tot = 0;
+      C.STAT_KEYS.forEach(function (k) {
+        var v = (set.sps && set.sps[k]) || 0; tot += v;
+        if (v > 32) err(de ? A.nStat(k) + ': ' + v + ' SP (höchstens 32).' : A.nStat(k) + ': ' + v + ' SP (32 at most).');
+      });
+      if (tot > 66) err(de ? tot + ' SP verteilt (höchstens 66).' : tot + ' SP spent (66 at most).');
+      else if (tot < 66) warn(de ? 'Noch ' + (66 - tot) + ' SP frei.' : (66 - tot) + ' SP left to spend.');
+    });
+    if (mons.length < 4) out.unshift({ sev: 'warn', i: -1, text: de ? 'Nur ' + mons.length + ' Pokémon: Im Doppel werden 4 aus 6 gewählt.' : 'Only ' + mons.length + ' Pokémon: doubles brings 4 out of 6.' });
+    else if (mons.length < 6) out.unshift({ sev: 'warn', i: -1, text: de ? 'Nur ' + mons.length + ' von 6 Pokémon.' : 'Only ' + mons.length + ' of 6 Pokémon.' });
+    return out;
+  }
+  function renderLegal() {
+    var tm = team(), issues = legalIssues(tm.mons);
+    var errs = issues.filter(function (x) { return x.sev === 'err'; }).length, warns = issues.length - errs;
+    var REG = A.REG_NAME || '';
+    if (R.legalBtn) {
+      R.legalBtn.classList.toggle('is-ok', !errs && !!tm.mons.length);
+      R.legalBtn.classList.toggle('is-err', !!errs);
+      R.legalBtn.textContent = !tm.mons.length ? (de ? 'Regel-Check' : 'Rule check')
+        : errs ? '⛔ ' + errs + ' ' + (de ? 'Regelfehler' : (errs === 1 ? 'rule error' : 'rule errors'))
+        : '✓ ' + (de ? 'Regelkonform' : 'Legal');
+      R.legalBtn.title = (de ? 'Regel-Check für ' : 'Rule check for ') + REG + (warns ? ' · ' + warns + (de ? ' Hinweis(e)' : ' note(s)') : '') +
+        (de ? '\nSpecies- und Item-Klausel, zugelassene Pokémon und Items, Fähigkeiten, Lernsets, SP' : '\nSpecies and item clause, allowed Pokémon and items, abilities, learnsets, SP');
+    }
+    // markers on the six slots
+    if (R.slots) {
+      var cards = R.slots.children;
+      for (var i = 0; i < cards.length; i++) {
+        var old = cards[i].querySelector('.tb-slot-legal'); if (old) old.remove();
+        var mine = issues.filter(function (x) { return x.i === i && x.sev === 'err'; });
+        if (mine.length && !cards[i].classList.contains('empty')) {
+          cards[i].appendChild(el('span', { class: 'tb-slot-legal', text: '⛔', title: mine.map(function (x) { return x.text; }).join('\n') }));
+        }
+      }
+    }
+    if (!R.legal) return;
+    R.legal.innerHTML = '';
+    var head = el('div', { class: 'tb-legal-head ' + (errs ? 'is-err' : 'is-ok') });
+    head.appendChild(el('strong', { text: !tm.mons.length ? T('tbEmptyTeam') : errs ? (de ? 'Nicht regelkonform für ' : 'Not legal for ') + REG : (de ? 'Regelkonform für ' : 'Legal for ') + REG }));
+    head.appendChild(el('span', { class: 'hint', text: de ? 'Geprüft: zugelassene Pokémon, Species-Klausel, Item-Klausel, erlaubte Items, Fähigkeiten, Lernsets, doppelte Attacken, SP (je höchstens 32, zusammen 66). Das Level ist immer 50.' : 'Checked: allowed Pokémon, species clause, item clause, allowed items, abilities, learnsets, duplicate moves, SP (32 each, 66 total). The level is always 50.' }));
+    R.legal.appendChild(head);
+    var groups = [{ i: -1, list: issues.filter(function (x) { return x.i === -1; }) }];
+    tm.mons.forEach(function (m, i) { groups.push({ i: i, m: m, list: issues.filter(function (x) { return x.i === i; }) }); });
+    groups.forEach(function (g) {
+      if (g.i === -1 && !g.list.length) return;
+      var hasErr = g.list.some(function (x) { return x.sev === 'err'; });
+      var box = el('div', { class: 'tb-legal-mon' + (hasErr ? ' is-err' : g.list.length ? ' is-warn' : ' is-ok') });
+      var h = el('button', { type: 'button', class: 'tb-legal-mon-head' });
+      if (g.m) {
+        var sp = el('span', { class: 'tb-cv-mon' }); sp.appendChild(A.spriteFit(spriteOf(g.m), g.m.set.shiny)); h.appendChild(sp);
+        h.appendChild(el('strong', { text: (g.i + 1) + '. ' + A.nSpecies(baseForme(g.m)) }));
+        h.appendChild(el('span', { class: 'tb-legal-state', text: hasErr ? '⛔' : g.list.length ? '⚠' : '✓' }));
+        h.title = de ? 'Im Editor öffnen' : 'Open in the editor';
+        h.addEventListener('click', function () { sel = g.i; renderSlots(); renderEditor(); renderLegal(); setTab('edit'); });
+      } else {
+        h.appendChild(el('strong', { text: 'Team' }));
+        h.disabled = true;
+      }
+      box.appendChild(h);
+      if (g.list.length) {
+        var ul = el('ul', { class: 'tb-legal-list' });
+        g.list.forEach(function (x) { ul.appendChild(el('li', { class: 'is-' + x.sev, text: x.text })); });
+        box.appendChild(ul);
+      }
+      R.legal.appendChild(box);
+    });
+  }
+
+  // ---------------- share: QR code / PokéPaste, import from a QR code ----------------
+  function shareTeam() {
+    var tm = team(), v = curVersion(tm);
+    if (!tm.mons.length) { A.toast(T('tbEmptyTeam')); return; }
+    if (!window.RLTeamShare) return;
+    window.RLTeamShare.openShare({ name: tm.name, ver: tm.versions.length > 1 ? (v.name || '') : '', text: exportText(tm.mons) });
+  }
+  function scanTeam() {
+    if (window.RLTeamShare) window.RLTeamShare.openScan(importShared);
+  }
+  // { name, ver, text } from a QR code or a PokéPaste -> new team with that name; returns true when it worked
+  function importShared(t) {
+    var res = A.parseShowdown((t && t.text) || '');
+    if (!res.mons.length) { A.toast(T('importNothing')); return false; }
+    snapUndo(de ? 'Team aus QR-Code importiert' : 'Team imported from QR code');
+    var mons = res.mons.slice(0, 6).map(function (m) { m.set.species = m.species; fixGender(m); return m; });
+    var v0 = { id: newId(), name: String(t.ver || '').trim() || 'v1', mons: mons };
+    var name = String(t.name || '').trim() || T('tbDefaultName', store.teams.length + 1);
+    var nt = { id: newId(), name: name, mons: mons, versions: [v0], curVer: v0.id };
+    store.teams.push(nt); store.cur = nt.id; sel = 0; persist();
+    if (document.body.dataset.view === 'builder') render();
+    A.toast((de ? 'Team „' + name + '“ importiert' : 'Imported team “' + name + '”') + (res.errors.length ? ' · ' + T('unknown', res.errors.join(', ')) : ''));
+    return true;
   }
 
   // ---------------- import/export of a single Pokémon (tab next to type coverage) ----------------
@@ -1620,6 +1941,18 @@
 
   window.CCBuilder = {
     render: render,
+    legalIssues: legalIssues,
+    pairMons: pairMons,
+    diffFields: diffFields,
+    importShared: importShared,
+    // hotkeys (js/hotkeys.js); they only act while the teambuilder is open
+    action: function (name) {
+      if (document.body.dataset.view !== 'builder' || !root) return false;
+      var b = { newTeam: '#tbNew', exportTeam: '#tbExport', share: '#tbShare', qr: '#tbQrImport', newVersion: '#tbVerAdd' }[name];
+      if (b) { var n = root.querySelector(b); if (n) n.click(); return true; }
+      if (name === 'cover' || name === 'diff' || name === 'legal') { setTab(tab === name ? 'edit' : name); return true; }
+      return false;
+    },
     updateSps: updateSps,
     takeFromCalc: takeFromCalc,
     // move a Pokémon of the current team (start screen drag & drop)
