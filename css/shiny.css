@@ -206,3 +206,10 @@
 .sh-count, .sh-time { cursor: default; }
 .sh-settime { display: flex; align-items: center; gap: 4px; }
 .sh-settime input { width: 80px; height: 30px; text-align: right; }
+/* catch dialog: screenshot and clip of the found shiny */
+.sh-catch-media { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.sh-shot { flex: none; width: 240px; min-height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-soft); border-radius: var(--radius); background: var(--input); overflow: hidden; }
+.sh-shot img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.sh-clipbox { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
+.sh-clipbox .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.sh-catch-shot { width: 82px; height: 46px; object-fit: cover; flex: none; border-radius: 4px; cursor: zoom-in; }

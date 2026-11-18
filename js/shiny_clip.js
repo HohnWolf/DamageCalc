@@ -21,7 +21,7 @@
     audioIn: 'Eingang: {0}', audioInN: 'Eingang {0}', audioDel: 'Tonquelle entfernen', audioVol: 'Lautstärke',
     audioHint: 'Tipp: Für getrenntes Spiel- & Discord-Audio virtuelle Eingänge (z. B. VB-Cable, VoiceMeeter, Wave Link) oder Capture-Karte + Systemton nutzen.',
     audioRestart: 'Neue Tonquelle wird beim nächsten Start des Puffers aktiv.', errAudio: 'Tonquelle „{0}“ nicht verfügbar: {1}',
-    autoFound: 'Bei „Gefunden!“', autoPhase: 'Bei Phase / Entkommen',
+    autoFound: 'Bei „Gefunden!“', autoPhase: 'Bei Phase / Entkommen', counter: 'Zähler im Clip', counterT: 'Zähler, Quote und Timer wie im Projektor ins Video zeichnen (wirkt ab dem nächsten Start des Puffers)',
     saved: 'Clip gespeichert: {0}', failed: 'Clip fehlgeschlagen: {0}', busy: 'Es wird schon ein Clip aufgenommen.', notOn: 'Für Clips erst eine Quelle wählen.',
     recent: 'Letzte Clips', open: 'Abspielen', folder: 'Ordner öffnen', show: 'Im Ordner zeigen', errSource: 'Die Quelle konnte nicht geöffnet werden: {0}',
     r_manual: 'Clip', r_found: 'Shiny', r_phase: 'Phase', warmup: 'Der Puffer läuft erst {0} s: der Clip wird kürzer.', browser: 'Im Browser wird der Clip heruntergeladen.'
@@ -34,7 +34,7 @@
     audioIn: 'Input: {0}', audioInN: 'Input {0}', audioDel: 'Remove sound source', audioVol: 'Volume',
     audioHint: 'Tip: For separate game & Discord audio, use virtual inputs (e.g. VB-Cable, VoiceMeeter, Wave Link) or capture card + system sound.',
     audioRestart: 'New sound source takes effect next time the buffer starts.', errAudio: 'Sound source "{0}" unavailable: {1}',
-    autoFound: 'On "Found!"', autoPhase: 'On phase / got away',
+    autoFound: 'On "Found!"', autoPhase: 'On phase / got away', counter: 'Counter in clip', counterT: 'Draw counter, odds and timer into the video like the projector does (takes effect when the buffer starts next)',
     saved: 'Clip saved: {0}', failed: 'Clip failed: {0}', busy: 'A clip is already being recorded.', notOn: 'Choose a source for clips first.',
     recent: 'Recent clips', open: 'Play', folder: 'Open folder', show: 'Show in folder', errSource: 'The source could not be opened: {0}',
     r_manual: 'Clip', r_found: 'Shiny', r_phase: 'Phase', warmup: 'The buffer has only run for {0} s: the clip will be shorter.', browser: 'In the browser the clip is downloaded.'
@@ -75,6 +75,7 @@
     c.audioSources = normalizeAudio(c);
     c.autoFound = c.autoFound !== false;
     c.autoPhase = c.autoPhase !== false;
+    c.counter = c.counter !== false;
     c.list = Array.isArray(c.list) ? c.list.slice(0, 20) : [];
     if (!c.source || typeof c.source !== 'object') c.source = null;
     return c;
@@ -151,6 +152,7 @@
   }
   function cleanupSource(s) {
     if (!s) return;
+    if (s.comp) { try { s.comp.stop(); } catch (e) { /* */ } }
     if (s.audioNodes) Object.keys(s.audioNodes).forEach(function (k) { disconnectAudioNode(s.audioNodes[k]); });
     (s.own || []).forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } });
     if (s.ac && s.ac.close) try { s.ac.close(); } catch (e) { /* */ }
@@ -212,8 +214,9 @@
               audioTracks = audioTracks.concat(o.tracks);
             });
           }
-          var stream = new MediaStream([vt].concat(audioTracks));
-          src = { stream: stream, own: own, ac: ac, dest: dest, audioNodes: audioNodes, label: label, kind: kind };
+          var comp = cfg.counter ? composeTrack(vt) : null;
+          var stream = new MediaStream([comp ? comp.track : vt].concat(audioTracks));
+          src = { stream: stream, own: own, ac: ac, dest: dest, audioNodes: audioNodes, label: label, kind: kind, comp: comp, vt: vt };
           if (kind !== 'detect') { cfg.source = { kind: kind, id: id || '', label: label || '' }; persist(); }
           vt.addEventListener('ended', function () { stopBuffer(); onChange(); });
           startBuffer();
@@ -266,6 +269,105 @@
         A.toast(t('audioRestart'));
       }
     }
+  }
+
+  // ---------------- counter in the picture ----------------
+  // The projector lays the counter over the video as its own layer; the recorder only sees the raw source.
+  // So the clip gets its own picture: every source frame is copied onto a canvas and the counter drawn on top.
+  // overlayFn(huntId) -> { state, ov, x, y, scale } or null (no counter); set by js/shiny.js.
+  var overlayFn = null, curHunt = '';
+  function overlayInfo() {
+    if (!overlayFn || !cfg.counter) return null;
+    var id = (ctx && ctx.hunt && ctx.hunt()) || curHunt;
+    try { return id ? overlayFn(id) : null; } catch (e) { return null; }
+  }
+  function durText(ms) {
+    var x = Math.max(0, Math.floor(ms / 1000)), p = function (n) { return ('0' + n).slice(-2); };
+    return Math.floor(x / 3600) + ':' + p(Math.floor(x / 60) % 60) + ':' + p(x % 60);
+  }
+  function off(v) { return v != null && !v; }
+  function hex(c, def) { if (!c || c === 'transparent') return def; return c.charAt(0) === '#' ? c : '#' + c; }
+  function drawCounter(g, W, H, info) {
+    var st = info.state, ov = info.ov || {}, col = hex(ov.color, '#ffffff');
+    var s = (+ov.size || 1) * ((+info.scale || 100) / 100) * (H / 1080);
+    var font = "'Segoe UI', system-ui, sans-serif", lines = [];
+    if (!off(ov.name) && st.name) lines.push({ text: st.name, px: 20, w: 700, color: col, a: 1 });
+    lines.push({ text: String(st.count) + (st.found ? ' ★' : ''), px: 54, w: 800, color: hex(ov.accent, '#f2c94c'), a: 1, big: true });
+    if (!off(ov.odds) && st.oddsText) lines.push({ text: st.oddsText + (st.chanceText ? ' · ' + st.chanceText : ''), px: 15, w: 400, color: col, a: 0.92 });
+    if (!off(ov.phase) && st.phaseText) lines.push({ text: st.phaseText, px: 15, w: 400, color: col, a: 0.92 });
+    if (!off(ov.timer)) lines.push({ text: durText((st.timeMs || 0) + (st.runStart ? Date.now() - st.runStart : 0)), px: 15, w: 400, color: col, a: 0.92 });
+    var padX = 18 * s, padY = 12 * s, gap = 2 * s, wMax = 0, hSum = 0;
+    lines.forEach(function (l) {
+      g.font = l.w + ' ' + Math.round(l.px * s) + 'px ' + font;
+      l.h = l.px * s * (l.big ? 1 : 1.3);
+      wMax = Math.max(wMax, g.measureText(l.text).width); hSum += l.h;
+    });
+    hSum += gap * (lines.length - 1);
+    var x = (+info.x || 0) / 100 * W, y = (+info.y || 0) / 100 * H;
+    g.save();
+    var bg = hex(ov.bg, '');
+    if (bg) {
+      var bw = wMax + 2 * padX, bh = hSum + 2 * padY, r = 10 * s;
+      g.fillStyle = bg;
+      g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + bw, y, x + bw, y + bh, r); g.arcTo(x + bw, y + bh, x, y + bh, r);
+      g.arcTo(x, y + bh, x, y, r); g.arcTo(x, y, x + bw, y, r); g.closePath(); g.fill();
+    }
+    g.textBaseline = 'top';
+    g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowOffsetY = 2 * s; g.shadowBlur = 4 * s;
+    var cy = y + padY;
+    lines.forEach(function (l) {
+      g.font = l.w + ' ' + Math.round(l.px * s) + 'px ' + font;
+      g.globalAlpha = l.a; g.fillStyle = l.color;
+      g.fillText(l.text, x + padX, cy + (l.big ? 0 : l.px * s * 0.15));
+      cy += l.h + gap;
+    });
+    g.restore();
+  }
+  // returns { track, stop }, or null when this cannot be done here (the clip then stays without counter)
+  function composeTrack(vt) {
+    if (!overlayFn) return null;
+    var info = null, infoAt = 0;
+    function getInfo() { var now = Date.now(); if (now - infoAt > 250) { info = overlayInfo(); infoAt = now; } return info; }
+    // frame by frame: keeps running while the window is hidden or minimised
+    if (typeof MediaStreamTrackProcessor === 'function' && typeof MediaStreamTrackGenerator === 'function' &&
+        typeof OffscreenCanvas === 'function' && typeof VideoFrame === 'function') {
+      try {
+        var proc = new MediaStreamTrackProcessor({ track: vt }), gen = new MediaStreamTrackGenerator({ kind: 'video' });
+        var reader = proc.readable.getReader(), writer = gen.writable.getWriter(), cv = null, g = null, stopped = false;
+        var pump = function () {
+          if (stopped) return;
+          reader.read().then(function (r) {
+            if (r.done || stopped) { if (r.value) r.value.close(); return; }
+            var f = r.value, inf = getInfo(), outF = f;
+            try {
+              if (inf) {
+                var W = f.displayWidth, H = f.displayHeight;
+                if (!cv || cv.width !== W || cv.height !== H) { cv = new OffscreenCanvas(W, H); g = cv.getContext('2d'); }
+                g.drawImage(f, 0, 0, W, H);
+                drawCounter(g, W, H, inf);
+                outF = new VideoFrame(cv, { timestamp: f.timestamp });
+                f.close();
+              }
+            } catch (e) { if (outF !== f) { try { outF.close(); } catch (e2) { /* */ } } outF = f; }
+            writer.write(outF).then(pump, function () { /* generator stopped */ });
+          }, function () { /* source ended */ });
+        };
+        pump();
+        return { track: gen, stop: function () { stopped = true; try { reader.cancel(); } catch (e) { /* */ } try { gen.stop(); } catch (e) { /* */ } } };
+      } catch (e) { /* fall back to the canvas */ }
+    }
+    // fallback: <video> + canvas.captureStream (the main window runs without background throttling)
+    var c = document.createElement('canvas');
+    if (!c.captureStream) return null;
+    var v = document.createElement('video'); v.muted = true; v.playsInline = true; v.srcObject = new MediaStream([vt]);
+    var pl = v.play(); if (pl && pl.catch) pl.catch(function () { /* */ });
+    var g2 = c.getContext('2d'), out = c.captureStream(30), tm = setInterval(function () {
+      if (!v.videoWidth) return;
+      if (c.width !== v.videoWidth || c.height !== v.videoHeight) { c.width = v.videoWidth; c.height = v.videoHeight; }
+      g2.drawImage(v, 0, 0, c.width, c.height);
+      var inf = getInfo(); if (inf) drawCounter(g2, c.width, c.height, inf);
+    }, 33);
+    return { track: out.getVideoTracks()[0], stop: function () { clearInterval(tm); out.getTracks().forEach(function (tr) { try { tr.stop(); } catch (e) { /* */ } }); v.srcObject = null; } };
   }
 
   // ---------------- replay buffer ----------------
@@ -374,6 +476,7 @@
   }
   function syncDetect(huntId, detStream) {
     if (ctx && ctx.hunt && ctx.hunt() !== huntId) return;
+    if (huntId) curHunt = huntId;
     if (detStream && detStream.getVideoTracks().length) {
       if (lastDetStream === detStream && src && src.kind === 'detect') return;
       if (!src || src.kind === 'detect') {
@@ -387,6 +490,7 @@
   }
   function panel(b, c) {
     box = b; ctx = c || {};
+    if (ctx.hunt && ctx.hunt()) curHunt = ctx.hunt();
     var det = ctx.stream && ctx.stream();
     if (!src && autoFollow && det && det.getVideoTracks().length && lastDetStream !== det) {
       connectFromDetect(det);
@@ -464,8 +568,8 @@
     [['720', '720p'], ['1080', '1080p']].forEach(function (x) { var o = el('option', { value: x[0], text: x[1] }); if (cfg.quality === x[0]) o.selected = true; qs.appendChild(o); });
     qs.addEventListener('change', function () { cfg.quality = qs.value; persist(); });
     qw.appendChild(qs); opts.appendChild(qw);
-    [['autoFound', t('autoFound')], ['autoPhase', t('autoPhase')]].forEach(function (x) {
-      var c = el('label', { class: 'nc-check sh-chk' }); var cb = el('input', { type: 'checkbox' }); cb.checked = !!cfg[x[0]];
+    [['autoFound', t('autoFound')], ['autoPhase', t('autoPhase')]].concat(overlayFn ? [['counter', t('counter'), t('counterT')]] : []).forEach(function (x) {
+      var c = el('label', { class: 'nc-check sh-chk', title: x[2] || '' }); var cb = el('input', { type: 'checkbox' }); cb.checked = !!cfg[x[0]];
       cb.addEventListener('change', function () { cfg[x[0]] = cb.checked; persist(); });
       c.appendChild(cb); c.appendChild(document.createTextNode(' ' + x[1])); opts.appendChild(c);
     });
@@ -606,9 +710,20 @@
   }
 
   window.CCShinyClip = {
-    init: function (c, p) { cfg = defaults(c); persist = p || persist; return cfg; },
+    init: function (c, p, ov) { cfg = defaults(c); persist = p || persist; if (typeof ov === 'function') overlayFn = ov; return cfg; },
     panel: panel, trigger: trigger, syncDetect: syncDetect, disconnectAll: disconnectAll,
     active: function () { return !!src; },
+    // the current picture of the clip source (raw, without counter) as a <video> to draw from, or null
+    video: function () {
+      if (!src || !src.vt || src.vt.readyState !== 'live') return Promise.resolve(null);
+      var v = document.createElement('video'); v.muted = true; v.playsInline = true; v.srcObject = new MediaStream([src.vt]);
+      return new Promise(function (resolve) {
+        var done = false, fin = function (ok) { if (done) return; done = true; resolve(ok ? v : null); };
+        v.addEventListener('loadeddata', function () { fin(true); });
+        setTimeout(function () { fin(v.readyState >= 2); }, 2000);
+        var p = v.play(); if (p && p.catch) p.catch(function () { /* */ });
+      });
+    },
     open: function (path) { if (D && D.openClip && path) D.openClip(path); }
   };
 })();

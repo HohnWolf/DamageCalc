@@ -139,11 +139,11 @@ function init(mainWindow) {
       callback(src ? (request.audioRequested && process.platform === 'win32' ? { video: src, audio: 'loopback' } : { video: src }) : {});
     }).catch(() => callback({}));
   });
-  // clips (js/shiny_clip.js): only plain file names, written into the clip folder
+  // clips (js/shiny_clip.js) and screenshots of a found shiny (js/shiny.js): only plain file names, written into the clip folder
   ipcMain.handle('shiny-clip-save', (e, name, bytes) => {
     try {
       const base = path.basename(String(name || '')).replace(/[\\/:*?"<>|]+/g, '');
-      if (!/\.(mp4|webm)$/i.test(base)) return { error: 'name' };
+      if (!/\.(mp4|webm|jpg|png)$/i.test(base)) return { error: 'name' };
       fs.mkdirSync(clipDir(), { recursive: true });
       let file = path.join(clipDir(), base), n = 1;
       while (fs.existsSync(file)) file = path.join(clipDir(), base.replace(/(\.\w+)$/, ' (' + (++n) + ')$1'));

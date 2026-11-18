@@ -9,6 +9,9 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '1.35.0',
+      de: ['Shiny-Clips: Zähler, Quote und Timer sind jetzt im Clip zu sehen, an derselben Stelle wie im Projektor (abschaltbar mit „Zähler im Clip“).', 'Shiny-Zähler: Bei „★ Gefunden!“ wird sofort ein Screenshot gemacht. Er erscheint zusammen mit dem Clip direkt im Fang-Dialog und in der Sammlung.', 'Fang-Dialog: Begegnungen und Spiel kommen automatisch aus dem Zähler, auch beim Eintragen aus der Sammlung. Der Ball wird aus einer Liste aller Bälle gewählt oder getippt, neu ist die Auswahl „Geschlechtslos“.'],
+      en: ['Shiny clips: counter, odds and timer now show in the clip, in the same place as in the projector (can be turned off with “Counter in clip”).', 'Shiny counter: “★ Found!” takes a screenshot right away. It shows up together with the clip in the catch dialog and in the collection.', 'Catch dialog: encounters and game come from the counter automatically, also when adding from the collection. The ball is picked from a list of all balls or typed, and there is a new “Genderless” option.'] },
     { v: '1.34.0',
       de: ['Teambuilder: Der Export-Dialog kann jetzt auch importieren. Text kopieren oder einen anderen einfügen und direkt als neues Team, neue Version oder Ersatz für das aktuelle Team übernehmen.', 'Teambuilder: Neuer Tab „Pokémon Import/Export“ neben der Typ-Abdeckung. Damit lässt sich ein einzelnes Pokémon im Textformat (Showdown) kopieren, ersetzen oder neu hinzufügen.'],
       en: ['Team builder: the export dialog can now import as well. Copy the text, or paste another one and apply it as a new team, a new version or a replacement for the current team.', 'Team builder: new “Pokémon import/export” tab next to type coverage, to copy, replace or add a single Pokémon in text format (Showdown).'] },

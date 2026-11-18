@@ -40,7 +40,7 @@
     filesHint: 'Werden bei jeder Änderung aktualisiert (zaehler.txt, gesamt.txt, phase.txt, quote.txt, chance.txt, timer.txt, pokemon.txt, methode.txt, spiel.txt).',
     setBtn: '✎ Festlegen', setT: 'Begegnungen und Zeit von Hand festlegen (auch per Doppelklick auf Zahl oder Zeit)', setTitle: 'Zähler und Zeit festlegen',
     setCount: 'Begegnungen (diese Phase)', setTotal: 'Gesamt (alle Phasen)', setTotalT: 'Leer lassen: ändert sich um denselben Betrag wie die Begegnungen', setTime: 'Zeit (Stunden : Minuten : Sekunden)',
-    setHint: 'Zum Übernehmen eines Hunts aus einem anderen Zähler oder zum Korrigieren. „Heute“ bleibt unverändert.', act_clip: 'Clip speichern', clipPlay: 'Clip abspielen',
+    setHint: 'Zum Übernehmen eines Hunts aus einem anderen Zähler oder zum Korrigieren. „Heute“ bleibt unverändert.', act_clip: 'Clip speichern', clipPlay: 'Clip abspielen', shot: 'Screenshot', shotOpen: 'Screenshot in voller Größe öffnen', shotWait: 'Screenshot wird gemacht …', noShot: 'Kein Screenshot (keine Aufnahme verbunden).', clipWait: 'Clip wird aufgenommen …', noClip: 'Kein Clip.', genderless: 'Geschlechtslos', ballPick: 'Ball wählen oder tippen …',
     openDir: 'Ordner öffnen', keysLocal: 'Tasten im Fenster: + zählt, − zählt zurück', counted: '+{0} · {1}', huntFound: 'Glückwunsch zum Shiny {0}!', startHint: 'Wähle links einen Hunt oder lege einen neuen an.',
     act_projector: 'Projektor', projector: 'Projektor', projectorT: 'Öffnet die Aufnahme in einem eigenen Fenster, mit Zähler, Quote und Timer darüber. Der gelbe Erkennungsrahmen bleibt nur in diesem Fenster.',
     projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).',
@@ -77,7 +77,7 @@
     filesHint: 'Updated on every change (zaehler.txt = count, gesamt.txt = total, phase.txt, quote.txt = odds, chance.txt, timer.txt, pokemon.txt, methode.txt, spiel.txt).',
     setBtn: '✎ Set', setT: 'Set encounters and time by hand (also by double-clicking the number or the time)', setTitle: 'Set counter and time',
     setCount: 'Encounters (this phase)', setTotal: 'Total (all phases)', setTotalT: 'Leave empty: changes by the same amount as the encounters', setTime: 'Time (hours : minutes : seconds)',
-    setHint: 'To take over a hunt from another counter or to correct it. "Today" stays as it is.', act_clip: 'Save clip', clipPlay: 'Play clip',
+    setHint: 'To take over a hunt from another counter or to correct it. "Today" stays as it is.', act_clip: 'Save clip', clipPlay: 'Play clip', shot: 'Screenshot', shotOpen: 'Open the screenshot in full size', shotWait: 'Taking screenshot …', noShot: 'No screenshot (no capture connected).', clipWait: 'Recording clip …', noClip: 'No clip.', genderless: 'Genderless', ballPick: 'Pick or type a ball …',
     openDir: 'Open folder', keysLocal: 'Keys in the window: + counts, − counts back', counted: '+{0} · {1}', huntFound: 'Congratulations on the shiny {0}!', startHint: 'Pick a hunt on the left or create a new one.',
     act_projector: 'Projector', projector: 'Projector', projectorT: 'Opens the capture in its own window, with counter, odds and timer on top. The yellow detection box stays in this window only.',
     projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).',
@@ -219,7 +219,12 @@
     return u;
   }
   var Clip = window.CCShinyClip || null;
-  if (Clip) store.clip = Clip.init(store.clip, function () { persist(); });
+  // the clip draws the counter like the projector: position and size from the projector, look from the OBS overlay
+  if (Clip) store.clip = Clip.init(store.clip, function () { persist(); }, function (id) {
+    var h = hunt(id);
+    if (!h || store.projector.overlay === false) return null;
+    return { state: stateOf(h), ov: store.overlay, x: store.projector.counterX, y: store.projector.counterY, scale: store.projector.counterScale };
+  });
   store.dexGen = store.dexGen || 0;
   store.dexView = store.dexView || 'catches';
   var saveTimer = null;
@@ -314,18 +319,54 @@
       encounters: n, phases: h.phases.length, date: today(), notes: '', hunt: h.id };
   }
   // clips (js/shiny_clip.js): automatically on "Found!" and on a phase, when switched on
+  // returns the promise of the clip (resolves with the list entry or null), or null when no clip is made
   function autoClip(h, reason) {
-    if (!Clip || !Clip.active() || !h) return;
-    if (reason === 'found' ? !store.clip.autoFound : !store.clip.autoPhase) return;
+    if (!Clip || !Clip.active() || !h) return null;
+    if (reason === 'found' ? !store.clip.autoFound : !store.clip.autoPhase) return null;
     var at = Date.now();
-    Clip.trigger(reason, huntName(h), h.id).then(function (c) {
-      if (!c || reason !== 'found' || !c.path) return;
+    return Clip.trigger(reason, huntName(h), h.id).then(function (c) {
+      if (!c || reason !== 'found' || !c.path) return c;
       h.lastClip = c.path; h.lastClipAt = at;
       // the catch may already be saved: link the clip there
       var e = store.collection.filter(function (x) { return x.hunt === h.id && !x.clip && (x.savedAt || 0) >= at - 1000; })[0];
       if (e) e.clip = c.path;
       persist(); rerender();
+      return c;
     });
+  }
+  // screenshot at "Found!": the picture of the detection, else of the clip source. Full size as a file in the
+  // clip folder (desktop app), a small copy kept in the catch for the dialog and the collection.
+  // Resolves with { shot: path or '', thumb: data URL } or null.
+  function grabShot(h) {
+    var dv = window.CCShinyDetect && window.CCShinyDetect.video ? window.CCShinyDetect.video(h.id) : null;
+    var pv = dv && dv.readyState >= 2 && dv.videoWidth ? Promise.resolve(dv) : Clip && Clip.video ? Clip.video() : Promise.resolve(null);
+    return pv.then(function (v) {
+      if (!v || !v.videoWidth) return null;
+      var W = v.videoWidth, H = v.videoHeight;
+      var c = document.createElement('canvas'); c.width = W; c.height = H;
+      c.getContext('2d').drawImage(v, 0, 0, W, H);
+      if (v !== dv) { try { v.pause(); v.srcObject = null; } catch (e) { /* */ } }
+      var tw = Math.min(480, W), tc = document.createElement('canvas'); tc.width = tw; tc.height = Math.round(H * tw / W);
+      tc.getContext('2d').drawImage(c, 0, 0, tc.width, tc.height);
+      var res = { shot: '', thumb: tc.toDataURL('image/jpeg', 0.75) };
+      if (!D || !D.saveClip) return res;
+      var p2 = function (n) { return ('0' + n).slice(-2); }, d = new Date();
+      var name = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + '-' + p2(d.getMinutes()) + '-' + p2(d.getSeconds()) +
+        ' ' + String(huntName(h)).replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) + ' Screenshot.jpg';
+      return new Promise(function (resolve) { c.toBlob(resolve, 'image/jpeg', 0.92); }).then(function (blob) {
+        return blob ? blob.arrayBuffer() : null;
+      }).then(function (buf) {
+        return buf ? D.saveClip(name, new Uint8Array(buf)) : null;
+      }).then(function (r) { if (r && r.path) res.shot = r.path; return res; }, function () { return res; });
+    }).catch(function () { return null; });
+  }
+  // all balls for the catch dialog (names from the catch calculator plus the ones it does not cover)
+  function ballNames() {
+    var list = window.CCCatchCalc && window.CCCatchCalc.BALLS ? window.CCCatchCalc.BALLS.map(function (b) { return de ? b.nameDe : b.nameEn; }) : [];
+    var extra = de ? ['Pokéball', 'Superball', 'Hyperball', 'Meisterball', 'Jubelball', 'Parkball', 'Fremdball', 'Federball', 'Flügelball', 'Düsenball', 'Schwerball (Hisui)', 'Zentnerball', 'Tonnenball', 'Originball']
+      : ['Poké Ball', 'Great Ball', 'Ultra Ball', 'Master Ball', 'Cherish Ball', 'Park Ball', 'Strange Ball', 'Feather Ball', 'Wing Ball', 'Jet Ball', 'Heavy Ball (Hisui)', 'Leaden Ball', 'Gigaton Ball', 'Origin Ball'];
+    extra.forEach(function (n) { if (list.indexOf(n) === -1) list.push(n); });
+    return list;
   }
   // set encounters, total and time by hand (taking over a hunt, corrections)
   function openSetCount(h) {
@@ -583,7 +624,10 @@
       var fb = el('button', { class: 'tbtn', text: t('failedBtn'), title: t('failedT') });
       fb.addEventListener('click', function () { autoClip(h, 'phase'); finishPhase(h, h.species, true, false); render(); });
       var gb = el('button', { class: 'primary-btn sh-foundbtn', text: t('foundBtn') });
-      gb.addEventListener('click', function () { autoClip(h, 'found'); openCatch(null, h); });
+      gb.addEventListener('click', function () {
+        var shot = grabShot(h), clip = autoClip(h, 'found');
+        openCatch(null, h, null, { shot: shot, clip: clip });
+      });
       var rb = el('button', { class: 'tbtn', text: t('resetBtn') });
       rb.addEventListener('click', function () {
         ccConfirm(t('resetConfirm'), function () {
@@ -761,24 +805,69 @@
     });
   }
   // catch dialog: from a hunt (found) or to edit/add an entry
-  function openCatch(entry, h, preset) {
-    var isNew = !entry;
+  // media (only at "Found!"): { shot: promise of grabShot, clip: promise of autoClip } — both arrive while the dialog is open
+  function openCatch(entry, h, preset, media) {
+    var isNew = !entry, saved = false;
     var e = entry ? JSON.parse(JSON.stringify(entry)) : h ? catchFromHunt(h, h.species, h.count) : { id: newId('c'), species: preset || 0, nick: '', gender: '', nature: '', ball: '', location: '', level: '', game: 'sv', method: 'full', encounters: 0, phases: 0, date: today(), notes: '' };
+    // a new entry for a species that has a hunt: take game, method and encounters from that hunt
+    if (isNew && !h && e.species) {
+      var fromHunt = store.hunts.filter(function (x) { return x.species === e.species; })
+        .sort(function (a, b) { return (b.status === 'found') - (a.status === 'found') || (b.lastClipAt || 0) - (a.lastClipAt || 0); })[0];
+      if (fromHunt) { e.game = fromHunt.game; e.method = fromHunt.method; e.encounters = fromHunt.count; e.hunt = fromHunt.id; }
+    }
+    // something arriving after "Save" goes straight into the saved entry
+    function late() { if (saved) { persist(); rerender(); } }
     modal(h ? t('catchTitle') + ' ★' : isNew ? t('addCatch').replace('+ ', '') : t('editCatch'), function (body) {
+      // screenshot and clip
+      if (media || e.shotThumb || e.clip) {
+        var mw = el('div', { class: 'sh-catch-media' });
+        body.appendChild(mw);
+        var shotBox = el('div', { class: 'sh-shot' });
+        mw.appendChild(shotBox);
+        var showShot = function () {
+          shotBox.innerHTML = '';
+          if (!e.shotThumb) { shotBox.appendChild(el('span', { class: 'hint', text: t('noShot') })); return; }
+          var im = el('img', { src: e.shotThumb, alt: t('shot'), title: e.shot && D ? t('shotOpen') : '' });
+          if (e.shot && D && D.openClip) im.addEventListener('click', function () { D.openClip(e.shot); });
+          shotBox.appendChild(im);
+        };
+        var clipBox = el('div', { class: 'sh-clipbox' });
+        mw.appendChild(clipBox);
+        var showClip = function (state) {
+          clipBox.innerHTML = '';
+          if (state === 'wait') { clipBox.appendChild(el('span', { class: 'hint', text: t('clipWait') })); return; }
+          if (!e.clip) { clipBox.appendChild(el('span', { class: 'hint', text: t('noClip') })); return; }
+          clipBox.appendChild(el('span', { class: 'hint', text: '🎬 ' + String(e.clip).split(/[\\/]/).pop() }));
+          if (Clip && D) { var pb = el('button', { class: 'tbtn', type: 'button', text: '▶ ' + t('clipPlay') }); pb.addEventListener('click', function () { Clip.open(e.clip); }); clipBox.appendChild(pb); }
+        };
+        if (media && media.shot) {
+          shotBox.appendChild(el('span', { class: 'hint', text: t('shotWait') }));
+          media.shot.then(function (r) { if (r) { e.shot = r.shot; e.shotThumb = r.thumb; } showShot(); if (r) late(); });
+        } else showShot();
+        if (media && media.clip) {
+          showClip('wait');
+          media.clip.then(function (c) { if (c && c.path) e.clip = c.path; showClip(); if (c) late(); });
+        } else showClip();
+      }
       var grid = el('div', { class: 'sh-form-grid' });
       body.appendChild(grid);
+      var gen = el('select');
       var spi = field(grid, 'Pokémon', speciesInput(e.species, function (n) { e.species = n; }));
       void spi;
       var nick = field(grid, t('nick'), el('input', { type: 'text', value: e.nick || '' }));
-      var gen = el('select');
-      [['', t('none')], ['M', '♂'], ['F', '♀']].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if (e.gender === o[0]) op.selected = true; gen.appendChild(op); });
+      [['', t('none')], ['M', '♂'], ['F', '♀'], ['N', t('genderless')]].forEach(function (o) { var op = el('option', { value: o[0], text: o[1] }); if (e.gender === o[0]) op.selected = true; gen.appendChild(op); });
       field(grid, t('gender'), gen);
       var nat = el('select');
       nat.appendChild(el('option', { value: '', text: t('none') }));
       NATURES.forEach(function (n) { var op = el('option', { value: n, text: A.nNature ? A.nNature(n) : n }); if (e.nature === n) op.selected = true; nat.appendChild(op); });
       field(grid, t('nature'), nat);
       var lv = field(grid, t('level'), el('input', { type: 'number', min: 1, max: 100, value: e.level || '' }));
-      var ball = field(grid, t('ball'), el('input', { type: 'text', value: e.ball || '' }));
+      // ball: list of all balls to pick from, typing narrows it down (own names stay possible)
+      var bl = el('datalist', { id: 'sh-balls' });
+      ballNames().forEach(function (n) { bl.appendChild(el('option', { value: n })); });
+      var ball = field(grid, t('ball'), el('input', { type: 'text', list: 'sh-balls', value: e.ball || '', placeholder: t('ballPick'), autocomplete: 'off' }));
+      ball.parentNode.appendChild(bl);
+      ball.addEventListener('focus', function () { if (ball.showPicker && !ball.value) { try { ball.showPicker(); } catch (er) { /* */ } } });
       var loc = field(grid, t('location'), el('input', { type: 'text', value: e.location || '' }));
       var gm = el('select');
       O.GAMES.forEach(function (x) { var op = el('option', { value: x.id, text: de ? x.de : x.en }); if (e.game === x.id) op.selected = true; gm.appendChild(op); });
@@ -792,10 +881,11 @@
       };
     }, function (v) {
       if (!v.species) { A.toast(t('pick')); return false; }
+      saved = true;
       if (h) {
         h.status = 'found'; h.foundAt = v.date; setRunning(h, false);
         v.phases = h.phases.length; v.savedAt = Date.now();
-        if (h.lastClip && Date.now() - (h.lastClipAt || 0) < 15 * 60000) v.clip = h.lastClip;
+        if (!v.clip && !(media && media.clip) && h.lastClip && Date.now() - (h.lastClipAt || 0) < 15 * 60000) v.clip = h.lastClip;
         store.collection.unshift(v);
         A.toast(t('huntFound', monName(v.species)));
       } else if (isNew) store.collection.unshift(v);
@@ -887,6 +977,11 @@
     list.forEach(function (c) {
       var card = el('div', { class: 'sh-catch' });
       card.appendChild(shinyImg(c.species, 'sh-catch-img'));
+      if (c.shotThumb) {
+        var sim = el('img', { class: 'sh-catch-shot', src: c.shotThumb, alt: t('shot'), title: c.shot && D ? t('shotOpen') : t('shot') });
+        if (c.shot && D && D.openClip) sim.addEventListener('click', function () { D.openClip(c.shot); });
+        card.appendChild(sim);
+      }
       var tx = el('div', { class: 'sh-catch-txt' });
       tx.appendChild(el('div', { class: 'sh-item-name', text: (c.nick ? c.nick + ' · ' : '') + monName(c.species) + (c.gender === 'M' ? ' ♂' : c.gender === 'F' ? ' ♀' : '') }));
       var g = O.game(c.game), m = O.method(c.method);
