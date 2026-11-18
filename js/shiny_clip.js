@@ -83,7 +83,7 @@
 
   // ---------------- source ----------------
   var src = null; // { stream, own, ac, dest, audioNodes, label, kind }
-  var recs = [], tickTimer = null, pending = null, mime = '', meterRaf = 0;
+  var recs = [], tickTimer = null, pending = null, mime = '', meterRaf = 0, meterGen = 0;
   function canRecord() { return typeof MediaRecorder !== 'undefined'; }
   function pickMime(audio) {
     var list = audio
@@ -227,6 +227,7 @@
   }
   function stopBuffer() {
     clearInterval(tickTimer); tickTimer = null;
+    meterGen++;
     if (meterRaf && typeof cancelAnimationFrame === 'function') { cancelAnimationFrame(meterRaf); meterRaf = 0; }
     recs.forEach(function (r) { if (!r.keep) { try { r.mr.stop(); } catch (e) { /* stopped */ } } });
     recs = recs.filter(function (r) { return r.keep; });
@@ -638,11 +639,19 @@
     audioBox.appendChild(el('div', { class: 'hint', text: t('audioHint') }));
     box.appendChild(audioBox);
 
+    meterGen++;
     if (meterRaf) { cancelAnimationFrame(meterRaf); meterRaf = 0; }
     if (src && cfg.audioSources.length && typeof requestAnimationFrame === 'function') {
+      var gen = meterGen;
       var stepMeter = function () {
         meterRaf = 0;
+        if (gen !== meterGen) return;
         if (!src || box.isConnected === false) return;
+        // Pegel nur zeichnen, wenn die Anzeige zu sehen ist; sonst selten nachsehen statt 60-mal pro Sekunde
+        if ((typeof document !== 'undefined' && document.hidden) || (box.getClientRects && !box.getClientRects().length)) {
+          setTimeout(function () { if (gen === meterGen) meterRaf = requestAnimationFrame(stepMeter); }, 400);
+          return;
+        }
         Object.keys(meterEls).forEach(function (id) {
           var node = src.audioNodes && src.audioNodes[id];
           var lvl = sampleAudioLevel(node);

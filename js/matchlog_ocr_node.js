@@ -12,8 +12,23 @@ function create(opts) {
   let worker = null;
   let starting = null;
   let lastWhitelist = '';
+  // Ohne Bilder (Matchlog aus) gibt der Worker nach dieser Zeit seinen Speicher frei; das nächste Bild startet ihn neu.
+  const idleMs = opts.idleMs != null ? opts.idleMs : 180000;
+  let idleTimer = null, busy = 0;
 
+  function armIdle() {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+    if (!idleMs || busy) return;
+    idleTimer = setTimeout(function () {
+      idleTimer = null;
+      if (!busy && !starting) kill();
+    }, idleMs);
+    if (idleTimer.unref) idleTimer.unref();
+  }
   function kill() {
+    clearTimeout(idleTimer);
+    idleTimer = null;
     const w = worker;
     worker = null;
     lastWhitelist = '';
@@ -49,6 +64,9 @@ function create(opts) {
     if (!image || !image.width || !image.height) return { text: '', error: 'leeres Bild' };
     if (image.width < 8 || image.height < 8) return { text: '', ms: 0 };
     const t0 = Date.now();
+    busy++;
+    clearTimeout(idleTimer);
+    idleTimer = null;
     try {
       const w = await boot();
       const wl = String(image.whitelist || '');
@@ -62,6 +80,9 @@ function create(opts) {
     } catch (e) {
       kill();
       return { text: '', error: String(e && e.message || e), ms: Date.now() - t0 };
+    } finally {
+      busy--;
+      if (worker) armIdle();
     }
   }
   return { recognize: recognize, stop: kill };

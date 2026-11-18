@@ -9,6 +9,21 @@ const { guardChild, safeWrite } = require('./streamguard');
 
 let proc = null, ready = null, starting = null, fatal = '', buf = '', stderr = '', ocrLang = '', retryAt = 0;
 const queue = []; // { resolve, timer } in Reihenfolge der Anfragen
+// Ohne Anfragen (Zähler aus) wird PowerShell nach dieser Zeit beendet und gibt seinen Speicher frei; das nächste Bild startet es neu.
+const IDLE_MS = Number(process.env.RL_OCR_IDLE_MS) || 180000;
+let idleTimer = null;
+
+function armIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    idleTimer = null;
+    if (queue.length || starting || !alive()) return;
+    const child = proc;
+    try { child.stdin.end(); } catch (e) { /* Pipe schon zu */ }
+    try { child.kill(); } catch (e) { /* schon weg */ }
+  }, IDLE_MS);
+  if (idleTimer.unref) idleTimer.unref();
+}
 
 function alive() {
   const s = proc && proc.stdin;
@@ -88,6 +103,8 @@ function start() {
 }
 
 async function recognize(b64) {
+  clearTimeout(idleTimer);
+  idleTimer = null;
   const r = await start();
   if (r.error || !alive()) return { error: (r && r.error) || fatal || 'OCR beendet' };
   const child = proc;
@@ -108,7 +125,11 @@ async function recognize(b64) {
         resolve({ error: fatal || 'Schreiben an die Texterkennung fehlgeschlagen (Pipe zu)' });
       }
     });
-  }).then((msg) => { if (msg && typeof msg === 'object' && ocrLang && !msg.lang) msg.lang = ocrLang; return msg; });
+  }).then((msg) => {
+    if (!queue.length) armIdle();
+    if (msg && typeof msg === 'object' && ocrLang && !msg.lang) msg.lang = ocrLang;
+    return msg;
+  });
 }
 
 function init() {

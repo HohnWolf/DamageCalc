@@ -158,6 +158,9 @@
     });
   }
 
+  function shown() {
+    return !document.hidden && !!document.body && document.body.dataset.view === 'projector';
+  }
   function paint() {
     if (!root) return;
     var on = !!(stream && video && video.srcObject);
@@ -173,8 +176,9 @@
     btnProject.classList.toggle('on', isOpen());
     root.classList.toggle('has-video', on);
     // Läuft der Projektor, zeichnet die Vorschau dasselbe Bild ein zweites Mal (1080p, 50 fps) und kostet Frames. Der Strom bleibt, nur die Vorschau pausiert.
+    // Dasselbe gilt, solange die Ansicht nicht zu sehen ist: Projektor, Matchlog und Clips lesen den Strom, nicht dieses Video.
     if (on && video) {
-      if (isOpen()) { try { video.pause(); } catch (e) { /* egal */ } }
+      if (isOpen() || !shown()) { try { video.pause(); } catch (e) { /* egal */ } }
       else { var pl = video.play(); if (pl && pl.catch) pl.catch(function () { /* Autoplay */ }); }
     }
   }
@@ -329,6 +333,12 @@
   }
 
   if (D && D.onClosed) D.onClosed(function () { window.setTimeout(paint, 0); });
+  // Ansicht gewechselt oder Fenster minimiert: Vorschau pausieren bzw. wieder abspielen
+  function syncPreview() { if (stream && video) paint(); }
+  if (window.MutationObserver && document.body) {
+    new MutationObserver(syncPreview).observe(document.body, { attributes: true, attributeFilter: ['data-view'] });
+  }
+  document.addEventListener('visibilitychange', syncPreview);
   window.CCProjectorView = {
     render: render,
     disconnect: disconnectAll,
