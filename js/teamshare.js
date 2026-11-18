@@ -29,9 +29,12 @@
   }
   var canZip = typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined';
 
-  // team = { name, ver, text } -> Promise<string>
+  // team = { name, ver, text, versions?: [{ name, text }] } -> Promise<string>
+  // with versions, "vs" carries all of them; "p" stays the active one, so older app versions still import something
   function encode(team) {
-    var json = JSON.stringify({ n: String(team.name || ''), v: String(team.ver || ''), p: String(team.text || '') });
+    var o = { n: String(team.name || ''), v: String(team.ver || ''), p: String(team.text || '') };
+    if (team.versions && team.versions.length > 1) o.vs = team.versions.map(function (x) { return { v: String(x.name || ''), p: String(x.text || '') }; });
+    var json = JSON.stringify(o);
     if (!canZip) return Promise.resolve(PFX0 + b64u(utf8(json)));
     return pipe(utf8(json), new CompressionStream('deflate-raw')).then(function (z) { return PFX1 + b64u(z); },
       function () { return PFX0 + b64u(utf8(json)); });
@@ -39,7 +42,9 @@
   function fromJson(json) {
     var o = JSON.parse(json);
     if (!o || typeof o.p !== 'string') return null;
-    return { name: String(o.n || ''), ver: String(o.v || ''), text: o.p };
+    var r = { name: String(o.n || ''), ver: String(o.v || ''), text: o.p };
+    if (Array.isArray(o.vs) && o.vs.length) r.versions = o.vs.filter(function (x) { return x && typeof x.p === 'string'; }).map(function (x) { return { name: String(x.v || ''), text: x.p }; });
+    return r;
   }
   // any scanned text -> Promise<{ name, ver, text } | { url } | null>
   function decode(raw) {
@@ -194,10 +199,48 @@
   function safeName(s) { return String(s || 'Team').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'Team'; }
   function canvasBlob(cv) { return new Promise(function (res) { cv.toBlob(function (b) { res(b); }, 'image/png'); }); }
 
-  // team = { name, ver, text }
+  // several versions as one text (PokéPaste): Showdown team headers "=== Name (v1) ===", read back by splitVersions
+  function joinVersions(name, versions) {
+    return versions.map(function (v) { return '=== ' + name + ' (' + v.name + ') ===\n\n' + v.text; }).join('\n\n');
+  }
+  // text with "=== … (name) ===" headers -> [{ name, text }] or null
+  function splitVersions(text) {
+    var re = /^===\s*(?:\[[^\]]*\]\s*)?(.*?)\s*===\s*$/gm, heads = [], m;
+    while ((m = re.exec(text))) heads.push({ at: m.index, end: m.index + m[0].length, title: m[1] });
+    if (heads.length < 1) return null;
+    return heads.map(function (h, i) {
+      var vm = /\(([^()]*)\)\s*$/.exec(h.title);
+      return { name: vm ? vm[1] : h.title, title: h.title.replace(/\s*\([^()]*\)\s*$/, ''), text: text.slice(h.end, i + 1 < heads.length ? heads[i + 1].at : text.length).trim() };
+    }).filter(function (v) { return v.text; });
+  }
+
+  // team = { name, versions: [{ name, text }], cur: index of the active version }
+  // (older form { name, ver, text } still works: one version)
   function openShare(team) {
-    var title = team.name + (team.ver ? ' (' + team.ver + ')' : '');
-    var m = modal('rl-share-out', L('Team teilen', 'Share team') + ': ' + title);
+    var vers = team.versions && team.versions.length ? team.versions : [{ name: team.ver || '', text: team.text }];
+    var cur = Math.max(0, Math.min(vers.length - 1, team.cur || 0));
+    var pick = String(cur); // index of one version, or 'all'
+    function shared() {
+      if (pick === 'all') return { name: team.name, ver: vers[cur].name, text: vers[cur].text, versions: vers };
+      var v = vers[+pick];
+      return { name: team.name, ver: vers.length > 1 ? v.name : '', text: v.text };
+    }
+    function title() { var s = shared(); return team.name + (pick === 'all' ? ' (' + L('alle Versionen', 'all versions') + ')' : s.ver ? ' (' + s.ver + ')' : ''); }
+    var m = modal('rl-share-out', L('Team teilen', 'Share team') + ': ' + team.name);
+    if (vers.length > 1) {
+      var vrow = mk('div', { class: 'rl-share-ver' });
+      vrow.appendChild(mk('span', { class: 'set-name', text: L('Teilen:', 'Share:') }));
+      var vsel = mk('select', { class: 'rl-share-versel' });
+      vers.forEach(function (v, i) {
+        var o = mk('option', { value: String(i), text: L('Version ', 'Version ') + (v.name || i + 1) + (i === cur ? L(' (aktiv)', ' (active)') : '') });
+        if (i === cur) o.selected = true;
+        vsel.appendChild(o);
+      });
+      vsel.appendChild(mk('option', { value: 'all', text: L('Alle Versionen', 'All versions') + ' (' + vers.length + ')' }));
+      vsel.addEventListener('change', function () { pick = vsel.value; refresh(); });
+      vrow.appendChild(vsel);
+      m.box.appendChild(vrow);
+    }
     var grid = mk('div', { class: 'rl-share-grid' });
     m.box.appendChild(grid);
 
@@ -213,20 +256,33 @@
     qrActs.appendChild(bSave); qrActs.appendChild(bCopy);
     qrCol.appendChild(qrActs);
     grid.appendChild(qrCol);
-    encode(team).then(function (txt) {
-      try {
-        var n = draw(cv, txt, 520);
-        qrMsg.textContent = L('Enthält das Team samt Namen (' + txt.length + ' Zeichen, ' + n + '×' + n + '). Scannen mit Rattata Labs: Teambuilder → „QR importieren“. Funktioniert ohne Internet.',
-          'Holds the team and its name (' + txt.length + ' characters, ' + n + '×' + n + '). Scan with Rattata Labs: Teambuilder → “Import QR”. Works offline.');
-        bSave.disabled = bCopy.disabled = false;
-      } catch (e) {
-        cv.hidden = true;
-        qrMsg.textContent = L('Das Team ist zu groß für einen QR-Code. Teile es über PokéPaste.', 'The team is too large for a QR code. Share it via PokéPaste.');
-      }
-    }, function () { qrMsg.textContent = L('QR-Code konnte nicht erstellt werden.', 'Could not create the QR code.'); });
+    var qrRun = 0;
+    function drawQR() {
+      var run = ++qrRun, all = pick === 'all';
+      bSave.disabled = bCopy.disabled = true;
+      qrMsg.textContent = L('QR-Code wird erstellt …', 'Creating QR code …');
+      encode(shared()).then(function (txt) {
+        if (run !== qrRun) return;
+        try {
+          var n = draw(cv, txt, 520);
+          cv.hidden = false;
+          qrMsg.textContent = (all
+            ? L('Enthält alle ' + vers.length + ' Versionen samt Teamnamen', 'Holds all ' + vers.length + ' versions and the team name')
+            : L('Enthält das Team samt Namen', 'Holds the team and its name')) +
+            L(' (' + txt.length + ' Zeichen, ' + n + '×' + n + '). Scannen mit Rattata Labs: Teambuilder → „QR importieren“. Funktioniert ohne Internet.',
+              ' (' + txt.length + ' characters, ' + n + '×' + n + '). Scan with Rattata Labs: Teambuilder → “Import QR”. Works offline.');
+          bSave.disabled = bCopy.disabled = false;
+        } catch (e) {
+          cv.hidden = true;
+          qrMsg.textContent = all
+            ? L('Alle Versionen zusammen sind zu groß für einen QR-Code. Teile eine einzelne Version oder nutze PokéPaste.', 'All versions together are too large for a QR code. Share a single version or use PokéPaste.')
+            : L('Das Team ist zu groß für einen QR-Code. Teile es über PokéPaste.', 'The team is too large for a QR code. Share it via PokéPaste.');
+        }
+      }, function () { if (run === qrRun) qrMsg.textContent = L('QR-Code konnte nicht erstellt werden.', 'Could not create the QR code.'); });
+    }
     bSave.addEventListener('click', function () {
       canvasBlob(cv).then(function (b) {
-        if (window.CC && window.CC.saveFile) window.CC.saveFile(safeName(title) + ' QR.png', b, 'image/png');
+        if (window.CC && window.CC.saveFile) window.CC.saveFile(safeName(title()) + ' QR.png', b, 'image/png');
       });
     });
     bCopy.addEventListener('click', function () {
@@ -252,7 +308,7 @@
       if (window.CC && window.CC.setSetting) window.CC.setSetting('pasteAuthor', author.value.trim());
       bUp.disabled = true; bUp.textContent = L('Wird hochgeladen …', 'Uploading …');
       res.innerHTML = '';
-      uploadPaste({ title: title, author: author.value.trim(), notes: L('Erstellt mit Rattata Labs', 'Made with Rattata Labs'), paste: team.text })
+      uploadPaste({ title: title(), author: author.value.trim(), notes: L('Erstellt mit Rattata Labs', 'Made with Rattata Labs'), paste: pick === 'all' ? joinVersions(team.name, vers) : shared().text })
         .then(function (r) {
           if (r && r.ok && r.url) {
             var link = mk('input', { type: 'text', readonly: 'readonly', class: 'rl-share-link' });
@@ -275,6 +331,14 @@
         })
         .then(function () { bUp.disabled = false; bUp.textContent = L('Erneut hochladen', 'Upload again'); });
     });
+    // another choice in "Teilen:": new QR code, the old PokéPaste link no longer fits
+    function refresh() {
+      drawQR();
+      res.innerHTML = '';
+      bUp.textContent = L('Auf PokéPaste hochladen', 'Upload to PokéPaste');
+      m.box.querySelector('h3').textContent = L('Team teilen', 'Share team') + ': ' + title();
+    }
+    refresh();
     return m;
   }
 
@@ -347,5 +411,5 @@
     return m;
   }
 
-  window.RLTeamShare = { encode: encode, decode: decode, draw: draw, matrix: matrix, readImage: readImage, uploadPaste: uploadPaste, fetchPaste: fetchPaste, openShare: openShare, openScan: openScan, PASTE_RE: PASTE_RE };
+  window.RLTeamShare = { encode: encode, decode: decode, joinVersions: joinVersions, splitVersions: splitVersions, draw: draw, matrix: matrix, readImage: readImage, uploadPaste: uploadPaste, fetchPaste: fetchPaste, openShare: openShare, openScan: openScan, PASTE_RE: PASTE_RE };
 })();
