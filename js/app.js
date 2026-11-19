@@ -214,8 +214,8 @@
       pkAllTypes: 'Alle Typen', pkClearFilter: 'Filter zurücksetzen', pkSortT: 'Sortieren nach {0}',
       pkGroupFit: 'Passt zu diesem Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Beeren', pkGroupStones: 'Mega-Steine', tbPP: 'AP {0}',
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
-      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon-Darstellung', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
-      setModelHint: 'Wie das große Pokémon-Bild im Teambuilder und in beiden Pokédexen angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
+      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Teambuilder', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
+      setModelHint: 'Großes Pokémon-Bild im Teambuilder (auch im GO-Pokédex und GO-Zähler).', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
       setUiStyle: 'Oberflächen-Stil', setUiStyleHint: 'Aufbau und Aussehen der gesamten App: Seitenleiste (Pro) oder obere Leiste (Studio).',
       setZoom: 'Oberflächengröße', setZoomHint: 'Automatisch passt die Größe ans Fenster an. Feste Stufen vergrößern oder verkleinern die gesamte Oberfläche.', setZoomAuto: 'Automatisch',
@@ -370,8 +370,8 @@
       pkAllTypes: 'All types', pkClearFilter: 'Reset filters', pkSortT: 'Sort by {0}',
       pkGroupFit: 'Fits this Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Berries', pkGroupStones: 'Mega Stones', tbPP: 'PP {0}',
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
-      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon artwork', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
-      setModelHint: 'How the big Pokémon picture is shown in the Teambuilder and both Pokédexes', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
+      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Teambuilder', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
+      setModelHint: 'Large Pokémon picture in the Teambuilder (also in the GO Pokédex and GO counter).', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setThemeHint: 'Applies to the whole app right away and stays saved.',
       setUiStyle: 'Interface style', setUiStyleHint: 'Layout and look of the whole app: sidebar (Pro) or top bar (Studio).',
       setZoom: 'UI scale', setZoomHint: 'Auto scales the interface to fit the window. Fixed levels zoom the entire interface in or out.', setZoomAuto: 'Auto',
@@ -2597,6 +2597,8 @@
         var gSpr = makeGroup(de ? 'Sprite-Stil' : 'Sprite style');
         var SPR3 = [['3d', T('set3d')], ['home', T('setHome')], ['sprite', T('setSprite')]];
         row(gSpr, T('setModel'), T('setModelHint'), SPR3, setting('model'), function (v) {
+          // the Pokédex used to follow this setting while spriteDex was unset: pin its current look so it stays independent
+          if (!setting('spriteDex')) setSetting('spriteDex', setting('model') || '3d');
           setSetting('model', v);
           if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
           if (window.CCGoDex && document.body.dataset.view === 'godex') window.CCGoDex.render();
