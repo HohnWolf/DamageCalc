@@ -43,6 +43,8 @@
 
   function buildModel(rom, u8) {
     var F = rom.files, names = rom.names || {}, N = window.NDS, notes = [];
+    var lzArcs = Object.keys(F).filter(function (k) { return F[k] && F[k]._lzCompressed; });
+    if (lzArcs.length) notes.push('LZ-komprimierte Archive (' + lzArcs.join(', ') + ') werden nicht zurückgeschrieben – Änderungen daran bleiben ohne Wirkung.');
     // arm9 und Overlays: komprimierte werden entpackt bearbeitet und in commit() wieder gepackt (js/nds.js arm9RW/overlayRW)
     var ovlCache = {}, A9 = null;
     try { A9 = N && N.arm9RW ? N.arm9RW(u8) : (function () { var o = u32(u8, 0x20), n = u32(u8, 0x2C); return o && n && o + n <= u8.length ? { data: u8.subarray(o, o + n), commit: function () { return true; } } : null; })(); } catch (eA) { A9 = null; } // ohne js/nds.js (Tests): unverändert als Ansicht

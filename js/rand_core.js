@@ -238,6 +238,8 @@
     }
 
     // --- Level-Attacken ---
+    var origLearnsets = {};
+    if (model.learnsets) Object.keys(model.learnsets).forEach(function (k) { origLearnsets[k] = model.learnsets[k].slice(); });
     if (o.moves === 'random' && model.learnsets && model.setLearnset) {
       L('=== Attacken (Level-Aufstieg) ===');
       var damaging = [], byType = {}, all = [], banned = model.bannedMoves || [];
@@ -259,9 +261,9 @@
         for (var k = 0; k < ld.length; k++) {
           var mv, tries = 0;
           do {
-            var r = rng();
+            var r = rng(), tp1 = tp[rng.int(2)];
             if (goodPct && rng() < goodPct) mv = rng.pick(goodDmg);
-            else if (r < (+o.moveTypePct || 0) / 100 && byType[tp[rng.int(2)]]) mv = rng.pick(byType[tp[rng.int(2)]] || damaging);
+            else if (r < (+o.moveTypePct || 0) / 100 && byType[tp1]) mv = rng.pick(byType[tp1]);
             else if (k < 2 || r < 0.65) mv = rng.pick(damaging);
             else mv = rng.pick(all);
           } while (used.indexOf(mv) !== -1 && ++tries < 30);
@@ -308,22 +310,24 @@
         L('=== ' + label + ' (' + mode + ') ===');
         var byKey = {}; compat.forEach(function (c) { byKey[c.key] = c; });
         var typePref = mode === 'type';
+        var typesOf = function (c) { return (c.key === c.nat && sp[c.nat]) ? sp[c.nat].types : c.types; };
         var prob = function (c, mv, e) {
-          var p = 0.5;
-          if (typePref) p = (c.types[0] === mv.type || c.types[1] === mv.type) ? 0.9 : mv.type === 0 ? 0.5 : 0.25;
+          var p = 0.5, ct = typesOf(c);
+          if (typePref) p = (ct[0] === mv.type || ct[1] === mv.type) ? 0.9 : mv.type === 0 ? 0.5 : 0.25;
           return e ? Math.min(1, p * 1.8) : p;
         };
         var randomCompat = function (c) {
           for (var i = 1; i <= moveIds.length; i++) c.flags[i] = rng() < prob(c, mvs2[moveIds[i - 1]] || { type: -1 }, early && early.indexOf(moveIds[i - 1]) !== -1);
         };
         var copyUp = function (from, to) {
+          var ft = typesOf(from), tt = typesOf(to);
           for (var i = 1; i <= moveIds.length; i++) {
             if (from.flags[i]) { to.flags[i] = true; continue; }
             var pr2 = 0.25;
             if (typePref) {
               var mt = (mvs2[moveIds[i - 1]] || {}).type;
               pr2 = 0.1;
-              if ((to.types[0] === mt && to.types[0] !== from.types[0] && to.types[0] !== from.types[1]) || (to.types[1] !== to.types[0] && to.types[1] === mt && to.types[1] !== from.types[1] && to.types[1] !== from.types[0])) pr2 = 0.9;
+              if ((tt[0] === mt && tt[0] !== ft[0] && tt[0] !== ft[1]) || (tt[1] !== tt[0] && tt[1] === mt && tt[1] !== ft[1] && tt[1] !== ft[0])) pr2 = 0.9;
             }
             to.flags[i] = rng() < pr2;
           }
@@ -423,7 +427,7 @@
           else if (EI.moss && m === EI.moss) toStone(ev, EI.items.leaf, 'Moosfelsen');
           else if (EI.icy && m === EI.icy) toStone(ev, EI.items.dawn, 'Eisfelsen');
           else if (EI.withMove && m === EI.withMove && o.moves !== 'keep') {
-            var lvl = 1; ((model.learnsets || {})[ev.from] || []).some(function (e) { if (e[1] === ev.param()) { lvl = e[0]; return true; } });
+            var lvl = 1; (origLearnsets[ev.from] || (model.learnsets || {})[ev.from] || []).some(function (e) { if (e[1] === ev.param()) { lvl = e[0]; return true; } });
             toLevel(ev, lvl <= 1 ? 45 : lvl, 'Attacke');
           } else if (m === EI.trade || (EI.tradeSpecial && m === EI.tradeSpecial)) toLevel(ev, 37, 'Tausch');
           else if (m === EI.tradeItem) {

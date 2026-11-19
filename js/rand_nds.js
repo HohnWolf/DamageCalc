@@ -83,6 +83,8 @@
   // ---------------- Modell für den gemeinsamen Kern (js/rand_core.js) ----------------
   function buildModel(rom, u8) {
     var F = rom.files, names = rom.names || {}, C = window.CCRandCore, N = window.NDS, notes = [];
+    var lzArcs = Object.keys(F).filter(function (k) { return F[k] && F[k]._lzCompressed; });
+    if (lzArcs.length) notes.push('LZ-komprimierte Archive (' + lzArcs.join(', ') + ') werden nicht zurückgeschrieben – Änderungen daran bleiben ohne Wirkung.');
     // arm9 und Overlays: komprimierte werden entpackt bearbeitet und in commit() wieder gepackt (js/nds.js arm9RW/overlayRW)
     var ovlCache = {}, A9 = null, a9Tried = false;
     // (ohne js/nds.js-Helfer, z. B. in Tests: arm9/Overlays unverändert als Ansicht)
@@ -157,7 +159,7 @@
         tm.mons.push({
           level: pm.level,
           get: function () { return pm.species; },
-          set: function (n) { pm.species = n; w16(tr.pk, po + 4, n); if (rom.type === 'HGSS') tr.pk[po + 1] &= 0xF0; },
+          set: function (n) { pm.species = n; w16(tr.pk, po + 4, n); if (rom.type === 'HGSS') tr.pk[po + 1] &= 0x0F; },
           setLevel: function (l) { w16(tr.pk, po + 2, l); },
           hasItem: !!tr.hasItem, setItem: function (it) { w16(tr.pk, po + tr.head, it); },
           refresh: function (n, lv, lsn) {
@@ -336,7 +338,7 @@
         model.starterItem = { get: function () { return u16(sfile, st.item); }, set: function (n) { w16(sfile, st.item, n); } };
       }
       for (var k = 0; k < 3; k++) (function (k) {
-        model.starters.push({ get: function () { return vals[k]; }, set: function (n) { pend[k] = n; if (k === 2) apply(pend); } });
+        model.starters.push({ get: function () { return pend[k]; }, set: function (n) { pend[k] = n; if (k === 2) apply(pend); } });
       })(k);
     })();
     if (tradeFiles && offs) {

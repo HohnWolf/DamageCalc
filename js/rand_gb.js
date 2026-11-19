@@ -162,11 +162,11 @@
           param: function () { return u8[pm + 1]; }, setParam: function (v) { u8[pm + 1] = v; } });
       });
     });
-    function addWild(key, table, off, lvOff) { // off = Position der Art, lvOff = Position des Levels
-      var nat = natOf(g1 ? u8[off] : u8[off]);
+    function addWild(key, table, off, lvOff, lvOff2) { // off = Position der Art, lvOff/lvOff2 = Position(en) des Levels
+      var nat = natOf(u8[off]);
       if (!nat || !species[nat]) return;
       model.wild.push({ key: key, table: table, get: function () { return natOf(u8[off]); }, set: function (n) { u8[off] = internal(n); },
-        scale: lvOff === undefined ? null : function (p) { u8[lvOff] = C.scaleLv(u8[lvOff], p); } });
+        scale: lvOff === undefined ? null : function (p) { u8[lvOff] = C.scaleLv(u8[lvOff], p); if (lvOff2 !== undefined) u8[lvOff2] = C.scaleLv(u8[lvOff2], p); } });
     }
     var tp, tr, area;
     if (g1) {
@@ -249,7 +249,7 @@
         ho++;
       }
       var bo = e.BCCWildsOffset;
-      while (u8[bo] !== 0xFF && bo < u8.length - 4) { addWild('Insektenturnier', 'bcc', bo + 1, bo + 2); bo += 4; }
+      while (u8[bo] !== 0xFF && bo < u8.length - 4) { addWild('Insektenturnier', 'bcc', bo + 1, bo + 2, bo + 3); bo += 4; }
       model.wildAreas += 2;
       // Trainer
       var tOff2 = e.TrainerDataTableOffset, amount = e.TrainerClassAmount, lim2 = e.TrainerDataClassCounts, idx2 = 0;
@@ -269,6 +269,7 @@
                   if (!hasMoves) return;
                   var mv = []; (ls || []).forEach(function (en) { if (en[0] <= lv && mv.indexOf(en[1]) === -1) mv.push(en[1]); });
                   mv = mv.slice(-4);
+                  if (!mv.length && ls && ls[0]) mv = [ls[0][1]];
                   for (var k = 0; k < 4; k++) u8[mvOff + k] = mv[k] || 0;
                 }
               });
@@ -315,7 +316,7 @@
     // Kristall: 3 Attacken-Lehrer (je ein Byte) plus Menü mit den Attackennamen (neu in freiem Bereich aufgebaut, Zeiger umgebogen); Kompatibilität = Bits 1-3 im Byte +31 der Basiswerte
     if (!g1 && rom.crystal && e.MoveTutorMoves && e.MoveTutorMoves.length === 3 && e.MoveTutorMenuOffset && e.MoveTutorMenuNewSpace && e.MoveNamesOffset) {
       var tutMoves = e.MoveTutorMoves.map(function (o) { return u8[o]; }), nsp = e.MoveTutorMenuNewSpace, nspFree = true, ti2;
-      for (ti2 = 0; ti2 < 40; ti2++) if (u8[nsp + ti2] !== u8[nsp]) nspFree = false;
+      for (ti2 = 0; ti2 < 56; ti2++) if (u8[nsp + ti2] !== u8[nsp]) nspFree = false;
       if (nspFree && (u8[nsp] === 0 || u8[nsp] === 0xFF) && tutMoves.every(function (m) { return m >= 1 && m <= mc; })) {
         var tutCp = [];
         for (i = 1; i <= max; i++) { var so4 = statOff(i), mb = u8[so4 + 31]; tutCp.push({ key: i, nat: i, types: species[i].types, flags: [false, !!(mb & 2), !!(mb & 4), !!(mb & 8)], off: so4 + 31 }); }
@@ -410,7 +411,7 @@
                 for (q = 0; q < ns; q++) if (u8[eh + q * 5 + 2] === 7) fOffs.push({ o: gbOff(eb, rwd(eh + q * 5 + 3)) + 2, label: lab + ' (versteckt)' });
                 eh += ns * 5;
                 var npp = u8[eh++];
-                for (q = 0; q < npp; q++) if (u8[eh + q * 13 + 7] & 1) fOffs.push({ o: gbOff(eb, rwd(eh + q * 13 + 9)), label: lab });
+                for (q = 0; q < npp; q++) if ((u8[eh + q * 13 + 7] & 0x0F) === 1) fOffs.push({ o: gbOff(eb, rwd(eh + q * 13 + 9)), label: lab });
               }
               mo += 9; mn++;
             }

@@ -163,5 +163,113 @@ function g3Model(extra) {
     ok(window.CCRandNds.scan(rom, u).starters === false, '26: Scan meldet keine Starter, wenn sie nicht änderbar sind');
   }
 
+  // ---------- Regressionstests Audit v2.1.0 ----------
+  // R1: data/rival_tags.js sauber nach Spielen getrennt
+  {
+    const RT = require('../data/rival_tags.js');
+    ok(Object.keys(RT.FRLG).every(k => !(k in RT.RS) && !(k in RT.E)), 'R1: RS/E enthalten keine FRLG-Rivalen-IDs');
+    ok(Object.keys(RT.HGSS).every(k => !(k in RT.DP) && !(k in RT.Pt)), 'R1: DP/Pt enthalten keine HGSS-Rivalen-IDs');
+    ok(!('850' in RT.DP) && '850' in RT.Pt, 'R1: DP enthält keine Platin-exklusiven Rivalen-IDs');
+    ok(Object.keys(RT.B2W2).every(k => !(k in RT.BW)), 'R1: BW enthält keine B2W2-Rivalen-IDs');
+  }
+  // R2: Gen 3 Smaragd (Nicht-US: BPED) erkennt Attacken-Lehrer
+  {
+    const species = []; for (let s = 0; s < 412; s++) species.push({ bs: [50, 50, 50, 50, 50, 50], types: [0, 0], abilities: [1, 0], nat: s <= 251 ? s : s >= 277 ? s - 25 : 0, name: 'S' + s });
+    const u8 = new Uint8Array(0x20000), tutOff = 0x1000;
+    for (let i = 0; i < 30; i++) w16(u8, tutOff + i * 2, 10 + i);
+    u8[0xBC] = 0; window.GEN3_OFFS = { BPED0: { tut: [tutOff, 30], eggs: [], statics: [] } };
+    const rom = { species, moves: [null].concat(Array.from({ length: 354 }, () => ({ power: 40, type: 0 }))), learnsets: [], trainers: [], off: { bs: 0x4000, learn: [], mv: 0x8000 }, code: 'BPED', frlg: false, gameEn: 'Emerald' };
+    const m = window.CCRand3.buildModel(rom, u8);
+    ok(m.tutor && m.tutor.moves.length === 30, 'R2: Gen 3 Smaragd DE (BPED) erkennt 30 Attacken-Lehrer');
+  }
+  // R3: types: 'random' + tmCompat: 'type' nutzt die neuen Typen
+  {
+    const moves = [null]; for (let i = 1; i <= 50; i++) moves[i] = { power: 60, type: i <= 25 ? 1 : 2, acc: 100, pp: 20 };
+    const sp = [null], compat = [];
+    for (let s = 1; s <= 10; s++) { sp[s] = { bs: [50, 50, 50, 50, 50, 50], types: [1, 1] }; compat.push({ key: s, nat: s, types: sp[s].types, flags: [false].concat(Array(50).fill(false)) }); }
+    const tms = Array.from({ length: 50 }, (_, i) => i + 1);
+    await C.run({ title: 'TY', gen: 4, maxNat: 10, species: sp, typeNames: ['Normal', 'Kampf', 'Flug'], typePool: [2], legends: [], moves, maxMove: 50, wild: [], trainers: [], evos: [], starters: [],
+      tm: { tms, hms: [], compat, setTMs: () => {}, commit: () => {} }, commit: () => 1 }, { seed: 'ty', wild: 'keep', trainers: 'keep', types: 'random', tmCompat: 'type', tmSanity: false });
+    const oldHits = compat.reduce((a, c) => a + c.flags.slice(1, 26).filter(Boolean).length, 0);
+    const newHits = compat.reduce((a, c) => a + c.flags.slice(26, 51).filter(Boolean).length, 0);
+    ok(sp[1].types[0] === 2 && newHits > oldHits * 2, 'R3: tmCompat=type nutzt neue Typen (' + newHits + ' neu vs. ' + oldHits + ' alt)');
+  }
+  // R4: evoImpossible (withMove) nutzt Original-Learnset trotz moves: 'random'
+  {
+    const sp = [null, { bs: [50, 50, 50, 50, 50, 50], types: [0, 0] }, { bs: [70, 70, 70, 70, 70, 70], types: [0, 0] }];
+    const moves = [null]; for (let i = 1; i <= 210; i++) moves[i] = { power: 60, type: 0, acc: 100, pp: 20 };
+    let method = 20, param = 205;
+    const m = { title: 'EV', gen: 4, maxNat: 2, species: sp, typePool: [0], legends: [], moves, maxMove: 210,
+      learnsets: { 1: [[1, 33], [33, 205]], 2: [[1, 33]] }, setLearnset: () => {},
+      evos: [{ from: 1, get: () => 2, set: () => {}, method: () => method, setMethod: v => { method = v; }, param: () => param, setParam: v => { param = v; } }],
+      evoInfo: { level: 4, stone: 7, trade: 5, tradeItem: 6, withMove: 20, levelMethods: [4], items: { water: 84 } },
+      wild: [], trainers: [], starters: [], commit: () => 1 };
+    await C.run(m, { seed: 'ev', wild: 'keep', trainers: 'keep', moves: 'random', evoImpossible: true });
+    ok(method === 4 && param === 33, 'R4: evoImpossible (withMove) nimmt Original-Level 33 statt Fallback 45 (Lv ' + param + ')');
+  }
+  // R5: Gen 2 Insektenturnier (BCC) + wildLevelPct skaliert auch maxLv (minLv <= maxLv)
+  {
+    const g2e = GB.g2.filter(e => e.name === 'Gold (U)')[0], u = new Uint8Array(0x200000);
+    Buffer.from('POKEMON_GLDAAUE').forEach((c, i) => u[0x134 + i] = c);
+    u[0x143] = 0x80; u[0x14A] = 1; u[0x14C] = 0;
+    u[g2e.WildPokemonOffset] = 0xFF; u[g2e.WildPokemonOffset + 1] = 0xFF; u[g2e.WildPokemonOffset + 2] = 0xFF; u[g2e.WildPokemonOffset + 3] = 0xFF; u[g2e.WildPokemonOffset + 4] = 0xFF; u[g2e.WildPokemonOffset + 5] = 0xFF;
+    for (let h = 0; h < g2e.HeadbuttTableSize; h++) u[g2e.HeadbuttWildsOffset + h] = 0xFF;
+    const bo = g2e.BCCWildsOffset; u[bo] = 10; u[bo + 1] = 123; u[bo + 2] = 13; u[bo + 3] = 14; u[bo + 4] = 0xFF;
+    const res = await RG.run(u, null, { seed: 'bcc', wild: 'keep', trainers: 'keep', wildLevelPct: 50 });
+    ok(res.data[bo + 2] === 20 && res.data[bo + 3] === 21 && res.data[bo + 2] <= res.data[bo + 3], 'R5: Gen 2 BCC wildLevelPct skaliert min & max (' + res.data[bo + 2] + '–' + res.data[bo + 3] + ')');
+  }
+  // R6: Gen 4 rivalStarter liest neue Starter & HGSS löscht Fähigkeits-Nibble (&= 0x0F)
+  {
+    const personal = [new Uint8Array(44)]; for (let s = 1; s <= 493; s++) personal.push(new Uint8Array(44));
+    const species = [null]; for (let s = 1; s <= 493; s++) species[s] = { bs: [50, 50, 50, 50, 50, 50], types: [0, 0], abilities: [1, 0], nat: s };
+    const pk = new Uint8Array(12); w16(pk, 2, 10); w16(pk, 4, 390);
+    const ovl = new Uint8Array(64); w16(ovl, 8, 387); w16(ovl, 12, 390); w16(ovl, 16, 393);
+    const oldN = window.NDS, oldG4 = window.GEN4_OFFS, oldRT = window.RIVAL_TAGS;
+    window.RIVAL_TAGS = { Pt: { 851: 'RIVAL1-0' } };
+    window.GEN4_OFFS = { CPUE0: { type: 'Pt', scripts: 's', statics: [], spTrades: [], starter: { ovl: 1, off: 8 } } };
+    window.NDS = Object.assign({}, oldN, { nitroFile: () => new Uint8Array(4), narc: () => [new Uint8Array(4)], overlayRW: () => ({ data: ovl, commit: () => true }), overlay: () => ovl, arm9RW: () => null });
+    const rom = { type: 'Pt', species, moves: [null, { power: 40, type: 0, acc: 100, pp: 20 }], learnsets: [], names: { moves: [], abilities: [] }, code: 'CPUE', gameEn: 'Platinum',
+      trainers: [{ id: 851, cls: 0, name: 'Barry', pk, rec: 12, head: 6, custom: false, hasItem: false, party: [{ idx: 0, level: 10, species: 390 }] }],
+      files: { personal, learn: [], evo: [], wild: [], moves: [] } };
+    const u = new Uint8Array(0x100); u[0x1E] = 0;
+    const m = window.CCRandNds.buildModel(rom, u);
+    await C.run(m, { seed: 'g4rv', wild: 'keep', trainers: 'random', starters: 'random', rivalStarter: true });
+    const stNow = m.starters.map(s => s.get());
+    ok(stNow.length === 3 && stNow[1] !== 390 && u16(pk, 4) === stNow[1], 'R6: Gen 4 rivalStarter nutzt neuen Starter (' + stNow[1] + ' statt 390)');
+    // HGSS Fähigkeits-Nibble
+    const pkHg = new Uint8Array(12); w16(pkHg, 2, 10); w16(pkHg, 4, 155); pkHg[1] = 0x21;
+    const romHg = Object.assign({}, rom, { type: 'HGSS', code: 'IPKE', trainers: [{ id: 1, cls: 0, name: 'S', pk: pkHg, rec: 12, head: 6, custom: false, hasItem: false, party: [{ idx: 0, level: 10, species: 155 }] }] });
+    const mHg = window.CCRandNds.buildModel(romHg, u);
+    mHg.trainers[0].mons[0].set(25);
+    ok(pkHg[1] === 0x01, 'R6: HGSS Trainer-Set löscht Fähigkeits-Nibble (0x21 -> 0x' + pkHg[1].toString(16) + ')');
+    window.NDS = oldN; window.GEN4_OFFS = oldG4; window.RIVAL_TAGS = oldRT;
+  }
+  // R7: 3DS CTR.build hält RomFS auf 0x1000 ausgerichtet & klemmt exefsHashRegionSize > 1 auf 1
+  {
+    const baseBuf = new Uint8Array(0x6000);
+    w32(baseBuf, 0x104, 0x6000 / 0x200);
+    w32(baseBuf, 0x1A0, 0x1000 / 0x200); w32(baseBuf, 0x1A4, 0x600 / 0x200); w32(baseBuf, 0x1A8, 2); // HashRegionSize = 2
+    w32(baseBuf, 0x1B0, 0x2000 / 0x200); w32(baseBuf, 0x1B4, 0x4000 / 0x200); w32(baseBuf, 0x1B8, 1);
+    const info = { base: 0, type: 'cxi', header: baseBuf.slice(0, 0x200), exefsOff: 0x1000, exefsSize: 0x600, romfsOff: 0x2000, romfsHashSize: 0x200,
+      ivfc: { rf: 0x2000, l3: 0x3000, l1: 0x4000, l2: 0x5000, levels: [{ size: 0x1000, block: 0x1000 }, { size: 0x1000, block: 0x1000 }, { size: 0x1000, block: 0x1000 }] } };
+    const src = { size: baseBuf.length, read: async (o, l) => baseBuf.slice(o, o + l), slice: (a, b) => baseBuf.slice(a, b) };
+    const exNew = new Uint8Array(0x1200); // größer als alter Abstand (0x1000), nicht 0x1000-ausgerichtet
+    const parts = await CTR.build(info, [], src, function (p) { return p; }, exNew);
+    const out = Buffer.concat(parts.map(p => Buffer.from(p)));
+    const newRomfs = u32(out, 0x1B0) * 0x200;
+    ok(newRomfs % 0x1000 === 0 && newRomfs === 0x3000 && u32(out, 0x1A4) === 0x1200 / 0x200 && u32(out, 0x1A8) === 1, 'R7: CTR.build richtet RomFS auf 0x1000 aus (0x' + newRomfs.toString(16) + ') und setzt exefsHashRegionSize=1');
+  }
+  // R8: LZ-komprimiertes NARC wird markiert und im Modell gemeldet
+  {
+    const rawNarc = new Uint8Array(64); Buffer.from('NARC').forEach((c, i) => rawNarc[i] = c);
+    rawNarc[12] = 0x10; Buffer.from('BTAF').forEach((c, i) => rawNarc[0x10 + i] = c); w32(rawNarc, 0x14, 12); w32(rawNarc, 0x18, 0);
+    Buffer.from('GMIF').forEach((c, i) => rawNarc[0x1C + i] = c); w32(rawNarc, 0x20, 8);
+    // gültiger LZ10-Strom (alles Literale)
+    const lz = [0x10, 64, 0, 0];
+    for (let i = 0; i < 64; i += 8) { lz.push(0); for (let k = 0; k < 8; k++) lz.push(rawNarc[i + k]); }
+    const arc = NDS.narc(new Uint8Array(lz));
+    ok(arc && arc._lzCompressed === true, 'R8: NDS.narc markiert LZ-komprimierte Archive (_lzCompressed)');
+  }
+
   console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('Ausnahme', e); process.exit(1); });

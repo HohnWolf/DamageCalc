@@ -360,14 +360,21 @@
     // RomFS-Kopf-Hash (Superblock) im NCCH-Kopf
     var hsz = info.romfsHashSize || 0x200, head = await patchedRead(iv.rf, hsz);
     extra.push({ off: info.base + 0x1E0, bytes: await sha256(head) }); // RomFS-Superblock-Hash liegt bei 0x1E0 (0x1C0 ist der ExeFS-Hash)
-    if (exefsNew) { // ExeFS ersetzen: Größen im Kopf anpassen, alles dahinter (RomFS, weitere Partitionen) rückt um delta
-      var delta = exefsNew.length - info.exefsSize, du = delta / 0x200, b0 = info.base, hd = info.header;
+    if (exefsNew) { // ExeFS ersetzen: Größen im Kopf anpassen, RomFS (0x1B0) und NCSD-Folgepartitionen bleiben auf 0x1000 ausgerichtet
+      var b0 = info.base, hd = info.header, rawExLen = exefsNew.length;
+      var oldSpan = info.romfsOff > info.exefsOff ? info.romfsOff - info.exefsOff : info.exefsSize;
+      var newSpan = info.exefsOff + rawExLen <= info.romfsOff ? oldSpan : align(info.exefsOff + rawExLen, 0x1000) - info.exefsOff;
+      var exBuf = newSpan === rawExLen ? exefsNew : (function () { var p2 = new Uint8Array(newSpan); p2.set(exefsNew); return p2; })();
+      var delta = newSpan - oldSpan, du = delta / 0x200;
       function u32b(v) { var t = new Uint8Array(4); w32(t, 0, v); return t; }
-      extra.push({ off: b0 + 0x1A4, bytes: u32b(exefsNew.length / 0x200) });
-      extra.push({ off: b0 + 0x1B0, bytes: u32b(u32(hd, 0x1B0) + du) });
-      extra.push({ off: b0 + 0x104, bytes: u32b(u32(hd, 0x104) + du) });
+      extra.push({ off: b0 + 0x1A4, bytes: u32b(rawExLen / 0x200) });
+      if (u32(hd, 0x1A8) > 1) extra.push({ off: b0 + 0x1A8, bytes: u32b(1) }); // Superblock-Hash deckt den 0x200-Byte-ExeFS-Kopf ab
+      if (delta) {
+        extra.push({ off: b0 + 0x1B0, bytes: u32b(u32(hd, 0x1B0) + du) });
+        extra.push({ off: b0 + 0x104, bytes: u32b(u32(hd, 0x104) + du) });
+      }
       extra.push({ off: b0 + 0x1C0, bytes: await sha256(exefsNew.subarray(0, 0x200)) });
-      extra.push({ off: b0 + info.exefsOff, bytes: exefsNew, consume: info.exefsSize });
+      extra.push({ off: b0 + info.exefsOff, bytes: exBuf, consume: oldSpan });
       if (info.type === '3ds' && delta) { // NCSD: Größe der Partition 0 und Lage der folgenden Partitionen
         var nh = await source.read(0, 0x200);
         extra.push({ off: 0x104, bytes: u32b(u32(nh, 0x104) + du) });

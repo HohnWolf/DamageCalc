@@ -26,11 +26,11 @@
     o_tmGoodDamaging: 'TMs: Anteil guter Schadensattacken erzwingen', o_tmKeepField: 'TMs: Feldattacken-TMs behalten', o_tmFollowEvo: 'Kompatibilität: Weiterentwicklungen erben von der Vorstufe', o_tmSanity: 'Kompatibilität: Level-Attacken, die es als TM gibt, immer erlauben',
     tutorMoves: 'Attacken-Lehrer: Attacken', tutorCompat: 'Attacken-Lehrer: Kompatibilität', statics: 'Statische Pokémon & Geschenke', trades: 'Ingame-Tausche',
     similarOpt: 'Zufällig, ähnlich stark', o_staticLegendSwap: 'Statische: Legendäre nur gegen Legendäre tauschen', o_staticLevelPct: 'Statische: Level ändern um (%)', o_tradeRequested: 'Tausche: auch die verlangte Art ändern',
-    staticNote: 'Ohne die Patches des UPR (erster Rivalenkampf, Geister-Knogga, Zugvögel); Mew/Deoxys-Gehorsam wird nicht angepasst.',
+    staticNote: 'Ohne die Patches des UPR (erster Rivalenkampf, Geister-Knogga, Zugvögel); Mew/Deoxys-Gehorsam wird nur in Gen 3 angepasst.',
     o_evoImpossible: 'Unmögliche Entwicklungen ersetzen (Tausch → Level 37, Tausch mit Item, Schönheit …)', o_evoNoTime: 'Tageszeit-Entwicklungen beides erlauben (Tag und Nacht)', o_evoEasier: 'Entwicklungen erleichtern (Level höchstens 30/40)',
     expCurve: 'EP-Kurve vereinheitlichen', cMediumFast: 'Mittelschnell', cMediumSlow: 'Mittellangsam', cFast: 'Schnell', cSlow: 'Langsam', cErratic: 'Unregelmäßig', cFluctuating: 'Schwankend', o_expLegendsSlow: 'EP-Kurve: Legendäre bleiben langsam',
     fieldItems: 'Items auf dem Feld (inkl. versteckte)', shops: 'Shop-Inhalte', trainerItems: 'Trainer-Items', o_fieldTMShuffle: 'Feld-TMs untereinander mischen', o_shopBanRegular: 'Shops: normale Shop-Items ausschließen', o_shopBanOP: 'Shops: sehr starke Items ausschließen', o_itemsBanBad: 'Items: keine schlechten Items (Beeren, Briefe, Spezial-Items …)',
-    itemsNote: 'Schwarz/Weiß (Teil 1) hat keine änderbaren Shops; Trainer-Items ändern nur Trainer, die schon ein Item tragen.',
+    itemsNote: 'Trainer-Items ändern nur Trainer, die schon ein Item tragen.',
     logShow: 'Protokoll anzeigen', rivalHead: 'Rivale & Freunde', wildAssign: 'Zuordnung', itemsFilter: 'Filter', dropTitle: 'ROM hierher ziehen', changeRom: 'Andere ROM wählen …', chipAreas: 'Gebiete', chipTrainers: 'Trainer', chipStarters: 'Starter', chipEvos: 'Entwicklungen', chipYes: 'ja', chipNo: 'nein', randomHead: 'Zufall & Auswahl',
     genList: [['Gen 1', 'Rot · Blau · Gelb'], ['Gen 2', 'Gold · Silber · Kristall'], ['Gen 3', 'Rubin · Saphir · Smaragd · Feuerrot · Blattgrün'], ['Gen 4', 'Diamant · Perl · Platin · HeartGold · SoulSilver'], ['Gen 5', 'Schwarz · Weiß · Schwarz 2 · Weiß 2'], ['Gen 6', 'X · Y · Omega Rubin · Alpha Saphir'], ['Gen 7', 'Sonne · Mond · Ultra Sonne · Ultra Mond']], toNuz: 'Im Nuzlocke-Rechner öffnen', pickupItems: 'Pickup-Items', wildHeldItems: 'Gehaltene Items wilder Pokémon',
     o_updateStats: 'Basiswerte auf eine spätere Generation aktualisieren (Änderungen bis Gen …)', o_updateMoves: 'Attacken auf eine spätere Generation aktualisieren (Stärke, AP, Genauigkeit, Typ)',
@@ -67,11 +67,11 @@
     o_tmGoodDamaging: 'TMs: force a share of good damaging moves', o_tmKeepField: 'TMs: keep field-move TMs', o_tmFollowEvo: 'Compatibility: evolutions inherit from the previous stage', o_tmSanity: 'Compatibility: always allow level-up moves that exist as a TM',
     tutorMoves: 'Move tutors: moves', tutorCompat: 'Move tutors: compatibility', statics: 'Static Pokémon & gifts', trades: 'In-game trades',
     similarOpt: 'Random, similar strength', o_staticLegendSwap: 'Statics: swap legendaries only with legendaries', o_staticLevelPct: 'Statics: change level by (%)', o_tradeRequested: 'Trades: also change the requested species',
-    staticNote: 'Without the UPR patches (first rival battle, Ghost Marowak, roamers); Mew/Deoxys obedience is not adjusted.',
+    staticNote: 'Without the UPR patches (first rival battle, Ghost Marowak, roamers); Mew/Deoxys obedience is only adjusted in gen 3.',
     o_evoImpossible: 'Replace impossible evolutions (trade → level 37, trade with item, beauty …)', o_evoNoTime: 'Allow time-based evolutions at day and night', o_evoEasier: 'Make evolutions easier (level at most 30/40)',
     expCurve: 'Standardize EXP curve', cMediumFast: 'Medium Fast', cMediumSlow: 'Medium Slow', cFast: 'Fast', cSlow: 'Slow', cErratic: 'Erratic', cFluctuating: 'Fluctuating', o_expLegendsSlow: 'EXP curve: legendaries stay slow',
     fieldItems: 'Field items (incl. hidden)', shops: 'Shop contents', trainerItems: 'Trainer items', o_fieldTMShuffle: 'Shuffle field TMs among themselves', o_shopBanRegular: 'Shops: exclude regular shop items', o_shopBanOP: 'Shops: exclude very strong items', o_itemsBanBad: 'Items: no bad items (berries, mail, special items …)',
-    itemsNote: 'Black/White (part 1) has no editable shops; trainer items only change trainers that already hold an item.',
+    itemsNote: 'Trainer items only change trainers that already hold an item.',
     logShow: 'Show log', rivalHead: 'Rival & friends', wildAssign: 'Assignment', itemsFilter: 'Filter', dropTitle: 'Drop a ROM here', changeRom: 'Choose another ROM …', chipAreas: 'Areas', chipTrainers: 'Trainers', chipStarters: 'Starters', chipEvos: 'Evolutions', chipYes: 'yes', chipNo: 'no', randomHead: 'Randomness & selection',
     genList: [['Gen 1', 'Red · Blue · Yellow'], ['Gen 2', 'Gold · Silver · Crystal'], ['Gen 3', 'Ruby · Sapphire · Emerald · FireRed · LeafGreen'], ['Gen 4', 'Diamond · Pearl · Platinum · HeartGold · SoulSilver'], ['Gen 5', 'Black · White · Black 2 · White 2'], ['Gen 6', 'X · Y · Omega Ruby · Alpha Sapphire'], ['Gen 7', 'Sun · Moon · Ultra Sun · Ultra Moon']], toNuz: 'Open in Nuzlocke calculator', pickupItems: 'Pickup items', wildHeldItems: 'Held items of wild Pokémon',
     o_updateStats: 'Update base stats to a later generation (changes up to gen …)', o_updateMoves: 'Update moves to a later generation (power, PP, accuracy, type)',
@@ -228,7 +228,7 @@
         var cur = st.opts.limitGens.length ? st.opts.limitGens.slice() : []; for (var q = 1; q <= maxGen; q++) if (!st.opts.limitGens.length) cur.push(q);
         var ix = cur.indexOf(gn); if (c.checked && ix === -1) cur.push(gn); if (!c.checked && ix !== -1) cur.splice(ix, 1);
         if (cur.length === maxGen || !cur.length) cur = [];
-        st.opts.limitGens = cur; if (!cur.length && !c.checked) c.checked = true;
+        st.opts.limitGens = cur; if (!cur.length) render();
       };
       var l = el('label', { class: 'rd-check' }); l.appendChild(c); l.appendChild(el('span', { text: S.genWord + ' ' + gn })); w.appendChild(l);
     })(gn);
@@ -264,14 +264,16 @@
     var g1 = grid(pm);
     g1.appendChild(modeRow('stats', S.stats, ['keep', 'shuffle', 'random'], { keep: S.keep, shuffle: S.shuffle, random: S.randomStats }));
     pm.appendChild(check('statsFollowEvo', S.o_statsFollowEvo));
-    grid(pm).appendChild(updateRow('updateStats', S.o_updateStats, 6));
+    if (maxGen > 1) grid(pm).appendChild(updateRow('updateStats', S.o_updateStats, 6));
     head(pm, S.types);
     grid(pm).appendChild(modeRow('types', S.types, ['keep', 'random'], mode));
     pm.appendChild(check('followEvoTypes', S.o_followEvoTypes));
     pm.appendChild(check('dualTypeOnly', S.o_dualTypeOnly));
-    head(pm, S.abilities);
-    grid(pm).appendChild(modeRow('abilities', S.abilities, ['keep', 'random'], mode));
-    ['followEvoAbilities', 'allowWonderGuard', 'banTrapping', 'banNegative', 'banBadAbilities', 'ensureTwoAbilities'].forEach(function (k) { pm.appendChild(check(k, S['o_' + k])); });
+    if (!isGb) {
+      head(pm, S.abilities);
+      grid(pm).appendChild(modeRow('abilities', S.abilities, ['keep', 'random'], mode));
+      ['followEvoAbilities', 'allowWonderGuard', 'banTrapping', 'banNegative', 'banBadAbilities', 'ensureTwoAbilities'].forEach(function (k) { pm.appendChild(check(k, S['o_' + k])); });
+    }
     head(pm, S.evo);
     grid(pm).appendChild(modeRow('evo', S.evo, ['keep', 'random', 'similar'], mode));
     ['evoSameType', 'evoForceChange', 'evoLimit3'].forEach(function (k) { pm.appendChild(check(k, S['o_' + k])); });
@@ -353,7 +355,7 @@
     if (caps.moves) {
       head(pa, S.moveData);
       grid(pa).appendChild(updateRow('updateMoves', S.o_updateMoves, 2));
-      ['movePower', 'moveAcc', 'movePP', 'moveType', 'moveCat'].forEach(function (k) { pa.appendChild(check(k, S['o_' + k])); });
+      (maxGen >= 4 ? ['movePower', 'moveAcc', 'movePP', 'moveType', 'moveCat'] : ['movePower', 'moveAcc', 'movePP', 'moveType']).forEach(function (k) { pa.appendChild(check(k, S['o_' + k])); });
     }
     if (caps.tm) {
       head(pa, S.tmMoves);
@@ -362,7 +364,8 @@
       g7.appendChild(modeRow('tmCompat', S.tmCompat, ['keep', 'random', 'type', 'full'], { keep: S.keep, random: S.tmRandom, type: S.tmType, full: S.tmFull }));
       ['tmGoodDamaging', 'tmKeepField', 'tmFollowEvo', 'tmSanity'].forEach(function (k) { pa.appendChild(check(k, S['o_' + k])); });
     }
-    if (caps.extra && (!caps.noTutor || (st.ctx && st.ctx.g && st.ctx.g.type === 'oras') || (st.rom && st.rom.crystal))) {
+    var noGameTutor = (isGba && st.rom && /^AX/.test(st.rom.code)) || (st.ext === 'nds' && st.rom && (st.rom.type === 'DP' || st.rom.type === 'BW'));
+    if (caps.extra && !noGameTutor && (!caps.noTutor || (st.ctx && st.ctx.g && st.ctx.g.type === 'oras') || (st.rom && st.rom.crystal))) {
       head(pa, S.tutorMoves);
       var g8 = grid(pa);
       g8.appendChild(modeRow('tutorMoves', S.tutorMoves, ['keep', 'random'], { keep: S.keep, random: S.tmRandom }));

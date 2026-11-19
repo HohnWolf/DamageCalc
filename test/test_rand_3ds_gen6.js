@@ -39,6 +39,8 @@ cro['DllField.cro'] = { data: fd, loc: { off: 0 } };
   ok(u16(fd, 0xF805C) === 200 && u16(fd, 0xF805C + 5 * 0x18) === 205, 'Starter-Geschenke (Nr. 0-5) unberührt');
   ok(u16(fd, 0xF805C + 6 * 0x18) !== 206 && fd[0xF805C + 6 * 0x18 + 4] === 0, 'Geschenk Nr. 6 neu, Form 0');
   ok(res.data.patches.some(p => p.off === 0xEE46C), 'Änderungen an DllField.cro vorgemerkt');
+  const croOffs = res.data.patches.filter(p => p.off >= 0xEE46C).map(p => p.off);
+  ok(croOffs.length > 0 && new Set(croOffs).size === croOffs.length, 'Keine doppelten CRO-Patch-Offsets bei Statics + Level (kein ctr:overlap)');
   // Omega Rubin: 60 Lehrer-Attacken im Programmcode (Liste ab Muster, 0x26E = Lücke) plus Lehrer-Shop-Tabelle
   {
     const go = R.GAMES['CTR-P-ECR'];

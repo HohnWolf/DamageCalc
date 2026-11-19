@@ -275,7 +275,7 @@
     }
     if (tbl) {
       // Attacken-Lehrer (Smaragd, Feuerrot, Blattgrün): Attacken als u16-Liste, danach 1 Bit je Attacke und Art
-      if (tbl.tut && /^(BPEE|BPR|BPG)/.test(rom.code)) {
+      if (tbl.tut && /^(BPE|BPR|BPG)/.test(rom.code)) {
         var tdata = tbl.tut[0], tcount = tbl.tut[1], tmoves = [];
         for (var tq = 0; tq < tcount; tq++) tmoves.push(u16(u8, tdata + tq * 2));
         if (tmoves.every(moveOk)) {

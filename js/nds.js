@@ -246,7 +246,8 @@
   // files of a NARC archive
   function narc(f) {
     if (!f) return null;
-    if (ascii(f, 0, 4) !== 'NARC' && (f[0] === 0x10 || f[0] === 0x11)) { var d = lzDecompress(f); if (d) f = d; }
+    var lz = false;
+    if (ascii(f, 0, 4) !== 'NARC' && (f[0] === 0x10 || f[0] === 0x11)) { var d = lzDecompress(f); if (d) { f = d; lz = true; } }
     if (ascii(f, 0, 4) !== 'NARC') return null;
     var p = u16(f, 12) || 0x10, frames = {};
     for (var i = 0; i < 3 && p + 8 <= f.length; i++) { var size = u32(f, p + 4); frames[ascii(f, p, 4)] = p; if (size < 8) break; p += size; }
@@ -257,6 +258,7 @@
       var s = u32(f, fatb + 12 + k * 8), e = u32(f, fatb + 16 + k * 8);
       files.push(base + e <= f.length && e >= s ? f.subarray(base + s, base + e) : new Uint8Array(0));
     }
+    if (lz) files._lzCompressed = true;
     return files;
   }
 

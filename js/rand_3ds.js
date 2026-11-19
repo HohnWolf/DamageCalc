@@ -105,7 +105,7 @@
     model.setGrowth = function (n, v) { var d = entry(stats, n); if (d && d.length > 21) d[21] = v; };
     model.catchRate = { get: function (n) { return entry(stats, n)[8]; }, set: function (n, v) { entry(stats, n)[8] = v; } };
     model.evoInfo = { level: 4, stone: 8, trade: 5, tradeItem: 6, tradeSpecial: 7, friendDay: 2, friendNight: 3, beauty: 16, electrified: 25, moss: 26, icy: 27, withMove: 21, withOther: 22, itemDay: 19, itemNight: 20,
-      levelMethods: [4, 9, 10, 11, 12, 13, 14, 15, 23, 24, 28, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41], items: { water: 84, sun: 80, moon: 81, leaf: 85, dawn: 109 } };
+      levelMethods: [4, 9, 10, 11, 12, 13, 14, 15, 23, 24, 28, 29, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41], items: { water: 84, sun: 80, moon: 81, leaf: 85, dawn: 109 } };
     model.commitSpecies = function () {
       species.forEach(function (sp, n) {
         if (!sp) return;
@@ -187,6 +187,7 @@
               if (!hasMoves) return;
               var mvs = []; (ls || []).forEach(function (en) { if (en[0] <= lvl && mvs.indexOf(en[1]) === -1) mvs.push(en[1]); });
               mvs = mvs.slice(-4);
+              if (!mvs.length && ls && ls[0]) mvs = [ls[0][1]];
               var mo = g.gen === 7 ? o + 24 : o + 8 + (hasItem ? 2 : 0);
               for (var k = 0; k < 4; k++) w16(tp, mo + k * 2, mvs[k] || 0);
             }
@@ -254,6 +255,10 @@
     // Wie im UPR werden die SHA-256-Werte der geänderten CROs in static.crr nicht neu berechnet (die CRR ist ohnehin RSA-signiert):
     // die ROM läuft auf Citra und mit Luma3DS (Signatur-Patches für ro), nicht ohne diese Patches.
     var croNoted = false, croNote = function () { if (!croNoted) { croNoted = true; notes.push('Starter/Geschenke/Statische in DllField.cro bzw. DllPoke3Select.cro geändert. Die CRO-Prüfsummen in static.crr werden (wie im UPR) nicht neu berechnet – läuft auf Citra und mit Luma3DS, nicht ohne Signatur-Patches.'); } };
+    var putPatch = function (off, bytes) {
+      for (var pi = patches.length - 1; pi >= 0; pi--) if (patches[pi].off === off && patches[pi].bytes.length === bytes.length) { patches[pi].bytes = bytes; return; }
+      patches.push({ off: off, bytes: bytes });
+    };
     if (g.gen === 6 && !scanOnly) {
       try {
         var G6 = g.type === 'oras' ? { gift: 0xF906C, count: 0x25, size: 0x24, idx: [0, 1, 2, 28, 29, 30, 31, 32, 33, 34, 35, 36], offOff: 0xB8, extra: 0, stat: 0xF1B20, statCount: 0x3B, links: [[26, 49], [27, 50], [29, 58], [80, 56], [81, 57], [75, 76]] }
@@ -271,7 +276,7 @@
           list6.forEach(function (en, ix) {
             if (skip6[ix] || !species[u16(sf, en.off)]) return;
             var targets = [en]; if (linked6[ix] !== undefined && list6[linked6[ix]]) targets.push(list6[linked6[ix]]);
-            var mark = function (t) { croNote(); patches.push({ off: fieldF.loc.off + t.off, bytes: sf.slice(t.off, t.off + 8) }); };
+            var mark = function (t) { croNote(); putPatch(fieldF.loc.off + t.off, sf.slice(t.off, t.off + 8)); };
             model.statics.push({
               isEgg: en.egg, level: sf[en.off + en.lOff],
               get: function () { return u16(sf, en.off); },
@@ -291,8 +296,8 @@
                 get: function () { return u16(fd, go); },
                 set: function (n) {
                   w16(fd, go, n); fd[go + 4] = 0; w16(dd, dO, n); dd[dO + 2] = 0;
-                  croNote(); patches.push({ off: fieldF.loc.off + go, bytes: fd.slice(go, go + 6) });
-                  patches.push({ off: dispF.loc.off + dO, bytes: dd.slice(dO, dO + 4) });
+                  croNote(); putPatch(fieldF.loc.off + go, fd.slice(go, go + 6));
+                  putPatch(dispF.loc.off + dO, dd.slice(dO, dO + 4));
                 }
               });
             });
@@ -325,10 +330,12 @@
         }
         if (tms3.concat(hms3).every(function (m) { return m >= 1 && m <= g.maxMove; })) {
           var cp3 = [];
-          for (var s3 = 1; s3 <= max; s3++) {
-            var sd = entry(stats, s3); if (!species[s3] || !sd || sd.length < 54) continue;
+          for (var s3 = 1; s3 < stats.files.length; s3++) {
+            var sd = entry(stats, s3); if (!sd || sd.length < 54) continue;
+            if (s3 <= max && !species[s3]) continue;
+            if (s3 > max && !(sd[0] | sd[1] | sd[2] | sd[3] | sd[4] | sd[5])) continue; // leere Form-Einträge überspringen
             var fl3 = [false]; for (var b3 = 0; b3 < 100 + hmN; b3++) fl3.push(!!(sd[40 + (b3 >> 3)] & (1 << (b3 & 7))));
-            cp3.push({ key: s3, nat: s3, types: species[s3].types.slice(), flags: fl3, data: sd });
+            cp3.push({ key: s3, nat: s3, types: s3 <= max ? species[s3].types.slice() : [sd[6], sd[7]], flags: fl3, data: sd });
           }
           model.tm = {
             tms: tms3, hms: hms3, compat: cp3, earlyHM: [],
