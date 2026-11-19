@@ -9,6 +9,17 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.1.1',
+      de: [
+        'Damage Calculator (NCP-Parität): Dual-Typ-Boost-Items (Seelentau, Orbs) wirken jetzt korrekt, Technician prüft vor Aura/Power Spot/Steely Spirit/Battery, Hard Press/Crush Grip/Wring Out haben min. 1 BP, Meteor Beam/Electro Shot gegen Unaware, Parental Bond schließt Explosion/Fling im Einzel aus, Analytic beachtet Bizarroraum, Sturdy beachtet Ability Shield und Fähigkeiten-ignorierende Attacken, Heavy-Duty Boots und OHKO-Residual-Hinweise ergänzt, plus Gen-3/4/5-Fixes im Nuzlocke-Rechner (FRLG-Orden, Gen-5-Simple, Slow Start, Brick Break/Infiltrator).',
+        'Save-Editor (PKHeX-Parität): Team lässt sich nicht mehr auf 0 Pokémon leeren, Showdown-Import prüft Generationsgrenzen und nutzt in Gen 3 die richtige Item-Tabelle sowie echte Basis-AP und IV 31, Gen 1/2 „Box leeren“ löscht alle Plätze, Gen-3-Ball überschreibt das OT-Geschlecht nicht mehr, Gen-5-Legalität erlaubt PID-unabhängige Wesen, Gen-6/7-Statusheilung und PK7-Fähigkeitsmaske korrigiert, Gen-3-Ruhmeshalle filtert leere Flash-Sektoren und Formwechsel/„Legal machen“ aktualisieren Werte und Fähigkeiten.',
+        'Randomizer (UPR-Parität): Gen-6-Statics + Level-Skalierung stürzen nicht mehr ab, Rivalen-Trainer-IDs sind sauber nach Spielen getrennt, Gen-4-Rivale nutzt die neuen Starter, Gen-2-Insektenturnier skaliert auch Max-Level, Smaragd-Attackenlehrer funktionieren in allen Sprachen, TM/Lehrer-Kompatibilität nutzt zufällige Typen statt der alten, 3DS-ExeFS-Alignment (0x1000) korrigiert und wirkungslose Optionen ausgeblendet.'
+      ],
+      en: [
+        'Damage calculator (NCP parity): dual-type boost items (Soul Dew, orbs) now work properly, Technician checks before Aura/Power Spot/Steely Spirit/Battery, Hard Press/Crush Grip/Wring Out have min 1 BP, Meteor Beam/Electro Shot vs. Unaware, Parental Bond excludes Explosion/Fling in singles, Analytic respects Trick Room, Sturdy respects Ability Shield and ability-ignoring moves, Heavy-Duty Boots and OHKO residual causes added, plus Gen 3/4/5 Nuzlocke calc fixes (FRLG badges, Gen 5 Simple, Slow Start, Brick Break/Infiltrator).',
+        'Save editor (PKHeX parity): party can no longer be emptied to 0 Pokémon, Showdown import enforces generation ID limits and uses Gen 3 item table, real base PP and default 31 IVs, Gen 1/2 “Clear box” deletes all slots, Gen 3 Poké Ball no longer overwrites OT gender, Gen 5 legality allows PID-independent natures, Gen 6/7 status cure and PK7 abilityNum mask fixed, Gen 3 Hall of Fame ignores uninitialized flash sectors, and form changes / “Make legal” refresh stats and abilities.',
+        'Randomizer (UPR parity): Gen 6 statics + level scaling no longer crash, rival trainer IDs are separated per game, Gen 4 rival uses the new starters, Gen 2 Bug-Catching Contest scales max level too, Emerald move tutors work for all languages, TM/tutor compatibility uses randomized types instead of old ones, 3DS ExeFS alignment (0x1000) fixed, and no-op UI options hidden.'
+      ] },
     { v: '2.1.0',
       de: [
         'Save-Editor: Gen-2-KP an der richtigen Stelle (Item und Attacke 1 bleiben erhalten), aktuelle Box aus CurrentBox geladen und gespeichert, Sp.-Verteidigung getrennt berechnet und Box-zu-Team-Wechsel mit korrektem Level und vollen KP.',
