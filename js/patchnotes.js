@@ -9,6 +9,19 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.1.0',
+      de: [
+        'Save-Editor: Gen-2-KP an der richtigen Stelle (Item und Attacke 1 bleiben erhalten), aktuelle Box aus CurrentBox geladen und gespeichert, Sp.-Verteidigung getrennt berechnet und Box-zu-Team-Wechsel mit korrektem Level und vollen KP.',
+        'Save-Editor: MemeCrypto-Signatur für Sonne/Mond und Ultrasonne/Ultramond beim Speichern neu berechnet, eigene Basiswerte für Formen (Deoxys, Giratina, Rotom, Alola-Formen usw.), deterministische Shiny+Wesen-Suche (Gen 3/4), PKHeX-kompatible .pk1/.pk2-Dateien, Gen-3-Ei-Flags, HGSS-Ball, Freundschaft bei getauschten Pokémon und korrekte Grenzen für EVs, Geld und AP.',
+        'Damage Calculator: Fokusgurt und Robustheit werden von Mehrfachtreffern und Parental Bond gebrochen (Mold Breaker ignoriert Robustheit), Streuschaden-Abzug (×0,75) gilt bei Partner-treffenden Attacken wie Earthquake und Surf auch bei nur einem Gegner, Toxin steigt jede Runde (1/16, 2/16 …) und Poison Heal heilt, dazu Merciless, Unburden-Schalter, Metronome ×2,0, Weather Ball mit Utility Umbrella, Thousand Arrows gegen Levitate/Flug und Gen-3/4/5-Fixes im Nuzlocke-Rechner.',
+        'Randomizer: Pokémon Gelb und 512-KB-ROMs werden geladen, Gen-3-Basiswert-Updates und Generationen-Filter nutzen die Nationaldex-Nummer, Attacken-Update auf Gen 4 greift in Gen 3, Trainer-Items und „ab Level voll entwickelt“ wirken auch ohne Trainer-Mischen, FRLG-Starter-Skript und komprimiertes HGSS-arm9 (TMs, Shops, versteckte Items) werden gepatcht, VM-Kompatibilität und Nincada→Shedinja bleiben erhalten und Z-Attacken sowie falsche Fähigkeiten-Pools (Gen 3, X/Y, Sonne/Mond) sind ausgeschlossen.'
+      ],
+      en: [
+        'Save editor: Gen 2 HP at the right offset (held item and move 1 are preserved), active box read from and written to CurrentBox, Sp. Def calculated separately, and moving a Pokémon from a box to the party keeps its level and full HP.',
+        'Save editor: MemeCrypto signature re-signed when saving Sun/Moon and Ultra Sun/Ultra Moon, form-specific base stats (Deoxys, Giratina, Rotom, Alolan forms, etc.), deterministic Shiny + Nature search (Gen 3/4), PKHeX-compatible .pk1/.pk2 files, Gen 3 Egg flags, HGSS Poké Ball byte, traded Pokémon friendship, and proper limits for EVs, money and PP.',
+        'Damage calculator: Focus Sash and Sturdy are broken by multi-hit moves and Parental Bond (Mold Breaker ignores Sturdy), spread penalty (×0.75) applies to ally-hitting moves like Earthquake and Surf even with one foe left, Badly Poisoned damage scales each turn (1/16, 2/16 …) and Poison Heal heals, plus Merciless, Unburden toggle, Metronome ×2.0, Weather Ball with Utility Umbrella, Thousand Arrows against Levitate/Flying, and Gen 3/4/5 fixes in the Nuzlocke calculator.',
+        'Randomizer: Pokémon Yellow and 512 KB ROMs load properly, Gen 3 base stat updates and generation filters use National Dex numbers, Gen 4 move updates apply to Gen 3, trainer items and “fully evolved at level” work even with unchanged trainers, FRLG starter script and compressed HGSS arm9 (TMs, shops, hidden items) are patched, HM compatibility and Nincada→Shedinja are preserved, and Z-Moves as well as invalid ability pools (Gen 3, X/Y, Sun/Moon) are excluded.'
+      ] },
     { v: '2.0.0',
       de: ['Rattata Labs 2.0: Alle Neuerungen aus 1.36.1 und 1.36.2 sind jetzt eine Vollversion.'],
       en: ['Rattata Labs 2.0: everything from 1.36.1 and 1.36.2 is now a full release.'],
