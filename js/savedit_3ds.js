@@ -274,8 +274,8 @@
         case 'sid': return u16(d, 0x0E);
         case 'exp': return u32(d, 0x10);
         case 'ability': return d[0x14];
-        case 'abilityNum': return d[0x15];
-        case 'hiddenAbility': return d[0x15] === 4 ? 1 : 0;
+        case 'abilityNum': return gen === 7 ? (d[0x15] & 7) : d[0x15];
+        case 'hiddenAbility': return (gen === 7 ? (d[0x15] & 7) : d[0x15]) === 4 ? 1 : 0;
         case 'nature': return d[0x1C];
         case 'gender': return (d[0x1D] >> 1) & 3;
         case 'form': return d[0x1D] >> 3;
@@ -294,6 +294,7 @@
         case 'metLevel': return d[0xDD] & 127;
         case 'level': return d.length >= 260 ? d[0xEC] : 0;
         case 'hp': return d.length >= 260 ? u16(d, 0xF0) : 0;
+        case 'status': return d.length >= 260 ? u32(d, 0xE8) : 0;
       }
       return 0;
     };
@@ -321,8 +322,8 @@
         case 'sid': w16(d, 0x0E, v); break;
         case 'exp': w32(d, 0x10, v); break;
         case 'ability': d[0x14] = v; break;
-        case 'abilityNum': d[0x15] = v; break;
-        case 'hiddenAbility': d[0x15] = v ? 4 : 1; break;
+        case 'abilityNum': d[0x15] = gen === 7 ? ((d[0x15] & ~7) | (v & 7)) : v; break;
+        case 'hiddenAbility': d[0x15] = gen === 7 ? ((d[0x15] & ~7) | (v ? 4 : 1)) : (v ? 4 : 1); break;
         case 'nature': d[0x1C] = v; break;
         case 'gender': d[0x1D] = (d[0x1D] & ~6) | (v << 1); break;
         case 'form': d[0x1D] = (d[0x1D] & 7) | (v << 3); break;
@@ -340,6 +341,7 @@
         case 'ball': d[0xDC] = v; break;
         case 'level': d[0xEC] = v; break;
         case 'hp': w16(d, 0xF0, v); break;
+        case 'status': if (d.length >= 260) w32(d, 0xE8, v); break;
       }
     };
     F.nature = function (d) { return d[0x1C]; };

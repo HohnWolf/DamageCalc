@@ -48,13 +48,16 @@
       var read = function (o, n) { var r = new Uint8Array(n); for (var i = 0; i < n; i++) r[i] = data[at(o + i)]; return r; };
       sv.hof = {
         entries: function () {
+          if (u32(data, 0x1C000 + 0xFF8) !== 0x08012025) return [];
           var out = [];
           for (var e = 0; e < 50; e++) {
             var raw = read(e * TEAM, TEAM), team = [];
             for (var m = 0; m < 6; m++) {
               var o = m * SZ, sl = u16(raw, o + 8);
               if (!(sl & 0x1FF)) continue;
-              team.push({ species: sv.natOf(sl & 0x1FF), level: sl >> 9, nick: G3.decode(raw, o + 10, 10), shiny: shiny(u16(raw, o), u16(raw, o + 2), u32(raw, o + 4)) });
+              var nat = sv.natOf(sl & 0x1FF);
+              if (!nat || nat > sv.maxSpecies) continue;
+              team.push({ species: nat, level: sl >> 9, nick: G3.decode(raw, o + 10, 10), shiny: shiny(u16(raw, o), u16(raw, o + 2), u32(raw, o + 4)) });
             }
             if (team.length) out.push({ n: e + 1, date: '', team: team });
           }

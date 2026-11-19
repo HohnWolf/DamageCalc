@@ -39,18 +39,24 @@ d = clean(); F.set(d, 'move', 98, 1); assert.ok(!has(window.CCLegal.check(sv, d,
 d = clean(); F.set(d, 'iv', (F.get(d, 'iv', 0) + 1) % 32, 0);
 assert.ok(has(window.CCLegal.check(sv, d, env), 'RNG'), 'Wert-Mix erkannt');
 d = clean(); F.set(d, 'form', 5); assert.ok(has(window.CCLegal.check(sv, d, env), 'Invalid form'), 'Form bei formloser Art');
-d = clean(); F.set(d, 'species', 201); F.set(d, 'form', 3); assert.ok(has(window.CCLegal.check(sv, d, env), 'Unown form'), 'Icognito-Form');
+d = clean(); F.set(d, 'species', 201); F.set(d, 'form', 3); assert.ok(!has(window.CCLegal.check(sv, d, env), 'Unown form'), 'Gen 4: Icognito-Form ist unabhängig von der PID');
+d = clean(); F.set(d, 'species', 201); F.set(d, 'form', 29); assert.ok(has(window.CCLegal.check(sv, d, env), 'Invalid form'), 'Gen 4: Icognito-Form >= 28 ungültig');
+// Form-Personaldaten: Giratina-Urform (Form 1) hat Schwebe (26), nicht Erzwinger (46)
+d = clean(); F.set(d, 'species', 487); F.set(d, 'form', 1); F.set(d, 'ability', 26); d[64] = (d[64] & ~6) | (2 << 1);
+assert.ok(!has(window.CCLegal.check(sv, d, env), 'Ability'), 'Gen 4: Giratina-Urform mit Schwebe ist legal');
 { // Wurmple-Regel: (PID>>16)%10 < 5 -> Silcoon-Linie
   d = clean(); F.set(d, 'species', 266); const hi = (F.get(d, 'pid') >>> 16) % 10;
   const out = window.CCLegal.check(sv, d, env); assert.equal(has(out, 'Wurmple'), hi >= 5, 'Silcoon-Regel');
   F.set(d, 'species', 268); assert.equal(has(window.CCLegal.check(sv, d, env), 'Wurmple'), hi < 5, 'Cascoon-Regel');
 }
 d = clean(); F.set(d, 'egg', 1); F.set(d, 'ev', 4, 0); assert.ok(has(window.CCLegal.check(sv, d, env), 'Egg with effort'), 'Ei mit EP');
-// Gen 5: Wesen muss PID % 25 entsprechen
+// Gen 5: Wesen (0x41) ist unabhängig von der PID; nur Werte >= 25 sind ungültig
 {
   const F5 = S.PK5, sv5 = { gen: 5, game: 'BW', fmt: S.PK5, gb: false, maxSpecies: 649, maxMove: 559, maxItem: 632, natOf: n => n };
   const d5 = clean(); F5.set(d5, 'nature', (F5.get(d5, 'pid') % 25 + 1) % 25);
-  assert.ok(has(window.CCLegal.check(sv5, d5, env), 'Nature'), 'Gen 5: Wesen passt nicht zur PID');
+  assert.ok(!has(window.CCLegal.check(sv5, d5, env), 'Nature'), 'Gen 5: Wesen unabhängig von der PID erlaubt');
+  F5.set(d5, 'nature', 30);
+  assert.ok(has(window.CCLegal.check(sv5, d5, env), 'Nature'), 'Gen 5: Wesen >= 25 ungültig');
 }
 // Begegnungs-Abgleich: ein Wildslot aus HeartGold passt, ein falsches Fang-Level oder ein falscher Fundort nicht
 {

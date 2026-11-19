@@ -155,7 +155,7 @@
         case 'level': d[84] = v; break;
         case 'hp': w16(d, 86, v); break;
         case 'status': w32(d, 80, v); break;
-        case 'ball': w16(d, 70, (u16(d, 70) & ~(15 << 11)) | (v << 11)); break;
+        case 'ball': w16(d, 70, (u16(d, 70) & ~(15 << 11)) | ((v & 15) << 11)); break;
         case 'pokerus': d[68] = v; break;
         case 'otGender': w16(d, 70, (u16(d, 70) & 0x7FFF) | ((v & 1) << 15)); break;
         case 'metLevel': w16(d, 70, (u16(d, 70) & ~127) | (v & 127)); break;

@@ -38,7 +38,7 @@
     }
   };
   var BALL_MAX = { 3: 12, 4: 24, 5: 25, 6: 25, 7: 26 };
-  var LANG_OK = { 3: [1, 2, 3, 4, 5, 7], 4: [1, 2, 3, 4, 5, 7, 8], 5: [1, 2, 3, 4, 5, 7, 8], 6: [1, 2, 3, 4, 5, 7, 8, 9, 10], 7: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12] };
+  var LANG_OK = { 3: [1, 2, 3, 4, 5, 7], 4: [1, 2, 3, 4, 5, 7, 8], 5: [1, 2, 3, 4, 5, 7, 8], 6: [1, 2, 3, 4, 5, 7, 8], 7: [1, 2, 3, 4, 5, 7, 8, 9, 10] };
   var HELD_CACHE = {};
 
   function heldItems(game) {
@@ -77,7 +77,9 @@
     function bad(c) { out.push({ sev: 'bad', msg: T[c] }); }
     function warn(c) { out.push({ sev: 'warn', msg: T[c] }); }
     if (!d) return out;
-    var sp = F.get(d, 'species'), nat = sv.natOf(sp), pt = (P['g' + gen] || [])[nat] || null, egg = !!F.get(d, 'egg'), gb = !!sv.gb;
+    var sp = F.get(d, 'species'), nat = sv.natOf(sp), egg = !!F.get(d, 'egg'), gb = !!sv.gb;
+    var fm0 = !gb && gen >= 4 ? (F.get(d, 'form') || 0) : 0, ft0 = fm0 > 0 && P['f' + gen] && P['f' + gen][nat];
+    var pt = (ft0 && ft0[fm0 - 1]) || (P['g' + gen] || [])[nat] || null;
     if (!sp || nat < 1 || nat > sv.maxSpecies) { bad('speciesBad'); return out; }
     if (gb) return out.concat(moves());
     var growth = pt ? pt[6] : 0, exp = F.get(d, 'exp'), lv = S.levelFor(growth, exp);
@@ -115,7 +117,7 @@
     // ---- PID: Wesen und Geschlecht (Gen 3-5)
     if (gen <= 5 && pt) {
       var pid = F.get(d, 'pid');
-      if (gen === 5 && F.get(d, 'nature') !== undefined && F.get(d, 'nature') !== pid % 25 && F.get(d, 'nature') < 25) bad('natureMismatch');
+      if (gen === 5 && F.get(d, 'nature') >= 25) bad('natureMismatch');
       var ratio = pt[7], gnd = F.get(d, 'gender');
       if (gen >= 4) {
         var want = ratio === 255 ? 2 : ratio === 254 ? 1 : ratio === 0 ? 0 : ((pid & 0xFF) < ratio ? 1 : 0);
@@ -127,10 +129,6 @@
       var pidx = F.get(d, 'pid'), ecv = pidx, wv = (ecv >>> 16) % 10;
       if (nat === 266 || nat === 267) { if (wv >= 5) bad('wurmple'); }
       else if (nat === 268 || nat === 269) { if (wv < 5) bad('wurmple'); }
-      if (nat === 201 && gen === 4) {
-        var uf = (((pidx & 0x3000000) >>> 18) | ((pidx & 0x30000) >>> 12) | ((pidx & 0x300) >>> 6) | (pidx & 3)) % 28;
-        if ((F.get(d, 'form') || 0) !== uf) bad('unown');
-      }
       if (gen >= 4) {
         var fm = F.get(d, 'form') || 0;
         if (fm > 0 && (FORMS[nat] || 1) <= fm) bad('formBad');
@@ -222,7 +220,7 @@
         if (learnTab && !formed && mv !== 165 && !(learnTab[nat] && learnable(learnTab[nat], mv, gen))) o.push({ sev: 'warn', msg: T.moveLearn });
         seen[mv] = 1;
         if (ups > 3) b('ppUps');
-        if (ppTab && ppTab[mv] && pp > Math.floor(ppTab[mv] * (5 + Math.min(3, ups)) / 5)) b('ppOver');
+        if (ppTab && ppTab[mv]) { var inc = Math.floor(ppTab[mv] / 5); if (gb) inc = Math.min(7, inc); if (pp > Math.min(gb ? 63 : 99, ppTab[mv] + inc * Math.min(3, ups))) b('ppOver'); }
       }
       if (!n && !egg) b('noMove');
       if (gap) b('moveGap');

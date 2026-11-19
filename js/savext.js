@@ -71,7 +71,7 @@
             if (p.k === 'KeyItems') { list.forEach(function (x, k) { data[p.off + 1 + k] = x.id; }); data[p.off + 1 + list.length] = 0xFF; }
             else { list.forEach(function (x, k) { data[p.off + 1 + k * 2] = x.id; data[p.off + 2 + k * 2] = Math.min(99, x.count); }); data[p.off + 1 + list.length * 2] = 0xFF; }
           },
-          maxFor: function (pi, id) { return pouches[pi].k === 'KeyItems' ? 1 : (gen === 1 && id >= 196 && id <= 200) ? 1 : 99; }
+          maxFor: function (pi, id) { return pouches[pi].k === 'KeyItems' ? 1 : (gen === 1 && id >= 196 && id <= 200) ? 1 : (gen === 2 && pouches[pi].k === 'TMHMs' && id >= 243 && id <= 249) ? 1 : 99; }
         };
       } else {
         var base = gen === 4 ? sv.gbase + info.base : gen === 5 ? G5[key].items : sv.blocks[(gen === 6 ? G6 : G7)[key].items][0];

@@ -266,7 +266,7 @@
   // ---------------- Generation 2 ----------------
   var I2 = {
     GS: { Party: 0x288A, CurrentBox: 0x2D6C, BoxNames: 0x2727, CurrentBoxIndex: 0x2724, Money: 0x23DB, End: 0x2D68, Sum1: 0x2D69, Sum2: 0x7E6D, Gender: -1 },
-    C: { Party: 0x2865, CurrentBox: 0x2D10, BoxNames: 0x2703, CurrentBoxIndex: 0x2700, Money: 0x23DC, End: 0x2B82, Sum1: 0x2D0D, Sum2: 0x1F0D, Gender: 0x3E3D }
+    C: { Party: 0x2865, CurrentBox: 0x2D10, BoxNames: 0x2703, CurrentBoxIndex: 0x2700, Money: 0x23DC, End: 0x2B82, Sum1: 0x2D0D, Sum2: 0x1F0D, Gender: 0x3E3D, Palette: 0x206A }
   };
   function sum2(u8, o) { var s = 0; for (var i = 0x2009; i <= o.End; i++) s = (s + u8[i]) & 0xFFFF; return s; }
   function open2(u8) {
@@ -292,7 +292,7 @@
     sv.setTrainer = function (t) {
       data.set(encStr(t.name, 7, 11), 0x200B); wbe16(data, 0x2009, t.tid);
       var m = Math.min(999999, t.money); data[o.Money] = (m >> 16) & 255; data[o.Money + 1] = (m >> 8) & 255; data[o.Money + 2] = m & 255;
-      if (crystal) data[o.Gender] = t.gender ? 1 : 0;
+      if (crystal) { var gd = t.gender ? 1 : 0; data[o.Gender] = gd; data[o.Palette] = gd; }
     };
     sv.partyCount = function () { return party.length; };
     sv.getParty = function () { return party.map(function (d) { return d ? new Uint8Array(d) : null; }); };

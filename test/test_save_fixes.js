@@ -1,6 +1,6 @@
 // Regressionstests für die Fehler aus dem Save-Editor-Audit: node test/test_save_fixes.js
 global.window = {}; global.document = { addEventListener: function () {}, getElementById: function () { return null; } };
-['data/pk_personal.js', 'data/pk_gb.js', 'data/pk_text.js', 'data/pk_blocks.js', 'data/pk_blocks67.js', 'data/pkhex_data.js', 'js/nds.js', 'js/gen3.js', 'js/savedit.js', 'js/savedit_gb.js', 'js/savedit_3ds.js'].forEach(f => require('../' + f));
+['data/pk_personal.js', 'data/pk_gb.js', 'data/pk_text.js', 'data/pk_blocks.js', 'data/pk_blocks67.js', 'data/pkhex_data.js', 'data/pk_learn.js', 'js/nds.js', 'js/gen3.js', 'js/savedit.js', 'js/savedit_gb.js', 'js/savedit_3ds.js', 'js/savext.js', 'js/savhof.js', 'js/legality.js'].forEach(f => require('../' + f));
 window.CC = { el: () => ({}), esc: x => x, LANG: 'de', saveFile: () => {} };
 require('../js/saveui.js');
 const S = window.CCSave, GB = window.CCSaveGB, X = window.CCSave3DS, U = window.CCSaveUI._test, P = window.PKPERSONAL;
@@ -258,5 +258,118 @@ function mockSv(gen, F, extra) {
     const BL = window.PKBLOCKS67[k], i36 = 36, z = new Uint8Array(out); z.fill(0, off, off + 0x80);
     ok(u16(out, size - 0x200 + 0x14 + i36 * 8 + 6) === X.crc7(z, BL[i36][0], BL[i36][0] + BL[i36][1]), 'Bug 7: ' + k + ' Block-36-Prüfsumme über genullte Signatur');
   }
+}
+
+// ---------- v2.1.0 Audit-Fixes ----------
+window.confirm = () => true;
+// Fix 1: Party nicht auf 0 Pokémon leerbar (remove())
+{
+  const sv = S.open(gen3Save()); U.setSv(sv);
+  sv.setParty([U.blank(25, true)]);
+  U.setState({ sel: { kind: 'party', box: 0, slot: 0 }, mon: sv.getParty()[0] });
+  U.remove();
+  ok(sv.getParty().length === 1, 'Fix 1: letztes Team-Pokémon wird nicht gelöscht');
+  sv.setParty([U.blank(25, true), U.blank(1, true)]);
+  U.setState({ sel: { kind: 'party', box: 0, slot: 1 }, mon: sv.getParty()[1] });
+  U.remove();
+  ok(sv.getParty().length === 1, 'Fix 1: zweites Team-Pokémon lässt sich löschen');
+}
+// Fix 2 + 3 + 10: Showdown-Import/-Export (Gen-Grenzen, Gen-3-Items, Basis-AP, Gen-5/6/7-Fähigkeitsflags, Default-IVs 31)
+{
+  const sv3 = S.open(gen3Save()); U.setSv(sv3);
+  const p3 = U.blank(25, false); S.PK3.set(p3, 'item', 200); // Gen 3 Überreste
+  const txt3 = U.sdExport(p3);
+  ok(txt3.indexOf('@ Leftovers') >= 0, 'Fix 3: Gen 3 Showdown-Export nutzt items3 (Leftovers)');
+  const imp3 = U.sdImport('Pikachu @ Leftovers\nLevel: 50\nAdamant Nature\n- Fire Blast\n- Moonblast', false);
+  ok(imp3 && S.PK3.get(imp3, 'item') === 200, 'Fix 3: Gen 3 Showdown-Import nutzt items3 (ID 200)');
+  ok(imp3 && S.PK3.get(imp3, 'move', 0) === 126 && S.PK3.get(imp3, 'pp', 0) === 5, 'Fix 10: Showdown-Import setzt echte Basis-AP (Feuersturm = 5)');
+  ok(imp3 && S.PK3.get(imp3, 'move', 1) === 0, 'Fix 2: Showdown-Import verwirft Attacken über maxMove (Moonblast in Gen 3)');
+  ok(imp3 && S.PK3.get(imp3, 'iv', 0) === 31 && S.PK3.get(imp3, 'iv', 5) === 31, 'Fix 10: Showdown-Import Default-IVs = 31');
+  const sv4 = mockSv(4, S.PK4, { maxMove: 467, maxItem: 536, maxAbility: 123 }); U.setSv(sv4);
+  ok(U.sdImport('Mimikyu\n- Shadow Claw', false) === null, 'Fix 2: Showdown-Import lehnt Gen-7-Art in Gen 4 ab');
+  const sv5 = mockSv(5, S.PK5, { maxMove: 559, maxItem: 638, maxAbility: 164 }); U.setSv(sv5);
+  const imp5 = U.sdImport('Pikachu\nAbility: Lightning Rod\n- Thunderbolt', false);
+  ok(imp5 && S.PK5.get(imp5, 'ability') === 31 && S.PK5.get(imp5, 'hiddenAbility') === 1, 'Fix 10: Gen 5 Showdown-Import setzt hiddenAbility');
+  const sv6 = mockSv(6, X.PK6, { maxSpecies: 721, maxMove: 617, maxItem: 717, maxAbility: 191 }); sv6.gen = 6; U.setSv(sv6);
+  const imp6 = U.sdImport('Pikachu\nAbility: Lightning Rod\n- Thunderbolt', false);
+  ok(imp6 && X.PK6.get(imp6, 'ability') === 31 && X.PK6.get(imp6, 'abilityNum') === 4, 'Fix 10: Gen 6 Showdown-Import setzt abilityNum=4');
+}
+// Fix 4: Gen 1/2 Box leeren löscht alle Pokémon
+{
+  const sv1 = GB.open1(gen1()); U.setSv(sv1); U.setState({ box: 0 });
+  for (let i = 0; i < 10; i++) sv1.setBoxMon(0, i, GB.PK1.blank(1 + i, 1, 'ASH', 5));
+  U.clearBox();
+  let rem = 0; for (let i = 0; i < 20; i++) if (sv1.getBoxMon(0, i)) rem++;
+  ok(rem === 0, 'Fix 4: Gen 1 clearBox löscht alle 10 Pokémon');
+}
+// Fix 5: Gen 3 Ball maskiert & 15, überschreibt otGender nicht
+{
+  const d = new Uint8Array(80); S.PK3.set(d, 'otGender', 0); S.PK3.set(d, 'ball', 16);
+  ok(S.PK3.get(d, 'otGender') === 0 && S.PK3.get(d, 'ball') === 0, 'Fix 5: PK3.set(ball, 16) korrumpiert otGender nicht');
+}
+// Fix 7 + 8: Gen 6/7 Statusheilung + Gen 7 PK7.abilityNum 3-Bit-Maske
+{
+  const pk6 = new Uint8Array(260); pk6[0xE8] = 8;
+  ok(X.PK6.get(pk6, 'status') === 8, 'Fix 7: PK6 liest status bei 0xE8');
+  X.PK6.set(pk6, 'status', 0);
+  ok(pk6[0xE8] === 0 && X.PK6.get(pk6, 'status') === 0, 'Fix 7: PK6.set(status, 0) heilt Status');
+  const pk7 = new Uint8Array(260); pk7[0x15] = 0x0C; // 4 (HA) + Bit 3 (8)
+  ok(X.PK7.get(pk7, 'abilityNum') === 4 && X.PK7.get(pk7, 'hiddenAbility') === 1, 'Fix 8: PK7 maskiert abilityNum auf & 7');
+  X.PK7.set(pk7, 'abilityNum', 2);
+  ok(pk7[0x15] === 0x0A && X.PK7.get(pk7, 'abilityNum') === 2, 'Fix 8: PK7.set(abilityNum) erhält obere Bits');
+}
+// Fix 9: apply() dupliziert nicht bei gepackten Slots (Team & Gen 1/2 Box)
+{
+  const sv3 = S.open(gen3Save()); U.setSv(sv3);
+  sv3.setParty([U.blank(25, true)]);
+  U.setState({ sel: { kind: 'party', box: 0, slot: 4 }, mon: U.blank(1, true) });
+  U.apply(); U.apply();
+  ok(sv3.getParty().length === 2 && U.getState().sel.slot === 1, 'Fix 9: apply() im Team aktualisiert sel.slot und dupliziert nicht');
+  const sv1 = GB.open1(gen1()); U.setSv(sv1);
+  sv1.setBoxMon(0, 0, GB.PK1.blank(25, 1, 'ASH', 5));
+  U.setState({ sel: { kind: 'box', box: 0, slot: 5 }, mon: GB.PK1.blank(1, 1, 'ASH', 5) });
+  U.apply(); U.apply();
+  let c1 = 0; for (let i = 0; i < 20; i++) if (sv1.getBoxMon(0, i)) c1++;
+  ok(c1 === 2 && U.getState().sel.slot === 1, 'Fix 9: apply() in Gen-1-Box aktualisiert sel.slot und dupliziert nicht');
+}
+// Fix 11: legalize(d, true) aktualisiert Team-Stats
+{
+  const sv4 = mockSv(4, S.PK4, { maxMove: 467, maxItem: 536 }); U.setSv(sv4);
+  const d = U.blank(25, true); S.PK4.set(d, 'exp', S.expFor(P.g4[25][6], 50));
+  for (let i = 0; i < 6; i++) S.PK4.set(d, 'ev', 252, i);
+  S.PK4.setStats(d, [999, 999, 999, 999, 999, 999]);
+  U.legalize(d, true);
+  ok(S.PK4.stats(d)[0] < 200, 'Fix 11: legalize(d, true) berechnet Team-Stats neu');
+}
+// Fix 12: Gen 3 Ruhmeshalle ignoriert uninitialisiertes 0xFF-Flash
+{
+  const u = new Uint8Array(0x20000).fill(0xFF);
+  const sv3f = { gen: 3, data: u, natOf: s => window.GEN3.defaultNat(s), maxSpecies: 386 };
+  window.CCSaveHof(sv3f);
+  ok(sv3f.hof.entries().length === 0, 'Fix 12: Gen 3 Ruhmeshalle liefert [] auf uninitialisiertem 0xFF-Flash');
+}
+// Fix 13: Formwechsel aktualisiert Fähigkeit (Giratina Wandel -> Urform)
+{
+  const sv4 = mockSv(4, S.PK4, {}); U.setSv(sv4);
+  const d = U.blank(487, true);
+  U.setForm(d, 1, true);
+  ok(S.PK4.get(d, 'form') === 1 && S.PK4.get(d, 'ability') === 26, 'Fix 13: Formwechsel Giratina -> Urform setzt Schwebe (26)');
+}
+// Fix 15: Wurmple-PID-Erhalt auch für Entwicklungen 266-269
+{
+  const sv4 = mockSv(4, S.PK4, {}); U.setSv(sv4);
+  const d = U.blank(267, false); S.PK4.set(d, 'pid', 0x00010000); // Beautifly (<5)
+  let okW = true;
+  for (let i = 0; i < 40; i++) if (((U.newPid(d, i % 25, false) >>> 16) % 10) >= 5) okW = false;
+  ok(okW, 'Fix 15: newPid erhält Wurmple-Regel auch für Papinella (#267)');
+}
+// Fix 16: Kristall Palette-Byte, Gen 2 VM-Max 1, Arceus-Formnamen Gen 5-7
+{
+  const sv2 = GB.open2(gen2()); sv2.setTrainer({ name: 'KRIS', tid: 1, money: 0, gender: 1 });
+  ok(sv2.data[0x3E3D] === 1 && sv2.data[0x206A] === 1, 'Fix 16: Kristall Geschlecht schreibt auch Palette-Byte 0x206A');
+  window.CCSaveExt(sv2, P);
+  const tmIdx = sv2.bag.pouches.findIndex(p => p.k === 'TMHMs');
+  ok(sv2.bag.maxFor(tmIdx, 243) === 1 && sv2.bag.maxFor(tmIdx, 242) === 99, 'Fix 16: Gen 2 VM-Max ist 1, TM-Max ist 99');
+  ok(U.formNames(493, 4)[9] === '???' && U.formNames(493, 5)[9] === 'Feuer' && U.formNames(493, 5).length === 17 && U.formNames(493, 6)[17] === 'Fee', 'Fix 16: Arceus-Formnamen Gen 4 vs. Gen 5 vs. Gen 6/7');
 }
 console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);

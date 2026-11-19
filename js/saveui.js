@@ -113,7 +113,7 @@
     }
     function soft(p) {
       if (gen === 3 && nat === 201 && unownLetter(p) !== unownLetter(old)) return false;
-      if (gen >= 3 && gen <= 5 && nat === 265 && (((p >>> 16) % 10) < 5) !== (((old >>> 16) % 10) < 5)) return false;
+      if (gen >= 3 && gen <= 5 && nat >= 265 && nat <= 269 && (((p >>> 16) % 10) < 5) !== (((old >>> 16) % 10) < 5)) return false;
       return true;
     }
     function search(lowList, useSoft) {
@@ -359,6 +359,17 @@
     }
     if (party) refreshParty(d);
   }
+  function setForm(d, v, party) {
+    var sv = st.sv, F = sv.fmt, gen = sv.gen;
+    F.set(d, 'form', v);
+    if (gen >= 4) {
+      var g2 = persD(d), pid = F.get(d, 'pid');
+      if (gen === 4) F.set(d, 'ability', g2[8 + (pid & 1)] || g2[8] || 0);
+      else if (gen === 5) F.set(d, 'ability', (F.get(d, 'hiddenAbility') ? g2[10] : g2[8 + ((pid >>> 16) & 1)]) || g2[8] || 0);
+      else { var an = F.get(d, 'abilityNum'), idx = an === 4 ? 10 : an === 2 ? 9 : 8; F.set(d, 'ability', g2[idx] || g2[8] || 0); }
+    }
+    if (party) refreshParty(d);
+  }
   // Ei-Status setzen; Gen 3: beim Entfernen Spitzname und Sprache wiederherstellen (das Format setzt "タマゴ" und Japanisch)
   function setEgg(d, on) {
     var sv = st.sv, F = sv.fmt;
@@ -403,7 +414,7 @@
     if (fn) {
       var fcur = F.get(d, 'form') || 0, fo = fn.map(function (n, i) { return '<option value="' + i + '"' + (i === fcur ? ' selected' : '') + '>' + esc(n || 'Normal') + '</option>'; }).join('');
       if (fcur >= fn.length) fo += '<option value="' + fcur + '" selected>' + fcur + '</option>';
-      row2.appendChild(field(L.formName, select2(fo, function (v) { F.set(d, 'form', v); if (party) refreshParty(d); changed(); })));
+      row2.appendChild(field(L.formName, select2(fo, function (v) { setForm(d, v, party); changed(); })));
     }
     var ratio0 = pers(F.get(d, 'species'))[7];
     if (ratio0 !== 255) {
@@ -429,7 +440,17 @@
       var hidNow = sv.gen === 5 ? F.get(d, 'hiddenAbility') : (sv.gen >= 6 && F.get(d, 'abilityNum') === 4 ? 1 : 0);
       var setAb = function (v, num, hid) {
         F.set(d, 'ability', v);
-        if (sv.gen === 5) F.set(d, 'hiddenAbility', hid ? 1 : 0);
+        if (sv.gen === 5) {
+          F.set(d, 'hiddenAbility', hid ? 1 : 0);
+          if (!hid && (num === 1 || num === 2) && g[8] && g[9] && g[8] !== g[9]) {
+            var pid5 = F.get(d, 'pid'), wantBit = num === 2 ? 1 : 0;
+            if (((pid5 >>> 16) & 1) !== wantBit) {
+              var wasSh = isShiny(d);
+              F.set(d, 'pid', (pid5 ^ 0x10000) >>> 0);
+              if (isShiny(d) !== wasSh) F.set(d, 'pid', newPid(d, F.nature(d), wasSh));
+            }
+          }
+        }
         else if (sv.gen >= 6) F.set(d, 'abilityNum', num);
       };
       var cheat = el('input', { type: 'checkbox' }), abBox = el('span'), build = function () {
@@ -482,7 +503,8 @@
     row3.appendChild(field('SID', num(F.get(d, 'sid'), 0, 65535, function (v) { F.set(d, 'sid', v); changed(); }), 'sm'));
     PN.ot.appendChild(row3);
     var row4 = el('div', { class: 'sv-row' });
-    if (F.get(d, 'ball') !== undefined && F.get(d, 'ball') !== null) row4.appendChild(field(X.ball, num(F.get(d, 'ball'), 0, 255, function (v) { F.set(d, 'ball', v); }), 'sm'));
+    var ballMax = sv.gen === 3 ? 12 : sv.gen === 4 ? 24 : sv.gen <= 6 ? 25 : 26;
+    if (F.get(d, 'ball') !== undefined && F.get(d, 'ball') !== null) row4.appendChild(field(X.ball, num(F.get(d, 'ball'), 0, ballMax, function (v) { F.set(d, 'ball', v); }), 'sm'));
     var ml = F.get(d, 'metLevel'); if (ml !== undefined && ml !== null) row4.appendChild(field(X.metLv, num(ml, 0, 127, function (v) { F.set(d, 'metLevel', v); }), 'sm'));
     PN.ot.appendChild(row4);
     if (F.extras) {
@@ -510,7 +532,7 @@
       }
       var grow = el('div', { class: 'sv-row' });
       grow.appendChild(field(X.otGender, select2('<option value="0"' + (!F.get(d, 'otGender') ? ' selected' : '') + '>' + esc(L.male) + '</option><option value="1"' + (F.get(d, 'otGender') ? ' selected' : '') + '>' + esc(L.female) + '</option>', function (v) { F.set(d, 'otGender', v); }), 'sm'));
-      if (sv.gen >= 4) grow.appendChild(field(X.form, num(F.get(d, 'form'), 0, 31, function (v) { F.set(d, 'form', v); }), 'sm'));
+      if (sv.gen >= 4) grow.appendChild(field(X.form, num(F.get(d, 'form'), 0, 31, function (v) { setForm(d, v, party); changed(); }), 'sm'));
       PN.ot.appendChild(grow);
       PN.ot.appendChild(el('h4', { class: 'sv-h4', text: X.contestT }));
       var row6 = el('div', { class: 'sv-row' });
@@ -571,20 +593,27 @@
     var ex = el('button', { type: 'button', class: 'sv-mini', text: X.exp2 }); ex.onclick = exportMon; bar.appendChild(ex);
     var im = el('button', { type: 'button', class: 'sv-mini', text: X.imp }); im.onclick = function () { importMon(); }; bar.appendChild(im);
     if (!sv.gb) { var sdb = el('button', { type: 'button', class: 'sv-mini', text: X.sdBtn }); sdb.onclick = showdownDialog; bar.appendChild(sdb); }
-    var lg = el('button', { type: 'button', class: 'sv-mini', text: X.legalize }); lg.onclick = function () { legalize(d); changed(); }; bar.appendChild(lg);
+    var lg = el('button', { type: 'button', class: 'sv-mini', text: X.legalize }); lg.onclick = function () { legalize(d, party); changed(); }; bar.appendChild(lg);
     box.appendChild(bar);
     return box;
   }
   function apply() {
     var sv = st.sv, s = st.sel;
     if (s.kind === 'party') {
-      var list = sv.getParty(); while (list.length <= s.slot) list.push(null);
-      list[s.slot] = st.mon; sv.setParty(list);
-    } else sv.setBoxMon(s.box, s.slot, st.mon);
+      var list = sv.getParty(), target = s.slot < list.length ? s.slot : list.length;
+      list[target] = st.mon; sv.setParty(list); s.slot = target;
+    } else {
+      if (sv.gb && st.mon) {
+        var cnt = 0; for (var i = 0; i < sv.slotsPerBox; i++) if (sv.getBoxMon(s.box, i)) cnt++;
+        sv.setBoxMon(s.box, s.slot, st.mon);
+        if (s.slot >= cnt) s.slot = cnt;
+      } else sv.setBoxMon(s.box, s.slot, st.mon);
+    }
     st.dirty = true; st.msg = L.ok; render();
   }
   function remove() {
     var sv = st.sv, s = st.sel;
+    if (s.kind === 'party' && sv.getParty().length <= 1) return;
     if (!window.confirm(L.delconfirm)) return;
     if (s.kind === 'party') { var list = sv.getParty(); list.splice(s.slot, 1); sv.setParty(list); }
     else sv.setBoxMon(s.box, s.slot, null);
@@ -646,9 +675,9 @@
   function sdNorm(x) { return String(x || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
   function sdFind(list, name) { var n = sdNorm(name); if (!n || !list) return 0; for (var i = 1; i < list.length; i++) if (sdNorm(list[i]) === n) return i; return 0; }
   function sdExport(d) {
-    var sv = st.sv, F = sv.fmt, E = enT(), sp = F.get(d, 'species'), nat = sv.natOf(sp), lines = [], itm = F.get(d, 'item');
+    var sv = st.sv, F = sv.fmt, E = enT(), eItems = E[sv.items] || E.items, sp = F.get(d, 'species'), nat = sv.natOf(sp), lines = [], itm = F.get(d, 'item');
     var lv = S.levelFor(pers(sp)[6], F.get(d, 'exp'));
-    lines.push(nm(E.species, nat) + (itm ? ' @ ' + nm(E.items, itm) : ''));
+    lines.push(nm(E.species, nat) + (itm ? ' @ ' + nm(eItems, itm) : ''));
     var ab = F.get(d, 'ability'); if (sv.gen === 3) ab = persD(d)[8 + (F.get(d, 'abilitySlot') ? 1 : 0)] || persD(d)[8];
     if (ab) lines.push('Ability: ' + nm(E.abilities, ab));
     lines.push('Level: ' + lv);
@@ -662,23 +691,40 @@
     return lines.join('\n');
   }
   function sdImport(text, party) {
-    var sv = st.sv, F = sv.fmt, E = enT(), ls = text.replace(/\r/g, '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    var sv = st.sv, F = sv.fmt, E = enT(), eItems = E[sv.items] || E.items, ls = text.replace(/\r/g, '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
     if (!ls.length) return null;
     var head = ls[0].split('@'), nameRaw = head[0].replace(/\((M|F)\)\s*$/, '').trim(), pm = nameRaw.match(/\(([^)]+)\)\s*$/);
     if (pm && sdFind(E.species, pm[1])) nameRaw = pm[1];
     nameRaw = nameRaw.replace(/-(Mega|Alola|Galar|Hisui)(-[XY])?$/i, '');
     var nat = sdFind(E.species, nameRaw);
-    if (!nat) return null;
+    if (!nat || nat > sv.maxSpecies) return null;
     var sp = sv.speciesFromNat(nat);
     if (!sp) return null;
     var d = blank(sp, party), lv = 50, nature = -1, shiny = false, mvi = 0, i;
-    if (head[1]) { var it = sdFind(E.items, head[1]); if (it) F.set(d, 'item', it); }
+    for (i = 0; i < 6; i++) F.set(d, 'iv', 31, i);
+    if (head[1]) { var it = sdFind(eItems, head[1]); if (it && it <= sv.maxItem) F.set(d, 'item', it); }
     for (var k = 0; k < 4; k++) { F.set(d, 'move', 0, k); F.set(d, 'pp', 0, k); }
     ls.slice(1).forEach(function (l) {
       var m;
       if ((m = l.match(/^Ability:\s*(.+)$/i))) {
         var a = sdFind(E.abilities, m[1]);
-        if (a) { if (sv.gen === 3) F.set(d, 'abilitySlot', pers(sp)[9] && pers(sp)[9] === a ? 1 : 0); else F.set(d, 'ability', a); }
+        if (a && a <= sv.maxAbility) {
+          var gp = persD(d);
+          if (sv.gen === 3) F.set(d, 'abilitySlot', gp[9] && gp[9] === a ? 1 : 0);
+          else {
+            F.set(d, 'ability', a);
+            if (sv.gen === 5) {
+              var isHid = !!(gp[10] && a === gp[10] && a !== gp[8] && a !== gp[9]);
+              F.set(d, 'hiddenAbility', isHid ? 1 : 0);
+              if (!isHid && gp[8] && gp[9] && gp[8] !== gp[9] && (a === gp[8] || a === gp[9])) {
+                var wantBit = a === gp[9] ? 1 : 0, pid5 = F.get(d, 'pid');
+                if (((pid5 >>> 16) & 1) !== wantBit) F.set(d, 'pid', (pid5 ^ 0x10000) >>> 0);
+              }
+            } else if (sv.gen >= 6) {
+              F.set(d, 'abilityNum', gp[8] === a ? 1 : gp[9] === a ? 2 : gp[10] === a ? 4 : 1);
+            }
+          }
+        }
       } else if ((m = l.match(/^Level:\s*(\d+)/i))) lv = Math.max(1, Math.min(100, +m[1]));
       else if (/^Shiny:\s*Yes/i.test(l)) shiny = true;
       else if ((m = l.match(/^(EVs|IVs):\s*(.+)$/i))) {
@@ -686,12 +732,12 @@
         if (isEv) for (i = 0; i < 6; i++) F.set(d, 'ev', 0, i);
         m[2].split('/').forEach(function (part) {
           var q = part.trim().match(/^(\d+)\s*(\w+)$/), idx = q ? SDK[q[2].toLowerCase()] : undefined;
-          if (idx !== undefined) F.set(d, isEv ? 'ev' : 'iv', Math.min(+q[1], isEv ? 252 : 31), idx);
+          if (idx !== undefined) F.set(d, isEv ? 'ev' : 'iv', isEv ? clampEv(d, idx, +q[1]) : Math.min(+q[1], 31), idx);
         });
       } else if ((m = l.match(/^(\w+)\s+Nature$/i))) { for (i = 0; i < 25; i++) if (sdNorm(E.natures[i]) === sdNorm(m[1])) nature = i; }
       else if (l.charAt(0) === '-' && mvi < 4) {
         var mo = sdFind(E.moves, l.replace(/^-\s*/, '').replace(/\s*\[.*$/, ''));
-        if (mo) { F.set(d, 'move', mo, mvi); F.set(d, 'pp', 10, mvi); mvi++; }
+        if (mo && mo <= sv.maxMove) { F.set(d, 'move', mo, mvi); F.set(d, 'pp', ppMax(mo, 0), mvi); mvi++; }
       }
     });
     F.set(d, 'exp', S.expFor(pers(sp)[6], lv));
@@ -744,10 +790,14 @@
     var l = FORMS[nat]; if (!l) return null;
     var max = { 4: 493, 5: 649, 6: 721, 7: 807 }[gen] || 0;
     if (nat > max || (nat < 150 && gen < 7) || (nat >= 741 && gen < 7)) return null;
+    if (nat === 493 && gen >= 5) {
+      var a5 = l.filter(function (x) { return x !== '???'; });
+      return gen >= 6 ? a5.concat(['Fee']) : a5;
+    }
     return l;
   }
   // "Legal machen": behebt erkennbar Unzulässiges (nicht erlernbare/doppelte Attacken, PP, EP, IP, Fähigkeit). Fundort/Herkunft bleiben unverändert.
-  function legalize(d) {
+  function legalize(d, party) {
     var sv = st.sv, F = sv.fmt, gen = sv.gen, sp = F.get(d, 'species'), nat = sv.natOf(sp), q, i;
     var tab = window.PKLEARN && window.PKLEARN[nat], lim = (1 << gen) - 1, pp = window.PKHEX && window.PKHEX.pp && window.PKHEX.pp['gen' + gen];
     var formed = !sv.gb && (F.get(d, 'form') || 0) > 0, ok = function (mv) { if (!mv || mv > sv.maxMove) return false; if (!tab || formed || mv === 165) return true; for (var k = 0; k < tab.length; k += 2) if (tab[k] === mv) return !!(tab[k + 1] & lim); return false; };
@@ -774,6 +824,7 @@
     // Fundort/Fundlevel nach den Begegnungstabellen (nur wenn die Prüfung sonst "keine passende Begegnung" meldet)
     var sg = window.CCLegal && window.CCLegal.suggest ? window.CCLegal.suggest(sv, d, { P: P, S: S, de: de }) : null;
     if (sg) { F.set(d, 'metLoc', sg.loc); F.set(d, 'metLevel', sg.level); }
+    if (party) { if (sv.gb) gbRefresh(d, true); else refreshParty(d); }
   }
   // .pk-Datei wie PKHeX: Gen 1/2 als Liste mit einem Platz (69 / 73 Byte), ab Gen 3 entschlüsselt mit gültiger Prüfsumme
   function monToFile(d) {
@@ -831,7 +882,7 @@
   }
   function clearBox() {
     if (!window.confirm(X.clearConfirm)) return;
-    for (var i = 0; i < st.sv.slotsPerBox; i++) st.sv.setBoxMon(st.box, i, null);
+    for (var i = st.sv.slotsPerBox - 1; i >= 0; i--) st.sv.setBoxMon(st.box, i, null);
     st.dirty = true; st.sel = null; st.mon = null; render();
   }
   function onKey(e) {
@@ -1037,7 +1088,7 @@
     var sv = st.sv, box = el('div', { class: 'sv-tr' }), list = [];
     box.appendChild(el('h3', { text: X.tabHof }));
     try { list = sv.hof.entries(); } catch (e) { list = []; }
-    list = list.filter(function (e) { return e.team.every(function (m) { return m.species <= sv.maxSpecies; }); });
+    list = list.filter(function (e) { return e.team.every(function (m) { return m.species >= 1 && m.species <= sv.maxSpecies; }); });
     if (!list.length) box.appendChild(el('div', { class: 'hint', text: X.hofEmpty }));
     list.forEach(function (en) {
       var card = el('div', { class: 'sv-sec' });
@@ -1217,6 +1268,9 @@
   }
   window.CCSaveUI = { render: render };
   // für Tests (node test/test_save_fixes.js): interne Helfer mit gesetztem Spielstand aufrufen
-  window.CCSaveUI._test = { setSv: function (sv) { st.sv = sv; }, newPid: newPid, putAt: putAt, getAt: getAt, changeSpecies: changeSpecies, setEgg: setEgg, blank: blank, recalc: recalc,
-    pers: pers, persD: persD, gbRefresh: gbRefresh, healParty: healParty, batchApply: batchApply, monToFile: monToFile, monFromFile: monFromFile, ppMax: ppMax, clampEv: clampEv, maxMoney: maxMoney, unownLetter: unownLetter, isShiny: isShiny };
+  window.CCSaveUI._test = { setSv: function (sv) { st.sv = sv; }, setState: function (o) { Object.keys(o).forEach(function (k) { st[k] = o[k]; }); }, getState: function () { return st; },
+    newPid: newPid, putAt: putAt, getAt: getAt, changeSpecies: changeSpecies, setForm: setForm, setEgg: setEgg, blank: blank, recalc: recalc,
+    pers: pers, persD: persD, gbRefresh: gbRefresh, healParty: healParty, batchApply: batchApply, monToFile: monToFile, monFromFile: monFromFile,
+    sdExport: sdExport, sdImport: sdImport, legalize: legalize, clearBox: clearBox, apply: apply, remove: remove, formNames: formNames,
+    ppMax: ppMax, clampEv: clampEv, maxMoney: maxMoney, unownLetter: unownLetter, isShiny: isShiny };
 })();
