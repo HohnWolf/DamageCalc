@@ -16,20 +16,42 @@
   function bankOf(off) { return Math.floor(off / 0x4000); }
   function calc(bank, ptr) { return ptr < 0x4000 ? ptr : (ptr % 0x4000) + bank * 0x4000; }
 
+  // Gen 1: prüft an typischen Daten, ob die Offsets eines Eintrags zur ROM passen (TM01 Megahieb/TM02 Klingensturm, VM01 Zerschneider/VM02 Fliegen,
+  // Alte Angel = Karpador, Starter-Bytes gleich und ein Kanto-Starter bzw. Pikachu). Damit bekommen veränderte (Prüfsumme anders) DE/FR/ES/IT-ROMs nicht die US-Offsets.
+  function g1Fits(u8, e) {
+    var tm = e.TMMovesOffset, old = e.OldRodOffset;
+    if (!(tm + 52 <= u8.length && u8[tm] === 0x05 && u8[tm + 1] === 0x0D && u8[tm + 50] === 0x0F && u8[tm + 51] === 0x13)) return false;
+    if (!(old + 2 < u8.length && u8[old + 1] === 0x85)) return false;
+    var okSt = true;
+    [1, 2, 3].forEach(function (k) {
+      var offs = e['StarterOffsets' + k]; if (!offs || !offs.length) return;
+      var v = u8[offs[0]]; if ([0x99, 0xB0, 0xB1, 0x54].indexOf(v) === -1) okSt = false;
+      offs.forEach(function (x) { if (u8[x] !== v) okSt = false; });
+    });
+    return okSt;
+  }
   function parseRom(u8) {
-    if (u8.length < 0x100000 || u8.length > 0x400000) throw new Error('gb:size');
+    if (u8.length < 0x80000 || u8.length > 0x400000) throw new Error('gb:size'); // 512 KB: Rot/Grün (J)
     var gbc = u8[0x143] === 0x80 || u8[0x143] === 0xC0, ver = u8[0x14C], nonjap = u8[0x14A], crc = (u8[0x14E] << 8) | u8[0x14F], R = window.GBROMS, hit = null, i;
     if (!R) throw new Error('gb:nodata');
-    if (gbc) {
-      var code = ascii(u8, 0x13F, 4);
+    var code = ascii(u8, 0x13F, 4);
+    // Gelb setzt ebenfalls das CGB-Flag (0x80): Gen 2 nur, wenn der Spielcode an 0x13F zu einem Gen-2-Spiel passt
+    if (gbc && R.g2.some(function (e0) { return e0.Game === code; })) {
       for (i = 0; i < R.g2.length && !hit; i++) { var e = R.g2[i]; if (e.Game === code && e.Version === ver && e.NonJapanese === nonjap && e.CRCInHeader === crc) hit = e; }
       for (i = 0; i < R.g2.length && !hit; i++) { var e2 = R.g2[i]; if (e2.Game === code && e2.Version === ver && e2.NonJapanese === nonjap && e2.CRCInHeader === undefined) hit = e2; }
       if (!hit) throw new Error('gb:rom:' + code);
       return { gen: 2, entry: hit, code: code, title: ascii(u8, 0x134, 11), game: hit.name, gameEn: hit.name, crystal: /Crystal/.test(hit.name) };
     }
     var title = ascii(u8, 0x134, 16);
-    for (i = 0; i < R.g1.length && !hit; i++) { var f = R.g1[i]; if (title.indexOf(f.Game) === 0 && f.Version === ver && f.NonJapanese === nonjap && f.CRCInHeader === crc) hit = f; }
-    for (i = 0; i < R.g1.length && !hit; i++) { var f2 = R.g1[i]; if (title.indexOf(f2.Game) === 0 && f2.Version === ver && f2.NonJapanese === nonjap && f2.CRCInHeader === undefined) hit = f2; }
+    var cands = R.g1.filter(function (f) { return title.indexOf(f.Game) === 0 && f.Version === ver && f.NonJapanese === nonjap; });
+    for (i = 0; i < cands.length && !hit; i++) if (cands[i].CRCInHeader === crc) hit = cands[i];
+    if (!hit && cands.length === 1) hit = cands[0];
+    if (!hit && cands.length > 1) { // Prüfsumme passt zu keinem Eintrag (z. B. gepatchte ROM): Sprache an den Daten erkennen, im Zweifel abbrechen
+      var fits = cands.filter(function (f) { return g1Fits(u8, f); });
+      if (fits.length > 1) fits = fits.filter(function (f) { return f.CRCInHeader === undefined; }); // passen mehrere, gilt der Eintrag ohne feste Prüfsumme (Grundversion)
+      if (fits.length === 1) hit = fits[0];
+      else throw new Error('gb:rom:' + title.replace(/\0+$/, '') + ':unklar');
+    }
     if (!hit) throw new Error('gb:rom:' + title);
     return { gen: 1, entry: hit, code: title.replace(/\0+$/, ''), title: title, game: hit.name, gameEn: hit.name, yellow: hit.Type === 'Y' || /Yellow|YEL/.test(hit.name) };
   }
@@ -85,7 +107,7 @@
       if (u8[mq + 2] !== undefined) moves[i] = { power: u8[mq + 2], type: TM[u8[mq + 3]] || 0, acc: Math.round(u8[mq + 4] * 100 / 255), pp: u8[mq + 5] };
     }
     var model = {
-      title: rom.gameEn + ' (' + rom.code + ')', maxNat: max, species: species, typeNames: TN, typePool: g1 ? [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17],
+      title: rom.gameEn + ' (' + rom.code + ')', gen: rom.gen, maxNat: max, species: species, typeNames: TN, typePool: g1 ? [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17],
       specialShared: g1, legends: LEGEND, noStatsFor: [], learnsets: learnsets, moves: moves, maxMove: mc, bannedMoves: [165], moveNames: TX ? TX.moves : [],
       wild: [], trainers: [], evos: [], starters: [], wildAreas: 0
     };
@@ -107,13 +129,25 @@
         else { for (var k = 0; k < 6; k++) u8[o2 + 1 + k] = sp.bs[k]; u8[o2 + 7] = TI[sp.types[0]]; u8[o2 + 8] = TI[sp.types[1]]; }
       }
     };
+    // Level-Attacken: Level und Attacke schreiben (die Listen wachsen nie). Gen 1: bis zu 4 Level-1-Attacken stehen als Startattacken in den Basiswerten
+    // (Bytes 15–18); weitere Einträge folgen in der Level-Liste. Werden dadurch Plätze der Level-Liste frei, endet sie früher (Level 0 = Ende).
     model.setLearnset = function (nat, list) {
-      var s = sets[nat], k = 0, so = statOff(nat);
-      if (g1) { for (var q = 0; q < startMoves[nat]; q++) u8[so + 15 + q] = list[k++][1]; }
-      s.learn.forEach(function (l) { if (list[k]) { u8[l.off + 1] = list[k][1]; k++; } });
+      var s = sets[nat], so = statOff(nat), rest = list, q;
+      if (g1) {
+        var lv1 = []; rest = [];
+        list.forEach(function (en) { if (en[0] <= 1 && lv1.length < 4) lv1.push(en); else rest.push(en); });
+        for (q = 0; q < 4; q++) u8[so + 15 + q] = lv1[q] ? lv1[q][1] : 0;
+        startMoves[nat] = lv1.length;
+      }
+      s.learn.forEach(function (l, i) {
+        if (i < rest.length) { u8[l.off] = Math.max(1, Math.min(100, rest[i][0])); u8[l.off + 1] = rest[i][1]; }
+        else if (i === rest.length) u8[l.off] = 0;
+      });
     };
+    // Gen 2 (pokecrystal): EVOLVE_HAPPINESS (4) mit TR_ANYTIME (1), TR_MORNDAY (2) oder TR_NITE (3) als Wert; hier als eigene Methoden 40/41/42 gemeldet.
+    // Steine: Sonnenstein $A9, Mondstein $08, Wasserstein $18
     model.evoInfo = g1 ? { level: 1, trade: 3, stone: 2, levelMethods: [1], items: { water: 24, sun: 0, moon: 0, leaf: 0, dawn: 0 } }
-      : { level: 1, trade: 3, tradeItem: 99, stone: 2, levelMethods: [1], items: { water: 24, sun: 0, moon: 0, leaf: 0, dawn: 0 } };
+      : { level: 1, trade: 3, tradeItem: 99, stone: 2, friendAny: 40, friendDay: 41, friendNight: 42, levelMethods: [1], items: { water: 24, sun: 0xA9, moon: 0x08, leaf: 0, dawn: 0 } };
     // Entwicklungen
     Object.keys(sets).forEach(function (k) {
       sets[k].evos.forEach(function (ev) {
@@ -122,8 +156,10 @@
         var long4 = ev.long4, pm = ev.off - 2 - (long4 ? 1 : 0), from = +k;
         model.evos.push({ from: from, get: function () { return natOf(u8[ev.off]); }, set: function (n) { u8[ev.off] = internal(n); },
           // Gen 2: Methode 3 mit Item (nicht 0xFF) = Tausch mit Item, wird hier als Methode 99 gemeldet
-          method: function () { var m = u8[pm]; return !g1 && m === 3 && u8[pm + 1] !== 0xFF ? 99 : m; },
-          setMethod: function (m) { u8[pm] = m; }, param: function () { return u8[pm + 1]; }, setParam: function (v) { u8[pm + 1] = v; } });
+          method: function () { var m = u8[pm]; if (!g1 && m === 4 && u8[pm + 1] >= 1 && u8[pm + 1] <= 3) return 39 + u8[pm + 1]; return !g1 && m === 3 && u8[pm + 1] !== 0xFF ? 99 : m; },
+          // Freundschaft (40–42) schreibt Methode 4 plus Tageszeit; alle Gen-2-Methoden außer "Werte" (5, 4 Byte) sind 3 Byte lang, Wechsel ändern also keine Länge
+          setMethod: function (m) { if (!g1 && m >= 40 && m <= 42) { u8[pm] = 4; u8[pm + 1] = m - 39; } else u8[pm] = m; },
+          param: function () { return u8[pm + 1]; }, setParam: function (v) { u8[pm + 1] = v; } });
       });
     });
     function addWild(key, table, off, lvOff) { // off = Position der Art, lvOff = Position des Levels

@@ -194,8 +194,9 @@
   }
 
   // ---------------- speed ----------------
-  function speedOf(rom, m, f) {
-    var s = stageMod(m.stats.spe, (m.stages && m.stages.spe) || 0), w = weatherOf(f, m, m);
+  // other: the opposing Pokémon (Cloud Nine / Air Lock on either side cancel the weather)
+  function speedOf(rom, m, f, other) {
+    var s = stageMod(m.stats.spe, (m.stages && m.stages.spe) || 0), w = weatherOf(f, m, other || m);
     if ((hasAb(m, 'Chlorophyll') && w === 'sun') || (hasAb(m, 'Swift Swim') && w === 'rain') || (rom.gen >= 5 && hasAb(m, 'Sand Rush') && w === 'sand')) s *= 2;
     else if (hasAb(m, 'Quick Feet') && m.status) s = Math.floor(s * 1.5);
     if (hasIt(m, 'Choice Scarf')) s = Math.floor(s * 1.5);
@@ -264,7 +265,9 @@
     var dt = [D.types[0], D.types[1] != null && D.types[1] !== D.types[0] ? D.types[1] : null];
     if (gen === 4 && dt[1] != null) {
       var order = ['Normal', 'Fire', 'Water', 'Electric', 'Grass', 'Ice', 'Fighting', 'Poison', 'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Dark', 'Steel'];
-      if (order.indexOf(TYPES[dt[0]]) > order.indexOf(TYPES[dt[1]])) dt = [dt[1], dt[0]];
+      // the game walks its type table in order; it follows this list except Ice->Fire and Ghost->Ghost, which come last in their block
+      var rank = function (t) { var n = TYPES[t]; return (TYPES[type] === 'Ice' && n === 'Fire') || (TYPES[type] === 'Ghost' && n === 'Ghost') ? 99 : order.indexOf(n); };
+      if (rank(dt[0]) > rank(dt[1])) dt = [dt[1], dt[0]];
     }
     var e1 = eff1(type, dt[0], ghostRev), e2 = dt[1] != null ? eff1(type, dt[1], ghostRev) : 1;
     if (e1 * e2 === 0 && type === TI.Ground && hasIt(D, 'Iron Ball')) { if (e1 === 0) e1 = 1; else e2 = 1; }
@@ -305,7 +308,7 @@
     }
 
     // speeds (Payback, Gyro Ball, Electro Ball)
-    var sA = speedOf(rom, A, f), sD = speedOf(rom, D, f);
+    var sA = speedOf(rom, A, f, D), sD = speedOf(rom, D, f, A);
     // base power by move
     function basePower(hit) {
       var bp = power;
@@ -362,7 +365,8 @@
     var isPhysDef = physical || (gen >= 5 && inL([MV.PSYSHOCK, MV.PSYSTRIKE, MV.SECRET_SWORD], moveId));
 
     // ---------- Gen 4 ----------
-    function dmg4(critical, hit) {
+    // later: a later hit of a multi-hit move (no resist berry, no Multiscale: the berry is eaten, HP is no longer full)
+    function dmg4(critical, hit, later) {
       var bp = basePower(hit);
       if (f.helpingHand) bp = Math.floor(bp * 1.5);
       if (f.charge && tn === 'Electric') bp *= 2;
@@ -417,7 +421,7 @@
       var filt = hasAb(D, 'Filter', 'Solid Rock') && effv > 1 ? 0.75 : 1;
       var belt = hasIt(A, 'Expert Belt') && effv > 1 ? 1.2 : 1;
       var tint = hasAb(A, 'Tinted Lens') && effv < 1 ? 2 : 1;
-      var berry = RESIST_BERRIES[itName(D.item)] === tn && (effv > 1 || tn === 'Normal') ? 0.5 : 1;
+      var berry = !later && RESIST_BERRIES[itName(D.item)] === tn && (effv > 1 || tn === 'Normal') ? 0.5 : 1;
       var out = [];
       for (var i = 0; i < 16; i++) {
         var d = Math.floor(base * (85 + i) / 100);
@@ -429,7 +433,7 @@
     }
 
     // ---------- Gen 5 ----------
-    function dmg5(critical, hit) {
+    function dmg5(critical, hit, later) {
       var bp = basePower(hit);
       var m = [];
       if ((hasAb(A, 'Technician') && bp <= 60) || (hasAb(A, 'Flare Boost') && A.status === 'brn' && !physical) ||
@@ -492,13 +496,13 @@
       var stabM = stab ? (hasAb(A, 'Adaptability') ? 8192 : 6144) : 4096;
       var fm = [];
       if (!critical && ((physical && f.reflect) || (!physical && f.lightScreen))) fm.push(f.double ? 2703 : 2048);
-      if (hasAb(D, 'Multiscale') && D.hp === D.maxHP) fm.push(2048);
+      if (!later && hasAb(D, 'Multiscale') && D.hp === D.maxHP) fm.push(2048);
       if (hasAb(A, 'Tinted Lens') && effv < 1) fm.push(8192);
       if (hasAb(A, 'Sniper') && critical) fm.push(6144);
       if (hasAb(D, 'Solid Rock', 'Filter') && effv > 1) fm.push(3072);
       if (hasIt(A, 'Expert Belt') && effv > 1) fm.push(4915);
       else if (hasIt(A, 'Life Orb')) fm.push(5324);
-      if (RESIST_BERRIES[itName(D.item)] === tn && (effv > 1 || tn === 'Normal') && !hasAb(A, 'Unnerve')) fm.push(2048);
+      if (!later && RESIST_BERRIES[itName(D.item)] === tn && (effv > 1 || tn === 'Normal') && !hasAb(A, 'Unnerve')) fm.push(2048);
       var finalMod = chainMods(fm, 41, 131072);
       var burn = A.status === 'brn' && physical && !hasAb(A, 'Guts');
       var out = [];
@@ -514,7 +518,7 @@
 
     var dmgFn = gen === 4 ? dmg4 : dmg5;
     if (moveId === MV.TRIPLE_KICK) {
-      var parts = [1, 2, 3].map(function (h) { return [dmgFn(false, h), dmgFn(true, h)]; });
+      var parts = [1, 2, 3].map(function (h) { return [dmgFn(false, h, h > 1), dmgFn(true, h, h > 1)]; });
       for (var z = 0; z < 16; z++) {
         res.rolls.push(parts[0][0][z] + parts[1][0][z] + parts[2][0][z]);
         res.crit.push(parts[0][1][z] + parts[1][1][z] + parts[2][1][z]);
@@ -524,6 +528,9 @@
     } else {
       res.rolls = dmgFn(false, 1);
       res.crit = dmgFn(true, 1);
+      // hits after the first: without the resist berry / Multiscale
+      var lr = dmgFn(false, 1, true);
+      if (lr.join() !== res.rolls.join()) { res.laterRolls = lr; res.laterCrit = dmgFn(true, 1, true); }
     }
     res.power = basePower(1);
     // number of hits: Gen 5 move data has them, Gen 4 by move number
@@ -555,15 +562,18 @@
     res.min = res.rolls[0]; res.max = res.rolls[15];
     res.critMin = res.crit[0]; res.critMax = res.crit[15];
     var one = res.dist || G3.dist(res.rolls);
+    // first hit with resist berry / Multiscale, every later hit without (res.laterRolls)
+    var later = res.laterRolls ? G3.dist(res.laterRolls) : one;
+    var lMin = res.laterRolls ? res.laterRolls[0] : res.min, lMax = res.laterRolls ? res.laterRolls[15] : res.max;
     if (typeof res.hits === 'number' && res.hits > 1) {
-      var acc = one; for (var h = 1; h < res.hits; h++) acc = G3.convolve(acc, one);
-      one = acc; res.multiMin = res.min * res.hits; res.multiMax = res.max * res.hits;
+      var acc = one; for (var h = 1; h < res.hits; h++) acc = G3.convolve(acc, later);
+      one = acc; res.multiMin = res.min + lMin * (res.hits - 1); res.multiMax = res.max + lMax * (res.hits - 1);
     } else if (Array.isArray(res.hits)) {
       // 2–5 hits: Gen 4 has 2 and 3 hits at 3/8 each and 4 and 5 at 1/8, Gen 5 has 1/3, 1/3, 1/6, 1/6
-      var d2 = G3.convolve(one, one), d3 = G3.convolve(d2, one), d4 = G3.convolve(d3, one), d5 = G3.convolve(d4, one);
+      var d2 = G3.convolve(one, later), d3 = G3.convolve(d2, later), d4 = G3.convolve(d3, later), d5 = G3.convolve(d4, later);
       var pr = gen === 4 ? [3 / 8, 3 / 8, 1 / 8, 1 / 8] : [1 / 3, 1 / 3, 1 / 6, 1 / 6];
       one = G3.mix([[d2, pr[0]], [d3, pr[1]], [d4, pr[2]], [d5, pr[3]]]);
-      res.multiMin = res.min * 2; res.multiMax = res.max * 5;
+      res.multiMin = res.min + lMin; res.multiMax = res.max + lMax * 4;
     }
     res.useDist = one;
     return res;

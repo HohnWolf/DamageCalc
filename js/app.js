@@ -163,7 +163,7 @@
       importedTeam: '{0} Pokémon ins {1} Team importiert.', left: 'linke', right: 'rechte', notAvailable: ' Nicht in Champions verfügbar/unbekannt: {0}',
       switchError: 'Fehler beim Wechseln: {0}',
       charged: 'Geladen (Charge)', chargedT: 'Elektro-Attacken ×2', glaive: 'Glaive Rush genutzt', glaiveT: 'nimmt doppelten Schaden',
-      flashFire: 'Flash Fire aktiv', flashFireT: 'Feuer-Attacken ×1.5', analytic: 'Zieht zuletzt (Analytic)', stakeout: 'Ziel eingewechselt (Stakeout)',
+      flashFire: 'Flash Fire aktiv', flashFireT: 'Feuer-Attacken ×1.5', unburden: 'Item verbraucht (Unburden)', unburdenT: 'Initiative ×2', analytic: 'Zieht zuletzt (Analytic)', stakeout: 'Ziel eingewechselt (Stakeout)',
       koOwn: 'Eigene Pokémon K.O.', koShort: 'K.O.', hitTimes: 'Wie oft getroffen', hitShort: '× getr.', stockpile: 'Stockpile', stockShort: 'Stock',
       notesNoEffect: 'Keine Wirkung', notesSpread: 'Spread-Attacke (×0.75 im Doppel)',
       importHintH: 'Team als Text einfügen. <code>EVs:</code> werden automatisch in Stat Points umgerechnet, <code>SPs:</code> werden direkt übernommen. Pastes immer mit englischen Namen.',
@@ -176,7 +176,7 @@
       statusDesc: '(Status-Attacke)', burned: 'verbrannt', chargedD: 'geladen', boostedBy: 'verstärkt durch {0}', hitsD: '({0} Treffer)',
       inWeather: 'bei {0}', inTerrain: 'auf {0}-Feld', withX: 'mit {0}', throughX: 'durch {0}', afterX: 'nach {0}', onCrit: 'bei Volltreffer',
       and: ' und ', after: ' nach ', recovery: 'Heilung durch {0}', sandDmg: 'Sandsturm-Schaden', burnDmg: 'Verbrennungs-Schaden',
-      poisonDmg: 'Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
+      poisonDmg: 'Gift-Schaden', toxicDmg: 'steigendem Gift-Schaden', leechDmg: '{0}-Schaden', spikesN: '{0}× {1}',
       koGuaranteed: 'garantierter {0}', koChance: '{0}% Chance auf {1}', koPossible: 'mögl. {0}', koHazards: 'durch Hazards K.O.',
       stanceNote: '{0} greift in Klingenform an ({1})', fixedTaken: '{0} erlittener Schaden ×{1}',
       proStartTitle: 'Übersicht', proStartSub: 'Wähle eine Kategorie, dann ein Werkzeug.', proStartSubAll: 'Alle Werkzeuge auf einen Blick.', proOverview: 'Übersicht', proCollapse: 'Einklappen', uiPro: 'Pro (Anwendung, Seitenleiste)', uiStudio: 'Studio (Anwendung, obere Leiste)', catFight: 'VGC', catFightText: 'Schadensrechner, Teambuilder, Matchups', catRunsText: 'Soul Link, Nuzlocke, Randomizer', catDexText: 'Alle 1025 Pokémon mit 3D-Modellen', catGo: 'GO', catGoText: 'GO-Pokédex, Top Counter, Infos', catRestText: 'Shiny-Zähler, Overlays, Fangrechner', catBack: '← Kategorien', setStartLayout: 'Startbildschirm', setStartLayoutHint: 'Wähle zwischen der kompakten Kategorien-Ansicht und der vorherigen Ansicht mit allen Tools auf einmal.', setLayoutCats: 'Kategorien', setLayoutAll: 'Alle Tools (Vorherige Ansicht)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Sonstiges', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny-Zähler', navMatch: 'Team-Analyse', navMatchlog: 'Matchlog', startMatchlogKo: 'Alpha · Capture → Log', startMatchlogText: 'Frühe Alpha: Liest Doppelkämpfe in Pokémon Champions aus dem Capture-Bild und schreibt das Protokoll automatisch mit.', navOverlay: 'Match-Overlay', navCatch: 'Fangrechner', navProjector: 'Game Projector', startProjectorKo: 'Capture-Karte · Vollbild', startProjectorText: 'Zeigt das Bild deiner Capture-Karte oder eines Bildschirms in einem eigenen Fenster, ohne Zähler und Overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO-Infografik', startGoInfoKo: 'Raid · Feldforschung · PNG', startGoInfoText: 'Infografiken für Raids (Boss, Schwächen, CP, Konter) und Feldforschungen (Aufgabe → Belohnung) als PNG zum Teilen.', startGoCounterText: 'Beste Raid-Angreifer & Konter nach Typ oder gegen jeden Raid-Boss (eDPS, DPS, TDO, Team-Power, Crypto & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid-Bosse', homeTitle: 'Zum Startbildschirm',
@@ -319,7 +319,7 @@
       importedTeam: '{0} Pokémon imported into the {1} team.', left: 'left', right: 'right', notAvailable: ' Not available in Champions/unknown: {0}',
       switchError: 'Error while switching: {0}',
       charged: 'Charged (Charge)', chargedT: 'Electric moves ×2', glaive: 'Used Glaive Rush', glaiveT: 'takes double damage',
-      flashFire: 'Flash Fire active', flashFireT: 'Fire moves ×1.5', analytic: 'Moves last (Analytic)', stakeout: 'Target switched in (Stakeout)',
+      flashFire: 'Flash Fire active', flashFireT: 'Fire moves ×1.5', unburden: 'Item used up (Unburden)', unburdenT: 'Speed ×2', analytic: 'Moves last (Analytic)', stakeout: 'Target switched in (Stakeout)',
       koOwn: 'Own Pokémon fainted', koShort: 'fainted', hitTimes: 'Times hit', hitShort: '× hit', stockpile: 'Stockpile', stockShort: 'Stock',
       notesNoEffect: 'No effect', notesSpread: 'Spread move (×0.75 in doubles)',
       importHintH: 'Paste a team as text. <code>EVs:</code> are converted to Stat Points automatically, <code>SPs:</code> are used as they are.',
@@ -332,7 +332,7 @@
       statusDesc: '(status move)', burned: 'burned', chargedD: 'Charged', boostedBy: '{0} boosted', hitsD: '({0} hits)',
       inWeather: 'in {0}', inTerrain: 'in {0} Terrain', withX: 'with {0}', throughX: 'through {0}', afterX: 'after {0}', onCrit: 'on a critical hit',
       and: ' and ', after: ' after ', recovery: '{0} recovery', sandDmg: 'sandstorm damage', burnDmg: 'burn damage',
-      poisonDmg: 'poison damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
+      poisonDmg: 'poison damage', toxicDmg: 'rising toxic damage', leechDmg: '{0} damage', spikesN: '{0} {1}',
       koGuaranteed: 'guaranteed {0}', koChance: '{0}% chance to {1}', koPossible: 'possible {0}', koHazards: 'KO from hazards',
       stanceNote: '{0} attacks in Blade Forme ({1})', fixedTaken: '{0} damage taken ×{1}',
       proStartTitle: 'Overview', proStartSub: 'Pick a category, then a tool.', proStartSubAll: 'All tools at a glance.', proOverview: 'Overview', proCollapse: 'Collapse', uiPro: 'Pro (application, sidebar)', uiStudio: 'Studio (application, top bar)', catFight: 'VGC', catFightText: 'Damage calc, teambuilder, matchups', catRunsText: 'Soul Link, Nuzlocke, randomizer', catDexText: 'All 1025 Pokémon with 3D models', catGo: 'GO', catGoText: 'GO Pokédex, top counter, info', catRestText: 'Shiny counter, overlays, catch calculator', catBack: '← Categories', setStartLayout: 'Start screen', setStartLayoutHint: 'Choose between the compact category view and the previous view with all tools at once.', setLayoutCats: 'Categories', setLayoutAll: 'All tools (Previous view)', catRuns: 'Runs', catDex: 'Pokédex', catRest: 'Other', navCalc: 'Damage Calculator', navBuilder: 'Teambuilder', navNuz: 'Nuzlocke', navSL: 'Soul Link', navShiny: 'Shiny counter', navMatch: 'Team Analysis', navMatchlog: 'Matchlog', startMatchlogKo: 'Alpha · Capture → Log', startMatchlogText: 'Early alpha: reads Pokémon Champions doubles from the capture feed and writes the battle log automatically.', navOverlay: 'Match overlay', navCatch: 'Catch Calculator', navProjector: 'Game Projector', startProjectorKo: 'Capture card · Fullscreen', startProjectorText: 'Shows the picture of your capture card or a screen in its own window, without counter or overlay.', navDex: 'Pokédex', navGoCounter: 'Top Counter', navGoInfo: 'GO Infographic', startGoInfoKo: 'Raid · Field Research · PNG', startGoInfoText: 'Infographics for raids (boss, weaknesses, CP, counters) and field research (task → reward) as shareable PNG.', startGoCounterText: 'Best raid attackers & counters by type or against any raid boss (eDPS, DPS, TDO, Party Power, Shadow & Mega).', startGoCounterKo: 'eDPS · TDO · Tiers · Raid bosses', homeTitle: 'Back to the start screen',
@@ -1096,6 +1096,7 @@
     if (ab === 'Flash Fire') list.push(['flashFire', 'flashFire', 'flashFireT']);
     if (ab === 'Analytic') list.push(['movesLast', 'analytic', 'analyticT']);
     if (ab === 'Stakeout') list.push(['stakeout', 'stakeout', 'stakeoutT']);
+    if (ab === 'Unburden') list.push(['unburden', 'unburden', 'unburdenT']);
     var html = list.map(function (c) {
       return '<label title="' + esc(T(c[2])) + '"><input type="checkbox" class="xin" data-c="' + c[0] + '"' + (prev[c[0]] ? ' checked' : '') + '> ' + esc(T(c[1])) + '</label>';
     }).join('');
@@ -1249,7 +1250,7 @@
     return {
       fainted: st.fainted || 0, baseAtk: st.base.at || 50,
       charged: !!cond.charged, glaiveRush: !!cond.glaiveRush, flashFire: !!cond.flashFire,
-      movesLast: !!cond.movesLast, stakeout: !!cond.stakeout,
+      movesLast: !!cond.movesLast, stakeout: !!cond.stakeout, unburden: !!cond.unburden,
       species: forme, baseSpecies: st.baseSpecies, types: types, stats: stats, sps: Object.assign({}, st.sps),
       boosts: Object.assign({}, st.boosts), nature: st.nature, ability: st.ability, item: st.item, status: st.status,
       curHP: cur, maxHP: stats.hp, weight: d ? d.w : 50, canEvolve: !!(d && d.canEvolve), moves: moves
@@ -1414,7 +1415,7 @@
   var lastResults = [[[], []], [[], []]];
 
   function residualInfo(def, defSide, atk) {
-    var max = def.maxHP, parts = [], res = 0, hazards = 0;
+    var max = def.maxHP, parts = [], res = 0, hazards = 0, toxic = 0;
     var magicGuard = def.ability === 'Magic Guard';
     var w = C.effectiveWeather(field, def, atk);
     if (!magicGuard) {
@@ -1428,17 +1429,21 @@
     var after = [];
     if (def.item === 'Leftovers') { res += Math.floor(max / 16); after.push(T('recovery', nItem('Leftovers'))); }
     if (field.terrain === 'Grassy' && C.isGrounded(def, field)) { res += Math.floor(max / 16); after.push(T('recovery', nMove('Grassy Terrain'))); }
+    // Poison Heal: heals 1/8 instead of taking poison damage (also when badly poisoned)
+    if ((def.status === 'Poisoned' || def.status === 'Badly Poisoned') && def.ability === 'Poison Heal') { res += Math.floor(max / 8); after.push(T('recovery', nAbility('Poison Heal'))); }
     if (!magicGuard) {
       if (w === 'Sand' && ['Rock', 'Ground', 'Steel'].every(function (t) { return def.types.indexOf(t) === -1; }) &&
           ['Overcoat', 'Sand Veil', 'Sand Rush', 'Sand Force'].indexOf(def.ability) === -1 && def.item !== 'Safety Goggles') {
         res -= Math.floor(max / 16); after.push(T('sandDmg'));
       }
       if (def.status === 'Burned') { res -= Math.floor(max / 16); after.push(T('burnDmg')); }
-      if ((def.status === 'Poisoned' || def.status === 'Badly Poisoned') && def.ability !== 'Poison Heal') { res -= Math.floor(max / 8); after.push(T('poisonDmg')); }
+      // regular poison 1/8 per turn; toxic rises: 1/16, 2/16, 3/16 … (koChance multiplies by the turn)
+      if (def.status === 'Poisoned' && def.ability !== 'Poison Heal') { res -= Math.max(1, Math.floor(max / 8)); after.push(T('poisonDmg')); }
+      if (def.status === 'Badly Poisoned' && def.ability !== 'Poison Heal') { toxic = Math.max(1, Math.floor(max / 16)); after.push(T('toxicDmg')); }
       if (defSide.leechSeed) { res -= Math.floor(max / 8); after.push(T('leechDmg', nMove('Leech Seed'))); }
       if (defSide.saltCure) { var wf = def.types.indexOf('Water') !== -1 || def.types.indexOf('Steel') !== -1; res -= Math.floor(max / (wf ? 4 : 8)); after.push(nMove('Salt Cure')); }
     }
-    return { hazards: hazards, hazardText: parts, residual: res, afterText: after, sitrus: def.item === 'Sitrus Berry' };
+    return { hazards: hazards, hazardText: parts, residual: res, toxic: toxic, afterText: after, sitrus: def.item === 'Sitrus Berry' };
   }
 
   function sign(nature, stat) {
@@ -1558,6 +1563,8 @@
       if (x.ability === 'Beads of Ruin') fld.ruin.beads = true;
       if (!fld.weather && autoWeather[x.ability]) fld.weather = autoWeather[x.ability];
       if (!fld.terrain && autoTerrain[x.ability]) fld.terrain = autoTerrain[x.ability];
+      // Cloud Nine / Air Lock suppress the weather for everyone (speed abilities included)
+      if (x.ability === 'Cloud Nine' || x.ability === 'Air Lock') fld.weatherSuppressed = true;
     });
 
     // speeds (for tabs, the active editor and the turn order)
@@ -1589,17 +1596,20 @@
             var target = mons[o][t];
             if (!target) return null;
             var mv = Object.assign({}, attacker.moves[i]);
-            // spread moves only get the 0.75 penalty if both opponents are still there
-            if (doubles && !(mons[o][0] && mons[o][1])) mv.singleTarget = true;
+            // spread moves get the 0.75 penalty when they hit at least two Pokémon: both opponents, or for moves that
+            // also hit the partner (Earthquake, Surf, Discharge …) one opponent plus the user's partner
+            if (doubles && !(mons[o][0] && mons[o][1]) && !(C.hitsAlly(mv.name) && mons[s][1 - k])) mv.singleTarget = true;
             var atk = stanceAdjust(attacker, true, mv), def = stanceAdjust(target, false, null);
             var dSide = sideFieldFor(o, t, mons);
             var r = C.calculate(atk, def, mv, fld, aSide, dSide);
             var info = residualInfo(def, field.sides[o], atk);
             var ko = null;
             if (!r.empty && !r.status && r.damage[r.damage.length - 1] > 0) {
+              // Focus Sash / Sturdy: broken by multi-hit moves and Parental Bond; Mold Breaker, Teravolt and Turboblaze ignore Sturdy
+              var sturdy = def.ability === 'Sturdy' && C.MOLD_BREAKERS.indexOf(atk.ability) === -1;
               ko = localKO(C.koChance(r.damage, def, {
-                hazards: info.hazards, residual: info.residual, sitrus: info.sitrus, perHit: r.perHit,
-                sash: (def.item === 'Focus Sash' || def.ability === 'Sturdy') && def.curHP === def.maxHP && !info.hazards
+                hazards: info.hazards, residual: info.residual, toxic: info.toxic, sitrus: info.sitrus, perHit: r.perHit, hits: r.nHits || 1,
+                sash: (def.item === 'Focus Sash' || sturdy) && def.curHP === def.maxHP && !info.hazards
               }));
               if (ko) ko.text = koText(ko, info);
             }

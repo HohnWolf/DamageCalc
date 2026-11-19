@@ -12,14 +12,14 @@
     494, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 716, 717, 718, 719, 720, 721, 772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 793, 794, 795, 796, 797, 798, 799, 800, 801, 802, 803, 804, 805, 806, 807];
   // Spiele: Produktcode (ohne Regionsbuchstabe) → Daten (Pfade im RomFS)
   var GAMES = {
-    'CTR-P-EKJ': { gen: 6, type: 'xy', name: 'X', nameEn: 'X', max: 721, maxMove: 617, maxAbility: 191, stats: 'a/2/1/8', learn: 'a/2/1/4', evo: 'a/2/1/5', move: 'a/2/1/2', wild: 'a/0/1/2', trd: 'a/0/3/8', trp: 'a/0/4/0' },
-    'CTR-P-EK2': { gen: 6, type: 'xy', name: 'Y', nameEn: 'Y', max: 721, maxMove: 617, maxAbility: 191, stats: 'a/2/1/8', learn: 'a/2/1/4', evo: 'a/2/1/5', move: 'a/2/1/2', wild: 'a/0/1/2', trd: 'a/0/3/8', trp: 'a/0/4/0' },
-    'CTR-P-ECR': { gen: 6, type: 'oras', name: 'Omega Rubin', nameEn: 'Omega Ruby', max: 721, maxMove: 621, maxAbility: 191, stats: 'a/1/9/5', learn: 'a/1/9/1', evo: 'a/1/9/2', move: 'a/1/8/9', wild: 'a/0/1/3', trd: 'a/0/3/6', trp: 'a/0/3/8' },
-    'CTR-P-ECL': { gen: 6, type: 'oras', name: 'Alpha Saphir', nameEn: 'Alpha Sapphire', max: 721, maxMove: 621, maxAbility: 191, stats: 'a/1/9/5', learn: 'a/1/9/1', evo: 'a/1/9/2', move: 'a/1/8/9', wild: 'a/0/1/3', trd: 'a/0/3/6', trp: 'a/0/3/8' },
-    'CTR-P-BND': { stat: 'a/1/5/5', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Sonne', nameEn: 'Sun', max: 802, maxMove: 719, maxAbility: 233, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/5', trp: 'a/1/0/6' },
-    'CTR-P-BNE': { stat: 'a/1/5/5', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Mond', nameEn: 'Moon', max: 802, maxMove: 719, maxAbility: 233, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/5', trp: 'a/1/0/6' },
-    'CTR-P-A2A': { stat: 'a/1/5/9', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Sonne', nameEn: 'Ultra Sun', max: 807, maxMove: 728, maxAbility: 233, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/6', trp: 'a/1/0/7' },
-    'CTR-P-A2B': { stat: 'a/1/5/9', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Mond', nameEn: 'Ultra Moon', max: 807, maxMove: 728, maxAbility: 233, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/6', trp: 'a/1/0/7' }
+    'CTR-P-EKJ': { gen: 6, type: 'xy', name: 'X', nameEn: 'X', max: 721, maxMove: 617, maxAbility: 188, stats: 'a/2/1/8', learn: 'a/2/1/4', evo: 'a/2/1/5', move: 'a/2/1/2', wild: 'a/0/1/2', trd: 'a/0/3/8', trp: 'a/0/4/0' },
+    'CTR-P-EK2': { gen: 6, type: 'xy', name: 'Y', nameEn: 'Y', max: 721, maxMove: 617, maxAbility: 188, stats: 'a/2/1/8', learn: 'a/2/1/4', evo: 'a/2/1/5', move: 'a/2/1/2', wild: 'a/0/1/2', trd: 'a/0/3/8', trp: 'a/0/4/0' },
+    'CTR-P-ECR': { gen: 6, type: 'oras', name: 'Omega Rubin', nameEn: 'Omega Ruby', max: 721, maxMove: 621, maxAbility: 188, stats: 'a/1/9/5', learn: 'a/1/9/1', evo: 'a/1/9/2', move: 'a/1/8/9', wild: 'a/0/1/3', trd: 'a/0/3/6', trp: 'a/0/3/8' },
+    'CTR-P-ECL': { gen: 6, type: 'oras', name: 'Alpha Saphir', nameEn: 'Alpha Sapphire', max: 721, maxMove: 621, maxAbility: 188, stats: 'a/1/9/5', learn: 'a/1/9/1', evo: 'a/1/9/2', move: 'a/1/8/9', wild: 'a/0/1/3', trd: 'a/0/3/6', trp: 'a/0/3/8' },
+    'CTR-P-BND': { stat: 'a/1/5/5', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Sonne', nameEn: 'Sun', max: 802, maxMove: 719, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/5', trp: 'a/1/0/6' },
+    'CTR-P-BNE': { stat: 'a/1/5/5', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Mond', nameEn: 'Moon', max: 802, maxMove: 719, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/5', trp: 'a/1/0/6' },
+    'CTR-P-A2A': { stat: 'a/1/5/9', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Sonne', nameEn: 'Ultra Sun', max: 807, maxMove: 728, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/6', trp: 'a/1/0/7' },
+    'CTR-P-A2B': { stat: 'a/1/5/9', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Mond', nameEn: 'Ultra Moon', max: 807, maxMove: 728, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/6', trp: 'a/1/0/7' }
   };
   // Plätze für wilde Pokémon: [Anfang, Anzahl, Name] (je 4 Byte: Art+Form, Mindest-, Höchstlevel)
   var XY_SLOTS = [[0, 12, 'Gras'], [48, 12, 'Gelbe Blumen'], [96, 12, 'Violette Blumen'], [144, 12, 'Rote Blumen'], [192, 12, 'Hohes Gras'], [240, 5, 'Surfen'], [260, 5, 'Felsbrecher'],
@@ -83,9 +83,13 @@
         if (md && md.length > 6) { moves[mv] = { power: md[3], type: md[0], acc: md[4], pp: md[5], cat: md[2] === 1 ? 0 : md[2] === 2 ? 1 : 2 }; moveBuf[mv] = md; }
       }
     } catch (e) { moves = null; }
+    // Verbotene Attacken (wie GlobalConstants/Gen7Constants des UPR): Verzweifler, in Gen 7 alle Z-Attacken (622–658, 695–703, USUM 719 und 723–728)
+    var banned = [165];
+    if (g.gen === 7) { for (var zm = 622; zm <= 658; zm++) banned.push(zm); for (zm = 695; zm <= 703; zm++) banned.push(zm); banned.push(719); for (zm = 723; zm <= 728; zm++) banned.push(zm); }
+    var notes = [];
     var model = {
-      title: ctx.g.nameEn + ' (' + ctx.code + ')', maxNat: max, species: species, typeNames: TN, typePool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], abilityPool: abilityPool,
-      abilityNames: TX ? TX.abilities : [], moveNames: TX ? TX.moves : [], legends: LEGEND, noStatsFor: [292], learnsets: learnsets, moves: moves && moves.length ? moves : null, maxMove: g.maxMove, bannedMoves: [165],
+      title: ctx.g.nameEn + ' (' + ctx.code + ')', gen: g.gen, notes: notes, maxNat: max, species: species, typeNames: TN, typePool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], abilityPool: abilityPool,
+      abilityNames: TX ? TX.abilities : [], moveNames: TX ? TX.moves : [], legends: LEGEND, noStatsFor: [292], learnsets: learnsets, moves: moves && moves.length ? moves : null, maxMove: g.maxMove, bannedMoves: banned,
       wild: [], trainers: [], evos: [], memoWild: true
     };
     // Attacken-Daten: Typ 0, Art 2 (1 = physisch, 2 = speziell), Stärke 3, Genauigkeit 4, AP 5
@@ -115,10 +119,10 @@
       var d = entry(learn, n);
       for (var k = 0; k < list.length && k * 4 + 3 < d.length; k++) { w16(d, k * 4, list[k][1]); w16(d, k * 4 + 2, list[k][0]); }
     };
-    // Entwicklungen: Gen 6 = 8 × 6 Byte, Gen 7 = 8 × 8 Byte (dort steht hinter dem Ziel noch die Form)
+    // Entwicklungen: Gen 6 = 8 × 6 Byte, Gen 7 = 8 × 8 Byte (dort steht hinter dem Ziel noch die Form); Methode 15 = Nebenentwicklung Ninjask/Shedinja bleibt
     if (evo) {
       var es = g.gen === 6 ? 6 : 8;
-      C.makeEvoTable(model, function (n) { return entry(evo, n); }, function (n, k) { return k * es; }, 8, max, null, g.gen === 7 ? function (b, eo) { b[eo + 6] = 0; } : null);
+      C.makeEvoTable(model, function (n) { return entry(evo, n); }, function (n, k) { return k * es; }, 8, max, [15], g.gen === 7 ? function (b, eo) { b[eo + 6] = 0; } : null);
     }
     // Gen 7: Geschenke (Datei 0, 0x14 Byte je Eintrag, ab Nr. 3 – davor die Starter) und statische Begegnungen (Datei 1, 0x38 Byte; ohne Totem- und Begleiter-Einträge)
     var statG = g.stat ? await loadGarc(ctx, g.stat, true) : null;
@@ -247,6 +251,9 @@
 
     // Gen 6: Starter stehen als Geschenke in DllField.cro (Art +0, Form +4) und zusätzlich in der Anzeige von DllPoke3Select.cro (Art +0, Form +2, je 0x54 Byte)
     // (Offsets aus dem Universal Pokémon Randomizer ZX). Die Texte der Auswahl bleiben unverändert.
+    // Wie im UPR werden die SHA-256-Werte der geänderten CROs in static.crr nicht neu berechnet (die CRR ist ohnehin RSA-signiert):
+    // die ROM läuft auf Citra und mit Luma3DS (Signatur-Patches für ro), nicht ohne diese Patches.
+    var croNoted = false, croNote = function () { if (!croNoted) { croNoted = true; notes.push('Starter/Geschenke/Statische in DllField.cro bzw. DllPoke3Select.cro geändert. Die CRO-Prüfsummen in static.crr werden (wie im UPR) nicht neu berechnet – läuft auf Citra und mit Luma3DS, nicht ohne Signatur-Patches.'); } };
     if (g.gen === 6 && !scanOnly) {
       try {
         var G6 = g.type === 'oras' ? { gift: 0xF906C, count: 0x25, size: 0x24, idx: [0, 1, 2, 28, 29, 30, 31, 32, 33, 34, 35, 36], offOff: 0xB8, extra: 0, stat: 0xF1B20, statCount: 0x3B, links: [[26, 49], [27, 50], [29, 58], [80, 56], [81, 57], [75, 76]] }
@@ -264,7 +271,7 @@
           list6.forEach(function (en, ix) {
             if (skip6[ix] || !species[u16(sf, en.off)]) return;
             var targets = [en]; if (linked6[ix] !== undefined && list6[linked6[ix]]) targets.push(list6[linked6[ix]]);
-            var mark = function (t) { patches.push({ off: fieldF.loc.off + t.off, bytes: sf.slice(t.off, t.off + 8) }); };
+            var mark = function (t) { croNote(); patches.push({ off: fieldF.loc.off + t.off, bytes: sf.slice(t.off, t.off + 8) }); };
             model.statics.push({
               isEgg: en.egg, level: sf[en.off + en.lOff],
               get: function () { return u16(sf, en.off); },
@@ -284,7 +291,7 @@
                 get: function () { return u16(fd, go); },
                 set: function (n) {
                   w16(fd, go, n); fd[go + 4] = 0; w16(dd, dO, n); dd[dO + 2] = 0;
-                  patches.push({ off: fieldF.loc.off + go, bytes: fd.slice(go, go + 6) });
+                  croNote(); patches.push({ off: fieldF.loc.off + go, bytes: fd.slice(go, go + 6) });
                   patches.push({ off: dispF.loc.off + dO, bytes: dd.slice(dO, dO + 4) });
                 }
               });

@@ -588,7 +588,8 @@
     }
     if (eff === EF.MAGNITUDE) { power = 70; res.notes.push('magnitude'); }
     if (eff === EF.PRESENT) { power = 80; res.notes.push('present'); }
-    if (eff === EF.FACADE && A.status) dmgMult = 2;
+    // pokeemerald: Facade doubles only with poison, burn, paralysis or toxic (not sleep/freeze)
+    if (eff === EF.FACADE && ['psn', 'tox', 'brn', 'par'].indexOf(A.status) !== -1) dmgMult = 2;
     if (eff === EF.SMELLINGSALT && D.status === 'par') dmgMult = 2;
     if (eff === EF.SPIT_UP) { power = 100; res.notes.push('spitup'); }
     res.type = type; res.power = power;
@@ -660,7 +661,10 @@
         (type === T.WATER && A.ability === AB.TORRENT) || (type === T.BUG && A.ability === AB.SWARM))) movePower = Math.floor(150 * movePower / 100);
       if (eff === EF.EXPLOSION) def = Math.floor(def / 2);
       var dmg, helper;
-      var doubleSpread = f.double && f.spread !== false && mv.target === MOVE_TARGET_BOTH;
+      // pokeemerald: screens (2/3) and the spread halving both need two Pokémon alive on the target's side
+      // (CountAliveMonsInBattle(BATTLE_ALIVE_DEF_SIDE) == 2); f.defAlive overrides, else f.spread !== false means "both there"
+      var twoDef = !!f.double && (f.defAlive != null ? f.defAlive >= 2 : f.spread !== false);
+      var doubleSpread = twoDef && mv.target === MOVE_TARGET_BOTH;
       if (isPhysical(type)) {
         dmg = critMult === 2 ? ((aSt.atk || 0) > 0 ? stageMod(atk, aSt.atk) : atk) : stageMod(atk, aSt.atk || 0);
         dmg = dmg * movePower;
@@ -669,7 +673,7 @@
         dmg = Math.floor(dmg / helper);
         dmg = Math.floor(dmg / 50);
         if (A.status === 'brn' && A.ability !== AB.GUTS) dmg = Math.floor(dmg / 2);
-        if (f.reflect && critMult === 1) dmg = f.double && f.spread !== false ? 2 * Math.floor(dmg / 3) : Math.floor(dmg / 2);
+        if (f.reflect && critMult === 1) dmg = twoDef ? 2 * Math.floor(dmg / 3) : Math.floor(dmg / 2);
         if (doubleSpread) dmg = Math.floor(dmg / 2);
         if (dmg === 0) dmg = 1;
       } else if (type === T.MYSTERY) {
@@ -681,7 +685,7 @@
         helper = critMult === 2 ? ((dSt.spd || 0) < 0 ? stageMod(spd, dSt.spd) : spd) : stageMod(spd, dSt.spd || 0);
         dmg = Math.floor(dmg / helper);
         dmg = Math.floor(dmg / 50);
-        if (f.lightScreen && critMult === 1) dmg = f.double && f.spread !== false ? 2 * Math.floor(dmg / 3) : Math.floor(dmg / 2);
+        if (f.lightScreen && critMult === 1) dmg = twoDef ? 2 * Math.floor(dmg / 3) : Math.floor(dmg / 2);
         if (doubleSpread) dmg = Math.floor(dmg / 2);
         if (weather === 'rain') { if (type === T.FIRE) dmg = Math.floor(dmg / 2); if (type === T.WATER) dmg = Math.floor(15 * dmg / 10); }
         if (moveId === 76 && (weather === 'rain' || weather === 'sand' || weather === 'hail')) dmg = Math.floor(dmg / 2);
@@ -768,10 +772,12 @@
     return r;
   }
   // effective speed for the turn order
-  function speedOf(rom, m, f) {
+  // other: the opposing Pokémon (Cloud Nine / Air Lock on either side cancel the weather, WEATHER_HAS_EFFECT)
+  function speedOf(rom, m, f, other) {
+    f = f || {};
     var s = stageMod(m.stats.spe, (m.stages && m.stages.spe) || 0);
     if (m.player && (f.badges || 0) >= 3) s = Math.floor(110 * s / 100);
-    var w = f.weather;
+    var w = weatherOn(f, m, other || m) ? f.weather : 'none';
     if (m.ability === AB.SWIFT_SWIM && w === 'rain') s *= 2;
     if (m.ability === AB.CHLOROPHYLL && w === 'sun') s *= 2;
     if (holdOf(rom, m.item).hold === HE.MACHO_BRACE) s = Math.floor(s / 2);

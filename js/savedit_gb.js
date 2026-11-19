@@ -40,13 +40,15 @@
   function wbe16(b, o, v) { b[o] = (v >> 8) & 255; b[o + 1] = v & 255; }
   function isqrtCeil(n) { var r = Math.ceil(Math.sqrt(n)); return r > 255 ? 255 : r; }
   function statExpBonus(se) { return Math.floor(isqrtCeil(se) / 4); }
-  // Gen 1/2: Reihenfolge der Werte KP, Angr, Vert, Init, Spezial (SpA = SpV)
+  // Gen 1/2: Reihenfolge der Werte KP, Angr, Vert, Init, Spezial; Gen 2 (6 Basiswerte) zusätzlich SpV getrennt von SpA
+  // (gleicher Spezial-DV und gleiche Stat-EP, aber eigener Basiswert base[5])
   function calc(base, level, dv, se) {
     var hpDv = ((dv[0] & 1) << 3) | ((dv[1] & 1) << 2) | ((dv[2] & 1) << 1) | (dv[3] & 1);
     var out = [Math.floor(((base[0] + hpDv) * 2 + statExpBonus(se[0])) * level / 100) + level + 10];
     var map = [[1, 0], [2, 1], [3, 2], [4, 3]];
     for (var i = 0; i < 4; i++) out.push(Math.floor(((base[map[i][0]] + dv[map[i][1]]) * 2 + statExpBonus(se[i + 1])) * level / 100) + 5);
-    return out; // KP, Angr, Vert, Init, Spezial
+    if (base.length >= 6) out.push(Math.floor(((base[5] + dv[3]) * 2 + statExpBonus(se[4])) * level / 100) + 5);
+    return out; // KP, Angr, Vert, Init, Spezial (Gen 2: SpA) [, Gen 2: SpV]
   }
   function expForGB(growth, n) { return window.CCSave.expFor(growth, n); }
 
@@ -70,7 +72,8 @@
         case 'dv': j = gen === 1 ? 27 : 21; return i === 0 ? d[j] >> 4 : i === 1 ? d[j] & 15 : i === 2 ? d[j + 1] >> 4 : d[j + 1] & 15; // Angr, Vert, Init, Spezial
         case 'friendship': return gen === 1 ? 0 : d[27];
         case 'level': return gen === 1 ? (d[33] || d[3]) : d[31];
-        case 'hp': return be16(d, 1);
+        case 'hp': return be16(d, gen === 1 ? 1 : 34); // Gen 2: aktuelle KP nur in der Team-Struktur (Offset 34)
+        case 'status': return d[gen === 1 ? 4 : 32];
         case 'maxhp': return be16(d, gen === 1 ? 34 : 36);
         case 'nick': return decStr(d, NICK, 11);
         case 'ot': return decStr(d, OT, 11);
@@ -100,7 +103,8 @@
           break;
         case 'friendship': if (gen === 2) d[27] = v; break;
         case 'level': if (gen === 1) { d[3] = v; d[33] = v; } else d[31] = v; break;
-        case 'hp': wbe16(d, 1, v); break;
+        case 'hp': wbe16(d, gen === 1 ? 1 : 34, v); break;
+        case 'status': d[gen === 1 ? 4 : 32] = v; break;
         case 'nick': d.set(encStr(v, 10, 11), NICK); break;
         case 'ot': d.set(encStr(v, 7, 11), OT); break;
         case 'egg': d[EGG] = v ? 1 : 0; break;
@@ -108,11 +112,33 @@
     };
     F.setStats = function (d, st) { // KP, Angr, Vert, Init, Spezial
       if (gen === 1) { wbe16(d, 34, st[0]); wbe16(d, 36, st[1]); wbe16(d, 38, st[2]); wbe16(d, 40, st[3]); wbe16(d, 42, st[4]); }
-      else { wbe16(d, 36, st[0]); wbe16(d, 38, st[1]); wbe16(d, 40, st[2]); wbe16(d, 42, st[3]); wbe16(d, 44, st[4]); wbe16(d, 46, st[4]); }
+      else { wbe16(d, 36, st[0]); wbe16(d, 38, st[1]); wbe16(d, 40, st[2]); wbe16(d, 42, st[3]); wbe16(d, 44, st[4]); wbe16(d, 46, st.length > 5 ? st[5] : st[4]); }
     };
     F.stats = function (d) {
       if (gen === 1) return [be16(d, 34), be16(d, 36), be16(d, 38), be16(d, 40), be16(d, 42)];
-      return [be16(d, 36), be16(d, 38), be16(d, 40), be16(d, 42), be16(d, 44)];
+      return [be16(d, 36), be16(d, 38), be16(d, 40), be16(d, 42), be16(d, 44), be16(d, 46)];
+    };
+    // .pk1/.pk2 wie PKHeX (PokeList1/2 mit einem Platz): [1][Art bzw. 0xFD Ei][0xFF][Team-Daten][OT 11][Spitzname 11] = 69 / 73 Byte
+    F.fileSize = 3 + PARTY + 22;
+    F.toFile = function (d) {
+      var out = new Uint8Array(F.fileSize);
+      out[0] = 1; out[1] = gen === 2 && d[EGG] ? 0xFD : d[0]; out[2] = 0xFF;
+      out.set(d.subarray(0, PARTY), 3); out.set(d.subarray(OT, OT + 11), 3 + PARTY); out.set(d.subarray(NICK, NICK + 11), 3 + PARTY + 11);
+      return out;
+    };
+    // liest .pk1/.pk2 (PKHeX-Format) oder das ältere eigene Format (Rohdaten, PARTY + 23 Byte); null, wenn es nicht passt
+    F.fromFile = function (u8) {
+      var d = new Uint8Array(SIZE);
+      if (u8.length === F.fileSize) {
+        if (u8[0] !== 1 || u8[2] !== 0xFF) return null;
+        d.set(u8.subarray(3, 3 + PARTY), 0); d.set(u8.subarray(3 + PARTY + 11, 3 + PARTY + 22), NICK); d.set(u8.subarray(3 + PARTY, 3 + PARTY + 11), OT);
+        if (gen === 2 && u8[1] === 0xFD) d[EGG] = 1;
+        if (gen === 1 && u8[1] !== d[0]) return null;
+      } else if (u8.length === SIZE) d.set(u8);
+      else return null;
+      if (gen === 1 && !(GB.toNat[d[0]] > 0 && GB.toNat[d[0]] <= 151)) return null;
+      if (gen === 2 && !(d[0] >= 1 && d[0] <= 251)) return null;
+      return d;
     };
     F.shiny = function (d) { // nur Gen 2
       if (gen !== 2) return false;
@@ -179,6 +205,14 @@
 
   // ---------------- Generation 1 ----------------
   var I1 = { OT: 0x2598, Money: 0x25F3, TID: 0x2605, CurrentBoxIndex: 0x284C, Coin: 0x2850, Party: 0x2F2C, CurrentBox: 0x30C0, Check: 0x3523, Starter: 0x29C3, PikaFr: 0x271C };
+  // Box-Bänke (SRAM-Bank 2/3, je 6 Boxen à 0x462 Byte): Gesamtprüfsumme bei +0x1A4C, danach 6 Einzelprüfsummen (wie pokered CalcIndividualBoxCheckSums)
+  function sumNot(u8, a, n) { var s = 0; for (var i = a; i < a + n; i++) s = (s + u8[i]) & 255; return (~s) & 255; }
+  function bankSums1(u8) {
+    [0x4000, 0x6000].forEach(function (b) {
+      u8[b + 0x1A4C] = sumNot(u8, b, 0x1A4C);
+      for (var k = 0; k < 6; k++) u8[b + 0x1A4D + k] = sumNot(u8, b + k * 0x462, 0x462);
+    });
+  }
   function sum1(u8) { var s = 0; for (var i = I1.OT; i < I1.Check; i++) s = (s + u8[i]) & 255; return (~s) & 255; }
   function open1(u8) {
     if (u8.length !== 0x8000) return null;
@@ -222,6 +256,7 @@
         if (b === cur) pack(PK1, boxes[b], out, I1.CurrentBox, 20, false);
       }
       pack(PK1, party, out, I1.Party, 6, true);
+      if (init) bankSums1(out);
       out[I1.Check] = sum1(out);
       return out;
     };
@@ -247,8 +282,9 @@
     var sv = { gen: 2, game: crystal ? 'C' : 'GS', gameName: crystal ? 'Kristall' : 'Gold/Silber', gameNameEn: crystal ? 'Crystal' : 'Gold/Silver', fmt: PK2, data: data, boxCount: 14, slotsPerBox: 20, partyMax: 6, ext: 'sav', gb: true, checksumOk: true };
     function boxOff(b) { return b < 7 ? 0x4000 + b * 0x450 : 0x6000 + (b - 7) * 0x450; }
     var party = unpack(PK2, data, o.Party, 6, true), boxes = [], b;
-    for (b = 0; b < 14; b++) boxes.push(unpack(PK2, data, boxOff(b), 20, false));
     var cur = data[o.CurrentBoxIndex] & 0x7F;
+    // die aktuelle Box liegt im Spiel in o.CurrentBox; die Kopie in der Box-Bank wird erst beim Boxwechsel aktualisiert
+    for (b = 0; b < 14; b++) boxes.push(unpack(PK2, data, b === cur ? o.CurrentBox : boxOff(b), 20, false));
     sv.getTrainer = function () {
       return { name: decStr(data, 0x200B, 11), tid: be16(data, 0x2009), sid: 0, gender: crystal ? data[o.Gender] : 0, noSid: true, noGender: !crystal,
         money: (data[o.Money] << 16) | (data[o.Money + 1] << 8) | data[o.Money + 2], hours: 0, minutes: 0, seconds: 0 };
@@ -292,5 +328,5 @@
     return sv;
   }
 
-  window.CCSaveGB = { open1: open1, open2: open2, PK1: PK1, PK2: PK2, calc: calc, expForGB: expForGB, decStr: decStr, encStr: encStr };
+  window.CCSaveGB = { open1: open1, open2: open2, PK1: PK1, PK2: PK2, calc: calc, expForGB: expForGB, decStr: decStr, encStr: encStr, bankSums1: bankSums1 };
 })();

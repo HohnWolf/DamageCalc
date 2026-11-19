@@ -19,7 +19,7 @@ const g = R.GAMES['CTR-P-BND'];
 const mk = (n, len, fn) => { const files = [new Uint8Array(len)]; for (let i = 1; i <= n; i++) { const d = new Uint8Array(len); fn(d, i); files.push(d); } return { files, data: new Uint8Array(4), whole: true }; };
 garcs[g.stats] = mk(802, 0x54, (d, i) => { for (let k = 0; k < 6; k++) d[k] = 50; d[6] = 0; d[7] = 10; d[21] = 0; d[24] = 5; });
 garcs[g.learn] = mk(802, 8, (d) => { d[0] = 33; d[2] = 1; d[4] = 0xFF; d[5] = 0xFF; d[6] = 0xFF; d[7] = 0xFF; });
-garcs[g.evo] = mk(802, 64, (d, i) => { if (i === 4) { d[0] = 5; d[4] = 5; d[6] = 3; } if (i === 7) { d[0] = 2; d[4] = 8; } if (i === 10) { d[0] = 4; d[2] = 50; d[4] = 11; } if (i === 11) { d[0] = 4; d[2] = 20; d[4] = 12; } });
+garcs[g.evo] = mk(802, 64, (d, i) => { if (i === 4) { d[0] = 5; d[4] = 5; d[6] = 3; } if (i === 7) { d[0] = 2; d[4] = 8; } if (i === 10) { d[0] = 4; d[2] = 50; d[4] = 11; } if (i === 11) { d[0] = 4; d[2] = 20; d[4] = 12; } if (i === 290) { d[0] = 15; d[4] = 292 & 255; d[5] = 292 >> 8; } }); // 290: Nincada → Shedinja (Methode 15) muss unberührt bleiben
 garcs[g.move] = mk(719, 36, (d, i) => { d[0] = i % 17; d[2] = i % 3; d[3] = i % 3 === 0 ? 0 : 60; d[4] = 100; d[5] = 20; });
 { // Gen 7: Geschenke (4 x 0x14) und statische Begegnungen (3 x 0x38; Nr. 1 ist ein Totem)
   const gifts = new Uint8Array(4 * 0x14), stat = new Uint8Array(3 * 0x38);
@@ -45,7 +45,9 @@ window.CTR.parseGarc = () => garcs[lastPath];
   const realFind = window.CTR.findFile;
   window.CTR.parseGarc = () => garcs[lastPath];
   const model = await R.buildModel(ctx, false);
-  ok(model.setMove && model.evos.length === 4 && model.moves[3].acc === 100, 'Modell: Attacken-Daten und Entwicklungen');
+  ok(model.setMove && model.evos.length === 4 && model.moves[3].acc === 100, 'Modell: Attacken-Daten und Entwicklungen (Shedinja-Eintrag übersprungen)');
+  ok([622, 658, 695, 703, 719, 723, 728, 165].every(m => model.bannedMoves.indexOf(m) !== -1) && [720, 721, 722, 659, 694].every(m => model.bannedMoves.indexOf(m) === -1), 'Gen 7: Z-Attacken und Verzweifler gesperrt');
+  ok(R.GAMES['CTR-P-EKJ'].maxAbility === 188 && R.GAMES['CTR-P-ECR'].maxAbility === 188 && R.GAMES['CTR-P-BND'].maxAbility === 232 && R.GAMES['CTR-P-A2A'].maxAbility === 232 && Math.max.apply(null, model.abilityPool) === 232, 'Fähigkeiten: X/Y/ORAS bis 188, Gen 7 bis 232');
   const res = await window.CCRandCore.run(model, { seed: 'g7', wild: 'keep', trainers: 'keep', movePower: true, movePP: true, moveType: true, moveCat: true, evoImpossible: true, evoNoTime: true, evoEasier: true, expCurve: 'slow' });
   const ev = garcs[g.evo].files, st = garcs[g.stats].files, mv = garcs[g.move].files;
   ok(u16(ev[4], 0) === 4 && u16(ev[4], 2) === 37, 'Tausch -> Level 37');

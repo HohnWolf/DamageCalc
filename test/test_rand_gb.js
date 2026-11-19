@@ -17,7 +17,10 @@ function mkGen1() {
   // Trainer: Klasse 1, ein Trainer, normaler Typ
   const to = e.TrainerDataTableOffset, tb = Math.floor(to / 0x4000), tp = 0x4000 + 0x300; for (let c = 1; c <= 47; c++) { u[to + (c - 1) * 2] = tp & 255; u[to + (c - 1) * 2 + 1] = tp >> 8; }
   const tr = tb * 0x4000 + 0x300; u[tr] = 20; u[tr + 1] = 0x54; u[tr + 2] = 0x99; u[tr + 3] = 0;
-  for (let q = 0; q < 55; q++) u[e.TMMovesOffset + q] = 10 + q; // 50 TMs + 5 HMs
+  for (let q = 0; q < 50; q++) u[e.TMMovesOffset + q] = q < 2 ? [5, 13][q] : 20 + q; // 50 TMs (TM01 Megahieb, TM02 Klingensturm wie im Original)
+  [15, 19, 57, 70, 148].forEach((m, q) => u[e.TMMovesOffset + 50 + q] = m); // 5 HMs
+  u[e.OldRodOffset + 1] = 0x85; u[e.OldRodOffset + 2] = 5; // Alte Angel: Karpador Lv 5
+  [[1, 0xB0], [2, 0xB1], [3, 0x99]].forEach(([k, v]) => e['StarterOffsets' + k].forEach(o => u[o] = v)); // Starter-Bytes
   u[0x49320] = 0x85; u[0x4931F] = 5; u[0x71B7B] = 0x70; u[0x71B7B + 1] = 0x71; // Magikarp (statisch) und ein Tausch
   for (let n = 1; n <= 151; n++) { const o = n === 151 ? e.MewStatsOffset : e.PokemonStatsOffset + (n - 1) * 28; u[o + 20] = 0x0F; }
   { // Karte 0: Bank 1, Kopf bei 0x4100 (keine Verbindungen), Objekte bei 0x80200
@@ -38,36 +41,19 @@ function mkGen1() {
   ok(rom.gen === 1 && /Red/.test(rom.game), 'Gen 1: Rot (U) erkannt');
   const info = RG.scan(rom, u); ok(info.wildSlots >= 10 && info.evo && info.starters, 'Gen 1: Scan (' + JSON.stringify(info) + ')');
   RG.run(u, rom, { seed: 'x', fieldItems: 'random', wild: 'random', trainers: 'random', trainerLevel: 10, evo: 'random', stats: 'random', types: 'random', moves: 'random', starters: 'random', tmMoves: 'random', tmCompat: 'random', movePower: true, moveType: true, expCurve: 'fast', evoImpossible: true, statics: 'random', staticLevelPct: 100, trades: 'random', tradeRequested: true }).then(res => {
-    { const e1 = E.g1[0], d1 = res.data, t1 = Array.from({ length: 50 }, (_, i) => d1[e1.TMMovesOffset + i]); ok(new Set(t1).size === 50 && t1.every(m => m >= 1 && m <= 165), 'Gen 1: TMs gueltig'); ok(d1[e1.TMMovesOffset + 50] === 60, 'Gen 1: HMs unveraendert'); ok(d1[e1.PokemonStatsOffset + 19] === 4, 'Gen 1: EP-Kurve schnell'); ok(/=== Attacken-Daten/.test(res.log), 'Gen 1: Attacken-Daten'); const toNat = window.PKGB.toNat; ok(toNat[d1[0x49320]] && toNat[d1[0x49320]] !== 129 && d1[0x4931F] === 10, 'Gen 1: Static neu, Level +100 %'); ok(toNat[d1[0x71B7B]] && toNat[d1[0x71B7B + 1]] && /=== Ingame-Tausche/.test(res.log), 'Gen 1: Tausch gueltig'); }
+    { const e1 = E.g1[0], d1 = res.data, t1 = Array.from({ length: 50 }, (_, i) => d1[e1.TMMovesOffset + i]); ok(new Set(t1).size === 50 && t1.every(m => m >= 1 && m <= 165), 'Gen 1: TMs gueltig'); ok(d1[e1.TMMovesOffset + 50] === 15, 'Gen 1: HMs unveraendert'); ok(d1[e1.PokemonStatsOffset + 19] === 4, 'Gen 1: EP-Kurve schnell'); ok(/=== Attacken-Daten/.test(res.log), 'Gen 1: Attacken-Daten'); const toNat = window.PKGB.toNat; ok(toNat[d1[0x49320]] && toNat[d1[0x49320]] !== 129 && d1[0x4931F] === 10, 'Gen 1: Static neu, Level +100 %'); ok(toNat[d1[0x71B7B]] && toNat[d1[0x71B7B + 1]] && /=== Ingame-Tausche/.test(res.log), 'Gen 1: Tausch gueltig'); }
     ok(res.log.indexOf('Wilde Pokémon') > 0 && res.data[0x14E] * 256 + res.data[0x14F] > 0, 'Gen 1: Lauf + Prüfsumme');
     { const items = Array.from({ length: 12 }, (_, i) => res.data[0x80200 + 4 + i * 7 + 6]); ok(/=== Items auf dem Feld \(12\)/.test(res.log) && items.some((v, i) => v !== [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 29, 30][i]) && items.every(v => v >= 1), 'Gen 1: Feld-Items gefunden und gewürfelt (' + items.join(',') + ')'); ok(res.data[0x80200 + 4 + 12 * 7 + 5] === 0x40, 'Gen 1: Trainer-Objekt unberührt (' + res.data[0x80200 + 4 + 12 * 7 + 5] + ')'); }
     const e = E.g1[0]; const wr = Math.floor(e.WildPokemonTableOffset / 0x4000) * 0x4000 + 0x200;
     const d = res.data; ok(d[wr + 2] !== 0x54 || d[wr + 4] !== 0x54, 'Gen 1: wilde Art geändert (' + d[wr + 2] + ')');
     ok(d[wr + 1] === 5, 'Gen 1: Level unverändert');
     const tr = Math.floor(e.TrainerDataTableOffset / 0x4000) * 0x4000 + 0x300; ok(d[tr] === 22, 'Gen 1: Trainer-Level 20 → 22 (' + d[tr] + ')');
-    return mk2();
+    return gen1Learn().then(() => mk2());
   }).catch(e => { console.log('Ausnahme', e); process.exit(1); });
 }
 function mk2(idx) {
   idx = idx || 0;
-  const e = E.g2[idx], u = new Uint8Array(0x200000); // Gold (U) bzw. Kristall (U)
-  u[0x143] = 0x80; Buffer.from(e.Game).forEach((c, i) => u[0x13F + i] = c); u[0x14C] = e.Version; u[0x14A] = e.NonJapanese;
-  for (let n = 1; n <= 251; n++) { const o = e.PokemonStatsOffset + (n - 1) * 32; u[o] = n; for (let k = 1; k <= 6; k++) u[o + k] = 40 + k * 5; u[o + 7] = 0; u[o + 8] = 20; }
-  const tbl = e.PokemonMovesetsTableOffset, bank = Math.floor(tbl / 0x4000);
-  for (let i = 1; i <= 251; i++) { const real = bank * 0x4000 + 0x100 + i * 16, ptr = 0x4000 + (real % 0x4000); u[tbl + (i - 1) * 2] = ptr & 255; u[tbl + (i - 1) * 2 + 1] = ptr >> 8; u[real] = 1; u[real + 1] = 16; u[real + 2] = 2; u[real + 3] = 0; u[real + 4] = 5; u[real + 5] = 10; u[real + 6] = 0; }
-  let wo = e.WildPokemonOffset; for (let p = 0; p < 3; p++) { if (p === 0) { u[wo] = 3; u[wo + 1] = 4; for (let s = 0; s < 21; s++) { u[wo + 5 + s * 2] = 5; u[wo + 5 + s * 2 + 1] = 16; } wo += 47; } u[wo++] = 0xFF; u[wo++] = 0xFF; }
-  u[e.FishingWildsOffset + 1] = 129; u[e.HeadbuttWildsOffset] = 0xFF; u[e.BCCWildsOffset] = 0xFF;
-  const to = e.TrainerDataTableOffset; for (let c = 0; c < e.TrainerClassAmount; c++) { const tb = Math.floor(to / 0x4000), tp = 0x4000 + 0x300 + c * 0x40; u[to + c * 2] = tp & 255; u[to + c * 2 + 1] = tp >> 8; const tr = tb * 0x4000 + 0x300 + c * 0x40; for (let t = 0; t < e.TrainerDataClassCounts[c]; t++) { /* nur ein Trainer pro Klasse mit Daten */ } u[tr] = 0x82; u[tr + 1] = 0x50; u[tr + 2] = 0; u[tr + 3] = 20; u[tr + 4] = 25; u[tr + 5] = 0xFF; }
-  { // Karten-Events: Gruppe 1 mit einer Karte (2 versteckte Items über Schilder, 10 Itembälle als Personen)
-    const mh = e.MapHeaders, mhb = Math.floor(mh / 0x4000), A = mhb * 0x4000 + 0x300, S = 0xC0100, E = 0xC0200, wp = (o, v) => { u[o] = v & 255; u[o + 1] = v >> 8; };
-    wp(mh, 0x4000 + (A % 0x4000)); for (let g = 1; g < 26; g++) wp(mh + g * 2, 0x4000 + ((A + 9) % 0x4000));
-    u[A] = 0x30; wp(A + 3, 0x4100); // zweiter Kartenkopf in Bank 0x30
-    u[S + 6] = 0x30; wp(S + 9, 0x4200); // Event-Kopf in Bank 0x30
-    u[E + 2] = 0; u[E + 3] = 0; u[E + 4] = 2;
-    for (let k = 0; k < 2; k++) { u[E + 5 + k * 5 + 2] = 7; wp(E + 5 + k * 5 + 3, 0x4300 + k * 0x10); u[0xC0300 + k * 0x10 + 2] = 18 + k; }
-    u[E + 15] = 10;
-    for (let k = 0; k < 10; k++) { u[E + 16 + k * 13 + 7] = 1; wp(E + 16 + k * 13 + 9, 0x4400 + k * 4); u[0xC0400 + k * 4] = 20 + k; }
-  }
+  const e = E.g2[idx], u = mk2Raw(idx);
   const rom = RG.parseRom(u);
   if (e.MoveTutorMoves) { // Kristall: Attacken-Namen (Byte-Folgen, Ende 0x50), drei Lehrer-Attacken, Kompatibilitäts-Bits 1-3
     const nm = (m) => [0x80 + (m % 26), 0x80 + ((m * 7) % 26), 0x80 + ((m * 13) % 26)];
@@ -90,6 +76,54 @@ function mk2(idx) {
       ok(exp.every((b, i) => res.data[ns + i] === b), 'Kristall: Menü enthält die neuen Attackennamen und CANCEL' + (exp.every((b, i) => res.data[ns + i] === b) ? '' : ' exp=' + exp.join() + ' got=' + Array.from(res.data.slice(ns, ns + exp.length)).join()));
     }
     if (idx === 0) return mk2(E.g2.findIndex(r => r.MoveTutorMoves && r.MoveTutorMenuNewSpace));
-    console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);
+    return gen2Extra().then(() => { console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0); });
   });
+}
+
+// #6: Level-Attacken schreiben auch das Level; Gen 1: Level-1-Attacken landen in den Startattacken (Basiswerte 15–18), die Level-Liste endet dann früher
+function gen1Learn() {
+  const e = E.g1[0], u = mkGen1(), rom = RG.parseRom(u), bank = Math.floor(e.PokemonMovesetsTableOffset / 0x4000), toInt = window.PKGB.toInt;
+  return RG.run(u, rom, { seed: 'l1', wild: 'keep', trainers: 'keep', moves: 'random', movesGuaranteed: 3 }).then(res => {
+    const d = res.data, o = e.PokemonStatsOffset, real = bank * 0x4000 + 0x100 + toInt[1] * 16;
+    // Bisasam hat in der künstlichen ROM 2 Startattacken + 1 Level-Attacke; mit 3 Attacken auf Level 1 wandert die dritte in die Startattacken
+    ok(d[o + 15] && d[o + 16] && d[o + 17] && !d[o + 18], 'Gen 1: drei Startattacken auf Level 1 (' + [15, 16, 17, 18].map(k => d[o + k]).join() + ')');
+    ok(d[real + 4] === 0, 'Gen 1: Level-Liste endet, weil ihre Attacke jetzt Startattacke ist (' + Array.from(d.slice(real, real + 8)).join() + ')');
+  });
+}
+// #6 Gen 2: Level wird geschrieben; #14: Tageszeit-Freundschaft → jederzeit, Evoli → Sonnen-/Mondstein
+function gen2Extra() {
+  const e = E.g2[0], bank = Math.floor(e.PokemonMovesetsTableOffset / 0x4000), real = n => bank * 0x4000 + 0x100 + n * 16;
+  const u0 = mk2Raw(0);
+  u0[real(1)] = 4; u0[real(1) + 1] = 2; // Bisasam: Freundschaft am Tag → Art 2
+  u0[real(133)] = 4; u0[real(133) + 1] = 3; u0[real(133) + 2] = 197; // Evoli: Freundschaft nachts → Nachtara
+  const rom = RG.parseRom(u0);
+  return RG.run(u0, rom, { seed: 'l2', wild: 'keep', trainers: 'keep', moves: 'random', movesGuaranteed: 1, evoNoTime: true }).then(res => {
+    const d = res.data;
+    ok(d[real(5) + 4] === 1, 'Gen 2: Level der ersten Attacke auf 1 geschrieben (' + d[real(5) + 4] + ')');
+    ok(d[real(1)] === 4 && d[real(1) + 1] === 1, 'Gen 2: Freundschaft (Tag) → jederzeit');
+    ok(d[real(133)] === 2 && d[real(133) + 1] === 0x08 && d[real(133) + 2] === 197, 'Gen 2: Evoli (Nacht) → Mondstein');
+  });
+}
+
+// künstliche Gen-2-ROM (Gold (U) bzw. Kristall (U))
+function mk2Raw(idx) {
+  const e = E.g2[idx], u = new Uint8Array(0x200000);
+  u[0x143] = 0x80; Buffer.from(e.Game).forEach((c, i) => u[0x13F + i] = c); u[0x14C] = e.Version; u[0x14A] = e.NonJapanese;
+  for (let n = 1; n <= 251; n++) { const o = e.PokemonStatsOffset + (n - 1) * 32; u[o] = n; for (let k = 1; k <= 6; k++) u[o + k] = 40 + k * 5; u[o + 7] = 0; u[o + 8] = 20; }
+  const tbl = e.PokemonMovesetsTableOffset, bank = Math.floor(tbl / 0x4000);
+  for (let i = 1; i <= 251; i++) { const real = bank * 0x4000 + 0x100 + i * 16, ptr = 0x4000 + (real % 0x4000); u[tbl + (i - 1) * 2] = ptr & 255; u[tbl + (i - 1) * 2 + 1] = ptr >> 8; u[real] = 1; u[real + 1] = 16; u[real + 2] = 2; u[real + 3] = 0; u[real + 4] = 5; u[real + 5] = 10; u[real + 6] = 0; }
+  let wo = e.WildPokemonOffset; for (let p = 0; p < 3; p++) { if (p === 0) { u[wo] = 3; u[wo + 1] = 4; for (let s = 0; s < 21; s++) { u[wo + 5 + s * 2] = 5; u[wo + 5 + s * 2 + 1] = 16; } wo += 47; } u[wo++] = 0xFF; u[wo++] = 0xFF; }
+  u[e.FishingWildsOffset + 1] = 129; u[e.HeadbuttWildsOffset] = 0xFF; u[e.BCCWildsOffset] = 0xFF;
+  const to = e.TrainerDataTableOffset; for (let c = 0; c < e.TrainerClassAmount; c++) { const tb = Math.floor(to / 0x4000), tp = 0x4000 + 0x300 + c * 0x40; u[to + c * 2] = tp & 255; u[to + c * 2 + 1] = tp >> 8; const tr = tb * 0x4000 + 0x300 + c * 0x40; for (let t = 0; t < e.TrainerDataClassCounts[c]; t++) { /* nur ein Trainer pro Klasse mit Daten */ } u[tr] = 0x82; u[tr + 1] = 0x50; u[tr + 2] = 0; u[tr + 3] = 20; u[tr + 4] = 25; u[tr + 5] = 0xFF; }
+  { // Karten-Events: Gruppe 1 mit einer Karte (2 versteckte Items über Schilder, 10 Itembälle als Personen)
+    const mh = e.MapHeaders, mhb = Math.floor(mh / 0x4000), A = mhb * 0x4000 + 0x300, S = 0xC0100, E = 0xC0200, wp = (o, v) => { u[o] = v & 255; u[o + 1] = v >> 8; };
+    wp(mh, 0x4000 + (A % 0x4000)); for (let g = 1; g < 26; g++) wp(mh + g * 2, 0x4000 + ((A + 9) % 0x4000));
+    u[A] = 0x30; wp(A + 3, 0x4100); // zweiter Kartenkopf in Bank 0x30
+    u[S + 6] = 0x30; wp(S + 9, 0x4200); // Event-Kopf in Bank 0x30
+    u[E + 2] = 0; u[E + 3] = 0; u[E + 4] = 2;
+    for (let k = 0; k < 2; k++) { u[E + 5 + k * 5 + 2] = 7; wp(E + 5 + k * 5 + 3, 0x4300 + k * 0x10); u[0xC0300 + k * 0x10 + 2] = 18 + k; }
+    u[E + 15] = 10;
+    for (let k = 0; k < 10; k++) { u[E + 16 + k * 13 + 7] = 1; wp(E + 16 + k * 13 + 9, 0x4400 + k * 4); u[0xC0400 + k * 4] = 20 + k; }
+  }
+  return u;
 }

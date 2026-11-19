@@ -141,6 +141,84 @@
     }
     return null;
   }
+  function w32le(b, o, v) { b[o] = v & 255; b[o + 1] = (v >>> 8) & 255; b[o + 2] = (v >>> 16) & 255; b[o + 3] = (v >>> 24) & 255; }
+  // CRC16 des ROM-Kopfs (Bytes 0–0x15D, Ergebnis bei 0x15E)
+  function fixHeaderCrc(u8) {
+    var crc = 0xFFFF;
+    for (var i = 0; i < 0x15E; i++) { crc ^= u8[i]; for (var k = 0; k < 8; k++) crc = (crc & 1) ? (crc >>> 1) ^ 0xA001 : crc >>> 1; }
+    u8[0x15E] = crc & 255; u8[0x15F] = crc >> 8;
+  }
+  // Anfang des nächsten belegten Bereichs nach pos (Kopf-Bereiche und alle Dateien der FAT); bis dahin darf ein neu gepacktes arm9/Overlay wachsen
+  function nextStart(u8, pos) {
+    var best = u8.length, fat = u32(u8, 0x48), fsz = u32(u8, 0x4C), i;
+    [0x20, 0x30, 0x40, 0x48, 0x50, 0x58, 0x68].forEach(function (h) { var v = u32(u8, h); if (v > pos && v < best) best = v; });
+    for (i = 0; fat && i + 8 <= fsz && fat + i + 8 <= u8.length; i += 8) { var st = u32(u8, fat + i), en = u32(u8, fat + i + 4); if (en > st && st > pos && st < best) best = st; }
+    return best;
+  }
+  function bytesEqual(a, b) { if (a.length !== b.length) return false; for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false; return true; }
+  // arm9 zum Ändern öffnen (wie NDSRom des Universal Pokémon Randomizer ZX): ist es BLZ-komprimiert, wird es entpackt; commit() packt es wieder
+  // (die ersten 0x4000 Byte bleiben ungepackt wie bei "blz -en9", compStaticEnd in den Modul-Parametern wird angepasst). Da die ROM-Kopie nicht neu
+  // aufgebaut wird, muss das gepackte arm9 in den alten Platz (bis zum nächsten belegten Bereich) passen; sonst liefert commit() false und nichts wird geschrieben.
+  // Rückgabe: { data, compressed, commit() } oder null (Aufbau nicht erkannt).
+  function arm9RW(u8) {
+    var off = u32(u8, 0x20), len = u32(u8, 0x2C), ram = u32(u8, 0x28);
+    if (!len || off + len > u8.length) return null;
+    var a = u8.subarray(off, off + len), hasFoot = off + len + 12 <= u8.length && u32(u8, off + len) === 0xDEC00621;
+    var comp = false, szOff = -1, i;
+    if (len > 0x4010 && a[len - 5] >= 8 && a[len - 5] <= 0xB) {
+      var cs = a[len - 8] | (a[len - 7] << 8) | (a[len - 6] << 16);
+      if (cs > len * 9 / 10 && cs < len * 11 / 10) {
+        comp = true;
+        var want = (len + ram) >>> 0, hits = [];
+        for (i = 0; i + 4 <= 0x4000; i++) if (u32(a, i) === want) hits.push(i);
+        if (hits.length !== 1) return null; // compStaticEnd nicht eindeutig gefunden
+        szOff = hits[0];
+      }
+    }
+    if (!comp) return { data: a, compressed: false, commit: function () { return true; } };
+    var CTR = window.CTR; if (!CTR || !CTR.blzDecode || !CTR.blzEncode) return null;
+    var data; try { data = CTR.blzDecode(a.slice()); } catch (e) { return null; }
+    if (!data || data.length <= 0x4000 || !bytesEqual(data.subarray(0, 0x4000), a.subarray(0, 0x4000))) return null; // Kopf muss ungepackt sein
+    var orig = data.slice();
+    return { data: data, compressed: true, commit: function () {
+      if (bytesEqual(data, orig)) return true;
+      var enc = CTR.blzEncode(data.subarray(0x4000));
+      if (!enc || off + 0x4000 + enc.length + (hasFoot ? 12 : 0) > Math.max(off + len + (hasFoot ? 12 : 0), nextStart(u8, off))) return false;
+      var out = new Uint8Array(0x4000 + enc.length);
+      out.set(data.subarray(0, 0x4000)); out.set(enc, 0x4000);
+      w32le(out, szOff, (ram + out.length) >>> 0);
+      var foot = hasFoot ? u8.slice(off + len, off + len + 12) : null;
+      u8.fill(0xFF, off, Math.max(off + len, off + out.length) + (hasFoot ? 12 : 0));
+      u8.set(out, off); if (foot) u8.set(foot, off + out.length);
+      w32le(u8, 0x2C, out.length); fixHeaderCrc(u8);
+      return true;
+    } };
+  }
+  // Overlay zum Ändern öffnen; komprimierte Overlays (Bit 24 der Flags) werden entpackt und bei commit() wieder gepackt, wenn sie in den alten Platz passen
+  // bzw. bis zum nächsten belegten Bereich (FAT-Ende und gepackte Größe in der Overlay-Tabelle werden angepasst, wie im UPR). Rückgabe { data, compressed, commit() } oder null.
+  function overlayRW(u8, id) {
+    var tbl = u32(u8, 0x50), size = u32(u8, 0x54), fat = u32(u8, 0x48);
+    for (var o = tbl; o + 32 <= tbl + size && o + 32 <= u8.length; o += 32) {
+      if (u32(u8, o) !== id) continue;
+      var fid = u32(u8, o + 24), s = u32(u8, fat + fid * 8), e = u32(u8, fat + fid * 8 + 4);
+      if (!(e > s && e <= u8.length)) return null;
+      var flags = u32(u8, o + 28), cflag = flags >>> 24, csize = flags & 0xFFFFFF;
+      if (!(cflag & 1)) return { data: u8.subarray(s, e), compressed: false, commit: function () { return true; } };
+      var CTR = window.CTR; if (!CTR || !CTR.blzDecode || !CTR.blzEncode || csize !== e - s) return null;
+      var data; try { data = CTR.blzDecode(u8.slice(s, e)); } catch (x) { return null; }
+      var orig = data.slice(), ent = o, fo = fat + fid * 8;
+      return { data: data, compressed: true, commit: function () {
+        if (bytesEqual(data, orig)) return true;
+        var enc = CTR.blzEncode(data);
+        if (!enc || s + enc.length > Math.max(e, nextStart(u8, s))) return false;
+        u8.fill(0xFF, s, Math.max(e, s + enc.length)); u8.set(enc, s);
+        w32le(u8, fo + 4, s + enc.length);
+        w32le(u8, ent + 28, ((cflag << 24) | enc.length) >>> 0);
+        return true;
+      } };
+    }
+    return null;
+  }
   // LZ10/LZ11 (some hacks compress archives)
   function lzDecompress(src) {
     var type = src[0], size = (src[1] | (src[2] << 8) | (src[3] << 16)) >>> 0, p = 4;
@@ -510,5 +588,5 @@
   }
 
   window.NDS = { isNds: isNds, parseRom: parseRom, parseSave: parseSave, parseSav: parseSav, decodePk: decodePk, crypt: crypt, crc16: crc16,
-    g4str: g4str, g5str: g5str, g4char: g4char, g4texts: g4texts, g5texts: g5texts, narc: narc, nitroFile: nitroFile, overlay: overlay, lzDecompress: lzDecompress, BLOCK_POS: BLOCK_POS };
+    g4str: g4str, g5str: g5str, g4char: g4char, g4texts: g4texts, g5texts: g5texts, narc: narc, nitroFile: nitroFile, overlay: overlay, overlayRW: overlayRW, arm9RW: arm9RW, fixHeaderCrc: fixHeaderCrc, lzDecompress: lzDecompress, BLOCK_POS: BLOCK_POS };
 })();

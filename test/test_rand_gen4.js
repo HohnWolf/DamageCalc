@@ -63,6 +63,7 @@ window.CCRandCore.run(model, opts).then(res => {
     // Items: Skript-Ball, verstecktes Item im arm9 (0x100 + 0x200), Shop im arm9
     const sc3 = new Uint8Array(32); sc3[0] = 4; sc3[4] = 0x13; sc3[5] = 0xFD; sc3[8] = 0x28; sc3[10] = 0x08; sc3[11] = 0x80; sc3[12] = 20;
     window.NDS = { nitroFile: (_, p) => p, narc: p => p === 'S' ? [sc3] : [t0, t1] };
+    dv(0x2C, 0x210); // arm9 0x100–0x310: die versteckten Items (arm9 + 0x200) liegen im arm9
     u8[0x300] = 7; u8[0x308] = 8;
     [0x11, 0x22, 0x33, 0x44].forEach((b, i) => u8[0x2C0 + i] = b);
     [5, 0, 6, 0, 0, 0, 7, 0, 0xFF, 0xFF].forEach((b, i) => u8[0x2C4 + i] = b);

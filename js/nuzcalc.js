@@ -522,7 +522,7 @@
     cards.appendChild(monCard(foe, 'op', null));
     p.appendChild(cards);
     // speed
-    var sm = E().speedOf(rom, me, f), sf = E().speedOf(rom, foe, f);
+    var sm = E().speedOf(rom, me, f, foe), sf = E().speedOf(rom, foe, f, me);
     var sp = el('div', { class: 'nc-speed ' + (sm > sf ? 'good' : sm < sf ? 'bad' : '') });
     sp.textContent = t('speedLine', sm > sf ? t('faster') : sm < sf ? t('slower') : t('tie'), sm, sf);
     p.appendChild(sp);

@@ -98,17 +98,21 @@
   }
 
   // ---------------- Starter ----------------
+  // Feuerrot/Blattgrün (nach dem UPR, Gen3RomHandler.setStarters): die Starter stehen als givemon-Werte im Skript von Eichs Labor, ab "StarterPokemon"
+  // (gen3_offsets.ini) an +0, +515 und +461, jeweils mit einer Wiederholung 5 Byte dahinter (dort steht der nächste Starter in der Reihe).
+  var FRLG_ST = [[0, 0], [5, 1], [515, 1], [520, 2], [461, 2], [466, 0]], FRLG_BASE = [1, 4, 7];
+  function frlgStarterBase(rom, u8) {
+    var t = window.GEN3_OFFS && window.GEN3_OFFS[rom.code + u8[0xBC]], b = t && t.starter;
+    if (!b || b + 522 > u8.length) return -1;
+    return FRLG_ST.every(function (p) { return u16(u8, b + p[0]) === FRLG_BASE[p[1]]; }) ? b : -1; // nur unveränderte Original-Skripte
+  }
   function findStarters(rom, u8) {
     var found = [], i;
     if (!rom.frlg) {
       for (i = 0; i + 6 <= u8.length; i += 2) if (u16(u8, i) === 277 && u16(u8, i + 2) === 280 && u16(u8, i + 4) === 283) found.push(i);
       return found.length ? found[0] : -1;
     }
-    for (i = 0; i + 6 <= u8.length; i += 2) {
-      var a = u16(u8, i), b = u16(u8, i + 2), c = u16(u8, i + 4);
-      if (a !== b && b !== c && a !== c && [a, b, c].every(function (v) { return v === 1 || v === 4 || v === 7; })) found.push(i);
-    }
-    return found.length === 1 ? found[0] : -1;
+    return frlgStarterBase(rom, u8);
   }
 
   // ---------------- Entwicklungen: 5 Einträge à 8 Byte pro Art (Methode, Wert, Ziel, Füllung) ----------------
@@ -147,7 +151,8 @@
   // ---------------- Modell für den gemeinsamen Kern (js/rand_core.js) ----------------
   function buildModel(rom, u8) {
     var species = [], learnsets = [], s, nsp = rom.species.length, base = rom.off.bs;
-    var abilityPool = []; for (var ab = 1; ab <= 76; ab++) if (BAN_ABILITY.indexOf(ab) === -1) abilityPool.push(ab);
+    // Fähigkeiten 1–77 ohne 76 (Kakophonie, Platzhalter) – 77 = Klimaschutz (Air Lock)
+    var abilityPool = []; for (var ab = 1; ab <= 77; ab++) if (ab !== 76 && BAN_ABILITY.indexOf(ab) === -1) abilityPool.push(ab);
     var legends = [], shedinja = [];
     for (s = 0; s < nsp; s++) {
       learnsets[s] = rom.learnsets[s] ? rom.learnsets[s].map(function (l) { return l.slice(); }) : [];
@@ -160,7 +165,8 @@
     var mnOff = findMoveNames(u8), moveNames = [];
     if (mnOff >= 0) for (var mi = 0; mi < rom.moves.length; mi++) moveNames.push(G.decode(u8, mnOff + mi * 13, 13));
     var model = {
-      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: nsp - 1, species: species, typeNames: TN, typePool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17],
+      // Arten nach ROM-interner Nummer; gen/natOf sagen dem Kern, welche Generation und welche Nationaldex-Nummer gemeint ist (maxNat = 411 ≠ Gen 4)
+      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', gen: 3, natOf: function (id) { return rom.species[id] ? rom.species[id].nat : 0; }, maxNat: nsp - 1, species: species, typeNames: TN, typePool: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17],
       abilityPool: abilityPool, moveNames: moveNames, legends: legends, noStatsFor: shedinja, learnsets: learnsets, moves: rom.moves, maxMove: rom.moves.length - 1,
       bannedMoves: BAN_MOVE, wild: [], trainers: [], evos: [], starters: [],
       nameOf: function (id) { return nameOf(rom, id); }
@@ -227,7 +233,11 @@
     model.catchRate = { get: function (n) { return u8[base + n * 28 + 8]; }, set: function (n, v) { u8[base + n * 28 + 8] = v; } };
     // Starter
     var so = findStarters(rom, u8);
-    if (so >= 0) for (var q = 0; q < 3; q++) (function (o2) {
+    if (so >= 0 && rom.frlg) for (var qf = 0; qf < 3; qf++) (function (k) { // Feuerrot/Blattgrün: alle Stellen im Labor-Skript (die Texte von Prof. Eich bleiben)
+      var at = FRLG_ST.filter(function (p) { return p[1] === k; }).map(function (p) { return so + p[0]; });
+      model.starters.push({ get: function () { return u16(u8, at[0]); }, set: function (n) { at.forEach(function (o2) { w16(u8, o2, n); }); } });
+    })(qf);
+    else if (so >= 0) for (var q = 0; q < 3; q++) (function (o2) {
       model.starters.push({ get: function () { return u16(u8, o2); }, set: function (n) { w16(u8, o2, n); } });
     })(so + q * 2);
     // TMs/HMs: 50 TMs + 8 HMs als u16-Liste (beginnt mit Gebirgsdurchbruch-Folge Fokusstoß, Drachenklaue, Aquaknarre, Chaosstrahl); die Kompatibilitätstabelle wird nicht angefasst

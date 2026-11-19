@@ -67,7 +67,10 @@
   function scan(rom, u8) {
     var w = rom.files.wild ? wildSlots(rom) : [];
     var maps = {}; w.forEach(function (x) { maps[x.map] = 1; });
-    return { wildMaps: Object.keys(maps).length, wildSlots: w.length, trainers: rom.trainers.length, evo: evoOk(rom), starters: !!(window.GEN4_OFFS && window.GEN4_OFFS[rom.code + u8[0x1E]] && window.GEN4_OFFS[rom.code + u8[0x1E]].starter),
+    // Starter nur melden, wenn sie sich wirklich ändern lassen (Overlay bzw. arm9 lesbar und Muster gefunden); der Aufbau des Modells liest nur
+    var st = false;
+    try { st = buildModel(rom, u8).starters.length === 3; } catch (e) { st = false; }
+    return { wildMaps: Object.keys(maps).length, wildSlots: w.length, trainers: rom.trainers.length, evo: evoOk(rom), starters: st,
       learnsets: rom.files.learn ? rom.files.learn.length : 0 };
   }
 
@@ -79,7 +82,20 @@
 
   // ---------------- Modell für den gemeinsamen Kern (js/rand_core.js) ----------------
   function buildModel(rom, u8) {
-    var F = rom.files, names = rom.names || {}, C = window.CCRandCore;
+    var F = rom.files, names = rom.names || {}, C = window.CCRandCore, N = window.NDS, notes = [];
+    // arm9 und Overlays: komprimierte werden entpackt bearbeitet und in commit() wieder gepackt (js/nds.js arm9RW/overlayRW)
+    var ovlCache = {}, A9 = null, a9Tried = false;
+    // (ohne js/nds.js-Helfer, z. B. in Tests: arm9/Overlays unverändert als Ansicht)
+    function arm9() { if (!a9Tried) { a9Tried = true; try { A9 = N && N.arm9RW ? N.arm9RW(u8) : (function () { var o = u32(u8, 0x20), n = u32(u8, 0x2C); return o && n && o + n <= u8.length ? { data: u8.subarray(o, o + n), commit: function () { return true; } } : null; })(); } catch (e) { A9 = null; } } return A9 && A9.data; }
+    function ovlRW(id) {
+      if (id === undefined || id === null) return null;
+      if (!(id in ovlCache)) {
+        var r = null;
+        try { if (N && N.overlayRW) r = N.overlayRW(u8, id); else if (N && N.overlay) { var d0 = N.overlay(u8, id); r = d0 ? { data: d0, commit: function () { return true; } } : null; } } catch (e) { r = null; }
+        ovlCache[id] = r;
+      }
+      return ovlCache[id] && ovlCache[id].data;
+    }
     var typePool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17], abilityPool = [];
     for (var ab = 1; ab <= 123; ab++) if (BAN_ABILITY.indexOf(ab) === -1) abilityPool.push(ab);
     var species = [], s;
@@ -91,7 +107,7 @@
     var learnsets = {}, ls = rom.learnsets;
     for (s = 1; s <= MAXNAT; s++) if (ls[s] && species[s]) learnsets[s] = ls[s].map(function (x) { return x.slice(); });
     var model = {
-      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: MAXNAT, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
+      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', gen: 4, notes: notes, maxNat: MAXNAT, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
       abilityNames: names.abilities || [], moveNames: names.moves || [], legends: LEGEND_NAT, noStatsFor: [292], learnsets: learnsets, moves: rom.moves,
       maxMove: rom.moves.length - 1, bannedMoves: [165], wild: [], trainers: [], evos: [], starters: []
     };
@@ -155,22 +171,23 @@
       });
       model.trainers.push(tm);
     });
-    // Entwicklungen: 7 Einträge à 6 Byte je Art
-    if (evoOk(rom)) window.CCRandCore.makeEvoTable(model, function (n) { var e = F.evo[n]; return e && e.length >= 42 ? e : null; }, function (n, k) { return k * 6; }, 7, MAXNAT);
+    // Entwicklungen: 7 Einträge à 6 Byte je Art (Methode 14 = Nebenentwicklung Ninjask/Shedinja bleibt unberührt, wie im UPR)
+    if (evoOk(rom)) window.CCRandCore.makeEvoTable(model, function (n) { var e = F.evo[n]; return e && e.length >= 42 ? e : null; }, function (n, k) { return k * 6; }, 7, MAXNAT, [14]);
     model.evoInfo = { level: 4, stone: 7, trade: 5, tradeItem: 6, friendDay: 2, friendNight: 3, beauty: 15, electrified: 24, moss: 25, icy: 26, withMove: 20, withOther: 21, itemDay: 18, itemNight: 19,
       levelMethods: [4, 8, 9, 10, 11, 12, 13, 14, 22, 23], items: { water: 84, sun: 80, moon: 81, leaf: 85, dawn: 109 } };
     model.setGrowth = function (n, v) { var d = F.personal[n]; if (d) d[19] = v; };
     model.catchRate = { get: function (n) { return F.personal[n][8]; }, set: function (n, v) { F.personal[n][8] = v; } };
-    // TMs/HMs: 92 TMs + 8 HMs im arm9 (Muster je nach Spiel), Kompatibilität in den Basiswerten ab Byte 28 (13 Byte)
-    var a9 = u32(u8, 0x20), a9len = u32(u8, 0x2C), pat = rom.type === 'HGSS' ? [0x1E, 0, 0x32, 0] : [0xD1, 0, 0xD2, 0, 0xD3, 0, 0xD4, 0], at = -1;
-    for (var ai = a9; ai > 0 && ai < a9 + a9len - pat.length; ai++) {
-      var hit = true; for (var pj = 0; pj < pat.length; pj++) if (u8[ai + pj] !== pat[pj]) { hit = false; break; }
+    // TMs/HMs: 92 TMs + 8 HMs im (entpackten) arm9 (Muster je nach Spiel), Kompatibilität in den Basiswerten ab Byte 28 (13 Byte)
+    var a9d = arm9(), pat = rom.type === 'HGSS' ? [0x1E, 0, 0x32, 0] : [0xD1, 0, 0xD2, 0, 0xD3, 0, 0xD4, 0], at = -1;
+    if (!a9d) notes.push('Das arm9 ließ sich nicht lesen (unbekannter Aufbau) – TMs, versteckte Items, Shops' + (rom.type === 'HGSS' ? ' und Starter' : '') + ' bleiben unverändert.');
+    for (var ai = 0; a9d && ai + 200 + pat.length <= a9d.length; ai++) {
+      var hit = true; for (var pj = 0; pj < pat.length; pj++) if (a9d[ai + pj] !== pat[pj]) { hit = false; break; }
       if (hit) { at = ai + pat.length; break; }
     }
-    if (at > 0 && F.personal) {
+    if (at >= 0 && F.personal) {
       var tms = [], hms = [], i2;
-      for (i2 = 0; i2 < 92; i2++) tms.push(u16(u8, at + i2 * 2));
-      for (i2 = 0; i2 < 8; i2++) hms.push(u16(u8, at + (92 + i2) * 2));
+      for (i2 = 0; i2 < 92; i2++) tms.push(u16(a9d, at + i2 * 2));
+      for (i2 = 0; i2 < 8; i2++) hms.push(u16(a9d, at + (92 + i2) * 2));
       var plausible = tms.every(function (m) { return m >= 1 && m < rom.moves.length; }) && hms.every(function (m) { return m >= 1 && m < rom.moves.length; });
       if (plausible) {
         var compat = [];
@@ -183,7 +200,7 @@
         }
         model.tm = {
           tms: tms, hms: hms, compat: compat, earlyHM: [],
-          setTMs: function (list) { list.forEach(function (m, i) { w16(u8, at + i * 2, m); }); },
+          setTMs: function (list) { list.forEach(function (m, i) { w16(a9d, at + i * 2, m); }); },
           commit: function () {
             compat.forEach(function (c) {
               for (var j = 0; j < 13; j++) c.data[28 + j] = 0;
@@ -194,7 +211,7 @@
       }
     }
     // Statische Begegnungen und Ingame-Tausche (Offsets aus data/gen4_offsets.js, Schlüssel = Spielcode + Versionsbyte): Arten stehen als Wort in den Skript-Dateien
-    var offs = window.GEN4_OFFS && window.GEN4_OFFS[rom.code + u8[0x1E]], N = window.NDS, scripts = null, tradeFiles = null;
+    var offs = window.GEN4_OFFS && window.GEN4_OFFS[rom.code + u8[0x1E]], scripts = null, tradeFiles = null;
     try {
       if (offs && N && N.nitroFile) {
         var sf = offs.scripts && N.nitroFile(u8, offs.scripts); scripts = sf ? N.narc(sf) : null;
@@ -230,20 +247,15 @@
         return r;
       };
       var s32 = function (b, o) { return u32(b, o) | 0; };
-      var ovl = null, base = 0, a9 = 0, a9len = 0, hgRaw = null;
-      if (hg) {
-        a9 = u32(u8, 0x20); a9len = u32(u8, 0x2C);
+      var ovl = null, base = 0;
+      if (hg) { // im arm9 (bei HeartGold/SoulSilver BLZ-komprimiert; entpackt bearbeitet, beim Speichern wieder gepackt)
         var tailPat = [0x03, 0x03, 0x1A, 0x12, 0x01, 0x23, 0x00, 0x00];
-        var tail = search(u8, tailPat, a9, a9 + a9len); ovl = u8;
-        if (!tail.length && window.CTR && window.CTR.blzDecode) { // das arm9 von HeartGold/SoulSilver ist BLZ-komprimiert
-          try { hgRaw = window.CTR.blzDecode(u8.slice(a9, a9 + a9len)); } catch (e1) { hgRaw = null; }
-          if (!hgRaw) return;
-          tail = search(hgRaw, tailPat); ovl = hgRaw;
-        }
+        ovl = a9d; if (!ovl) return;
+        var tail = search(ovl, tailPat);
         if (tail.length !== 1) return;
         base = tail[0] - 13;
       } else {
-        try { ovl = N.overlay(u8, st.ovl); } catch (e) { ovl = null; }
+        ovl = ovlRW(st.ovl);
         if (!ovl || st.off === undefined) return;
         base = st.off;
       }
@@ -258,15 +270,6 @@
         if (done) return; done = true;
         w16(ovl, base, nw[0]); w16(ovl, base + 4, nw[1]); w16(ovl, base + 8, nw[2]);
         if (hg) {
-          if (hgRaw) { // arm9 neu komprimieren; muss in den alten Platz passen (Länge im Kopf und Prüfsumme werden angepasst)
-            var enc = window.CTR.blzEncode(hgRaw);
-            if (!enc || enc.length > a9len) { done = false; return; }
-            var foot = u8.slice(a9 + a9len, a9 + a9len + 12);
-            u8.fill(0xFF, a9, a9 + a9len + 12); u8.set(enc, a9); u8.set(foot, a9 + enc.length);
-            w32(u8, 0x2C, enc.length);
-            var crc = 0xFFFF; for (var ci = 0; ci < 0x15E; ci++) { crc ^= u8[ci]; for (var ck = 0; ck < 8; ck++) crc = (crc & 1) ? (crc >>> 1) ^ 0xA001 : crc >>> 1; }
-            w16(u8, 0x15E, crc);
-          }
           var magic = [0xCE, 0x00, 0x0C, 0x80, 0x11, 0x00, 0x0C, 0x80, 152, 0, 0x1C, 0x00, 0x05];
           files.forEach(function (fi) {
             var f = sc4[fi]; if (!f) return;
@@ -275,7 +278,7 @@
             var second = s32(f, b + 13) + b + 17;
             if (second + 5 <= f.length && f[second] === 0x11 && f[second + 4] === 155) w16(f, second + 4, nw[1]);
           });
-          var cry = null; try { cry = N.overlay(u8, st.ovl); } catch (e2) { cry = null; }
+          var cry = ovlRW(st.ovl);
           if (cry) {
             var cp = search(cry, hex('0004000C10BD0000000000000000000000E000000000000000E0000000000200'));
             if (cp.length) { var o = cp[0] + 32; for (var q = 0; q < 3; q++) w32(cry, o + q * 4, nw[q]); }
@@ -372,40 +375,42 @@
         if (u16(f4, at4) === setVar && u16(f4, at4 + 2) === 0x8008) (function (io) { model.field.push({ get: function () { return u16(f4, io); }, set: function (n) { w16(f4, io, n); } }); })(at4 + 4);
       }
     }
-    if (offs && offs.hidden && a9 > 0 && a9 + offs.hidden[0] + offs.hidden[1] * 8 <= u8.length) {
+    // versteckte Items und Shops: Offsets/Muster beziehen sich auf das entpackte arm9 (wie im UPR)
+    if (offs && offs.hidden && a9d && offs.hidden[0] + offs.hidden[1] * 8 <= a9d.length) {
       for (var hi = 0; hi < offs.hidden[1]; hi++) (function (io) {
-        model.field.push({ get: function () { return u16(u8, io); }, set: function (n) { w16(u8, io, n); } });
-      })(a9 + offs.hidden[0] + hi * 8);
+        model.field.push({ get: function () { return u16(a9d, io); }, set: function (n) { w16(a9d, io, n); } });
+      })(offs.hidden[0] + hi * 8);
     }
-    if (offs && offs.shops && a9 > 0) {
+    if (offs && offs.shops && a9d) {
       var sp4 = offs.shops, pat2 = []; for (var hp = 0; hp < sp4[0].length; hp += 2) pat2.push(parseInt(sp4[0].substr(hp, 2), 16));
       var sat = -1;
-      for (var sa = a9; sa < a9 + a9len - pat2.length && sat < 0; sa++) {
-        if (u8[sa] !== pat2[0]) continue;
-        var sh2 = true; for (var sj = 1; sj < pat2.length; sj++) if (u8[sa + sj] !== pat2[sj]) { sh2 = false; break; }
+      for (var sa = 0; sa + pat2.length <= a9d.length && sat < 0; sa++) {
+        if (a9d[sa] !== pat2[0]) continue;
+        var sh2 = true; for (var sj = 1; sj < pat2.length; sj++) if (a9d[sa + sj] !== pat2[sj]) { sh2 = false; break; }
         if (sh2) sat = sa + pat2.length;
       }
-      if (sat > 0) {
+      if (sat >= 0) {
         model.shops = [];
         var so4 = sat;
-        for (var shi = 0; shi < sp4[1] && so4 < u8.length - 2; shi++) {
+        for (var shi = 0; shi < sp4[1] && so4 < a9d.length - 2; shi++) {
           var slots = [], list4 = [];
-          while (so4 + 2 <= u8.length && u16(u8, so4) !== 0xFFFF) { var v4 = u16(u8, so4); if (v4 !== 0) { slots.push(so4); list4.push(v4); } so4 += 2; }
+          while (so4 + 2 <= a9d.length && u16(a9d, so4) !== 0xFFFF) { var v4 = u16(a9d, so4); if (v4 !== 0) { slots.push(so4); list4.push(v4); } so4 += 2; }
           so4 += 2;
           if (sp4[2].indexOf(shi) !== -1 || !list4.length) continue;
           (function (sl, ls4, idx) {
-            model.shops.push({ name: 'Shop ' + idx, isMain: sp4[3].indexOf(idx) !== -1, items: ls4, set: function (items) { items.forEach(function (it, k) { w16(u8, sl[k], it); }); } });
+            model.shops.push({ name: 'Shop ' + idx, isMain: sp4[3].indexOf(idx) !== -1, items: ls4, set: function (items) { items.forEach(function (it, k) { w16(a9d, sl[k], it); }); } });
           })(slots, list4, shi);
         }
       }
     }
     // Attacken-Lehrer (Platin, HeartGold, SoulSilver): Attacken im Feld-Overlay, Kompatibilität im Overlay (Platin) bzw. in waza_oshie.bin (HGSS); nur nicht komprimierte Overlays
-    if (offs && offs.tutor && N && N.overlay && F.personal) {
+    if (offs && offs.tutor && N && F.personal) {
       var T = offs.tutor, tOv = null, cBuf = null;
       try {
-        tOv = N.overlay(u8, T.ovl);
-        if (T.cFile) cBuf = N.nitroFile(u8, T.cFile); else cBuf = T.cOvl === T.ovl ? tOv : N.overlay(u8, T.cOvl);
+        tOv = ovlRW(T.ovl);
+        if (T.cFile) cBuf = N.nitroFile(u8, T.cFile); else cBuf = T.cOvl === T.ovl ? tOv : ovlRW(T.cOvl);
       } catch (e3) { tOv = cBuf = null; }
+      if (!tOv || !cBuf) notes.push('Die Daten der Attacken-Lehrer (Overlay ' + T.ovl + ') ließen sich nicht lesen – Lehrer bleiben unverändert.');
       if (tOv && cBuf && T.moves + T.count * T.step <= tOv.length) {
         var tmv = [], tq;
         for (tq = 0; tq < T.count; tq++) tmv.push(u16(tOv, T.moves + tq * T.step));
@@ -430,9 +435,10 @@
         }
       }
     }
-    // Pickup: 18 häufige + 11 seltene Items im Kampf-Overlay (nicht komprimiert)
-    if (offs && offs.battleOvl !== undefined && N && N.overlay) {
-      var bov = null; try { bov = N.overlay(u8, offs.battleOvl); } catch (e4) { bov = null; }
+    // Pickup: 18 häufige + 11 seltene Items im Kampf-Overlay (komprimierte Overlays werden entpackt)
+    if (offs && offs.battleOvl !== undefined && N) {
+      var bov = ovlRW(offs.battleOvl);
+      if (!bov) notes.push('Das Kampf-Overlay ' + offs.battleOvl + ' ließ sich nicht lesen – Pickup-Items bleiben unverändert.');
       var hexOf = function (h) { var r = []; for (var q = 0; q < h.length; q += 2) r.push(parseInt(h.substr(q, 2), 16)); return r; };
       var findIn = function (buf, pat) { for (var x = 0; x + pat.length <= buf.length; x++) { if (buf[x] !== pat[0]) continue; var okp = true; for (var y = 1; y < pat.length; y++) if (buf[x + y] !== pat[y]) { okp = false; break; } if (okp) return x; } return -1; };
       if (bov) {
@@ -444,8 +450,16 @@
         }
       }
     }
-    model.commit = function () { return u8; };
+    model.commit = function () { commitPacked(ovlCache, A9); return u8; };
     return model;
+  }
+  // geänderte Overlays und arm9 wieder packen; passt etwas nicht in den alten Platz, wird abgebrochen (lieber keine ROM als eine kaputte)
+  function commitPacked(ovlCache, A9) {
+    Object.keys(ovlCache).forEach(function (id) {
+      var r = ovlCache[id];
+      if (r && !r.commit()) throw new Error('Overlay ' + id + ' ließ sich nach den Änderungen nicht klein genug packen – es wurde keine ROM geschrieben. Bitte die Optionen für TMs, Lehrer, Shops, Pickup und Starter auf „Unverändert“ stellen.');
+    });
+    if (A9 && !A9.commit()) throw new Error('Das arm9 ließ sich nach den Änderungen nicht klein genug packen – es wurde keine ROM geschrieben. Bitte TMs, Shops, versteckte Items und Starter auf „Unverändert“ stellen.');
   }
 
   function run(buf, rom0, userOpts) {
@@ -454,5 +468,5 @@
   }
 
 
-  window.CCRandNds = { CAPS: { moves: true, tm: true, extra: true, evoFix: true, items: true }, get DEFAULTS() { return window.CCRandCore.DEFAULTS; }, buildModel: buildModel, scan: scan, run: run, validSpecies: validSpecies, makePool: makePool, wildSlots: wildSlots };
+  window.CCRandNds = { CAPS: { moves: true, tm: true, extra: true, evoFix: true, items: true }, get DEFAULTS() { return window.CCRandCore.DEFAULTS; }, buildModel: buildModel, scan: scan, run: run, commitPacked: commitPacked, validSpecies: validSpecies, makePool: makePool, wildSlots: wildSlots };
 })();

@@ -44,7 +44,8 @@
     legal: 'Legal', illegal: 'Illegal', suspicious: 'Verdächtig',
     find: 'Suchen …', findNone: 'Nichts gefunden.', findIn: 'Box', heal: 'Team heilen', maxBox: 'Box: alle IP 31', chk: 'Prüfung', chkOk: 'Keine Auffälligkeiten.', hexCopy: 'Hex kopieren', hexNote: 'Entschlüsselte Rohdaten des Pokémon (nur Ansicht).',
     cEv: 'EP-Summe über 510', cMove: 'Doppelte Attacke', cNoMove: 'Keine Attacke', cNick: 'Spitzname zu lang', cLv: 'Level außerhalb 1–100', cIv: 'IP über 31', cEmpty: 'Leerer Name des Ursprungstrainers', cShinyLock: 'Shiny, Ei oder Zustand prüfen',
-    dirty: 'Ungespeicherte Änderungen', impBad: 'Datei passt nicht zu diesem Spielstand.', nothing: 'Kein Pokémon ausgewählt.', ball: 'Ball', metLv: 'Level beim Fang'
+    dirty: 'Ungespeicherte Änderungen', impBad: 'Datei passt nicht zu diesem Spielstand.', nothing: 'Kein Pokémon ausgewählt.', ball: 'Ball', metLv: 'Level beim Fang',
+    memeWarn: 'Achtung: Die Gen-7-Signatur (MemeCrypto) konnte nicht erneuert werden – das Spiel lehnt diesen Spielstand eventuell ab.'
   } : {
     tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Main', tStats: 'Stats', tMoves: 'Moves', tOt: 'OT / Misc', set: 'Set', del: 'Delete', exp2: 'Export (.pk)', sdBtn: 'Showdown text', sdCopy: 'Copy', sdApply: 'Apply', sdClose: 'Close', sdBad: 'Pokémon in the text not recognized', imp: 'Import (.pk)',
     boxPrev: 'Previous box', boxNext: 'Next box', sortSp: 'Sort by Dex no.', sortLv: 'Sort by level', clearBox: 'Clear box', clearConfirm: 'Remove all Pokémon in this box?',
@@ -66,7 +67,8 @@
     legal: 'Legal', illegal: 'Illegal', suspicious: 'Suspicious',
     find: 'Search …', findNone: 'Nothing found.', findIn: 'Box', heal: 'Heal party', maxBox: 'Box: all IVs 31', chk: 'Check', chkOk: 'No issues found.', hexCopy: 'Copy hex', hexNote: 'Decrypted raw data of the Pokémon (view only).',
     cEv: 'EV total above 510', cMove: 'Duplicate move', cNoMove: 'No move', cNick: 'Nickname too long', cLv: 'Level outside 1–100', cIv: 'IV above 31', cEmpty: 'Empty OT name', cShinyLock: 'Check shiny, egg or status',
-    dirty: 'Unsaved changes', impBad: 'File does not fit this save.', nothing: 'No Pokémon selected.', ball: 'Ball', metLv: 'Met level'
+    dirty: 'Unsaved changes', impBad: 'File does not fit this save.', nothing: 'No Pokémon selected.', ball: 'Ball', metLv: 'Met level',
+    memeWarn: 'Warning: the Gen 7 signature (MemeCrypto) could not be renewed – the game may reject this save.'
   };
   var st = { sv: null, name: '', orig: null, base: 0, err: '', msg: '', box: 0, sel: null, mon: null, dirty: false, tab: 'main', pane: 'mon', pi: 0, ev: 'flags' };
   var root;
@@ -78,34 +80,81 @@
   function maxMove() { return st.sv.maxMove; }
   function maxItem() { return st.sv.maxItem; }
   function maxAbility() { return st.sv.maxAbility; }
-  function pers(species) { var e = P['g' + st.sv.gen][st.sv.natOf(species)]; return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0]; }
+  // Basiswerte/Fähigkeiten/Geschlecht je Art und Form (Formen aus PKHeX-Personal-Daten fN; Gen 3: Deoxys je Spiel)
+  function pers(species, form) {
+    var sv = st.sv, nat = sv.natOf(species), e = P['g' + sv.gen][nat], ft = form > 0 && P['f' + sv.gen] && P['f' + sv.gen][nat];
+    if (sv.gen === 3 && nat === 386 && P.deoxys3) e = P.deoxys3[sv.game === 'FRLG' ? 'FR' : sv.game] || e; // FR/BG lassen sich im Spielstand nicht unterscheiden
+    if (ft && ft[form - 1]) e = ft[form - 1];
+    return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0];
+  }
+  function formOf(d) { return st.sv.gen >= 4 && !st.sv.gb ? (st.sv.fmt.get(d, 'form') || 0) : 0; }
+  function persD(d) { return pers(st.sv.fmt.get(d, 'species'), formOf(d)); }
   function isShiny(d) { var F = st.sv.fmt; if (F.gb) return F.shiny(d); var p = F.get(d, 'pid'); return ((F.get(d, 'tid') ^ F.get(d, 'sid') ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8); }
-  // neue PID mit gewünschtem Wesen / Shiny-Status (Geschlecht und Fähigkeits-Slot bleiben erhalten)
+  function unownLetter(p) { return ((((p >>> 24) & 3) << 6) | (((p >>> 16) & 3) << 4) | (((p >>> 8) & 3) << 2) | (p & 3)) % 28; }
+  // neue PID mit gewünschtem Wesen / Shiny-Status. Erhalten bleiben: Low-Byte (Geschlecht, Gen 3/4 Fähigkeit = Bit 0), Gen 5 Fähigkeit (Bit 16),
+  // wenn möglich auch Gen-3-Icognito-Buchstabe und Waumpel-Entwicklung (Gen 3–5). Die Suche ist deterministisch und endlich:
+  // Shiny: Low-Word frei (Bits 8–15), High-Word = TID^SID^Low^x mit x < 8 (Gen 6+: 16); sonst High-Word über alle 65536 Werte.
   // gender (optional): 0 = männlich, 1 = weiblich -> Low-Byte der PID wird passend zum Geschlechterverhältnis gewählt
   function newPid(d, nature, shiny, gender) {
-    var F = st.sv.fmt, old = F.get(d, 'pid'), tid = F.get(d, 'tid'), sid = F.get(d, 'sid'), low = old & 0xFF, bit = old & 1;
-    if (gender !== undefined && st.sv.gen <= 5) {
-      var ratio = pers(F.get(d, 'species'))[7], cand = [], c;
-      for (c = 0; c < 256; c++) if ((c < ratio ? 1 : 0) === gender && (st.sv.gen !== 3 || (c & 1) === bit)) cand.push(c);
-      if (cand.length) low = cand[Math.floor(Math.random() * cand.length)];
+    var sv = st.sv, F = sv.fmt, gen = sv.gen, old = F.get(d, 'pid'), tsv = (F.get(d, 'tid') ^ F.get(d, 'sid')) & 0xFFFF, thr = gen >= 6 ? 16 : 8;
+    var nat = sv.natOf(F.get(d, 'species')), ratio = persD(d)[7], bit = old & 1, c;
+    var gNow = (old & 0xFF) < ratio ? 1 : 0, want = gender !== undefined && gen <= 5 ? gender : gNow;
+    function lowOk(c) { return (ratio === 0 || ratio >= 254 || (c < ratio ? 1 : 0) === want) && ((gen !== 3 && gen !== 4) || (c & 1) === bit); }
+    var lows = [];
+    if (gender !== undefined && gen <= 5) { for (c = 0; c < 256; c++) if (lowOk(c)) lows.push(c); }
+    else lows.push(old & 0xFF);
+    var allLows = []; for (c = 0; c < 256; c++) if (lowOk(c)) allLows.push(c);
+    var r = Math.floor(Math.random() * 65536);
+    function shuffled(l) { l = l.slice(); for (var i = l.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = l[i]; l[i] = l[j]; l[j] = t; } return l; }
+    function hard(p) {
+      if (F.natureIsPid && p % 25 !== nature) return false;
+      if ((((tsv ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < thr) !== shiny) return false;
+      return gen !== 5 || ((p >>> 16) & 1) === ((old >>> 16) & 1);
     }
-    for (var i = 0; i < 600000; i++) {
-      var p = ((Math.random() * 0x10000) << 16 | (Math.random() * 0x10000)) >>> 0;
-      p = ((p & 0xFFFFFF00) | low) >>> 0;
-      if (F.natureIsPid && p % 25 !== nature) continue;
-      var sh = ((tid ^ sid ^ (p >>> 16) ^ (p & 0xFFFF)) >>> 0) < (st.sv.gen >= 6 ? 16 : 8);
-      if (sh !== shiny) continue;
-      if (st.sv.gen === 3 && ((p & 1) !== bit)) continue;
-      return p;
+    function soft(p) {
+      if (gen === 3 && nat === 201 && unownLetter(p) !== unownLetter(old)) return false;
+      if (gen >= 3 && gen <= 5 && nat === 265 && (((p >>> 16) % 10) < 5) !== (((old >>> 16) % 10) < 5)) return false;
+      return true;
     }
-    return old;
+    function search(lowList, useSoft) {
+      for (var li = 0; li < lowList.length; li++) {
+        var low = lowList[li], lo, hi, p, m, k;
+        if (shiny) {
+          for (m = 0; m < 256; m++) {
+            lo = ((((m + r) & 0xFF) << 8) | low) >>> 0;
+            for (k = 0; k < thr; k++) { hi = (tsv ^ lo ^ k) & 0xFFFF; p = ((hi << 16) | lo) >>> 0; if (hard(p) && (!useSoft || soft(p))) return p; }
+          }
+        } else {
+          lo = ((old & 0xFF00) | low) >>> 0;
+          for (k = 0; k < 65536; k++) { hi = (r + k) & 0xFFFF; p = ((hi << 16) | lo) >>> 0; if (hard(p) && (!useSoft || soft(p))) return p; }
+        }
+      }
+      return -1;
+    }
+    var res = search(shuffled(lows), true);
+    if (res < 0) res = search(shuffled(lows), false);
+    if (res < 0) res = search(shuffled(allLows), false);
+    return res < 0 ? old : res;
   }
   function recalc(d, partyMon) {
-    var F = st.sv.fmt, sp = F.get(d, 'species'), base = pers(sp).slice(0, 6), growth = pers(sp)[6];
+    var F = st.sv.fmt, sp = F.get(d, 'species'), base = persD(d).slice(0, 6), growth = persD(d)[6];
     var iv = [], ev = [], i;
     for (i = 0; i < 6; i++) { iv.push(F.get(d, 'iv', i)); ev.push(F.get(d, 'ev', i)); }
     var lv = S.levelFor(growth, F.get(d, 'exp'));
     return { level: lv, stats: S.calcStats(base, lv, iv, ev, F.nature(d), st.sv.natOf(sp) === 292) };
+  }
+  // Grenzen: EP je Wert 252 ab Gen 6 (vorher 255), Summe 510; Geld Gen 1–4 999.999, ab Gen 5 9.999.999
+  function evMax() { return st.sv.gen >= 6 ? 252 : 255; }
+  function clampEv(d, s, v) { var F = st.sv.fmt, other = 0; for (var i = 0; i < 6; i++) if (i !== s) other += F.get(d, 'ev', i); return Math.max(0, Math.min(v, evMax(), 510 - other)); }
+  function maxMoney(gen) { return gen >= 5 ? 9999999 : 999999; }
+  // AP-Maximum aus Basis-AP (PKHeX-Tabelle) und AP-Ups; Gen 1/2 höchstens +7 je AP-Up (6 Bit)
+  function ppUps(d, m) { var F = st.sv.fmt; return st.sv.gen === 3 ? (F.get(d, 'ppups') >> (m * 2)) & 3 : F.get(d, 'ppups', m); }
+  function ppMax(mv, ups) {
+    var gb = !!st.sv.gb, cap = gb ? 63 : 99, t = window.PKHEX && window.PKHEX.pp && window.PKHEX.pp['gen' + st.sv.gen], b = t && mv ? t[mv] : 0;
+    if (!mv) return 0;
+    if (!b) return cap;
+    var inc = Math.floor(b / 5); if (gb) inc = Math.min(7, inc);
+    return Math.min(cap, b + inc * (ups || 0));
   }
   function refreshParty(d) {
     var F = st.sv.fmt, r = recalc(d);
@@ -132,12 +181,17 @@
       for (var i = 0; i < 6; i++) F.set(d, 'iv', 15 + 0, i);
     } else {
       d[0x17] = lang;
-      F.set(d, 'ot', t.name); F.set(d, 'nick', speciesName(species)); F.set(d, 'ball', 4); d[132] = 5;
+      // Ursprungsspiel passend zum Spielstand (vor dem Ball: HGSS-Ball hängt davon ab), Fundort und Fangdatum heute
+      if (sv.version) F.set(d, 'version', sv.version);
+      // Gen 4: Artnamen ohne Spitznamen stehen in Großbuchstaben, ab Gen 5 normal geschrieben
+      F.set(d, 'ot', t.name); F.set(d, 'nick', sv.gen === 4 ? speciesName(species).toUpperCase() : speciesName(species)); F.set(d, 'ball', 4); d[132] = 5 | ((t.gender ? 1 : 0) << 7);
+      if (sv.defaultMetLoc) F.set(d, 'metLoc', sv.defaultMetLoc);
+      var now = new Date(); F.set(d, 'metYear', now.getFullYear() - 2000); F.set(d, 'metMonth', now.getMonth() + 1); F.set(d, 'metDay', now.getDate());
       for (var j = 0; j < 6; j++) F.set(d, 'iv', 15, j);
     }
     F.set(d, 'exp', S.expFor(pers(species)[6], 5));
-    var g = pers(species)[7], pid = F.get(d, 'pid');
-    if (sv.gen >= 4) { d[64] = (d[64] & ~6) | ((g === 255 ? 2 : g === 254 ? 1 : g === 0 ? 0 : ((pid & 0xFF) < g ? 1 : 0)) << 1); F.set(d, 'ability', pers(species)[8 + (pid & 1)] || pers(species)[8]); }
+    var g = pers(species)[7], pid = F.get(d, 'pid'), abBit = sv.gen === 5 ? (pid >>> 16) & 1 : pid & 1; // Gen 5: Fähigkeits-Slot = PID-Bit 16
+    if (sv.gen >= 4) { d[64] = (d[64] & ~6) | ((g === 255 ? 2 : g === 254 ? 1 : g === 0 ? 0 : ((pid & 0xFF) < g ? 1 : 0)) << 1); F.set(d, 'ability', pers(species)[8 + abBit] || pers(species)[8]); }
     var mv = defaultMoves(species);
     for (var k = 0; k < 4; k++) { F.set(d, 'move', mv[k] || 0, k); F.set(d, 'pp', mv[k] ? 10 : 0, k); }
     if (party) refreshParty(d);
@@ -198,9 +252,11 @@
     for (i = 0; i < 5; i++) se.push(F.get(d, 'ev', i));
     return { level: lv, stats: window.CCSaveGB.calc(sv.baseOf(sp), lv, dv, se) };
   }
-  function gbRefresh(d) {
+  // party: false = Box-Pokémon. Gen 2 speichert KP und Werte nur im Team (Box-Struktur 32 Byte), dort wird nichts davon geschrieben.
+  function gbRefresh(d, party) {
     var F = st.sv.fmt, r = gbRecalc(d);
     F.set(d, 'level', r.level);
+    if (party === false && st.sv.gen === 2) return;
     var oldMax = F.stats(d)[0] || 0, full = !oldMax || F.get(d, 'hp') >= oldMax;
     F.setStats(d, r.stats);
     if (full || F.get(d, 'hp') > r.stats[0]) F.set(d, 'hp', r.stats[0]);
@@ -212,13 +268,13 @@
     var natOpts = ''; for (var n = 1; n <= sv.maxSpecies; n++) natOpts += '<option value="' + n + '"' + (n === sp ? ' selected' : '') + '>#' + n + ' ' + esc(speciesName(n)) + '</option>';
     box.appendChild(field(L.species, select2(natOpts, function (v) {
       if (F.get(d, 'nick') === speciesName(sp).toUpperCase()) F.set(d, 'nick', speciesName(v).toUpperCase());
-      F.set(d, 'species', v); gbRefresh(d); changed();
+      F.set(d, 'species', v); gbRefresh(d, party); changed();
     })));
     var nk = el('input', { type: 'text', class: 'sv-txt', maxlength: 10 }); nk.value = F.get(d, 'nick'); nk.onchange = function () { F.set(d, 'nick', nk.value.toUpperCase()); };
     box.appendChild(field(L.nick, nk));
     var row = el('div', { class: 'sv-row' }), lvl = S.levelFor(g, F.get(d, 'exp'));
-    row.appendChild(field(L.level, num(lvl, 1, 100, function (v) { F.set(d, 'exp', S.expFor(g, v)); gbRefresh(d); changed(); }), 'sm'));
-    row.appendChild(field(L.exp, num(F.get(d, 'exp'), 0, 1640000, function (v) { F.set(d, 'exp', v); gbRefresh(d); changed(); }), 'sm'));
+    row.appendChild(field(L.level, num(lvl, 1, 100, function (v) { F.set(d, 'exp', S.expFor(g, v)); gbRefresh(d, party); changed(); }), 'sm'));
+    row.appendChild(field(L.exp, num(F.get(d, 'exp'), 0, 1640000, function (v) { F.set(d, 'exp', v); gbRefresh(d, party); changed(); }), 'sm'));
     if (sv.gen === 2) row.appendChild(field(L.friendship, num(F.get(d, 'friendship'), 0, 255, function (v) { F.set(d, 'friendship', v); }), 'sm'));
     box.appendChild(row);
     if (sv.gen === 2) {
@@ -233,9 +289,9 @@
     var mt = el('div', { class: 'sv-moves' });
     for (var m = 0; m < 4; m++) (function (m) {
       var r = el('div', { class: 'sv-mrow' });
-      r.appendChild(select2(opts(T.moves, maxMove(), F.get(d, 'move', m), L.none), function (v) { F.set(d, 'move', v, m); if (v && !F.get(d, 'pp', m)) F.set(d, 'pp', 10, m); changed(); }));
-      r.appendChild(num(F.get(d, 'pp', m), 0, 63, function (v) { F.set(d, 'pp', v, m); }));
-      r.appendChild(num(F.get(d, 'ppups', m), 0, 3, function (v) { F.set(d, 'ppups', v, m); }));
+      r.appendChild(select2(opts(T.moves, maxMove(), F.get(d, 'move', m), L.none), function (v) { F.set(d, 'move', v, m); F.set(d, 'pp', v ? ppMax(v, F.get(d, 'ppups', m)) : 0, m); changed(); }));
+      r.appendChild(num(F.get(d, 'pp', m), 0, ppMax(F.get(d, 'move', m), F.get(d, 'ppups', m)), function (v) { F.set(d, 'pp', v, m); }));
+      r.appendChild(num(F.get(d, 'ppups', m), 0, 3, function (v) { F.set(d, 'ppups', v, m); F.set(d, 'pp', Math.min(F.get(d, 'pp', m), ppMax(F.get(d, 'move', m), v)), m); changed(); }));
       mt.appendChild(r);
     })(m);
     var mh = el('div', { class: 'sv-mrow sv-mhead' }); mh.appendChild(el('span', { text: L.moves })); mh.appendChild(el('span', { text: L.pp })); mh.appendChild(el('span', { text: L.ppups }));
@@ -245,12 +301,12 @@
     tbl.innerHTML = '<tr><th></th>' + L.gbstat.map(function (x) { return '<th>' + esc(x) + '</th>'; }).join('') + '</tr>';
     var rEv = el('tr'), rDv = el('tr'), rSt = el('tr'); rEv.appendChild(el('th', { text: L.statexp })); rDv.appendChild(el('th', { text: L.dv })); rSt.appendChild(el('th', { text: L.stats }));
     for (var s = 0; s < 5; s++) (function (s) {
-      var e = el('td'); e.appendChild(num(F.get(d, 'ev', s), 0, 65535, function (v) { F.set(d, 'ev', v, s); gbRefresh(d); changed(); })); rEv.appendChild(e);
+      var e = el('td'); e.appendChild(num(F.get(d, 'ev', s), 0, 65535, function (v) { F.set(d, 'ev', v, s); gbRefresh(d, party); changed(); })); rEv.appendChild(e);
       var dc = el('td');
       if (s === 0) dc.appendChild(el('span', { text: String(((F.get(d, 'dv', 0) & 1) << 3) | ((F.get(d, 'dv', 1) & 1) << 2) | ((F.get(d, 'dv', 2) & 1) << 1) | (F.get(d, 'dv', 3) & 1)) }));
-      else dc.appendChild(num(F.get(d, 'dv', s - 1), 0, 15, function (v) { F.set(d, 'dv', v, s - 1); gbRefresh(d); changed(); }));
+      else dc.appendChild(num(F.get(d, 'dv', s - 1), 0, 15, function (v) { F.set(d, 'dv', v, s - 1); gbRefresh(d, party); changed(); }));
       rDv.appendChild(dc);
-      rSt.appendChild(el('td', { text: String(r.stats[s]) }));
+      rSt.appendChild(el('td', { text: s === 4 && r.stats.length > 5 ? r.stats[4] + ' / ' + r.stats[5] : String(r.stats[s]) })); // Gen 2: SpA / SpV
     })(s);
     tbl.appendChild(rEv); tbl.appendChild(rDv); tbl.appendChild(rSt); box.appendChild(tbl);
     var ot = el('input', { type: 'text', class: 'sv-txt', maxlength: 7 }); ot.value = F.get(d, 'ot'); ot.onchange = function () { F.set(d, 'ot', ot.value.toUpperCase()); };
@@ -271,7 +327,7 @@
     })();
     var gqb = el('div', { class: 'sv-row sv-quick' });
     [[X.maxDv, function () { for (var q = 0; q < 4; q++) F.set(d, 'dv', 15, q); }], [X.zeroSe, function () { for (var q = 0; q < 5; q++) F.set(d, 'ev', 0, q); }], [X.maxSe, function () { for (var q = 0; q < 5; q++) F.set(d, 'ev', 65535, q); }]].forEach(function (c) {
-      var b2 = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); b2.onclick = function () { c[1](); gbRefresh(d); changed(); render(); }; gqb.appendChild(b2);
+      var b2 = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); b2.onclick = function () { c[1](); gbRefresh(d, party); changed(); render(); }; gqb.appendChild(b2);
     });
     box.appendChild(gqb);
     var bar = el('div', { class: 'sv-bar' });
@@ -283,6 +339,34 @@
     return box;
   }
 
+  // Artwechsel (Gen 3+): Spitzname, Form, Geschlecht und Fähigkeit an die neue Art anpassen
+  function changeSpecies(d, v, party) {
+    var sv = st.sv, F = sv.fmt, gen = sv.gen, oldNat = sv.natOf(F.get(d, 'species'));
+    F.set(d, 'species', sv.speciesFromNat(v));
+    if (gen >= 4 && !F.get(d, 'nicknamed') && !F.get(d, 'egg')) F.set(d, 'nick', gen === 4 ? speciesName(v).toUpperCase() : speciesName(v));
+    if (gen === 3 && F.get(d, 'nick') === speciesName(oldNat).toUpperCase()) F.set(d, 'nick', speciesName(v).toUpperCase());
+    if (gen >= 4) {
+      // Form auf 0, wenn die neue Art diese Form nicht hat (Formnamen-Liste oder Formen in den Personal-Daten)
+      var fl = formNames(v, gen), ft = P['f' + gen] && P['f' + gen][v], nForms = Math.max(fl ? fl.length : 1, ft ? ft.length + 1 : 1);
+      if ((F.get(d, 'form') || 0) >= nForms) F.set(d, 'form', 0);
+      // Geschlecht: geschlechtslos / nur männlich / nur weiblich erzwingen, sonst aus der PID (Gen 4/5) bzw. bisheriges Geschlecht (Gen 6+)
+      var ratio = persD(d)[7], pid = F.get(d, 'pid'), cur = F.get(d, 'gender');
+      F.set(d, 'gender', ratio === 255 ? 2 : ratio === 254 ? 1 : ratio === 0 ? 0 : (gen <= 5 || cur === 2) ? ((pid & 0xFF) < ratio ? 1 : 0) : cur);
+      var g2 = persD(d);
+      if (gen === 4) F.set(d, 'ability', g2[8 + (pid & 1)] || g2[8] || 0);
+      else if (gen === 5) F.set(d, 'ability', (F.get(d, 'hiddenAbility') ? g2[10] : g2[8 + ((pid >>> 16) & 1)]) || g2[8] || 0); // Gen 5: Slot = PID-Bit 16
+      else { var an = F.get(d, 'abilityNum'), idx = an === 4 ? 10 : an === 2 ? 9 : 8; F.set(d, 'ability', g2[idx] || g2[8] || 0); if (an !== 1 && an !== 2 && an !== 4) F.set(d, 'abilityNum', 1); }
+    }
+    if (party) refreshParty(d);
+  }
+  // Ei-Status setzen; Gen 3: beim Entfernen Spitzname und Sprache wiederherstellen (das Format setzt "タマゴ" und Japanisch)
+  function setEgg(d, on) {
+    var sv = st.sv, F = sv.fmt;
+    F.set(d, 'egg', on ? 1 : 0);
+    if (!on && sv.gen === 3 && d[8] === 0x60 && d[9] === 0x6F && d[10] === 0x8B) {
+      F.set(d, 'lang', de ? 5 : 2); F.set(d, 'nick', speciesName(sv.natOf(F.get(d, 'species'))).toUpperCase());
+    }
+  }
   function monEditor() {
     var sv = st.sv, F = sv.fmt, d = st.mon, box = el('div', { class: 'sv-ed' }), party = st.sel.kind === 'party';
     box.appendChild(el('h3', { text: L.edit }));
@@ -293,17 +377,10 @@
     }
     function changed() { render(); }
     var PN = { rib: null, hex: el('div', { class: 'sv-pane' }), main: el('div', { class: 'sv-pane' }), stats: el('div', { class: 'sv-pane' }), moves: el('div', { class: 'sv-pane' }), ot: el('div', { class: 'sv-pane' }) };
-    var sp = F.get(d, 'species'), nat = sv.natOf(sp), g = pers(sp);
+    var sp = F.get(d, 'species'), nat = sv.natOf(sp), g = persD(d);
     // Art
     var natOpts = ''; for (var n = 1; n <= sv.maxSpecies; n++) natOpts += '<option value="' + n + '"' + (n === nat ? ' selected' : '') + '>#' + n + ' ' + esc(speciesName(n)) + '</option>';
-    var selSp = select2(natOpts, function (v) {
-      var old = pers(sp); F.set(d, 'species', sv.speciesFromNat(v));
-      if (!F.get(d, 'nicknamed') && sv.gen >= 4) F.set(d, 'nick', speciesName(v));
-      if (sv.gen === 3 && F.get(d, 'nick') === speciesName(nat).toUpperCase()) F.set(d, 'nick', speciesName(v).toUpperCase());
-      if (sv.gen === 4) F.set(d, 'ability', pers(F.get(d, 'species'))[8 + (F.get(d, 'pid') & 1)] || 0);
-      if (sv.gen >= 6) { F.set(d, 'ability', pers(F.get(d, 'species'))[8] || 0); F.set(d, 'abilityNum', 1); }
-      if (party) refreshParty(d); changed();
-    });
+    var selSp = select2(natOpts, function (v) { changeSpecies(d, v, party); changed(); });
     PN.main.appendChild(field(L.species, selSp));
     var nk = el('input', { type: 'text', class: 'sv-txt', maxlength: sv.gen >= 6 ? 12 : 10 }); nk.value = F.get(d, 'nick');
     nk.onchange = function () { F.set(d, 'nick', nk.value); if (sv.gen >= 4) F.set(d, 'nicknamed', 1); };
@@ -338,7 +415,7 @@
       });
       if (gsel) row2.appendChild(field(L.gender, gsel));
     }
-    var eg = el('input', { type: 'checkbox' }); eg.checked = !!F.get(d, 'egg'); eg.onchange = function () { F.set(d, 'egg', eg.checked ? 1 : 0); };
+    var eg = el('input', { type: 'checkbox' }); eg.checked = !!F.get(d, 'egg'); eg.onchange = function () { setEgg(d, eg.checked); changed(); };
     var egl = el('label', { class: 'sv-check' }); egl.appendChild(eg); egl.appendChild(el('span', { text: L.egg })); row2.appendChild(egl);
     PN.main.appendChild(row2);
     // Fähigkeit
@@ -373,10 +450,11 @@
     var mt = el('div', { class: 'sv-moves' });
     for (var m = 0; m < 4; m++) (function (m) {
       var r = el('div', { class: 'sv-mrow' });
-      r.appendChild(select2(opts(T.moves, maxMove(), F.get(d, 'move', m), L.none), function (v) { F.set(d, 'move', v, m); if (v && !F.get(d, 'pp', m)) F.set(d, 'pp', 10, m); changed(); }));
-      r.appendChild(num(F.get(d, 'pp', m), 0, 99, function (v) { F.set(d, 'pp', v, m); }));
-      r.appendChild(num(sv.gen === 3 ? (F.get(d, 'ppups') >> (m * 2)) & 3 : F.get(d, 'ppups', m), 0, 3, function (v) {
+      r.appendChild(select2(opts(T.moves, maxMove(), F.get(d, 'move', m), L.none), function (v) { F.set(d, 'move', v, m); F.set(d, 'pp', v ? ppMax(v, ppUps(d, m)) : 0, m); changed(); }));
+      r.appendChild(num(F.get(d, 'pp', m), 0, ppMax(F.get(d, 'move', m), ppUps(d, m)), function (v) { F.set(d, 'pp', v, m); }));
+      r.appendChild(num(ppUps(d, m), 0, 3, function (v) {
         if (sv.gen === 3) F.set(d, 'ppups', (F.get(d, 'ppups') & ~(3 << (m * 2))) | (v << (m * 2))); else F.set(d, 'ppups', v, m);
+        F.set(d, 'pp', Math.min(F.get(d, 'pp', m), ppMax(F.get(d, 'move', m), v)), m); changed();
       }));
       mt.appendChild(r);
     })(m);
@@ -390,7 +468,7 @@
     var rEv = el('tr'), rIv = el('tr'), rSt = el('tr'); rEv.appendChild(el('th', { text: L.ev })); rIv.appendChild(el('th', { text: L.iv })); rSt.appendChild(el('th', { text: L.stats }));
     for (var s = 0; s < 6; s++) (function (s) {
       evsum += F.get(d, 'ev', s);
-      var e = el('td'); e.appendChild(num(F.get(d, 'ev', s), 0, 255, function (v) { F.set(d, 'ev', v, s); if (party) refreshParty(d); changed(); })); rEv.appendChild(e);
+      var e = el('td'); e.appendChild(num(F.get(d, 'ev', s), 0, evMax(), function (v) { F.set(d, 'ev', clampEv(d, s, v), s); if (party) refreshParty(d); changed(); })); rEv.appendChild(e);
       var iv = el('td'); iv.appendChild(num(F.get(d, 'iv', s), 0, 31, function (v) { F.set(d, 'iv', v, s); if (party) refreshParty(d); changed(); })); rIv.appendChild(iv);
       rSt.appendChild(el('td', { text: String(stt[s]) }));
     })(s);
@@ -515,14 +593,27 @@
 
   // ---------- Slots: lesen, schreiben, ziehen ----------
   function getAt(loc) { return loc.kind === 'party' ? (st.sv.getParty()[loc.slot] || null) : st.sv.getBoxMon(loc.box, loc.slot); }
+  // Box-Daten sind kürzer als Team-Daten (Gen 3: 80/100, Gen 4: 136/236, Gen 5: 136/220, Gen 6/7: 232/260, Gen 2: 32/48 Byte):
+  // ins Team auf volle Länge erweitern und Level/Werte/KP neu berechnen, in die Box auf Box-Länge kürzen
+  function toParty(d) {
+    var sv = st.sv, F = sv.fmt, c = new Uint8Array(F.partySize);
+    c.set(d.subarray(0, Math.min(d.length, F.partySize)));
+    if (sv.gb) gbRefresh(c, true); else refreshParty(c);
+    return c;
+  }
+  function toBox(d) {
+    var sv = st.sv, F = sv.fmt;
+    if (sv.gb) { var g = new Uint8Array(d); g.fill(0, sv.gen === 1 ? 34 : F.STORED, F.PARTY); return g; } // Gen 1: Byte 33 (Team-Level) bleibt als Kopie von Byte 3
+    return new Uint8Array(d.subarray(0, F.size));
+  }
   function putAt(loc, d) {
     var sv = st.sv;
     if (loc.kind === 'party') {
       var list = sv.getParty();
-      if (d) { var c = new Uint8Array(d); if (!sv.gb) refreshParty(c); if (loc.slot >= list.length) list.push(c); else list[loc.slot] = c; }
+      if (d) { var c = toParty(d); if (loc.slot >= list.length) list.push(c); else list[loc.slot] = c; }
       else if (loc.slot < list.length) list.splice(loc.slot, 1);
       sv.setParty(list);
-    } else sv.setBoxMon(loc.box, loc.slot, d ? new Uint8Array(d) : null);
+    } else sv.setBoxMon(loc.box, loc.slot, d ? toBox(d) : null);
   }
   function sameLoc(a, b) { return a && b && a.kind === b.kind && a.slot === b.slot && (a.kind === 'party' || a.box === b.box); }
   function dnd(btn, loc) {
@@ -558,7 +649,7 @@
     var sv = st.sv, F = sv.fmt, E = enT(), sp = F.get(d, 'species'), nat = sv.natOf(sp), lines = [], itm = F.get(d, 'item');
     var lv = S.levelFor(pers(sp)[6], F.get(d, 'exp'));
     lines.push(nm(E.species, nat) + (itm ? ' @ ' + nm(E.items, itm) : ''));
-    var ab = F.get(d, 'ability'); if (sv.gen === 3) ab = pers(sp)[8 + (F.get(d, 'abilitySlot') ? 1 : 0)] || pers(sp)[8];
+    var ab = F.get(d, 'ability'); if (sv.gen === 3) ab = persD(d)[8 + (F.get(d, 'abilitySlot') ? 1 : 0)] || persD(d)[8];
     if (ab) lines.push('Ability: ' + nm(E.abilities, ab));
     lines.push('Level: ' + lv);
     if (isShiny(d)) lines.push('Shiny: Yes');
@@ -673,7 +764,7 @@
       for (i = 0; i < 6; i++) { var e = Math.min(252, F.get(d, 'ev', i)); F.set(d, 'ev', e, i); sum += e; }
       for (i = 5; i >= 0 && sum > 510; i--) { var cut = Math.min(F.get(d, 'ev', i), sum - 510); F.set(d, 'ev', F.get(d, 'ev', i) - cut, i); sum -= cut; }
       for (i = 0; i < 6; i++) if (F.get(d, 'iv', i) > 31) F.set(d, 'iv', 31, i);
-      var g = pers(sp), a1 = g[8] || 0, a2 = g[9] || 0, a3 = g[10] || 0;
+      var g = persD(d), a1 = g[8] || 0, a2 = g[9] || 0, a3 = g[10] || 0;
       if (gen === 3) { if (F.get(d, 'abilitySlot') && (!a2 || a2 === a1)) F.set(d, 'abilitySlot', 0); }
       else {
         var ab = F.get(d, 'ability'), hid = gen === 5 ? F.get(d, 'hiddenAbility') : (gen >= 6 && F.get(d, 'abilityNum') === 4 ? 1 : 0), valid = hid ? (a3 && ab === a3) : (ab === a1 || ab === a2);
@@ -684,10 +775,35 @@
     var sg = window.CCLegal && window.CCLegal.suggest ? window.CCLegal.suggest(sv, d, { P: P, S: S, de: de }) : null;
     if (sg) { F.set(d, 'metLoc', sg.loc); F.set(d, 'metLevel', sg.level); }
   }
+  // .pk-Datei wie PKHeX: Gen 1/2 als Liste mit einem Platz (69 / 73 Byte), ab Gen 3 entschlüsselt mit gültiger Prüfsumme
+  function monToFile(d) {
+    var sv = st.sv, F = sv.fmt;
+    if (sv.gb) return F.toFile(toParty(d));
+    var c = new Uint8Array(d); if (F.refreshChecksum) F.refreshChecksum(c);
+    return c;
+  }
+  // liest eine .pk-Datei; null, wenn Generation/Größe/Art nicht passen. Ungültige Prüfsumme: verschlüsselte Datei versuchen, sonst neu berechnen.
+  function monFromFile(src, fileName, party) {
+    var sv = st.sv, F = sv.fmt, m = /\.pk(\d)$/i.exec(fileName || ''), d;
+    if (m && +m[1] !== sv.gen) return null;
+    if (sv.gb) d = F.fromFile(src);
+    else {
+      if (!F.fileSizes || F.fileSizes.indexOf(src.length) < 0) return null;
+      d = new Uint8Array(src);
+      if (F.checksumOk && !F.checksumOk(d)) {
+        var dec = F.decode ? F.decode(src, 0, src.length === F.fileSizes[1]) : null;
+        if (dec) d = dec; else if (F.refreshChecksum) F.refreshChecksum(d);
+      }
+    }
+    if (!d) return null;
+    var nat = sv.natOf(F.get(d, 'species'));
+    if (!nat || nat > sv.maxSpecies) return null;
+    return party ? toParty(d) : toBox(d);
+  }
   function exportMon() {
     if (!st.mon) return;
     var F = st.sv.fmt, sp = st.sv.natOf(F.get(st.mon, 'species'));
-    download(String(sp).padStart(3, '0') + ' ' + speciesName(sp) + '.pk' + st.sv.gen, new Uint8Array(st.mon));
+    download(String(sp).padStart(3, '0') + ' ' + speciesName(sp) + '.pk' + st.sv.gen, monToFile(st.mon));
   }
   function importMon(file) {
     if (!file) {
@@ -697,11 +813,9 @@
     }
     var fr = new FileReader();
     fr.onload = function () {
-      var sv = st.sv, party = st.sel && st.sel.kind === 'party';
-      var tpl = sv.gb ? gbBlank(party) : blank(sv.speciesFromNat(1), party), src = new Uint8Array(fr.result);
-      if (src.length < 32) { st.err = X.impBad; return render(); }
-      var d = new Uint8Array(tpl.length); d.set(src.subarray(0, Math.min(src.length, d.length)));
-      if (party && !sv.gb) refreshParty(d);
+      var party = st.sel && st.sel.kind === 'party', d = null;
+      try { d = monFromFile(new Uint8Array(fr.result), file.name, party); } catch (e) { d = null; }
+      if (!d) { st.err = X.impBad; return render(); }
       st.mon = d; st.err = ''; if (!st.sel) st.sel = { kind: 'box', box: st.box, slot: 0 };
       render();
     };
@@ -957,7 +1071,7 @@
     var row = el('div', { class: 'sv-row' });
     row.appendChild(field('TID', num(t.tid, 0, 65535, function (v) { t.tid = v; save(); }), 'sm'));
     if (!t.noSid) row.appendChild(field('SID', num(t.sid, 0, 65535, function (v) { t.sid = v; save(); }), 'sm'));
-    row.appendChild(field(L.money, num(t.money, 0, sv.gen >= 6 ? 9999999 : 999999, function (v) { t.money = v; save(); }), 'sm'));
+    row.appendChild(field(L.money, num(t.money, 0, maxMoney(sv.gen), function (v) { t.money = v; save(); }), 'sm'));
     box.appendChild(row);
     var gs = select2('<option value="0"' + (!t.gender ? ' selected' : '') + '>' + esc(L.male) + '</option><option value="1"' + (t.gender ? ' selected' : '') + '>' + esc(L.female) + '</option>', function (v) { t.gender = v; save(); });
     if (!t.noGender) box.appendChild(field(L.gender, gs));
@@ -1011,7 +1125,7 @@
       var sb = el('button', { class: 'primary-btn rd-go', text: L.save }); sb.onclick = function () {
         var out = new Uint8Array(st.orig); out.set(sv.finish(), st.base);
         var hasExt = st.name.indexOf('.') > 0, base = st.name.replace(/\.[^.]*$/, ''), ext = (st.name.split('.').pop() || 'sav');
-        download(hasExt ? base + ' (edited).' + ext : st.name + ' (edited)', out); st.msg = L.saved; st.dirty = false; render();
+        download(hasExt ? base + ' (edited).' + ext : st.name + ' (edited)', out); st.msg = L.saved + (sv.signed === false ? ' ' + X.memeWarn : ''); st.dirty = false; render();
       };
       body.appendChild(sb);
       if (st.msg) body.appendChild(el('div', { class: 'rd-ok', text: st.msg }));
@@ -1102,4 +1216,7 @@
     box.appendChild(body); root.appendChild(box);
   }
   window.CCSaveUI = { render: render };
+  // für Tests (node test/test_save_fixes.js): interne Helfer mit gesetztem Spielstand aufrufen
+  window.CCSaveUI._test = { setSv: function (sv) { st.sv = sv; }, newPid: newPid, putAt: putAt, getAt: getAt, changeSpecies: changeSpecies, setEgg: setEgg, blank: blank, recalc: recalc,
+    pers: pers, persD: persD, gbRefresh: gbRefresh, healParty: healParty, batchApply: batchApply, monToFile: monToFile, monFromFile: monFromFile, ppMax: ppMax, clampEv: clampEv, maxMoney: maxMoney, unownLetter: unownLetter, isShiny: isShiny };
 })();

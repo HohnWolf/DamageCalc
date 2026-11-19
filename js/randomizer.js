@@ -142,7 +142,7 @@
 
   function sel(key, choices, labels) {
     var s = el('select', { class: 'rd-sel' }, choices.map(function (c) { return '<option value="' + c + '"' + (String(st.opts[key]) === c ? ' selected' : '') + '>' + esc(labels[c]) + '</option>'; }).join(''));
-    s.onchange = function () { st.opts[key] = s.value; if (key === 'starters') render(); };
+    s.onchange = function () { st.opts[key] = s.value; render(); }; // neu zeichnen: abhängige Optionen (z. B. Starter-Auswahl, "Rivale behält Starter" bei Trainern) ein-/ausblenden
     return s;
   }
   function row(label, ctrl) { var r = el('label', { class: 'rd-row' }); r.appendChild(el('span', { class: 'rd-lbl', text: label })); r.appendChild(ctrl); return r; }
@@ -313,7 +313,8 @@
         head(ps, S.trades);
         grid(ps).appendChild(modeRow('trades', S.trades, ['keep', 'random', 'similar'], kinds));
         ps.appendChild(check('tradeRequested', S.o_tradeRequested));
-        if (st.ext === 'nds' || maxGen === 7) ['tradeIVs', 'tradeItems'].forEach(function (k) { ps.appendChild(check(k, S['o_' + k])); });
+        if (st.ext === 'nds' || maxGen === 7) ps.appendChild(check('tradeIVs', S.o_tradeIVs));
+        if (st.ext === 'nds') ps.appendChild(check('tradeItems', S.o_tradeItems)); // Gen 6/7: keine Item-Listen im Modell
       }
     }
 
@@ -365,7 +366,8 @@
       head(pa, S.tutorMoves);
       var g8 = grid(pa);
       g8.appendChild(modeRow('tutorMoves', S.tutorMoves, ['keep', 'random'], { keep: S.keep, random: S.tmRandom }));
-      g8.appendChild(modeRow('tutorCompat', S.tutorCompat, ['keep', 'random', 'type', 'full'], { keep: S.keep, random: S.tmRandom, type: S.tmType, full: S.tmFull }));
+      // Omega Rubin/Alpha Saphir: nur die Lehrer-Attacken lassen sich ändern, die Kompatibilität nicht
+      if (!(st.ctx && st.ctx.g && st.ctx.g.type === 'oras')) g8.appendChild(modeRow('tutorCompat', S.tutorCompat, ['keep', 'random', 'type', 'full'], { keep: S.keep, random: S.tmRandom, type: S.tmType, full: S.tmFull }));
     }
 
     // Items

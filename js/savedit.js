@@ -58,7 +58,13 @@
 
   // ======================= Generation 3 =======================
   var ORDERS3 = ['GAEM', 'GAME', 'GEAM', 'GEMA', 'GMAE', 'GMEA', 'AGEM', 'AGME', 'AEGM', 'AEMG', 'AMGE', 'AMEG', 'EGAM', 'EGMA', 'EAGM', 'EAMG', 'EMGA', 'EMAG', 'MGAE', 'MGEA', 'MAGE', 'MAEG', 'MEGA', 'MEAG'];
-  function sum32(u8, off) { var s = 0; for (var i = 0; i < 0xF80; i += 4) s = (s + u32(u8, off + i)) >>> 0; return ((s >>> 16) + (s & 0xFFFF)) & 0xFFFF; }
+  function sum32(u8, off, len) { var s = 0, n = len || 0xF80; for (var i = 0; i < n; i += 4) s = (s + u32(u8, off + i)) >>> 0; return ((s >>> 16) + (s & 0xFFFF)) & 0xFFFF; }
+  // Genutzte Länge je Sektor-ID wie im Spiel (pokeemerald/pokefirered/pokeruby: SaveBlock2, SaveBlock1, PokemonStorage):
+  // Sektor 0 = SaveBlock2 (RS 0x890, FRLG 0xF24, E 0xF2C), 1–3 voll, 4 = Rest von SaveBlock1 (RS 0xC40, FRLG 0xEE8, E 0xF08), 5–12 voll, 13 = 0x7D0.
+  // PKHeX rechnet immer über 0xF80; das ist gleich, solange der ungenutzte Rest 0 ist – das Spiel prüft aber nur die genutzte Länge.
+  var SEC3 = { RS: [0x890, 0xC40], FRLG: [0xF24, 0xEE8], E: [0xF2C, 0xF08] };
+  function secLen3(game, id) { var t = SEC3[game] || SEC3.E; return id === 0 ? t[0] : id === 4 ? t[1] : id === 13 ? 0x7D0 : 0xF80; }
+  var EGG3 = [0x60, 0x6F, 0x8B]; // "タマゴ" im japanischen Gen-3-Zeichensatz
 
   // Pokémon (gen 3) im Klartext: 0–31 Kopf, 32 G, 44 A, 56 E, 68 M, 80+ Teamwerte (nur Team)
   var PK3 = {
@@ -105,7 +111,8 @@
         case 'iv': return (u32(d, 72) >>> (i * 5)) & 31;
         case 'egg': return (u32(d, 72) >>> 30) & 1;
         case 'abilitySlot': return (u32(d, 72) >>> 31) & 1;
-        case 'nick': return G3.decode(d, 8, 10);
+        case 'nick': return (d[19] & 4) && d[8] === EGG3[0] && d[9] === EGG3[1] && d[10] === EGG3[2] ? 'タマゴ' : G3.decode(d, 8, 10);
+        case 'version': return (u16(d, 70) >> 7) & 15;
         case 'ot': return G3.decode(d, 20, 7);
         case 'lang': return d[18];
         case 'pokerus': return d[68];
@@ -136,7 +143,12 @@
         case 'pp': d[52 + i] = v; break;
         case 'ev': d[56 + i] = v; break;
         case 'iv': t = u32(d, 72); t = (t & ~(31 << (i * 5))) >>> 0; w32(d, 72, (t | (v << (i * 5))) >>> 0); break;
-        case 'egg': t = u32(d, 72); w32(d, 72, v ? (t | 0x40000000) >>> 0 : (t & ~0x40000000) >>> 0); break;
+        case 'egg': // wie PKHeX PK3.IsEgg: IV-Bit 30 + Flag-Bit 2 (Byte 19); Ei-Name "タマゴ" und Sprache Japanisch wie im Spiel
+          t = u32(d, 72); w32(d, 72, v ? (t | 0x40000000) >>> 0 : (t & ~0x40000000) >>> 0);
+          d[19] = v ? (d[19] | 4) : (d[19] & ~4);
+          if (v) { d.fill(0xFF, 8, 18); d.set(EGG3, 8); d[18] = 1; }
+          break;
+        case 'version': w16(d, 70, (u16(d, 70) & ~(15 << 7)) | ((v & 15) << 7)); break;
         case 'abilitySlot': t = u32(d, 72); w32(d, 72, v ? (t | 0x80000000) >>> 0 : (t & 0x7FFFFFFF) >>> 0); break;
         case 'nick': d.set(enc3(v, 10, 10), 8); break;
         case 'ot': d.set(enc3(v, 7, 7), 20); break;
@@ -157,7 +169,12 @@
       for (var i = 0; i < 6; i++) w16(d, 88 + i * 2, st[i]);
       if (u16(d, 86) > st[0]) w16(d, 86, st[0]);
     },
-    stats: function (d) { var o = []; for (var i = 0; i < 6; i++) o.push(u16(d, 88 + i * 2)); return o; }
+    stats: function (d) { var o = []; for (var i = 0; i < 6; i++) o.push(u16(d, 88 + i * 2)); return o; },
+    // Prüfsumme der entschlüsselten Daten (Summe der u16 in G/A/E/M)
+    calcChecksum: function (d) { var s = 0; for (var i = 32; i < 80; i += 2) s = (s + u16(d, i)) & 0xFFFF; return s; },
+    checksumOk: function (d) { return PK3.calcChecksum(d) === u16(d, 28); },
+    refreshChecksum: function (d) { w16(d, 28, PK3.calcChecksum(d)); },
+    fileSizes: [80, 100]
   };
   PK3.nature = function (d) { return u32(d, 0) % 25; };
   PK3.natureIsPid = true;
@@ -239,7 +256,7 @@
     sv.finish = function () {
       var out = new Uint8Array(data);
       // beide Spielstand-Kopien bleiben wie sie waren; nur der aktive Block wird neu berechnet
-      for (var id = 0; id < 14; id++) w16(out, sec[id] + 0xFF6, sum32(out, sec[id]));
+      for (var id = 0; id < 14; id++) w16(out, sec[id] + 0xFF6, sum32(out, sec[id], secLen3(game, id)));
       return out;
     };
     return sv;
@@ -322,7 +339,8 @@
         case 'metDay': return d[125];
         case 'nick': return NDS.g4str(d, 72, 11);
         case 'ot': return NDS.g4str(d, 104, 8);
-        case 'ball': return d[131];
+        case 'ball': return Math.max(d[0x83], d[0x86]); // HGSS-Ball (0x86) hat Vorrang, wie PKHeX
+        case 'version': return d[0x5F];
         case 'metLevel': return d[132] & 127;
         case 'level': return d.length >= 220 ? d[140] : 0;
         case 'hp': return d.length >= 220 ? u16(d, 142) : 0;
@@ -365,7 +383,11 @@
         case 'metDay': d[125] = v; break;
         case 'nick': d.set(enc4(v, 10, 11), 72); break;
         case 'ot': d.set(enc4(v, 7, 8), 104); break;
-        case 'ball': d[131] = v; break;
+        case 'ball': // wie PKHeX G4PKM.Ball: DPPt-Ball bis Kirsch-Ball (16), sonst Pokéball; HGSS-Ball (bis Turnierball 24) nur bei Herkunft HG/SS
+          d[0x83] = v <= 16 ? v : 4;
+          d[0x86] = d[0x5F] === 7 || d[0x5F] === 8 ? (v <= 24 ? v : 4) : 0;
+          break;
+        case 'version': d[0x5F] = v; break;
         case 'level': d[140] = v; break;
         case 'hp': w16(d, 142, v); break;
         case 'status': w32(d, 136, v); break;
@@ -374,7 +396,11 @@
     setStats: function (d, st) { for (var i = 0; i < 6; i++) w16(d, 144 + i * 2, st[i]); if (u16(d, 142) > st[0]) w16(d, 142, st[0]); },
     stats: function (d) { var o = []; for (var i = 0; i < 6; i++) o.push(u16(d, 144 + i * 2)); return o; },
     nature: function (d) { return u32(d, 0) % 25; },
-    natureIsPid: true
+    natureIsPid: true,
+    calcChecksum: function (d) { var s = 0; for (var i = 8; i < 136; i += 2) s = (s + u16(d, i)) & 0xFFFF; return s; },
+    checksumOk: function (d) { return this.calcChecksum(d) === u16(d, 6); },
+    refreshChecksum: function (d) { w16(d, 6, this.calcChecksum(d)); },
+    fileSizes: [136, 236]
   };
   // Stat-Reihenfolge im Team (Gen 4): KP, Angr, Vert, Init, SpA, SpV  – genau wie unsere Basiswerte
 
@@ -410,7 +436,11 @@
     var hg = key === 'HGSS';
     var sv = { gen: 4, game: key, gameName: g.name, gameNameEn: g.nameEn, fmt: PK4, data: data, boxCount: 18, slotsPerBox: 30, ext: 'sav', partyMax: 6 };
     sv.gbase = gb;
-    if (hg) { var ver = data[gb + g.trainer + 0x1C]; if (ver === 7) sv.gameName = sv.gameNameEn = 'HeartGold'; if (ver === 8) sv.gameName = sv.gameNameEn = 'SoulSilver'; }
+    var ver = data[gb + g.trainer + 0x1C];
+    if (hg) { if (ver === 7) sv.gameName = sv.gameNameEn = 'HeartGold'; if (ver === 8) sv.gameName = sv.gameNameEn = 'SoulSilver'; }
+    // Ursprungsspiel für neue Pokémon (D 10, P 11, Pt 12, HG 7, SS 8) und ein Fundort am Spielbeginn (Route 201 bzw. Route 29)
+    sv.version = hg ? (ver === 8 ? 8 : 7) : key === 'Pt' ? 12 : (ver === 11 ? 11 : 10);
+    sv.defaultMetLoc = hg ? 177 : 16;
     var to = gb + g.trainer;
     sv.getTrainer = function () {
       return { name: NDS.g4str(data, to, 8), tid: u16(data, to + 0x10), sid: u16(data, to + 0x12), money: u32(data, to + 0x14), gender: data[to + 0x18],
@@ -474,6 +504,7 @@
       case 'ot': return NDS.g5str(d, 104, 8);
       case 'nature': return d[0x41];
       case 'hiddenAbility': return d[0x42] & 1;
+      case 'ball': return d[0x83];
     }
     return PK4.get(d, k, i);
   };
@@ -483,11 +514,13 @@
       case 'ot': d.set(enc5(v, 7, 8), 104); return;
       case 'nature': d[0x41] = v; return;
       case 'hiddenAbility': d[0x42] = (d[0x42] & ~1) | (v ? 1 : 0); return;
+      case 'ball': d[0x83] = v; return;
     }
     PK4.set(d, k, v, i);
   };
   PK5.nature = function (d) { return d[0x41] < 25 ? d[0x41] : u32(d, 0) % 25; };
   PK5.natureIsPid = false;
+  PK5.fileSizes = [136, 220];
   function open5(u8raw) {
     var u8 = u8raw;
     if (u8.length === 0x80000 + 0x7A) u8 = u8.subarray(0, 0x80000);
@@ -499,6 +532,8 @@
     var ver = data[0x1941F], NM = { 20: ['Weiß', 'White'], 21: ['Schwarz', 'Black'], 22: ['Weiß 2', 'White 2'], 23: ['Schwarz 2', 'Black 2'] };
     var nm = NM[ver] || (b2 ? ['Schwarz 2/Weiß 2', 'Black 2/White 2'] : ['Schwarz/Weiß', 'Black/White']);
     var sv = { gen: 5, game: b2 ? 'B2W2' : 'BW', gameName: nm[0], gameNameEn: nm[1], fmt: PK5, data: data, boxCount: 24, slotsPerBox: 30, ext: 'sav', partyMax: 6 };
+    // Ursprungsspiel (W 20, B 21, W2 22, B2 23) und Fundort (Route 1 bzw. Route 19)
+    sv.version = NM[ver] ? ver : (b2 ? 23 : 21); sv.defaultMetLoc = b2 ? 124 : 14;
     var tr = 0x19400, moneyOff = blocks[52][0];
     sv.getTrainer = function () { return { name: NDS.g5str(data, tr + 4, 8), tid: u16(data, tr + 0x14), sid: u16(data, tr + 0x16), gender: data[tr + 0x21], money: u32(data, moneyOff), hours: 0, minutes: 0, seconds: 0 }; };
     sv.setTrainer = function (t) { data.set(enc5(t.name, 7, 8), tr + 4); w16(data, tr + 0x14, t.tid); w16(data, tr + 0x16, t.sid); data[tr + 0x21] = t.gender ? 1 : 0; w32(data, moneyOff, Math.min(t.money, 9999999)); };
@@ -531,5 +566,5 @@
     return open3(u8) || open4(u8) || open5(u8) || (window.CCSave3DS && window.CCSave3DS.open(u8)) || (gb && (gb.open2(u8) || gb.open1(u8))) || null;
   }
 
-  window.CCSave = { PK5: PK5, open: open, expFor: expFor, levelFor: levelFor, calcStats: calcStats, NAT_MOD: NAT_MOD, PK3: PK3, PK4: PK4 };
+  window.CCSave = { secLen3: secLen3, sum32: sum32, PK5: PK5, open: open, expFor: expFor, levelFor: levelFor, calcStats: calcStats, NAT_MOD: NAT_MOD, PK3: PK3, PK4: PK4 };
 })();

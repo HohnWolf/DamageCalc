@@ -42,7 +42,19 @@
   }
 
   function buildModel(rom, u8) {
-    var F = rom.files, names = rom.names || {};
+    var F = rom.files, names = rom.names || {}, N = window.NDS, notes = [];
+    // arm9 und Overlays: komprimierte werden entpackt bearbeitet und in commit() wieder gepackt (js/nds.js arm9RW/overlayRW)
+    var ovlCache = {}, A9 = null;
+    try { A9 = N && N.arm9RW ? N.arm9RW(u8) : (function () { var o = u32(u8, 0x20), n = u32(u8, 0x2C); return o && n && o + n <= u8.length ? { data: u8.subarray(o, o + n), commit: function () { return true; } } : null; })(); } catch (eA) { A9 = null; } // ohne js/nds.js (Tests): unverändert als Ansicht
+    var ovl = function (id) {
+      if (id === undefined || id === null) return null;
+      if (!(id in ovlCache)) {
+        var r = null;
+        try { if (N && N.overlayRW) r = N.overlayRW(u8, id); else if (N && N.overlay) { var d0 = N.overlay(u8, id); r = d0 ? { data: d0, commit: function () { return true; } } : null; } } catch (e2) { r = null; }
+        ovlCache[id] = r;
+      }
+      return ovlCache[id] && ovlCache[id].data;
+    };
     var typePool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17], abilityPool = [];
     for (var ab = 1; ab <= 164; ab++) if (ab !== 25 && ab !== 54) abilityPool.push(ab); // ohne Wunderwache, Bummler
     var species = [];
@@ -53,7 +65,7 @@
     var learnsets = {};
     for (s = 1; s <= 649; s++) if (rom.learnsets[s] && species[s]) learnsets[s] = rom.learnsets[s].map(function (x) { return x.slice(); });
     var model = {
-      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', maxNat: 649, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
+      title: (rom.gameEn || rom.title) + ' (' + rom.code + ')', gen: 5, notes: notes, maxNat: 649, species: species, typeNames: TN, typePool: typePool, abilityPool: abilityPool,
       abilityNames: names.abilities || [], moveNames: names.moves || [], legends: LEGEND, noStatsFor: [292], learnsets: learnsets, moves: rom.moves, maxMove: 559, bannedMoves: [165],
       wild: [], trainers: [], evos: [], starters: []
     };
@@ -102,8 +114,8 @@
       });
       model.trainers.push(tm);
     });
-    // Entwicklungen: 7 Einträge à 6 Byte je Art
-    if (F.evo && F.evo.length > 649) window.CCRandCore.makeEvoTable(model, function (n) { var e = F.evo[n]; return e && e.length >= 42 ? e : null; }, function (n, k) { return k * 6; }, 7, 649);
+    // Entwicklungen: 7 Einträge à 6 Byte je Art (Methode 15 = Nebenentwicklung Ninjask/Shedinja bleibt unberührt, wie im UPR)
+    if (F.evo && F.evo.length > 649) window.CCRandCore.makeEvoTable(model, function (n) { var e = F.evo[n]; return e && e.length >= 42 ? e : null; }, function (n, k) { return k * 6; }, 7, 649, [15]);
     model.evoInfo = { level: 4, stone: 8, trade: 5, tradeItem: 6, tradeSpecial: 7, friendDay: 2, friendNight: 3, beauty: 16, electrified: 25, moss: 26, icy: 27, withMove: 21, withOther: 22, itemDay: 19, itemNight: 20,
       levelMethods: [4, 9, 10, 11, 12, 13, 14, 15, 23, 24], items: { water: 84, sun: 80, moon: 81, leaf: 85, dawn: 109 } };
     model.setGrowth = function (n, v) { var d = F.personal[n]; if (d) d[0x15] = v; };
@@ -117,13 +129,14 @@
       if (ch.acc !== undefined) d[4] = ch.acc;
       if (ch.pp !== undefined) d[5] = ch.pp;
     };
-    // TMs/HMs: Tabelle im arm9 (Muster 87 03 88 03), danach 92 TMs, 6 HMs, 3 TMs; Kompatibilität in den Basiswerten ab Byte 40 (13 Byte = TM1-92, HM1-6, TM93-95)
-    var a9 = u32(u8, 0x20), a9len = u32(u8, 0x2C), at = -1, TM1 = 92, HMN = 6, TM2 = 3;
-    for (var ai = a9; ai < a9 + a9len - 4; ai++) if (u8[ai] === 0x87 && u8[ai + 1] === 3 && u8[ai + 2] === 0x88 && u8[ai + 3] === 3) { at = ai + 4; break; }
-    if (at > 0 && F.personal) {
+    // TMs/HMs: Tabelle im (entpackten) arm9 (Muster 87 03 88 03), danach 92 TMs, 6 HMs, 3 TMs; Kompatibilität in den Basiswerten ab Byte 40 (13 Byte = TM1-92, HM1-6, TM93-95)
+    var a9d = A9 && A9.data, at = -1, TM1 = 92, HMN = 6, TM2 = 3;
+    if (!a9d) notes.push('Das arm9 ließ sich nicht lesen (unbekannter Aufbau) – TM-Attacken bleiben unverändert.');
+    for (var ai = 0; a9d && ai + 4 + 202 <= a9d.length; ai++) if (a9d[ai] === 0x87 && a9d[ai + 1] === 3 && a9d[ai + 2] === 0x88 && a9d[ai + 3] === 3) { at = ai + 4; break; }
+    if (at >= 0 && F.personal) {
       var tmOff = function (i) { return i < TM1 ? at + i * 2 : at + (i + HMN) * 2; }, tms = [], hms = [];
-      for (var ti = 0; ti < TM1 + TM2; ti++) tms.push(u16(u8, tmOff(ti)));
-      for (var hi = 0; hi < HMN; hi++) hms.push(u16(u8, at + (TM1 + hi) * 2));
+      for (var ti = 0; ti < TM1 + TM2; ti++) tms.push(u16(a9d, tmOff(ti)));
+      for (var hi = 0; hi < HMN; hi++) hms.push(u16(a9d, at + (TM1 + hi) * 2));
       var bitOf = function (idx) { return idx <= TM1 ? idx : idx <= TM1 + TM2 ? idx + HMN : idx - TM2; }; // Position in der Liste (TMs, dann HMs, 1-basiert) → Bit-Nummer (1-basiert)
       var compat = [];
       for (var pi = 1; pi < F.personal.length; pi++) {
@@ -135,7 +148,7 @@
       }
       model.tm = {
         tms: tms, hms: hms, compat: compat, earlyHM: [],
-        setTMs: function (list) { list.forEach(function (m, i) { w16(u8, tmOff(i), m); }); },
+        setTMs: function (list) { list.forEach(function (m, i) { w16(a9d, tmOff(i), m); }); },
         commit: function () {
           compat.forEach(function (c) {
             for (var j = 0; j < 13; j++) c.data[40 + j] = 0;
@@ -145,7 +158,7 @@
       };
     }
     // Statische Begegnungen und Ingame-Tausche (Offsets aus data/gen5_offsets.js): Arten stehen als Wort in den Skript-Dateien (a/0/5/7 bzw. a/0/5/6)
-    var offs = window.GEN5_OFFS && rom.code && window.GEN5_OFFS[rom.code], N = window.NDS, scripts = null, tradeFiles = null;
+    var offs = window.GEN5_OFFS && rom.code && window.GEN5_OFFS[rom.code], scripts = null, tradeFiles = null;
     try {
       if (offs && N && N.nitroFile) {
         var sf = offs.scripts && N.nitroFile(u8, offs.scripts); scripts = sf ? N.narc(sf) : null;
@@ -232,10 +245,10 @@
         }
       }
     }
-    // Overlay-Daten: Shops von Schwarz/Weiß (Teil 1) und Attacken-Lehrer von Schwarz 2/Weiß 2 (nicht komprimierte Overlays)
-    var ovl = function (n) { try { return N && N.overlay ? N.overlay(u8, n) : null; } catch (e2) { return null; } };
+    // Overlay-Daten: Shops von Schwarz/Weiß (Teil 1) und Attacken-Lehrer von Schwarz 2/Weiß 2 (komprimierte Overlays werden entpackt)
     if (offs && offs.shopOvl && !offs.shopsFile && offs.shopCount) {
       var so5 = ovl(offs.shopOvl[0]);
+      if (!so5) notes.push('Das Shop-Overlay ' + offs.shopOvl[0] + ' ließ sich nicht lesen – Shops bleiben unverändert.');
       if (so5) {
         model.shops = model.shops || [];
         for (var sh5 = 0; sh5 < offs.shopCount; sh5++) {
@@ -251,6 +264,7 @@
     }
     if (offs && offs.tutor && F.personal) {
       var to5 = ovl(offs.tutor[0]);
+      if (!to5) notes.push('Das Lehrer-Overlay ' + offs.tutor[0] + ' ließ sich nicht lesen – Attacken-Lehrer bleiben unverändert.');
       if (to5 && offs.tutor[1] + 60 * 12 <= to5.length) {
         var tm5 = [];
         for (var tq = 0; tq < 60; tq++) tm5.push(u16(to5, offs.tutor[1] + tq * 12));
@@ -276,9 +290,10 @@
         }
       }
     }
-    // Pickup: 29 Items im Pickup-Overlay (nicht komprimiert)
-    if (offs && offs.pickupOvl !== undefined && N && N.overlay) {
-      var pov = null; try { pov = N.overlay(u8, offs.pickupOvl); } catch (e5) { pov = null; }
+    // Pickup: 29 Items im Pickup-Overlay (komprimierte Overlays werden entpackt)
+    if (offs && offs.pickupOvl !== undefined && N) {
+      var pov = ovl(offs.pickupOvl);
+      if (!pov) notes.push('Das Pickup-Overlay ' + offs.pickupOvl + ' ließ sich nicht lesen – Pickup-Items bleiben unverändert.');
       var ppat = [0x19, 0, 0x5C, 0, 0xDD, 0], pat5 = -1;
       if (pov) for (var px = 0; px + ppat.length <= pov.length && pat5 < 0; px++) {
         if (pov[px] !== ppat[0]) continue;
@@ -290,7 +305,14 @@
         for (var pq = 0; pq < 29; pq++) (function (po) { model.pickup.push({ get: function () { return u16(pov, po); }, set: function (n) { w16(pov, po, n); } }); })(pat5 + pq * 2);
       }
     }
-    model.commit = function () { return u8; };
+    // geänderte Overlays und arm9 wieder packen; passt etwas nicht in den alten Platz, wird abgebrochen (lieber keine ROM als eine kaputte)
+    model.commit = function () {
+      Object.keys(ovlCache).forEach(function (id) {
+        if (ovlCache[id] && !ovlCache[id].commit()) throw new Error('Overlay ' + id + ' ließ sich nach den Änderungen nicht klein genug packen – es wurde keine ROM geschrieben. Bitte Shops, Lehrer und Pickup auf „Unverändert“ stellen.');
+      });
+      if (A9 && !A9.commit()) throw new Error('Das arm9 ließ sich nach den Änderungen nicht klein genug packen – es wurde keine ROM geschrieben. Bitte die TM-Attacken auf „Unverändert“ stellen.');
+      return u8;
+    };
     return model;
   }
 

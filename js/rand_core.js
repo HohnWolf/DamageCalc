@@ -59,11 +59,14 @@
     var rng = R3.makeRng(seed), log = [], summary = {};
     function L(s) { log.push(s); }
     var sp = model.species, max = model.maxNat, pool = [], bst0 = [0], s;
+    // Arten-Nummern im Modell sind nicht immer Nationaldex-Nummern (Gen 3: ROM-interne Nummern) → natOf/idOfNat übersetzen
+    var natOf = model.natOf || function (x) { return x; }, idOfNat = {};
+    for (s = max; s >= 1; s--) if (sp[s]) idOfNat[natOf(s)] = s;
     for (s = 1; s <= max; s++) {
       bst0.push(sp[s] ? bst(sp[s]) : 0);
       if (!sp[s]) continue;
       if (o.noLegend && model.legends && model.legends.indexOf(s) !== -1) continue;
-      if (o.limitGens && o.limitGens.length) { var gn = 1; while (gn < GEN_END.length - 1 && s > GEN_END[gn]) gn++; if (o.limitGens.indexOf(gn) === -1) continue; }
+      if (o.limitGens && o.limitGens.length) { var gn = 1, nt0 = natOf(s); while (gn < GEN_END.length - 1 && nt0 > GEN_END[gn]) gn++; if (o.limitGens.indexOf(gn) === -1) continue; }
       pool.push(s);
     }
     if (!pool.length) for (s = 1; s <= max; s++) if (sp[s]) pool.push(s);
@@ -92,7 +95,7 @@
     L('Rattata Labs Randomizer – ' + model.title); L('Seed: ' + seed); L('');
 
     // --- Aktualisierung auf spätere Generationen: Attacken und Basiswerte ---
-    var engGen = max <= 151 ? 1 : max <= 251 ? 2 : max <= 386 ? 3 : max <= 493 ? 4 : max <= 649 ? 5 : max <= 721 ? 6 : 7;
+    var engGen = model.gen || (max <= 151 ? 1 : max <= 251 ? 2 : max <= 386 ? 3 : max <= 493 ? 4 : max <= 649 ? 5 : max <= 721 ? 6 : 7);
     var updMv = +o.updateMoves || 0, updSt = +o.updateStats || 0;
     if (updMv > engGen && model.moves && model.setMove && window.MOVE_UPDATES) {
       L('=== Attacken auf Generation ' + updMv + ' aktualisiert ===');
@@ -102,7 +105,8 @@
         if (gTo > updMv || engGen >= gTo) return;
         if (cond) { var cn = +cond.replace(/[^0-9]/g, ''); if (cond.indexOf('>=') === 0 ? engGen < cn : engGen !== cn) return; }
         var mo0 = model.moves[mvId]; if (!mo0) return;
-        if (fld === 'type') { val = (model.typeNames || []).indexOf(TYPE_DE[val]); if (val < 0) return; }
+        // Typen, die es im Spiel nicht gibt (Gen 1: Stahl/Unlicht, bis Gen 5: Fee), werden nicht übernommen – weder ins Modell noch ins Protokoll
+        if (fld === 'type') { val = (model.typeNames || []).indexOf(TYPE_DE[val]); if (val < 0 || (model.typePool && model.typePool.indexOf(val) === -1)) return; }
         if (fld === 'cat') { if (mo0.cat === undefined) return; val = CAT_IDX[val]; }
         if (mo0[fld] === undefined || mo0[fld] === val || (fld === 'acc' && (Math.abs(mo0.acc - val) < 1 || (val >= 100 && mo0.acc >= 100)))) return; // Treffer-immer-Attacken bleiben
         var chg = {}; chg[fld] = val; var before = mo0[fld];
@@ -116,9 +120,9 @@
       var nSt = 0;
       Object.keys(STAT_CHANGES).forEach(function (gk) {
         var gv = +gk; if (gv > updSt || gv <= engGen) return;
-        Object.keys(STAT_CHANGES[gk]).forEach(function (nat) {
-          var e0 = sp[+nat]; if (!e0 || model.noStatsFor && model.noStatsFor.indexOf(+nat) !== -1) return;
-          var ch0 = STAT_CHANGES[gk][nat], parts0 = [];
+        Object.keys(STAT_CHANGES[gk]).forEach(function (natK) {
+          var nat = idOfNat[+natK], e0 = nat && sp[nat]; if (!e0 || model.noStatsFor && model.noStatsFor.indexOf(nat) !== -1) return; // Tabelle nach Nationaldex → Nummer im Modell
+          var ch0 = STAT_CHANGES[gk][natK], parts0 = [];
           Object.keys(ch0).forEach(function (ix) { if (e0.bs[+ix] !== ch0[ix]) { parts0.push(['KP', 'Angr', 'Vert', 'Init', 'SpAng', 'SpVert'][+ix] + ' ' + e0.bs[+ix] + ' → ' + ch0[ix]); e0.bs[+ix] = ch0[ix]; } });
           if (parts0.length) { nSt++; L(nameOf(+nat) + ': ' + parts0.join(', ')); }
         });
@@ -286,7 +290,7 @@
         var usable = [], usableDmg = [], keepN = 0, banned2 = [];
         if (o.tmKeepField) oldList.forEach(function (m) { if (FIELD_MOVES.indexOf(m) !== -1) { banned2.push(m); keepN++; } });
         for (var mq = 1; mq <= (model.maxMove || mvs2.length - 1); mq++) {
-          var mm = mvs2[mq]; if (!mm || mq === 165 || protect.indexOf(mq) !== -1 || banned2.indexOf(mq) !== -1) continue;
+          var mm = mvs2[mq]; if (!mm || mq === 165 || protect.indexOf(mq) !== -1 || banned2.indexOf(mq) !== -1 || (model.bannedMoves || []).indexOf(mq) !== -1) continue; // z. B. Z-Attacken (Gen 7)
           usable.push(mq);
           if (BAN_DMG.indexOf(mq) === -1 && goodDmg(mm)) usableDmg.push(mq);
         }
@@ -344,7 +348,13 @@
           newTMs.forEach(function (m, i) { L('TM' + (i + 1 < 10 ? '0' : '') + (i + 1) + ': ' + mName(oldTMs[i]) + ' → ' + mName(m)); });
           tmm.tms = newTMs; tmm.setTMs(newTMs); L('');
         }
-        if (o.tmCompat !== 'keep' && tmm.compat) doCompat('TM/HM-Kompatibilität', tmm.compat, tmm.tms.concat(tmm.hms || []), o.tmCompat, tmm.earlyHM);
+        if (o.tmCompat !== 'keep' && tmm.compat) {
+          // VM-Kompatibilität (Zerschneider, Surfer, Stärke, Fliegen …) bleibt bei "zufällig"/"eigener Typ" wie im Original (wie "Keep HM compatibility" im UPR):
+          // so kann weiterhin jede Art, die im Original eine VM lernt, sie lernen, und das Spiel bleibt lösbar. Bei "alle können alles" sowieso erfüllt.
+          var nTm0 = tmm.tms.length, nHm0 = (tmm.hms || []).length, hmOld = nHm0 && o.tmCompat !== 'full' ? tmm.compat.map(function (c) { return c.flags.slice(nTm0 + 1, nTm0 + 1 + nHm0); }) : null;
+          doCompat('TM/HM-Kompatibilität', tmm.compat, tmm.tms.concat(tmm.hms || []), o.tmCompat, tmm.earlyHM);
+          if (hmOld) { tmm.compat.forEach(function (c, ci) { for (var hq = 0; hq < nHm0; hq++) c.flags[nTm0 + 1 + hq] = hmOld[ci][hq]; }); L('VM-Kompatibilität bleibt wie im Original (VMs bleiben lernbar).'); L(''); }
+        }
         if (tmm.compat && (o.tmMoves === 'random' || o.tmCompat !== 'keep')) sanity(tmm.compat, tmm.tms.concat(tmm.hms || []));
         if (tmm.commit) tmm.commit();
       }
@@ -418,7 +428,7 @@
           } else if (m === EI.trade || (EI.tradeSpecial && m === EI.tradeSpecial)) toLevel(ev, 37, 'Tausch');
           else if (m === EI.tradeItem) {
             var it = ev.param();
-            if (ev.from === 79) toStone(ev, EI.items.water, 'Tausch mit Item');
+            if (natOf(ev.from) === 79) toStone(ev, EI.items.water, 'Tausch mit Item');
             else if (EI.itemDay && model.addEvo) {
               ev.setMethod(EI.itemDay); model.addEvo(ev.from, EI.itemNight, it, ev.get());
               L(nameOf(ev.from) + ' → ' + nameOf(ev.get()) + ': Tausch mit Item → Level mit Item (Tag oder Nacht)');
@@ -430,11 +440,14 @@
       if (o.evoNoTime) {
         model.evos.slice().forEach(function (ev) {
           var m = ev.method(), has = function (mm, it) { return (fromMap[ev.from] || []).some(function (e) { return e.method() === mm && e.param() === it; }); };
+          // Gen 2 kennt "Freundschaft zu jeder Tageszeit" als eigene Methode (EI.friendAny) und hat keinen Platz für zusätzliche Einträge
           if (EI.friendDay && m === EI.friendDay) {
-            if (ev.from === 133) toStone(ev, EI.items.sun, 'Freundschaft (Tag)');
+            if (natOf(ev.from) === 133) toStone(ev, EI.items.sun, 'Freundschaft (Tag)');
+            else if (EI.friendAny) { ev.setMethod(EI.friendAny); L(nameOf(ev.from) + ' → ' + nameOf(ev.get()) + ': Freundschaft jetzt Tag und Nacht'); }
             else if (model.addEvo && model.addEvo(ev.from, EI.friendNight, 0, ev.get())) L(nameOf(ev.from) + ' → ' + nameOf(ev.get()) + ': Freundschaft jetzt Tag und Nacht');
           } else if (EI.friendNight && m === EI.friendNight) {
-            if (ev.from === 133) toStone(ev, EI.items.moon, 'Freundschaft (Nacht)');
+            if (natOf(ev.from) === 133) toStone(ev, EI.items.moon, 'Freundschaft (Nacht)');
+            else if (EI.friendAny) { ev.setMethod(EI.friendAny); L(nameOf(ev.from) + ' → ' + nameOf(ev.get()) + ': Freundschaft jetzt Tag und Nacht'); }
             else if (model.addEvo && model.addEvo(ev.from, EI.friendDay, 0, ev.get())) L(nameOf(ev.from) + ' → ' + nameOf(ev.get()) + ': Freundschaft jetzt Tag und Nacht');
           } else if (EI.itemDay && m === EI.itemDay && !has(EI.itemNight, ev.param())) {
             if (model.addEvo) model.addEvo(ev.from, EI.itemNight, ev.param(), ev.get());
@@ -644,7 +657,9 @@
     }
 
     // --- Trainer ---
-    if ((o.trainers !== 'keep' || +o.trainerLevel) && model.trainers && model.trainers.length) {
+    // (Trainer-Items und "voll entwickelt ab Level" wirken auch, wenn die Arten und Level der Trainer unverändert bleiben)
+    var wantTrItems = o.trainerItems !== 'keep' && !!ID, wantFullEvo = !!o.trainerFullyEvolved && !!model.evos;
+    if ((o.trainers !== 'keep' || +o.trainerLevel || wantTrItems || wantFullEvo) && model.trainers && model.trainers.length) {
       L('=== Trainer ===');
       var pct = +o.trainerLevel || 0, nTr = 0;
       model.trainers.forEach(function (tr) {
@@ -653,7 +668,7 @@
           tTheme = rng.pick(model.typePool); tf = function (x) { return sp[x].types.indexOf(tTheme) !== -1; };
         }
         tr.mons.forEach(function (pm) {
-          var cur = pm.get(), lv = pm.level;
+          var cur = pm.get(), lv = pm.level, cur0 = cur;
           if (o.trainers !== 'keep') { cur = pick(cur, o.trainers === 'similar', o.trainerNoDup ? party : null, tf); party.push(cur); }
           if (o.trainerFullyEvolved && lv >= (+o.trainerFullyEvolvedLevel || 30) && model.evos) { // ab diesem Level nur voll entwickelte Arten
             for (var fe = 0; fe < 4; fe++) {
@@ -664,11 +679,12 @@
               cur = rng.pick(ec).get();
             }
           }
-          if (o.trainerItems !== 'keep' && pm.setItem && ID && pm.hasItem) { var ti = rng.pick((o.itemsBanBad ? ID.nonBad : ID.allowed).filter(function (x) { return !tmSet[x]; })); pm.setItem(ti); }
+          if (wantTrItems && pm.setItem && pm.hasItem) { var ti = rng.pick((o.itemsBanBad ? ID.nonBad : ID.allowed).filter(function (x) { return !tmSet[x]; })); pm.setItem(ti); }
           if (pct) lv = Math.max(1, Math.min(100, Math.round(pm.level * (1 + pct / 100))));
-          if (o.trainers !== 'keep') pm.set(cur);
+          var changed = o.trainers !== 'keep' || cur !== cur0;
+          if (changed) pm.set(cur);
           if (pct) pm.setLevel(lv);
-          if (o.trainers !== 'keep' && pm.refresh) pm.refresh(cur, lv, model.learnsets && model.learnsets[cur]);
+          if (changed && pm.refresh) pm.refresh(cur, lv, model.learnsets && model.learnsets[cur]);
           pm.lvNow = lv;
           line3.push(nameOf(cur) + ' Lv' + lv);
         });
@@ -715,6 +731,17 @@
 
     if (model.patchEvoDex && (o.starters !== 'keep' || o.wild !== 'keep' || o.statics !== 'keep' || o.trades !== 'keep')) model.patchEvoDex();
     if (o.natDexStart && model.patchNatDex) { L(model.patchNatDex() ? '=== Nationaler Pokédex ab Spielbeginn: gepatcht ===' : '=== Nationaler Pokédex: Patch nicht möglich (Muster nicht gefunden) ==='); L(''); }
+    // Hinweise: gewünschte Änderungen, die diese ROM nicht erlaubt (Daten nicht gefunden oder nicht lesbar), statt sie still zu übergehen
+    var hints = (model.notes || []).slice();
+    if ((o.tmMoves !== 'keep' || o.tmCompat !== 'keep') && !model.tm) hints.push('TM-Daten wurden in dieser ROM nicht gefunden – TMs und TM-Kompatibilität bleiben unverändert.');
+    if ((o.tutorMoves !== 'keep' || o.tutorCompat !== 'keep') && !model.tutor) hints.push('Attacken-Lehrer wurden in dieser ROM nicht gefunden – sie bleiben unverändert.');
+    if (o.tutorCompat !== 'keep' && model.tutor && !model.tutor.compat) hints.push('Die Lehrer-Kompatibilität lässt sich in diesem Spiel nicht ändern.');
+    if (o.shops !== 'keep' && ID && !(model.shops && model.shops.length)) hints.push('Shops wurden in dieser ROM nicht gefunden – sie bleiben unverändert.');
+    if (o.pickupItems !== 'keep' && ID && !(model.pickup && model.pickup.length)) hints.push('Die Pickup-Tabelle wurde in dieser ROM nicht gefunden – sie bleibt unverändert.');
+    if (o.fieldItems !== 'keep' && ID && !(model.field && model.field.length)) hints.push('Feld-Items wurden in dieser ROM nicht gefunden – sie bleiben unverändert.');
+    if ((o.trainerItems !== 'keep' || o.tradeItems || o.starterHeldItem || o.shops !== 'keep' || o.pickupItems !== 'keep' || o.fieldItems !== 'keep' || o.wildHeldItems !== 'keep') && !ID) hints.push('Für dieses Spiel gibt es keine Item-Listen – Item-Optionen bleiben ohne Wirkung.');
+    if (o.starters !== 'keep' && !(model.starters && model.starters.length)) hints.push('Die Starter lassen sich in dieser ROM nicht ändern – sie bleiben unverändert.');
+    if (hints.length) { L('=== Hinweise ==='); hints.forEach(function (h) { L('Hinweis: ' + h); }); L(''); }
     return Promise.resolve(model.commit()).then(function (data) { return { data: data, log: log.join('\n'), seed: seed, summary: summary }; });
   }
 
