@@ -630,7 +630,7 @@
         var main = el('div', { class: 'nc-range' });
         main.appendChild(el('b', { text: lo + '–' + hi }));
         main.appendChild(el('span', { text: ' (' + pct(pLo) + ' – ' + pct(pHi) + ' %)' }));
-        if (r.hits === 2 || Array.isArray(r.hits)) main.appendChild(el('span', { class: 'hint', text: ' · ' + r.min + '–' + r.max + ' ' + t('perHit') }));
+        if ((typeof r.hits === 'number' && r.hits > 1) || Array.isArray(r.hits)) main.appendChild(el('span', { class: 'hint', text: ' · ' + r.min + '–' + r.max + ' ' + t('perHit') }));
         dm.appendChild(main);
         var bar = el('div', { class: 'nc-dbar' });
         var wLo = Math.min(100, pLo * 100);

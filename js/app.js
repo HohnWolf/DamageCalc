@@ -1418,7 +1418,7 @@
     var max = def.maxHP, parts = [], res = 0, hazards = 0, toxic = 0;
     var magicGuard = def.ability === 'Magic Guard';
     var w = C.effectiveWeather(field, def, atk);
-    if (!magicGuard) {
+    if (!magicGuard && def.item !== 'Heavy-Duty Boots') {
       if (defSide.stealthRock) {
         var e = C.typeEff('Rock', def.types, {});
         hazards += Math.floor(max * e / 8); parts.push(nMove('Stealth Rock'));
@@ -1497,11 +1497,12 @@
     return s;
   }
 
-  function koText(ko, info) {
+  function koText(ko, info, r, def) {
     if (!ko || !ko.text) return '';
     var t = ko.text, extra = [];
     if (info.hazardText.length) extra.push(info.hazardText.join(T('and')));
-    if (info.afterText.length && ko.n > 1) extra.push(info.afterText.join(T('and')));
+    var ohkoByResidual = ko.n === 1 && (info.residual - info.toxic < 0) && (!r || !def || r.damage[0] < def.curHP - info.hazards);
+    if (info.afterText.length && (ko.n > 1 || ohkoByResidual)) extra.push(info.afterText.join(T('and')));
     if (info.sitrus && ko.n > 1) extra.push(T('recovery', nItem('Sitrus Berry')));
     if (extra.length) t += T('after') + extra.join(T('and'));
     return t;
@@ -1550,7 +1551,7 @@
     var all = mons[0].concat(mons[1]).filter(Boolean);
     var fld = {
       format: field.format, weather: field.weather === 'None' ? '' : field.weather, terrain: field.terrain === 'None' ? '' : field.terrain,
-      gravity: field.gravity, ruin: Object.assign({}, field.ruin), fairyAura: field.fairyAura, darkAura: field.darkAura, auraBreak: field.auraBreak
+      gravity: field.gravity, trickRoom: !!field.trickRoom, ruin: Object.assign({}, field.ruin), fairyAura: field.fairyAura, darkAura: field.darkAura, auraBreak: field.auraBreak
     };
     // ruin abilities, weather and terrain from all Pokémon on the field
     var autoWeather = { Drought: 'Sun', Drizzle: 'Rain', 'Sand Stream': 'Sand', 'Snow Warning': 'Snow',
@@ -1605,13 +1606,13 @@
             var info = residualInfo(def, field.sides[o], atk);
             var ko = null;
             if (!r.empty && !r.status && r.damage[r.damage.length - 1] > 0) {
-              // Focus Sash / Sturdy: broken by multi-hit moves and Parental Bond; Mold Breaker, Teravolt and Turboblaze ignore Sturdy
-              var sturdy = def.ability === 'Sturdy' && C.MOLD_BREAKERS.indexOf(atk.ability) === -1;
+              // Focus Sash / Sturdy: broken by multi-hit moves and Parental Bond; Mold Breaker, Teravolt, Turboblaze and IGNORE_MOVES ignore Sturdy (unless Ability Shield)
+              var sturdy = def.ability === 'Sturdy' && (def.item === 'Ability Shield' || (C.MOLD_BREAKERS.indexOf(atk.ability) === -1 && (!C.IGNORE_MOVES || C.IGNORE_MOVES.indexOf(mv.name) === -1)));
               ko = localKO(C.koChance(r.damage, def, {
                 hazards: info.hazards, residual: info.residual, toxic: info.toxic, sitrus: info.sitrus, perHit: r.perHit, hits: r.nHits || 1,
                 sash: (def.item === 'Focus Sash' || sturdy) && def.curHP === def.maxHP && !info.hazards
               }));
-              if (ko) ko.text = koText(ko, info);
+              if (ko) ko.text = koText(ko, info, r, def);
             }
             r.notes = r.notes.map(nNote);
             if (atk.species !== attacker.species) r.notes.push(T('stanceNote', nSpecies(attacker.baseSpecies), nAbility('Stance Change')));

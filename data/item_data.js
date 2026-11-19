@@ -571,21 +571,27 @@ function getItemDualTypeBoost(item, species) {
     switch (item) {
         case 'Adamant Orb':
             if (species === 'Dialga') return 'Steel Dragon';
+            break;
         case 'Lustrous Orb':
             if (species === 'Palkia') return 'Water Dragon';
+            break;
         case 'Griseous Orb':
             if ((species === 'Giratina-Origin' && gen <= 8) || (species === 'Giratina' && gen >= 9)) return 'Ghost Dragon';
+            break;
         case 'Soul Dew':
             if ((species === 'Latias' || species === 'Latios') && gen >= 7) return 'Dragon Psychic';
+            break;
         case 'Adamant Crystal':
             if (species === 'Dialga-Origin') return 'Steel Dragon';
+            break;
         case 'Lustrous Globe':
             if (species === 'Palkia-Origin') return 'Water Dragon';
+            break;
         case 'Griseous Core':
             if (species === 'Giratina-Origin') return 'Ghost Dragon';
-        default:
-            return '';
+            break;
     }
+    return '';
 }
 
 function getBerryResistType(berry) {
@@ -637,7 +643,7 @@ function getFlingPower(item) {
         (item === 'Iron Ball' || (item === 'Big Nugget' && gen >= 8) || (gen == 4 && item === 'Klutz Iron Ball') ? 130
             : ['Hard Stone', 'Room Service'].indexOf(item) !== -1 ? 100
                 : item.indexOf('Plate') !== -1 || ['Deep Sea Tooth', 'Thick Club', 'Grip Claw'].indexOf(item) !== -1 ? 90
-                    : (item.indexOf('ite') !== -1 && item == 'Eviolite') || ['Assault Vest', 'Weakness Policy', 'Blunder Policy',
+                    : (item.indexOf('ite') !== -1 && item !== 'Eviolite') || ['Assault Vest', 'Weakness Policy', 'Blunder Policy',
                         'Heavy-Duty Boots', 'Quick Claw', 'Razor Claw', 'Safety Goggles'].indexOf(item) !== -1 ? 80
                         : ['Poison Barb', 'Dragon Fang', 'Power Anklet', 'Power Band', 'Power Belt', 'Power Bracer', 'Power Lens',
                             'Power Weight', 'Burn Drive', 'Chill Drive', 'Douse Drive', 'Shock Drive'].indexOf(item) !== -1 ? 70
@@ -878,7 +884,9 @@ var MEGA_STONE_USER_LOOKUP = {
 };
 
 function canMega(item, species) {
-    return item in MEGA_STONE_USER_LOOKUP && MEGA_STONE_USER_LOOKUP[item].includes(species);
+    if (!(item in MEGA_STONE_USER_LOOKUP)) return false;
+    var u = MEGA_STONE_USER_LOOKUP[item];
+    return Array.isArray(u) ? u.indexOf(species) !== -1 : u === species;
 }
 
 var SIGNATURE_Z_MOVE_LOOKUP = {
@@ -1022,7 +1030,7 @@ function cantRemoveItem(defItem, defSpecies, terrain) {
 }
 
 function cantFlingItem(atItem, atSpecies, defAbility) {
-    return atItem === "" || atItem === 'Klutz' || atItem.indexOf(" Gem") !== -1 || atItem.indexOf(" ium Z") !== -1 || ["Red Orb", "Blue Orb", "Rusted Sword", "Rusted Shield"].indexOf(atItem) !== -1
+    return atItem === "" || atItem === 'Klutz' || atItem.indexOf(" Gem") !== -1 || atItem.indexOf("ium Z") !== -1 || ["Red Orb", "Blue Orb", "Rusted Sword", "Rusted Shield"].indexOf(atItem) !== -1
         || (atSpecies === 'Giratina-Origin' && atItem === "Griseous Orb")
         || (atSpecies === 'Arceus' && atItem.indexOf(" Plate") !== -1)
         || (atSpecies === 'Genesect' && atItem.indexOf(" Drive") !== -1)

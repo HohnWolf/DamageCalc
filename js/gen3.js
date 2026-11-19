@@ -635,7 +635,7 @@
       if (A.ability === AB.HUGE_POWER || A.ability === AB.PURE_POWER) atk *= 2;
       var badges = f.badges || 0;
       if (A.player && badges >= 1) atk = Math.floor(110 * atk / 100);
-      if (D.player && badges >= 5) def = Math.floor(110 * def / 100);
+      if (D.player && badges >= (rom.frlg ? 3 : 5)) def = Math.floor(110 * def / 100);
       if (A.player && badges >= 7) spa = Math.floor(110 * spa / 100);
       if (D.player && badges >= 7) spd = Math.floor(110 * spd / 100);
       if (HE_TYPE[aHold.hold] === type) {
@@ -691,6 +691,7 @@
         if (moveId === 76 && (weather === 'rain' || weather === 'sand' || weather === 'hail')) dmg = Math.floor(dmg / 2);
         if (weather === 'sun') { if (type === T.FIRE) dmg = Math.floor(15 * dmg / 10); if (type === T.WATER) dmg = Math.floor(dmg / 2); }
         if (A.flashFire && type === T.FIRE) dmg = Math.floor(15 * dmg / 10);
+        if (dmg === 0) dmg = 1;
       }
       dmg += 2;
       // Cmd_damagecalc
@@ -776,7 +777,7 @@
   function speedOf(rom, m, f, other) {
     f = f || {};
     var s = stageMod(m.stats.spe, (m.stages && m.stages.spe) || 0);
-    if (m.player && (f.badges || 0) >= 3) s = Math.floor(110 * s / 100);
+    if (m.player && (f.badges || 0) >= (rom.frlg ? 5 : 3)) s = Math.floor(110 * s / 100);
     var w = weatherOn(f, m, other || m) ? f.weather : 'none';
     if (m.ability === AB.SWIFT_SWIM && w === 'rain') s *= 2;
     if (m.ability === AB.CHLOROPHYLL && w === 'sun') s *= 2;

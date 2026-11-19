@@ -289,5 +289,158 @@ function mn(o) {
   eq('Gen 4: Eis gegen Feuer/Flug = neutraler Schaden (Tabellenreihenfolge)', r.rolls, n.rolls);
 })();
 
+// ---------- v2.1.0 Audit-Fixes ----------
+// 17. Dual-Typ-Boost-Items + item_data.js (Soul Dew, Fallthrough, Fling-Power, canMega, cantFlingItem)
+(function () {
+  const ctx = { gen: 10, console: console }; vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'data', 'item_data.js'), 'utf8'), ctx);
+  globalThis.getItemBoostType = ctx.getItemBoostType;
+  globalThis.getItemDualTypeBoost = ctx.getItemDualTypeBoost;
+  globalThis.getFlingPower = ctx.getFlingPower;
+  globalThis.cantRemoveItem = ctx.cantRemoveItem;
+  globalThis.cantFlingItem = ctx.cantFlingItem;
+  globalThis.MEGA_STONE_USER_LOOKUP = ctx.MEGA_STONE_USER_LOOKUP;
+  try {
+    const base = calc(mon('Latios', { ability: 'Levitate' }), SNORLAX(), move('Psychic')).damage[15];
+    const dew = calc(mon('Latios', { ability: 'Levitate', item: 'Soul Dew' }), SNORLAX(), move('Psychic')).damage[15];
+    eq('Soul Dew auf Latios verstärkt Psychic (+20 %)', dew > base && dew === 84, true);
+    eq('getItemDualTypeBoost: kein Fallthrough (Adamant Orb auf Latios)', ctx.getItemDualTypeBoost('Adamant Orb', 'Latios'), '');
+    eq('getFlingPower(Eviolite) = 40', ctx.getFlingPower('Eviolite'), 40);
+    eq('getFlingPower(Charizardite X) = 80', ctx.getFlingPower('Charizardite X'), 80);
+    eq('canMega: Mew mit Mewtwonite X = false', ctx.cantRemoveItem('Mewtwonite X', 'Mew', ''), false);
+    eq('cantFlingItem: Firium Z = true', ctx.cantFlingItem('Firium Z', 'Charizard', ''), true);
+  } finally {
+    delete globalThis.getItemBoostType; delete globalThis.getItemDualTypeBoost; delete globalThis.getFlingPower;
+    delete globalThis.cantRemoveItem; delete globalThis.cantFlingItem; delete globalThis.MEGA_STONE_USER_LOOKUP;
+  }
+})();
+
+// 18. Technician vor Dark Aura / Power Spot (Showdown-Priorität 30 vor 22/20)
+(function () {
+  const r = calc(mon('Scizor', { ability: 'Technician' }), mon('Yveltal', { ability: 'Dark Aura' }), move('Thief'));
+  eq('Technician + Dark Aura: Scizor Thief vs Yveltal Max = Showdown (35)', r.damage[15], 35);
+  const ps = calc(mon('Scizor', { ability: 'Technician' }), SNORLAX(), move('Metal Claw'), {}, { powerSpot: true });
+  const psNoTech = calc(mon('Scizor', { ability: 'Swarm' }), SNORLAX(), move('Metal Claw'), {}, { powerSpot: true });
+  eq('Technician + Power Spot: 50 BP bekommt Techniker-Bonus', ps.finalBP > psNoTech.finalBP, true);
+})();
+
+// 19. Hard Press / Crush Grip / Wring Out: min 1 BP bei niedrigen Ziel-KP
+(function () {
+  const low = SNORLAX({ curHP: 1, maxHP: 500 });
+  const hp = calc(SNORLAX(), low, move('Hard Press'));
+  const cg = calc(SNORLAX(), low, move('Crush Grip'));
+  eq('Hard Press bei 1/500 KP: min 1 BP, Schaden > 0', hp.finalBP === 1 && hp.damage[15] > 0, true);
+  eq('Crush Grip bei 1/500 KP: min 1 BP, Schaden > 0', cg.finalBP === 1 && cg.damage[15] > 0, true);
+})();
+
+// 20. Meteor Beam / Electro Shot gegen Unaware (bei 0 SpA-Boost)
+(function () {
+  const un = calc(mon('Eternatus', { ability: 'Pressure' }), mon('Clodsire', { ability: 'Unaware' }), move('Meteor Beam'));
+  const wa = calc(mon('Eternatus', { ability: 'Pressure' }), mon('Clodsire', { ability: 'Water Absorb' }), move('Meteor Beam'));
+  eq('Meteor Beam vs Unaware: atkBoost = 0', un.desc.atkBoost, 0);
+  eq('Meteor Beam vs Unaware schwächer als gegen Water Absorb', un.damage[15] < wa.damage[15], true);
+})();
+
+// 21. Parental Bond: noparentalbond-Attacken (Explosion/Self-Destruct/Fling) im Einzel nur 1 Treffer
+(function () {
+  const k = mon('Kangaskhan-Mega', { ability: 'Parental Bond' });
+  eq('Parental Bond + Explosion (Singles) = 1 Treffer', calc(k, SNORLAX(), move('Explosion')).nHits, 1);
+  eq('Parental Bond + Self-Destruct (Singles) = 1 Treffer', calc(k, SNORLAX(), move('Self-Destruct')).nHits, 1);
+})();
+
+// 22. Mold Breaker vs Comatose, fremdes Aura Break, Orichalcum Pulse in Harsh Sun, Judgment (NO_ATE), Analytic + Trick Room, Cloud Nine in getSpeed
+(function () {
+  const mb = calc(mon('Excadrill', { ability: 'Mold Breaker' }), mon('Komala', { ability: 'Comatose' }), move('Wake-Up Slap'));
+  eq('Mold Breaker ignoriert Comatose nicht (Wake-Up Slap 140 BP)', mb.finalBP, 140);
+  const abOn = calc(mon('Excadrill', { ability: 'Mold Breaker' }), SNORLAX(), move('Crunch'), { darkAura: true, auraBreak: true });
+  const abOff = calc(mon('Excadrill', { ability: 'Mold Breaker' }), SNORLAX(), move('Crunch'), { darkAura: true, auraBreak: false });
+  eq('Mold Breaker gegen Thick Fat unterdrückt fremdes field.auraBreak nicht', abOn.damage[15] < abOff.damage[15], true);
+  const kSun = calc(mon('Koraidon', { ability: 'Orichalcum Pulse' }), SNORLAX(), move('Close Combat'), { weather: 'Sun' });
+  const kHarsh = calc(mon('Koraidon', { ability: 'Orichalcum Pulse' }), SNORLAX(), move('Close Combat'), { weather: 'Harsh Sun' });
+  eq('Orichalcum Pulse wirkt auch in Harsh Sun', kHarsh.damage, kSun.damage);
+  eq('Judgment wird von Pixilate nicht zu Fee', calc(mon('Arceus', { ability: 'Pixilate' }), SNORLAX(), move('Judgment')).moveType, 'Normal');
+  // Analytic + Trick Room
+  const slow = mon('Magnezone', { ability: 'Analytic' }), fast = mon('Jolteon', { ability: 'Volt Absorb' });
+  const anNorm = calc(slow, SNORLAX(), move('Flash Cannon'), { trickRoom: false });
+  const anTR = calc(slow, SNORLAX(), move('Flash Cannon'), { trickRoom: true });
+  // Magnezone (60 Spe) ist schneller als Snorlax (30 Spe): ohne TR kein Analytic, im TR bewegt es sich zuletzt → Analytic
+  eq('Analytic + Trick Room: schnelleres Pokémon profitiert im Trick Room', anTR.damage[15] > anNorm.damage[15], true);
+  const anSlowNorm = calc(slow, fast, move('Flash Cannon'), { trickRoom: false });
+  const anSlowTR = calc(slow, fast, move('Flash Cannon'), { trickRoom: true });
+  eq('Analytic + Trick Room: langsameres Pokémon profitiert im Trick Room nicht', anSlowNorm.damage[15] > anSlowTR.damage[15], true);
+  // Direkter Calc.calculate-Aufruf: Cloud Nine des Verteidigers dämpft Chlorophyll in getSpeed
+  const ebSun = calc(mon('Venusaur', { ability: 'Chlorophyll' }), mon('Golduck', { ability: 'Cloud Nine' }), move('Electro Ball'), { weather: 'Sun' });
+  const ebNone = calc(mon('Venusaur', { ability: 'Chlorophyll' }), mon('Golduck', { ability: 'Cloud Nine' }), move('Electro Ball'), { weather: '' });
+  eq('Direkter calculate-Aufruf: Cloud Nine dämpft Chlorophyll für Electro Ball', ebSun.damage, ebNone.damage);
+  // app.js Calc-Integration
+  const app = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
+  if (/Heavy-Duty Boots/.test(app) && /trickRoom: !!field\.trickRoom/.test(app) && /C\.IGNORE_MOVES/.test(app) && /Ability Shield/.test(app) && /ohkoByResidual/.test(app))
+    ok('app.js: Heavy-Duty Boots, Trick Room, IGNORE_MOVES/Ability Shield (Sturdy) und OHKO-Residual-Text vorhanden');
+  else fail('app.js: fehlender Calc-Fix');
+})();
+
+// 23. Gen 3: FRLG-Orden 3/5 und Spezial-Min-1 vor +2
+(function () {
+  const romFRLG = Object.assign({}, rom3, { frlg: true, moves: Object.assign({}, rom3.moves, { 55: { power: 40, type: T3.WATER, effect: 0, target: 0 } }) });
+  const pMon = m3({ player: true });
+  eq('Gen 3 FRLG: 3 Orden erhöhen Initiative noch nicht', G3.speedOf(romFRLG, pMon, { badges: 3 }), 100);
+  eq('Gen 3 FRLG: 5 Orden erhöhen Initiative um 10 %', G3.speedOf(romFRLG, pMon, { badges: 5 }), 110);
+  const def0 = G3.calc(romFRLG, m3(), m3({ player: true }), 1, { badges: 0 }).max;
+  const def3 = G3.calc(romFRLG, m3(), m3({ player: true }), 1, { badges: 3 }).max;
+  eq('Gen 3 FRLG: 3 Orden erhöhen Verteidigung um 10 %', def3 < def0, true);
+  // Spezial-Zweig: extrem niedriger SpA vs hoher SpD → dmg=0 wird vor +2 auf 1 gesetzt (base = 3, max roll = 3)
+  const weak = m3({ level: 1, stats: { hp: 20, atk: 5, def: 5, spa: 1, spd: 5, spe: 5 }, types: [T3.NORMAL, T3.NORMAL] });
+  const tank = m3({ level: 50, stats: { hp: 200, atk: 100, def: 100, spa: 100, spd: 250, spe: 100 }, types: [T3.NORMAL, T3.NORMAL] });
+  eq('Gen 3: Spezial-Zweig setzt dmg=0 vor +2 auf 1 (Max 3 statt 2)', G3.calc(romFRLG, weak, tank, 55, {}).max, 3);
+})();
+
+// 24. Gen 4/5 (nds_calc.js) & nuzcalc.js: Gen-5 Simple, Slow Start, Heavy/Light Metal/Float Stone, Brick Break, Infiltrator, Nature Power
+(function () {
+  const ABN2 = ['', 'Simple', 'Slow Start', 'Heavy Metal', 'Light Metal', 'Infiltrator', 'Mold Breaker'];
+  const ITN2 = ['', 'Float Stone'];
+  win.NDS_NAMES = { moves: { en: [] }, abilities: { en: ABN2 }, items: { en: ITN2 } };
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'nds_calc.js'), 'utf8'), win);
+  const N2 = win.NDS_CALC;
+  const rom5 = { gen: 5, moves: {
+    1: { cat: 0, type: TI.Normal, power: 40 },
+    67: { cat: 0, type: TI.Fighting, power: 0 }, // Low Kick
+    267: { cat: 2, type: TI.Normal, power: 0 }, // Nature Power
+    280: { cat: 0, type: TI.Fighting, power: 75 } // Brick Break
+  } };
+  const rom4 = Object.assign({}, rom5, { gen: 4 });
+  // Simple in Gen 5 verdoppelt Stages nicht nochmal; in Gen 4 schon
+  const s5 = N2.calc(rom5, mn({ ability: 1, stages: { atk: 2 } }), mn(), 1, {}).max;
+  const n5 = N2.calc(rom5, mn({ ability: 0, stages: { atk: 2 } }), mn(), 1, {}).max;
+  eq('Gen 5: Simple verdoppelt bestehende Stat-Stages nicht erneut', s5, n5);
+  const s4 = N2.calc(rom4, mn({ ability: 1, stages: { atk: 2 } }), mn(), 1, {}).max;
+  const n4 = N2.calc(rom4, mn({ ability: 0, stages: { atk: 2 } }), mn(), 1, {}).max;
+  eq('Gen 4: Simple verdoppelt Stat-Stages bei Schadensberechnung', s4 > n4, true);
+  // Slow Start in speedOf
+  eq('Gen 5: Slow Start halbiert Initiative', N2.speedOf(rom5, mn({ ability: 2 }), {}), 50);
+  // Heavy Metal / Light Metal / Float Stone in Gen 5
+  const lkPlain = N2.calc(rom5, mn(), mn({ weight: 100 }), 67, {}).power; // 100 kg = 100 BP
+  const lkHeavy = N2.calc(rom5, mn(), mn({ weight: 100, ability: 3 }), 67, {}).power; // 200 kg = 120 BP
+  const lkLight = N2.calc(rom5, mn(), mn({ weight: 100, ability: 4 }), 67, {}).power; // 50 kg = 80 BP
+  const lkFloat = N2.calc(rom5, mn(), mn({ weight: 100, item: 1 }), 67, {}).power; // 50 kg = 80 BP
+  eq('Gen 5: Heavy/Light Metal & Float Stone bei Low Kick', [lkPlain, lkHeavy, lkLight, lkFloat], [100, 120, 80, 80]);
+  // Brick Break & Infiltrator durchbrechen Reflect
+  const bbNoRef = N2.calc(rom5, mn(), mn(), 280, {}).max;
+  const bbRef = N2.calc(rom5, mn(), mn(), 280, { reflect: true }).max;
+  eq('Gen 5: Brick Break ignoriert Reflect', bbRef, bbNoRef);
+  eq('Gen 4: Brick Break ignoriert Reflect', N2.calc(rom4, mn(), mn(), 280, { reflect: true }).max, N2.calc(rom4, mn(), mn(), 280, {}).max);
+  const infRef = N2.calc(rom5, mn({ ability: 5 }), mn(), 1, { reflect: true }).max;
+  const infNoRef = N2.calc(rom5, mn({ ability: 5 }), mn(), 1, {}).max;
+  eq('Gen 5: Infiltrator ignoriert Reflect', infRef, infNoRef);
+  // Nature Power (cat: 2) ist kein toter Code mehr
+  const np5 = N2.calc(rom5, mn(), mn(), 267, {});
+  const np4 = N2.calc(rom4, mn(), mn(), 267, {});
+  eq('Gen 5: Nature Power = 100 BP Boden (nicht Status)', !np5.status && np5.power === 100 && np5.type === TI.Ground, true);
+  eq('Gen 4: Nature Power = 80 BP Normal (nicht Status)', !np4.status && np4.power === 80 && np4.type === TI.Normal, true);
+  // nuzcalc.js Skill Link perHit
+  const nuz = fs.readFileSync(path.join(__dirname, '..', 'js', 'nuzcalc.js'), 'utf8');
+  if (/typeof r\.hits === 'number' && r\.hits > 1/.test(nuz)) ok('nuzcalc.js zeigt perHit auch für Skill Link (hits > 1)');
+  else fail('nuzcalc.js: perHit für hits > 1 fehlt');
+})();
+
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Calc-Fixes OK');

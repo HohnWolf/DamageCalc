@@ -241,7 +241,10 @@
     if (TYPE_ITEMS[item]) return [TYPE_ITEMS[item]];
     var out = [];
     if (typeof getItemBoostType === 'function') { var t = getItemBoostType(item); if (t) out.push(t); }
-    if (typeof getItemDualTypeBoost === 'function') { var d = getItemDualTypeBoost(item, species); if (d && d.length) out = out.concat(d); }
+    if (typeof getItemDualTypeBoost === 'function') {
+      var d = getItemDualTypeBoost(item, species);
+      if (d && d.length) out = out.concat(Array.isArray(d) ? d : String(d).split(' '));
+    }
     return out;
   }
   function resistBerryType(item) {
@@ -251,11 +254,12 @@
   }
 
   var TYPE_CHANGE_BOOST_ABILITIES = ['Normalize', 'Aerilate', 'Pixilate', 'Refrigerate', 'Galvanize', 'Dragonize'];
-  var NO_ATE_MOVES = ['Hidden Power', 'Weather Ball', 'Natural Gift', 'Judgement', 'Techno Blast', 'Revelation Dance', 'Multi-Attack', 'Terrain Pulse'];
+  var NO_ATE_MOVES = ['Hidden Power', 'Weather Ball', 'Natural Gift', 'Judgment', 'Techno Blast', 'Revelation Dance', 'Multi-Attack', 'Terrain Pulse'];
   var UNIGNORABLE = ['Shadow Shield', 'Full Metal Body', 'Prism Armor', 'As One', 'Protosynthesis', 'Quark Drive',
-    'Tablets of Ruin', 'Vessel of Ruin', 'Sword of Ruin', 'Beads of Ruin'];
+    'Tablets of Ruin', 'Vessel of Ruin', 'Sword of Ruin', 'Beads of Ruin', 'Comatose'];
   var IGNORE_MOVES = ['Moongeist Beam', 'Sunsteel Strike', 'Photon Geyser', 'Searing Sunraze Smash', 'Menacing Moonraze Maelstrom',
     'Light That Burns the Sky', 'G-Max Drum Solo', 'G-Max Fireball', 'G-Max Hydrosnipe'];
+  var NO_PARENTAL_BOND = ['Explosion', 'Self-Destruct', 'Misty Explosion', 'Fling', 'Endeavor', 'Final Gambit'];
   var PINCH = { Blaze: 'Fire', Overgrow: 'Grass', Torrent: 'Water', Swarm: 'Bug' };
 
   // ---------- main calculation (NCP GET_DAMAGE_SV, gen 10) ----------
@@ -426,7 +430,8 @@
     // one hit; A/D may be modified copies for later hits (Parental Bond, Multiscale, berries, Stamina ...)
     function damageFor(A, D, dAb, ho) {
       var aIt = itemOf(A), dIt = itemOf(D);
-      var aSpe = getSpeed(A, field, aSide), dSpe = getSpeed(D, field, dSide);
+      var speField = weather ? field : Object.assign({}, field, { weatherSuppressed: true });
+      var aSpe = getSpeed(A, speField, aSide), dSpe = getSpeed(D, speField, dSide);
       var dStatus = statusOf(D) !== 'Healthy';
 
       // 1. base power (basePowerFunc)
@@ -446,9 +451,9 @@
           bp = p <= 1 ? 200 : p <= 4 ? 150 : p <= 9 ? 100 : p <= 16 ? 80 : p <= 32 ? 40 : 20; d.moveBP = bp; break;
         }
         case 'Crush Grip': case 'Wring Out':
-          bp = Math.floor(pokeRound(120 * 100 * Math.floor(D.curHP * 4096 / D.maxHP) / 4096) / 100); d.moveBP = bp; break;
+          bp = Math.floor(pokeRound(120 * 100 * Math.floor(D.curHP * 4096 / D.maxHP) / 4096) / 100) || 1; d.moveBP = bp; break;
         case 'Hard Press':
-          bp = Math.floor(pokeRound(100 * 100 * Math.floor(D.curHP * 4096 / D.maxHP) / 4096) / 100); d.moveBP = bp; break;
+          bp = Math.floor(pokeRound(100 * 100 * Math.floor(D.curHP * 4096 / D.maxHP) / 4096) / 100) || 1; d.moveBP = bp; break;
         case 'Stored Power': case 'Power Trip': {
           var sum = 0; ['at', 'df', 'sa', 'sd', 'sp'].forEach(function (k) { if (A.boosts[k] > 0) sum += A.boosts[k]; });
           bp = 20 + 20 * sum; d.moveBP = bp; break;
@@ -490,8 +495,8 @@
       var auraType = type === 'Fairy' || type === 'Dark';
       var auraActive = auraType && (field[type === 'Fairy' ? 'fairyAura' : 'darkAura'] ||
         A.ability === type + ' Aura' || D.ability === type + ' Aura');
-      var auraBreak = !!field.auraBreak || A.ability === 'Aura Break' || D.ability === 'Aura Break';
-      if (auraActive && auraBreak && !abilityIgnored) { bpMods.push(3072); d.aura = type + ' Aura (Aura Break)'; }
+      var auraBreak = !!field.auraBreak || A.ability === 'Aura Break' || dAb === 'Aura Break';
+      if (auraActive && auraBreak) { bpMods.push(3072); d.aura = type + ' Aura (Aura Break)'; }
       if (ateBoost) { bpMods.push(4915); d.attackerAbility = A.ability; }
       else if ((A.ability === 'Reckless' && (move.hasRecoil || move.recoilHP || move.hasCrash)) || (A.ability === 'Iron Fist' && move.isPunch)) { bpMods.push(4915); d.attackerAbility = A.ability; }
       if (aSide.battery && category === 'Special') { bpMods.push(5325); d.battery = true; }
@@ -499,12 +504,11 @@
       if (aSide.steelySpirit && type === 'Steel') { bpMods.push(6144); d.steelySpirit = true; }
       if (A.ability === 'Sheer Force' && move.hasSecondaryEffect) { bpMods.push(5325); d.attackerAbility = A.ability; }
       else if (A.ability === 'Sand Force' && weather === 'Sand' && ['Rock', 'Ground', 'Steel'].indexOf(type) !== -1) { bpMods.push(5325); d.attackerAbility = A.ability; d.weather = weather; }
-      else if (A.ability === 'Analytic' && (aSpe <= dSpe || A.movesLast)) { bpMods.push(5325); d.attackerAbility = A.ability; }
+      else if (A.ability === 'Analytic' && (A.movesLast || (field.trickRoom ? aSpe >= dSpe : aSpe <= dSpe))) { bpMods.push(5325); d.attackerAbility = A.ability; }
       else if (A.ability === 'Tough Claws' && makesContact) { bpMods.push(5325); d.attackerAbility = A.ability; }
       else if (A.ability === 'Punk Rock' && move.isSound) { bpMods.push(5325); d.attackerAbility = A.ability; }
       if (auraActive && !auraBreak) { bpMods.push(5448); d.aura = type + ' Aura'; }
-      var tempBP = pokeRound(bp * chainMods(bpMods) / 4096);
-      if ((A.ability === 'Technician' && tempBP <= 60) ||
+      if ((A.ability === 'Technician' && bp <= 60) ||
           (A.ability === 'Flare Boost' && statusOf(A) === 'Burned' && category === 'Special') ||
           (A.ability === 'Toxic Boost' && (statusOf(A) === 'Poisoned' || statusOf(A) === 'Badly Poisoned') && category === 'Physical') ||
           (A.ability === 'Mega Launcher' && move.isPulse) || (A.ability === 'Strong Jaw' && move.isBite) ||
@@ -548,12 +552,10 @@
       var attack;
       var midBoost = null;
       if (name === 'Meteor Beam' || name === 'Electro Shot') midBoost = clampBoost((A.boosts[atkKey] || 0) + (A.ability === 'Contrary' ? -1 : 1));
-      if (dAb === 'Unaware' && aBoost !== 0) { attack = raw; d.defenderAbility = dAb; d.atkBoost = 0; }
-      else if (midBoost !== null) {
-        attack = (midBoost === 0 || (isCrit && midBoost < 0)) ? raw : boosted(raw, midBoost);
-        d.atkBoost = midBoost;
-      } else if (aBoost === 0 || (isCrit && aBoost < 0)) { attack = raw; d.atkBoost = 0; }
-      else { attack = boosted(raw, aBoost); d.atkBoost = aBoost; }
+      var effAtkBoost = midBoost !== null ? midBoost : aBoost;
+      if (dAb === 'Unaware' && effAtkBoost !== 0) { attack = raw; d.defenderAbility = dAb; d.atkBoost = 0; }
+      else if (effAtkBoost === 0 || (isCrit && effAtkBoost < 0)) { attack = raw; d.atkBoost = 0; }
+      else { attack = boosted(raw, effAtkBoost); d.atkBoost = effAtkBoost; }
       if (A.ability === 'Hustle' && category === 'Physical') { attack = pokeRound(attack * 3 / 2); d.attackerAbility = A.ability; }
 
       // 4. attack modifiers (calcAtMods)
@@ -576,7 +578,7 @@
           (A.ability === 'Fire Mane' && type === 'Fire')) { atMods.push(6144); d.attackerAbility = A.ability; }
       else if (A.ability === 'Solar Power' && sunA && category === 'Special' && aIt !== 'Utility Umbrella') { atMods.push(6144); d.attackerAbility = A.ability; d.weather = weather; }
       else if (A.ability === 'Transistor' && type === 'Electric') { atMods.push(5325); d.attackerAbility = A.ability; }
-      else if ((A.ability === 'Orichalcum Pulse' && weather === 'Sun' && category === 'Physical' && aIt !== 'Utility Umbrella') ||
+      else if ((A.ability === 'Orichalcum Pulse' && sunA && category === 'Physical' && aIt !== 'Utility Umbrella') ||
                (A.ability === 'Hadron Engine' && terrain === 'Electric' && category === 'Special')) { atMods.push(5461); d.attackerAbility = A.ability; }
       if ((A.ability === 'Water Bubble' && type === 'Water') || ((A.ability === 'Huge Power' || A.ability === 'Pure Power') && category === 'Physical') ||
           (A.ability === 'Stakeout' && A.stakeout)) { atMods.push(8192); d.attackerAbility = A.ability; }
@@ -693,7 +695,7 @@
       } else nHits = move.hitRange;
     }
     if ((name === 'Triple Axel' || name === 'Triple Kick') && !move.hitRange) nHits = move.hits || 3;
-    var pbActive = parentalBond && nHits === 1 && !move.hitRange && (!spread);
+    var pbActive = parentalBond && nHits === 1 && !move.hitRange && !spread && NO_PARENTAL_BOND.indexOf(name) === -1;
 
     var first = damageFor(attacker, defender, defAbility, {});
     if (!first) { res.damage = [0]; return res; }
@@ -854,7 +856,7 @@
     SP_MAX: SP_MAX, SP_TOTAL: SP_TOTAL, LEVEL: LEVEL, RESIST_BERRIES: RESIST_BERRIES, TYPE_ITEMS: TYPE_ITEMS,
     calcStat: calcStat, spToEv: spToEv, evToSp: evToSp, natureMod: natureMod, boosted: boosted,
     getSpeed: getSpeed, calculate: calculate, koChance: koChance, typeEff: typeEff, isGrounded: isGrounded,
-    hitsAlly: hitsAlly, ALL_ADJACENT: ALL_ADJACENT, itemLocked: itemLocked, effWeight: effWeight, MOLD_BREAKERS: MOLD_BREAKERS,
+    hitsAlly: hitsAlly, ALL_ADJACENT: ALL_ADJACENT, itemLocked: itemLocked, effWeight: effWeight, MOLD_BREAKERS: MOLD_BREAKERS, IGNORE_MOVES: IGNORE_MOVES,
     effectiveWeather: effectiveWeather, pokeRound: pokeRound
   };
 

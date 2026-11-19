@@ -59,7 +59,7 @@
     MAGNITUDE: 222, PRESENT: 217, COUNTER: 68, MIRROR_COAT: 243, METAL_BURST: 368, BIDE: 117, SPIT_UP: 255, SOLAR_BEAM: 76, JUDGMENT: 449,
     ELECTRO_BALL: 486, HEAVY_SLAM: 484, HEAT_CRASH: 535, ACROBATICS: 512, HEX: 506, VENOSHOCK: 474, STORED_POWER: 500, FOUL_PLAY: 492,
     PSYSHOCK: 473, PSYSTRIKE: 540, SECRET_SWORD: 548, FLING: 374, NATURAL_GIFT: 363, TRUMP_CARD: 376, AVALANCHE: 419, REVENGE: 279, ASSURANCE: 372,
-    PAIN_SPLIT: 220, STRUGGLE: 165, FIRE_FANG: 424, NATURE_POWER: 267, DREAM_EATER: 138
+    PAIN_SPLIT: 220, STRUGGLE: 165, FIRE_FANG: 424, NATURE_POWER: 267, DREAM_EATER: 138, BRICK_BREAK: 280
   };
   var MULTI = [3, 4, 31, 42, 131, 140, 154, 198, 292, 331, 333, 350, 541];
   var DOUBLE = [24, 41, 155, 458, 530, 544];
@@ -199,6 +199,7 @@
     var s = stageMod(m.stats.spe, (m.stages && m.stages.spe) || 0), w = weatherOf(f, m, other || m);
     if ((hasAb(m, 'Chlorophyll') && w === 'sun') || (hasAb(m, 'Swift Swim') && w === 'rain') || (rom.gen >= 5 && hasAb(m, 'Sand Rush') && w === 'sand')) s *= 2;
     else if (hasAb(m, 'Quick Feet') && m.status) s = Math.floor(s * 1.5);
+    else if (hasAb(m, 'Slow Start')) s = Math.floor(s / 2);
     if (hasIt(m, 'Choice Scarf')) s = Math.floor(s * 1.5);
     else if (hasIt(m, 'Iron Ball', 'Macho Brace', 'Power Weight', 'Power Bracer', 'Power Belt', 'Power Lens', 'Power Band', 'Power Anklet')) s = Math.floor(s / 2);
     else if (hasIt(m, 'Quick Powder') && m.nat === 132) s *= 2;
@@ -225,10 +226,20 @@
     'White Smoke', 'Wonder Guard', 'Big Pecks', 'Contrary', 'Friend Guard', 'Heavy Metal', 'Light Metal', 'Magic Bounce', 'Multiscale',
     'Sap Sipper', 'Telepathy', 'Wonder Skin'];
   var WEIGHT_STEPS = [[200, 120], [100, 100], [50, 80], [25, 60], [10, 40], [0, 20]];
-  function weightOf(m) {
-    if (m.weight) return m.weight;
-    var d = window.NATDEX && window.NATDEX[m.nat];
-    return d ? d[4] : 50;
+  function weightOf(m, gen) {
+    var w = m.weight;
+    if (!w) {
+      var d = window.NATDEX && window.NATDEX[m.nat];
+      w = d ? d[4] : 50;
+    }
+    if (gen >= 5) {
+      var hg = Math.round(w * 10);
+      if (hasAb(m, 'Heavy Metal')) hg *= 2;
+      else if (hasAb(m, 'Light Metal')) hg = Math.floor(hg / 2);
+      if (hasIt(m, 'Float Stone')) hg = Math.floor(hg / 2);
+      return Math.max(1, hg) / 10;
+    }
+    return w;
   }
 
   // A, D: Pokémon from fromSave/trainerParty plus hp, status, stages, flashFire, player; f = { weather, double, reflect, lightScreen }
@@ -237,7 +248,7 @@
     var gen = rom.gen;
     var mv = rom.moves[moveId];
     var res = { move: moveId, rolls: [], crit: [], eff: 1, immune: false, notes: [], fixed: false, hits: 1, status: false };
-    if (!mv || mv.cat === 2 || moveId === MV.PAIN_SPLIT) { res.status = true; return res; }
+    if (!mv || (mv.cat === 2 && moveId !== MV.NATURE_POWER) || moveId === MV.PAIN_SPLIT) { res.status = true; return res; }
     if (inL([MV.COUNTER, MV.MIRROR_COAT, MV.METAL_BURST, MV.BIDE], moveId)) { res.status = true; res.notes.push('counter'); return res; }
     // copies, so ability changes (Mold Breaker) stay inside this calculation
     A = Object.assign({}, A); D = Object.assign({}, D);
@@ -251,6 +262,7 @@
     });
     if (hasAb(A, 'Mold Breaker', 'Teravolt', 'Turboblaze') && MOLD_IGNORED.indexOf(abName(D.ability)) !== -1) D.ability = 0;
     var cat = mv.cat, type = mv.type, power = mv.power;
+    if (moveId === MV.NATURE_POWER) { cat = gen === 4 ? 1 : 0; type = gen === 4 ? TI.Normal : TI.Ground; power = gen === 4 ? 80 : 100; }
     var physical = cat === 0;
 
     // dynamic type and power
@@ -321,9 +333,9 @@
           else { var p5 = Math.floor(48 * A.hp / A.maxHP); bp = p5 <= 1 ? 200 : p5 <= 4 ? 150 : p5 <= 9 ? 100 : p5 <= 16 ? 80 : p5 <= 32 ? 40 : 20; }
           break;
         case MV.LOW_KICK: case MV.GRASS_KNOT:
-          var w = weightOf(D); bp = 20; WEIGHT_STEPS.some(function (s) { if (w >= s[0]) { bp = s[1]; return true; } return false; }); break;
+          var w = weightOf(D, gen); bp = 20; WEIGHT_STEPS.some(function (s) { if (w >= s[0]) { bp = s[1]; return true; } return false; }); break;
         case MV.HEAVY_SLAM: case MV.HEAT_CRASH:
-          var wr = weightOf(A) / weightOf(D); bp = wr >= 5 ? 120 : wr >= 4 ? 100 : wr >= 3 ? 80 : wr >= 2 ? 60 : 40; break;
+          var wr = weightOf(A, gen) / weightOf(D, gen); bp = wr >= 5 ? 120 : wr >= 4 ? 100 : wr >= 3 ? 80 : wr >= 2 ? 60 : 40; break;
         case MV.GYRO_BALL: bp = Math.min(150, Math.floor(25 * sD / Math.max(1, sA)) + (gen >= 5 ? 1 : 0)); break;
         case MV.ELECTRO_BALL: var er = Math.floor(sA / Math.max(1, sD)); bp = er >= 4 ? 150 : er >= 3 ? 120 : er >= 2 ? 80 : er >= 1 ? 60 : 40; break;
         case MV.PUNISHMENT: bp = Math.min(200, 60 + 20 * posBoosts(dSt)); break;
@@ -405,7 +417,7 @@
       if (df < 1) df = 1;
       var base = Math.floor(Math.floor(Math.floor(2 * A.level / 5 + 2) * bp * at / 50) / df);
       if (A.status === 'brn' && physical && !hasAb(A, 'Guts')) base = Math.floor(base * 0.5);
-      if (!critical) {
+      if (!critical && moveId !== MV.BRICK_BREAK) {
         var scr = f.double ? 2 / 3 : 1 / 2;
         if ((physical && f.reflect) || (!physical && f.lightScreen)) base = Math.floor(base * scr);
       }
@@ -461,7 +473,7 @@
       var src = moveId === MV.FOUL_PLAY ? D : A, srcSt = src.stages || {};
       var ak = physical ? 'atk' : 'spa', ab = srcSt[ak] || 0, at;
       if (ab === 0 || (critical && ab < 0) || hasAb(D, 'Unaware')) at = src.stats[ak];
-      else at = stageMod(src.stats[ak], hasAb(src, 'Simple') ? Math.max(-6, Math.min(6, ab * 2)) : ab);
+      else at = stageMod(src.stats[ak], ab);
       if (hasAb(A, 'Hustle') && physical) at = pokeRound(at * 3 / 2);
       var am = [];
       if (hasAb(D, 'Thick Fat') && (tn === 'Fire' || tn === 'Ice')) am.push(2048);
@@ -479,7 +491,7 @@
       // defense
       var dk = isPhysDef ? 'def' : 'spd', db = dSt[dk] || 0, df;
       if (db === 0 || (critical && db > 0) || hasAb(A, 'Unaware')) df = D.stats[dk];
-      else df = stageMod(D.stats[dk], hasAb(D, 'Simple') ? Math.max(-6, Math.min(6, db * 2)) : db);
+      else df = stageMod(D.stats[dk], db);
       if (weather === 'sand' && (D.types[0] === TI.Rock || D.types[1] === TI.Rock) && !isPhysDef) df = pokeRound(df * 3 / 2);
       var dm = [];
       if (hasAb(D, 'Marvel Scale') && D.status && isPhysDef) dm.push(6144);
@@ -495,7 +507,7 @@
       if (critical) base = Math.floor(base * 2);
       var stabM = stab ? (hasAb(A, 'Adaptability') ? 8192 : 6144) : 4096;
       var fm = [];
-      if (!critical && ((physical && f.reflect) || (!physical && f.lightScreen))) fm.push(f.double ? 2703 : 2048);
+      if (!critical && moveId !== MV.BRICK_BREAK && !hasAb(A, 'Infiltrator') && ((physical && f.reflect) || (!physical && f.lightScreen))) fm.push(f.double ? 2703 : 2048);
       if (!later && hasAb(D, 'Multiscale') && D.hp === D.maxHP) fm.push(2048);
       if (hasAb(A, 'Tinted Lens') && effv < 1) fm.push(8192);
       if (hasAb(A, 'Sniper') && critical) fm.push(6144);
