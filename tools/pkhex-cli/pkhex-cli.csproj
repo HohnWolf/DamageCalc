@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Konsolenwerkzeug für tools/diff_save_pkhex.js. Bauen: dotnet build -c Release -p:PKHeXDir=<Pfad zum PKHeX-Quellcode> -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>14</LangVersion>
+    <PKHeXDir Condition="'$(PKHeXDir)' == ''">C:\Users\jerem\Projekte\_refs\pkhex</PKHeXDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(PKHeXDir)\PKHeX.Core\PKHeX.Core.csproj" />
+  </ItemGroup>
+</Project>

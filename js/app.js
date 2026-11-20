@@ -163,7 +163,7 @@
       importedTeam: '{0} Pokémon ins {1} Team importiert.', left: 'linke', right: 'rechte', notAvailable: ' Nicht in Champions verfügbar/unbekannt: {0}',
       switchError: 'Fehler beim Wechseln: {0}',
       charged: 'Geladen (Charge)', chargedT: 'Elektro-Attacken ×2', glaive: 'Glaive Rush genutzt', glaiveT: 'nimmt doppelten Schaden',
-      flashFire: 'Flash Fire aktiv', flashFireT: 'Feuer-Attacken ×1.5', unburden: 'Item verbraucht (Unburden)', unburdenT: 'Initiative ×2', analytic: 'Zieht zuletzt (Analytic)', stakeout: 'Ziel eingewechselt (Stakeout)',
+      flashFire: 'Flash Fire aktiv', flashFireT: 'Feuer-Attacken ×1.5', intimidate: 'Intimidate wirkt', intimidateT: 'senkt den Angriff der Gegner um 1 (wie NCP)', syrup: 'Supersweet Syrup wirkt', syrupT: 'löst Defiant/Competitive der Gegner aus', trace: 'Trace aktiv', traceT: 'kopiert die Fähigkeit des Gegners', unburden: 'Item verbraucht (Unburden)', unburdenT: 'Initiative ×2', analytic: 'Zieht zuletzt (Analytic)', stakeout: 'Ziel eingewechselt (Stakeout)',
       koOwn: 'Eigene Pokémon K.O.', koShort: 'K.O.', hitTimes: 'Wie oft getroffen', hitShort: '× getr.', stockpile: 'Stockpile', stockShort: 'Stock',
       notesNoEffect: 'Keine Wirkung', notesSpread: 'Spread-Attacke (×0.75 im Doppel)',
       importHintH: 'Team als Text einfügen. <code>EVs:</code> werden automatisch in Stat Points umgerechnet, <code>SPs:</code> werden direkt übernommen. Pastes immer mit englischen Namen.',
@@ -319,7 +319,7 @@
       importedTeam: '{0} Pokémon imported into the {1} team.', left: 'left', right: 'right', notAvailable: ' Not available in Champions/unknown: {0}',
       switchError: 'Error while switching: {0}',
       charged: 'Charged (Charge)', chargedT: 'Electric moves ×2', glaive: 'Used Glaive Rush', glaiveT: 'takes double damage',
-      flashFire: 'Flash Fire active', flashFireT: 'Fire moves ×1.5', unburden: 'Item used up (Unburden)', unburdenT: 'Speed ×2', analytic: 'Moves last (Analytic)', stakeout: 'Target switched in (Stakeout)',
+      flashFire: 'Flash Fire active', flashFireT: 'Fire moves ×1.5', intimidate: 'Intimidate active', intimidateT: 'lowers the Attack of the foes by 1 (like NCP)', syrup: 'Supersweet Syrup active', syrupT: 'triggers Defiant/Competitive of the foes', trace: 'Trace active', traceT: 'copies the ability of the foe', unburden: 'Item used up (Unburden)', unburdenT: 'Speed ×2', analytic: 'Moves last (Analytic)', stakeout: 'Target switched in (Stakeout)',
       koOwn: 'Own Pokémon fainted', koShort: 'fainted', hitTimes: 'Times hit', hitShort: '× hit', stockpile: 'Stockpile', stockShort: 'Stock',
       notesNoEffect: 'No effect', notesSpread: 'Spread move (×0.75 in doubles)',
       importHintH: 'Paste a team as text. <code>EVs:</code> are converted to Stat Points automatically, <code>SPs:</code> are used as they are.',
@@ -1093,12 +1093,17 @@
     var prev = {};
     box.querySelectorAll('input').forEach(function (c) { prev[c.dataset.c] = c.checked; });
     var list = [['charged', 'charged', 'chargedT'], ['glaiveRush', 'glaive', 'glaiveT']];
+    // wie NCP (ABILITY_TOGGLE_ON / _OFF): Intimidate und Supersweet Syrup wirken standardmäßig, Trace nicht
+    if (ab === 'Intimidate') list.push(['intimidate', 'intimidate', 'intimidateT', true]);
+    if (ab === 'Supersweet Syrup') list.push(['syrup', 'syrup', 'syrupT', true]);
+    if (ab === 'Trace') list.push(['trace', 'trace', 'traceT']);
     if (ab === 'Flash Fire') list.push(['flashFire', 'flashFire', 'flashFireT']);
     if (ab === 'Analytic') list.push(['movesLast', 'analytic', 'analyticT']);
     if (ab === 'Stakeout') list.push(['stakeout', 'stakeout', 'stakeoutT']);
     if (ab === 'Unburden') list.push(['unburden', 'unburden', 'unburdenT']);
     var html = list.map(function (c) {
-      return '<label title="' + esc(T(c[2])) + '"><input type="checkbox" class="xin" data-c="' + c[0] + '"' + (prev[c[0]] ? ' checked' : '') + '> ' + esc(T(c[1])) + '</label>';
+      var on = prev[c[0]] !== undefined ? prev[c[0]] : !!c[3];
+      return '<label title="' + esc(T(c[2])) + '"><input type="checkbox" class="xin" data-c="' + c[0] + '"' + (on ? ' checked' : '') + '> ' + esc(T(c[1])) + '</label>';
     }).join('');
     if (ab === 'Supreme Overlord') {
       var f = side.fainted || 0, o = '';
@@ -1217,7 +1222,7 @@
     $('nature').value = st.nature; setAbility(side, st.ability); $('item').value = st.item; $('status').value = st.status;
     side.fainted = st.fainted || 0;
     renderConditions(side);
-    $('cond').querySelectorAll('input').forEach(function (c) { c.checked = !!(st.cond || {})[c.dataset.c]; });
+    $('cond').querySelectorAll('input').forEach(function (c) { var v = (st.cond || {})[c.dataset.c]; if (v !== undefined) c.checked = !!v; });
     $('cond').querySelectorAll('select[data-c="fainted"]').forEach(function (s) { s.value = side.fainted; });
     st.moves.forEach(function (m, i) {
       var name = MOVES[m.name] ? m.name : '(No Move)';
@@ -1251,6 +1256,7 @@
       fainted: st.fainted || 0, baseAtk: st.base.at || 50,
       charged: !!cond.charged, glaiveRush: !!cond.glaiveRush, flashFire: !!cond.flashFire,
       movesLast: !!cond.movesLast, stakeout: !!cond.stakeout, unburden: !!cond.unburden,
+      intimidateOn: cond.intimidate !== false, syrupOn: cond.syrup !== false, traceOn: !!cond.trace,
       species: forme, baseSpecies: st.baseSpecies, types: types, stats: stats, sps: Object.assign({}, st.sps),
       boosts: Object.assign({}, st.boosts), nature: st.nature, ability: st.ability, item: st.item, status: st.status,
       curHP: cur, maxHP: stats.hp, weight: d ? d.w : 50, canEvolve: !!(d && d.canEvolve), moves: moves
@@ -1322,7 +1328,7 @@
     ['helpingHand', 'Helping Hand', 'm'], ['auroraVeil', 'Aurora Veil', 'm'], ['reflect', 'Reflect', 'm'],
     ['lightScreen', 'Light Screen', 'm'], ['tailwind', 'Tailwind', 'm'], ['leechSeed', 'Leech Seed', 'm'], ['saltCure', 'Salt Cure', 'm'],
     ['friendGuard', 'Friend Guard', 'a'], ['stealthRock', 'Stealth Rock', 'm'], ['flowerGift', 'Flower Gift', 'a'],
-    ['steelySpirit', 'Steely Spirit', 'a'], ['powerSpot', 'Power Spot', 'a'], ['battery', 'Battery', 'a']
+    ['steelySpirit', 'Steely Spirit', 'a'], ['powerSpot', 'Power Spot', 'a'], ['battery', 'Battery', 'a'], ['protect', 'Protect', 'm']
   ];
   function toggleName(t) { return t[2] === 'a' ? nAbility(t[1]) : nMove(t[1]); }
   function buildField() {
@@ -1487,6 +1493,7 @@
     if (ds.ruinAtk) out.push(T('withX', nAbility(ds.ruinAtk)));
     if (ds.ruinDef) out.push(T('withX', nAbility(ds.ruinDef)));
     if (ds.screen) out.push(T('throughX', nMove(ds.screen)));
+    if (ds.throughProtect) out.push(T('throughX', nMove('Protect')));
     if (ds.friendGuard) out.push(T('withX', nAbility('Friend Guard')));
     if (ds.glaiveRush) out.push(T('afterX', nMove('Glaive Rush')));
     if (ds.isCrit) out.push(T('onCrit'));
@@ -1533,6 +1540,45 @@
     return f;
   }
 
+  // NCP CALCULATE_ALL_MOVES_SV: checkTrace, checkIntimidate, checkSupersweetSyrup – auf die frisch gelesenen Pokémon (die Editor-Werte bleiben unverändert)
+  var TRACE_BLOCK = ['As One', 'Battle Bond', 'Comatose', 'Commander', 'Disguise', 'Flower Gift', 'Forecast', 'Gulp Missile', 'Ice Face', 'Illusion', 'Imposter',
+    'Multitype', 'Power of Alchemy', 'Protosynthesis', 'Quark Drive', 'Receiver', 'RKS System', 'Schooling', 'Shields Down', 'Stance Change', 'Trace', 'Wonder Guard', 'Zen Mode', 'Zero to Hero'];
+  function applyEntryAbilities(mons) {
+    function bst(p, k, v) { p.boosts[k] = Math.max(-6, Math.min(6, (p.boosts[k] || 0) + v)); }
+    [0, 1].forEach(function (s) {
+      mons[s].forEach(function (m, k) {
+        if (!m || m.ability !== 'Trace' || !m.traceOn || m.item === 'Ability Shield') return;
+        var foe = mons[1 - s][k] || mons[1 - s][1 - k];
+        if (foe && TRACE_BLOCK.indexOf(foe.ability) === -1) m.ability = foe.ability;
+      });
+    });
+    [0, 1].forEach(function (s) {
+      mons[s].forEach(function (src) {
+        if (!src) return;
+        mons[1 - s].forEach(function (t) {
+          if (!t) return;
+          if (src.ability === 'Intimidate' && src.intimidateOn) {
+            var simple = t.ability === 'Simple' ? 1 : 0;
+            if (t.ability === 'Contrary' || t.ability === 'Guard Dog') bst(t, 'at', 1);
+            else if (['Clear Body', 'White Smoke', 'Hyper Cutter', 'Full Metal Body', 'Inner Focus', 'Oblivious', 'Own Tempo', 'Scrappy'].indexOf(t.ability) !== -1 || t.item === 'Clear Amulet') { /* keine Wirkung */ }
+            else if (t.ability === 'Mirror Armor') bst(src, 'at', -1);
+            else {
+              bst(t, 'at', -1 * (1 + simple));
+              if (t.ability === 'Defiant') bst(t, 'at', 2);
+              else if (t.ability === 'Competitive') bst(t, 'sa', 2);
+            }
+            if (t.item === 'Adrenaline Orb' && t.ability !== 'Mirror Armor') { bst(t, 'sp', 1 + simple); t.item = ''; }
+            if (t.ability === 'Rattled' && t.item !== 'Clear Amulet') bst(t, 'sp', 1);
+          }
+          if (src.ability === 'Supersweet Syrup' && src.syrupOn && t.item !== 'Clear Amulet') {
+            if (t.ability === 'Defiant') bst(t, 'at', 2);
+            else if (t.ability === 'Competitive') bst(t, 'sa', 2);
+          }
+        });
+      });
+    });
+  }
+
   function recalc() {
     if (!sides[0] || !sides[1]) return;
     // a side without a Pokémon is only allowed when it was cleared on purpose (Reset)
@@ -1548,6 +1594,7 @@
         return st ? pokemonFromState(st) : null;
       });
     });
+    applyEntryAbilities(mons);
     var all = mons[0].concat(mons[1]).filter(Boolean);
     var fld = {
       format: field.format, weather: field.weather === 'None' ? '' : field.weather, terrain: field.terrain === 'None' ? '' : field.terrain,
@@ -1603,14 +1650,15 @@
             var atk = stanceAdjust(attacker, true, mv), def = stanceAdjust(target, false, null);
             var dSide = sideFieldFor(o, t, mons);
             var r = C.calculate(atk, def, mv, fld, aSide, dSide);
-            var info = residualInfo(def, field.sides[o], atk);
+            // residual damage/recovery from the checked defender (Klutz disables Leftovers/Sitrus, used seeds are gone, Forecast type)
+            var info = residualInfo(r.defender || def, field.sides[o], atk);
             var ko = null;
             if (!r.empty && !r.status && r.damage[r.damage.length - 1] > 0) {
               // Focus Sash / Sturdy: broken by multi-hit moves and Parental Bond; Mold Breaker, Teravolt, Turboblaze and IGNORE_MOVES ignore Sturdy (unless Ability Shield)
-              var sturdy = def.ability === 'Sturdy' && (def.item === 'Ability Shield' || (C.MOLD_BREAKERS.indexOf(atk.ability) === -1 && (!C.IGNORE_MOVES || C.IGNORE_MOVES.indexOf(mv.name) === -1)));
+              var sturdy = def.ability === 'Sturdy' && ((r.defender || def).item === 'Ability Shield' || (C.MOLD_BREAKERS.indexOf(atk.ability) === -1 && (!C.IGNORE_MOVES || C.IGNORE_MOVES.indexOf(mv.name) === -1)));
               ko = localKO(C.koChance(r.damage, def, {
                 hazards: info.hazards, residual: info.residual, toxic: info.toxic, sitrus: info.sitrus, perHit: r.perHit, hits: r.nHits || 1,
-                sash: (def.item === 'Focus Sash' || sturdy) && def.curHP === def.maxHP && !info.hazards
+                sash: ((r.defender || def).item === 'Focus Sash' || sturdy) && def.curHP === def.maxHP && !info.hazards
               }));
               if (ko) ko.text = koText(ko, info, r, def);
             }
@@ -2363,7 +2411,7 @@
     var info = el('div', { class: 'set-upd-info' });
     var titleRow = el('div', { class: 'set-upd-title' });
     titleRow.appendChild(el('strong', { text: 'Rattata Labs' }));
-    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '2.1.1') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
+    titleRow.appendChild(el('span', { class: 'set-ver-pill', text: 'v' + (s.current || '2.1.2') + (s.mac ? ' · macOS' : s.portable ? ' · Portable' : '') }));
     titleRow.appendChild(el('span', { class: 'set-channel-pill' + (ch === 'interim' ? ' is-interim' : ''), text: updChannelName(ch) }));
     if (onPre) titleRow.appendChild(el('span', { class: 'set-interim-badge', text: T('updInterimBadge') }));
     info.appendChild(titleRow);
@@ -2505,7 +2553,7 @@
       side.appendChild(nav);
 
       var sideFoot = el('div', { class: 'set-side-foot' });
-      var ver = (updStatus && updStatus.current) || '2.1.1';
+      var ver = (updStatus && updStatus.current) || '2.1.2';
       var foot = 'Rattata Labs · v' + ver;
       if (updApi()) foot += ' · ' + updChannelName(updateChannel());
       sideFoot.appendChild(el('span', { class: 'set-foot-ver', text: foot }));
@@ -2722,7 +2770,7 @@
           var g = el('div', { class: 'set-actions' });
           var bSave = el('button', { type: 'button', class: 'set-btn primary', text: T('setBackupSave') });
           bSave.addEventListener('click', function () {
-            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '2.1.1', date: new Date().toISOString().slice(0, 10), storage: {} };
+            var data = { app: 'RattataLab', version: (updStatus && updStatus.current) || '2.1.2', date: new Date().toISOString().slice(0, 10), storage: {} };
             BACKUP_KEYS.forEach(function (k) {
               try { var v = localStorage.getItem(k); if (v != null) data.storage[k] = JSON.parse(v); } catch (e) { /* ignore */ }
             });
@@ -3067,7 +3115,7 @@
     st.innerHTML = '';
     st.appendChild(el('span', { class: 'st-item st-main', text: modeLabel(cur) }));
     st.appendChild(el('span', { class: 'st-sp' }));
-    var ver = (updStatus && updStatus.current) || '2.1.1';
+    var ver = (updStatus && updStatus.current) || '2.1.2';
     var msg = updStatus && ['available', 'progress', 'ready', 'portable'].indexOf(updStatus.state) !== -1 ? updMessage(updStatus) : '';
     if (msg) st.appendChild(el('span', { class: 'st-item', text: msg }));
     st.appendChild(el('span', { class: 'st-item', text: LANG.toUpperCase() }));
@@ -3271,7 +3319,7 @@
     setting: setting, setSetting: setSetting, saveFile: saveFile, openSettings: openSettings, saveCustomSet: saveCustomSet
   };
   // expose for debugging
-  window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES,
+  window.CCApp = { parseShowdown: parseShowdown, exportSet: exportSet, readPokemon: function (i) { return readPokemon(sides[i]); }, DEX: DEX, MOVES: MOVES, applyEntryAbilities: applyEntryAbilities,
     // setting "Sprite-Stil → Damage Calculator": draw the tabs, team bars and turn order again
     redrawSprites: function () { [0, 1].forEach(function (i) { var b = sides[i] && sides[i].$('tabs'); if (b) b._key = null; renderTeam(i); }); recalc(); } };
   document.addEventListener('DOMContentLoaded', init);

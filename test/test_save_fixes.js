@@ -4,6 +4,7 @@ global.window = {}; global.document = { addEventListener: function () {}, getEle
 window.CC = { el: () => ({}), esc: x => x, LANG: 'de', saveFile: () => {} };
 require('../js/saveui.js');
 const S = window.CCSave, GB = window.CCSaveGB, X = window.CCSave3DS, U = window.CCSaveUI._test, P = window.PKPERSONAL;
+const fs = require('fs');
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log('FEHLER:', m); } else console.log('ok:', m); };
 const u16 = (b, o) => b[o] | (b[o + 1] << 8), u32 = (b, o) => (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0;
@@ -372,4 +373,29 @@ window.confirm = () => true;
   ok(sv2.bag.maxFor(tmIdx, 243) === 1 && sv2.bag.maxFor(tmIdx, 242) === 99, 'Fix 16: Gen 2 VM-Max ist 1, TM-Max ist 99');
   ok(U.formNames(493, 4)[9] === '???' && U.formNames(493, 5)[9] === 'Feuer' && U.formNames(493, 5).length === 17 && U.formNames(493, 6)[17] === 'Fee', 'Fix 16: Arceus-Formnamen Gen 4 vs. Gen 5 vs. Gen 6/7');
 }
+
+// ---------- Leere Slots wie PKHeX: verschlüsseltes Blank-PKM statt Nullen (sonst Bad Egg im Spiel) ----------
+{
+  const z6 = new Uint8Array(232), e6 = new Uint8Array(232); X.PK7.encode(z6, e6, 0, false);
+  ok(e6.slice(8).some(b => b !== 0) && u32(e6, 0) === 0 && X.PK7.decode(e6, 0, false) === null, 'Gen 6/7: leerer Box-Slot = verschlüsseltes Blank (EC 0, nicht nur Nullen), liest sich als leer');
+  const z4 = new Uint8Array(136), e4 = new Uint8Array(136); S.PK4.encode(z4, e4, 0, false);
+  ok(e4.slice(8).some(b => b !== 0) && S.PK4.decode(e4, 0, false) === null, 'Gen 4/5: leerer Box-Slot = verschlüsseltes Blank (Prüfsumme 0), liest sich als leer');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'js', 'savedit_3ds.js'), 'utf8') + fs.readFileSync(require('path').join(__dirname, '..', 'js', 'savedit.js'), 'utf8');
+  ok(!/else data.fill(0, o, o + (232|260|136|236|220))/.test(src), 'Gen 4–7: setBoxMon/setParty schreiben keine Nullen mehr in leere Slots');
+}
+// ---------- PKHeX-Differenztest (tools/diff_save_pkhex.js): Zeichen, Gen-4-Fundort, GB-Dateigrößen ----------
+{
+  const d3 = new Uint8Array(100); S.PK3.set(d3, 'nick', 'MR MIME'); ok(S.PK3.get(d3, 'nick') === 'MR MIME', 'Gen 3: Leerzeichen (0x00) bleibt im Namen erhalten');
+  S.PK3.set(d3, 'nick', "FARFETCH'D"); ok(S.PK3.get(d3, 'nick').length === 10, "Gen 3: gerades ' wird als ’ gespeichert statt verschluckt");
+  const d4 = new Uint8Array(236); S.PK4.set(d4, 'nick', 'FARFETCH’D'); ok(S.PK4.get(d4, 'nick').length === 10, 'Gen 4: typografisches ’ wird als gerades Apostroph gespeichert statt verschluckt');
+  d4[0x5F] = 7; S.PK4.set(d4, 'metLoc', 182);
+  ok(u16(d4, 0x80) === 3002 && u16(d4, 0x46) === 182 && S.PK4.get(d4, 'metLoc') === 182, 'Gen 4: Pt/HGSS-Fundort → DP-Feld Ferner Ort, Pt/HGSS-Feld 182 (wie PKHeX)');
+  S.PK4.set(d4, 'metLoc', 50); ok(u16(d4, 0x80) === 50 && u16(d4, 0x46) === 50, 'Gen 4: DP-Ort bei HGSS-Herkunft in beide Felder');
+  d4[0x5F] = 10; S.PK4.set(d4, 'metLoc', 50); ok(u16(d4, 0x80) === 50 && u16(d4, 0x46) === 0, 'Gen 4: DP-Ort bei DP-Herkunft nur im DP-Feld');
+  const d5 = new Uint8Array(220); S.PK5.set(d5, 'metLoc', 182); ok(u16(d5, 0x80) === 182 && u16(d5, 0x46) === 0, 'Gen 5: nur ein Fundort-Feld');
+  const g1 = gen1(), big = new Uint8Array(0x802C); big.set(g1); big[0x8020] = 0x5A;
+  const sg = S.open(big); ok(sg && sg.gen === 1, 'Gen 1: Spielstand mit Emulator-Anhang (0x802C) wird erkannt');
+  if (sg) { const o = sg.finish(); ok(o.length === 0x802C && o[0x8020] === 0x5A, 'Gen 1: Anhang bleibt beim Speichern erhalten'); }
+}
+
 console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);

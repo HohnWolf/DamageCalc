@@ -380,7 +380,7 @@
 
     // Schreiben: kleine Archive komplett, wilde Pokémon je Eintrag (neu gepackt, wenn es in den alten Platz passt)
     model.commit = async function () {
-      var skipped = 0, written = 0;
+      var skipped = 0, written = 0, grown = 0;
       [stats, learn, evo, trd, trp].concat(moveDirty ? [moveG] : []).concat(statG ? [statG] : []).forEach(function (gr) { if (gr && gr.whole) patches.push({ off: gr.fileOff, bytes: gr.data }); });
       var keys = Object.keys(dirty);
       for (var q = 0; q < keys.length; q++) {
@@ -389,12 +389,18 @@
         // g.gen 7: der Mini-Inhalt liegt im selben Puffer wie we.data (unpackMini liefert Teilansichten) → we.data ist bereits geändert
         if (we.cmp) {
           bytes = CTR.lz11Compress(we.data);
-          if (bytes.length > we.loc.size) { skipped++; continue; }
-          var padded = new Uint8Array(we.loc.size); padded.set(bytes); bytes = padded;
+          // wie UPR: der Eintrag darf in den Füllplatz bis zum nächsten (ausgerichteten) Eintrag wachsen; die Länge steht dann neu in der FATB
+          var room = Math.max(we.loc.size, we.loc.room || 0);
+          if (bytes.length > room) { skipped++; continue; }
+          if (bytes.length > we.loc.size && we.loc.lenOff) {
+            var lb = new Uint8Array(4); lb[0] = bytes.length & 255; lb[1] = (bytes.length >> 8) & 255; lb[2] = (bytes.length >> 16) & 255; lb[3] = (bytes.length >>> 24) & 255;
+            patches.push({ off: we.loc.lenOff, bytes: lb }); grown++;
+          }
+          var padded = new Uint8Array(Math.max(we.loc.size, bytes.length)); padded.set(bytes); bytes = padded;
         } else bytes = we.data;
         patches.push({ off: we.loc.off, bytes: bytes }); written++;
       }
-      model.commitInfo = { skipped: skipped, written: written };
+      model.commitInfo = { skipped: skipped, written: written, grown: grown };
       var exefsNew = null;
       if (codeDirty && codeEx) {
         exefsNew = await CTR.buildExefs(ctx.info, codeEx, code);

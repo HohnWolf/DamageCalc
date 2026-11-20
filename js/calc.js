@@ -128,7 +128,32 @@
 
   // NCP getFinalSpeed: one float multiplier, rounded once
   var HALF_SPEED_ITEMS = ['Macho Brace', 'Iron Ball', 'Power Anklet', 'Power Band', 'Power Belt', 'Power Bracer', 'Power Lens', 'Power Weight'];
+  // NCP CALCULATE_ALL_MOVES_SV pre-checks: checkForecast, checkMimicry, checkKlutz, checkSeeds (in this order, on a copy)
+  var KLUTZ_KEEP = ['Macho Brace', 'Power Anklet', 'Power Band', 'Power Belt', 'Power Bracer', 'Power Lens', 'Power Weight'];
+  function preCheck(p, weather, terrain) {
+    if (!p) return p;
+    var q = null;
+    function c() { return q || (q = cloneMon(p)); }
+    if (p.ability === 'Forecast' && /^Castform/.test(String(p.species || ''))) {
+      var ft = weather.indexOf('Sun') !== -1 ? 'Fire' : weather.indexOf('Rain') !== -1 ? 'Water' : (weather === 'Snow' || weather === 'Hail') ? 'Ice' : 'Normal';
+      c().types = [ft];
+    }
+    if (p.ability === 'Mimicry' && terrain) {
+      c().types = [terrain === 'Grassy' ? 'Grass' : terrain === 'Misty' ? 'Fairy' : terrain];
+    }
+    var it = itemOf(p);
+    // Klutz: the item stays held (Knock Off, Poltergeist, Acrobatics see it) but has no effect
+    if (p.ability === 'Klutz' && it && KLUTZ_KEEP.indexOf(it) === -1) c().item = 'Klutz';
+    else if (terrain && it === terrain + ' Seed') {
+      var sk = (terrain === 'Electric' || terrain === 'Grassy') ? 'df' : 'sd';
+      c().boosts[sk] = clampBoost((q.boosts[sk] || 0) + (p.ability === 'Contrary' ? -1 : 1));
+      q.item = '';
+    }
+    return q || p;
+  }
+
   function getSpeed(p, field, side) {
+    if (p && p.ability === 'Klutz' && itemOf(p) && KLUTZ_KEEP.indexOf(itemOf(p)) === -1) p = Object.assign({}, p, { item: 'Klutz' });
     var s = boosted(p.stats.sp, (p.boosts && p.boosts.sp) || 0);
     var w = effectiveWeather(field, p, null);
     var it = itemOf(p), m = 1;
@@ -277,6 +302,9 @@
     var doubles = field.format === 'Doubles';
     var weather = effectiveWeather(field, attacker, defender);
     var terrain = (field.terrain && field.terrain !== 'None') ? field.terrain : '';
+    attacker = preCheck(attacker, weather, terrain);
+    defender = preCheck(defender, weather, terrain);
+    res.attacker = attacker; res.defender = defender; // after Forecast / Mimicry / Klutz / seeds (KO text uses these)
     var name = move.name;
     var category = move.category;
     // Photon Geyser / Shell Side Arm pick the stronger side (NCP usesPhysicalAttack, boosted stats)
@@ -317,6 +345,9 @@
     var makesContact = !!move.makesContact;
     if (makesContact && (aItem === 'Protective Pads' || (aItem === 'Punching Glove' && move.isPunch) || attacker.ability === 'Long Reach')) makesContact = false;
     else if (name === 'Shell Side Arm' && category === 'Physical') makesContact = true;
+    // NCP setIsQuarteredByProtect (gen 10): Piercing Drill / Unseen Fist treffen mit Kontakt durch Protect mit 1/4 Schaden
+    var throughProtect = !!dSide.protect && makesContact && (attacker.ability === 'Piercing Drill' || attacker.ability === 'Unseen Fist');
+    if (throughProtect) { d.attackerAbility = attacker.ability; d.throughProtect = true; }
 
     // ---- ability ignoring (Mold Breaker) ----
     var ignoresAbility = (MOLD_BREAKERS.indexOf(attacker.ability) !== -1 || IGNORE_MOVES.indexOf(name) !== -1);
@@ -474,7 +505,7 @@
         }
         case 'Terrain Pulse': bp = (terrain && attackerGrounded) ? move.bp * 2 : move.bp; if (bp !== move.bp) { d.moveBP = bp; d.terrain = terrain; } break;
         case 'Rising Voltage': bp = (terrain === 'Electric' && defenderGrounded) ? move.bp * 2 : move.bp; if (bp !== move.bp) { d.moveBP = bp; d.terrain = terrain; } break;
-        case 'Fling': bp = (typeof getFlingPower === 'function' && aIt) ? getFlingPower(aIt) : 0; d.moveBP = bp; if (aIt) d.attackerItem = aIt; break;
+        case 'Fling': bp = (typeof getFlingPower === 'function' && aIt && aIt !== 'Klutz') ? getFlingPower(aIt) : 0; // Klutz: Fling schlägt fehl d.moveBP = bp; if (aIt) d.attackerItem = aIt; break;
         case 'Triple Kick': case 'Triple Axel': bp = ho.tripleHit ? move.bp * ho.tripleHit : move.bp; break;
         case 'Last Respects': {
           var fz = Math.max(0, Math.min(5, A.fainted || 0));
@@ -512,6 +543,8 @@
           (A.ability === 'Flare Boost' && statusOf(A) === 'Burned' && category === 'Special') ||
           (A.ability === 'Toxic Boost' && (statusOf(A) === 'Poisoned' || statusOf(A) === 'Badly Poisoned') && category === 'Physical') ||
           (A.ability === 'Mega Launcher' && move.isPulse) || (A.ability === 'Strong Jaw' && move.isBite) ||
+          // Sharpness erhöht die Stärke (Spiel/Showdown onBasePower), nicht den Angriff wie im NCP-Calc
+          (A.ability === 'Sharpness' && move.isSlice) ||
           (A.ability === 'Steely Spirit' && type === 'Steel')) { bpMods.push(6144); d.attackerAbility = A.ability; }
       if (dAb === 'Dry Skin' && type === 'Fire') { bpMods.push(5120); d.defenderAbility = dAb; }
       var boostTypes = typeBoostItem(aIt, A.species);
@@ -551,7 +584,7 @@
       var aBoost = src.boosts[atkKey] || 0;
       var attack;
       var midBoost = null;
-      if (name === 'Meteor Beam' || name === 'Electro Shot') midBoost = clampBoost((A.boosts[atkKey] || 0) + (A.ability === 'Contrary' ? -1 : 1));
+      if (name === 'Meteor Beam' || name === 'Electro Shot') midBoost = clampBoost((A.boosts[atkKey] || 0) + (A.ability === 'Contrary' ? -1 : A.ability === 'Simple' ? 2 : 1));
       var effAtkBoost = midBoost !== null ? midBoost : aBoost;
       if (dAb === 'Unaware' && effAtkBoost !== 0) { attack = raw; d.defenderAbility = dAb; d.atkBoost = 0; }
       else if (effAtkBoost === 0 || (isCrit && effAtkBoost < 0)) { attack = raw; d.atkBoost = 0; }
@@ -573,7 +606,6 @@
           (A.ability === 'Steelworker' && type === 'Steel') ||
           (A.ability === 'Gorilla Tactics' && category === 'Physical') ||
           ((A.ability === 'Plus' || A.ability === 'Minus') && move.plusMinus && category === 'Special') ||
-          (A.ability === 'Sharpness' && move.isSlice) ||
           (A.ability === 'Rocky Payload' && type === 'Rock') ||
           (A.ability === 'Fire Mane' && type === 'Fire')) { atMods.push(6144); d.attackerAbility = A.ability; }
       else if (A.ability === 'Solar Power' && sunA && category === 'Special' && aIt !== 'Utility Umbrella') { atMods.push(6144); d.attackerAbility = A.ability; d.weather = weather; }
@@ -619,12 +651,14 @@
       if (spread) base = pokeRound(base * 3072 / 4096);
       if (ho.isChild) base = pokeRound(base * 1024 / 4096);
       var sunW = weather.indexOf('Sun') !== -1, rainW = weather.indexOf('Rain') !== -1;
-      if (((((sunW || megaSol) && type === 'Fire') || (rainW && type === 'Water')) && dIt !== 'Utility Umbrella') ||
+      // Mega Sol: the user's moves act as if under harsh sunlight (NCP / Showdown) – Water is weakened, never boosted by rain
+      if (((((sunW || megaSol) && type === 'Fire') || (rainW && !megaSol && type === 'Water')) && dIt !== 'Utility Umbrella') ||
           ((sunW || megaSol) && name === 'Hydro Steam' && aIt !== 'Utility Umbrella')) {
         base = pokeRound(base * 6144 / 4096);
         if (megaSol) d.attackerAbility = A.ability; else d.weather = weather;
-      } else if (((weather === 'Sun' && type === 'Water') || (weather === 'Rain' && type === 'Fire' && !megaSol)) && dIt !== 'Utility Umbrella') {
-        base = pokeRound(base * 2048 / 4096); d.weather = weather;
+      } else if ((((weather === 'Sun' || megaSol) && type === 'Water' && name !== 'Hydro Steam') || (weather === 'Rain' && type === 'Fire')) && dIt !== 'Utility Umbrella') {
+        base = pokeRound(base * 2048 / 4096);
+        if (megaSol && type === 'Water') d.attackerAbility = A.ability; else d.weather = weather;
       }
       if (D.glaiveRush) { base = pokeRound(base * 8192 / 4096); d.glaiveRush = true; }
       if (isCrit) { base = Math.floor(base * 1.5); d.isCrit = true; }
@@ -676,6 +710,7 @@
         dmg = Math.floor(dmg * eff);
         if (applyBurn) dmg = Math.floor(dmg / 2);
         dmg = pokeRound(dmg * finalMod / 4096);
+        if (throughProtect) dmg = pokeRound(dmg * 1024 / 4096);
         out.push(dmg);
       }
       out.sort(function (a, b) { return a - b; });
@@ -689,7 +724,8 @@
         var lo = move.hitRange[0], mx = move.hitRange[move.hitRange.length - 1];
         if (move.hits) nHits = Math.min(mx, Math.max(lo, move.hits));
         else if (lo === 2 && mx === 5) nHits = attacker.ability === 'Skill Link' ? 5 : aItem === 'Loaded Dice' ? 4 : 3;
-        else if (lo === 1 && mx === 2) nHits = 1;
+        // Dragon Darts: NCP defaults to 1 hit (one per target in doubles); against a single target it hits twice
+        else if (lo === 1 && mx === 2) nHits = (doubles && !move.singleTarget) ? 1 : 2;
         else nHits = mx;
         if (attacker.ability === 'Skill Link' && lo === 2 && mx === 5 && nHits === 5) d.attackerAbility = 'Skill Link';
       } else nHits = move.hitRange;
@@ -857,7 +893,7 @@
     calcStat: calcStat, spToEv: spToEv, evToSp: evToSp, natureMod: natureMod, boosted: boosted,
     getSpeed: getSpeed, calculate: calculate, koChance: koChance, typeEff: typeEff, isGrounded: isGrounded,
     hitsAlly: hitsAlly, ALL_ADJACENT: ALL_ADJACENT, itemLocked: itemLocked, effWeight: effWeight, MOLD_BREAKERS: MOLD_BREAKERS, IGNORE_MOVES: IGNORE_MOVES,
-    effectiveWeather: effectiveWeather, pokeRound: pokeRound
+    effectiveWeather: effectiveWeather, pokeRound: pokeRound, preCheck: preCheck
   };
 
   if (typeof window !== 'undefined') window.Calc = Calc;

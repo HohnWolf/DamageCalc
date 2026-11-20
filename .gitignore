@@ -7,3 +7,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 dev-app-update.yml
+
+# lokale Ausgabe des Calc-Differenztests
+tools/diff_calc_smogon.out.json
+tools/pkhex-cli/bin/
+tools/pkhex-cli/obj/

@@ -385,12 +385,12 @@
       data[party + 6 * 260] = packed.length;
       for (var i = 0; i < Math.max(packed.length, old, 6); i++) {
         var o = party + i * 260;
-        if (packed[i]) F.encode(packed[i], data, o, true); else data.fill(0, o, o + 260);
+        F.encode(packed[i] || new Uint8Array(260), data, o, true); // leer = verschlüsseltes Blank-PK6/PK7 wie im Spiel und in PKHeX
       }
     };
     function off(b, s) { return box + (b * 30 + s) * 232; }
     sv.getBoxMon = function (b, s) { return F.decode(data, off(b, s), false); };
-    sv.setBoxMon = function (b, s, d) { var o = off(b, s); if (d) F.encode(d, data, o, false); else data.fill(0, o, o + 232); };
+    sv.setBoxMon = function (b, s, d) { F.encode(d || new Uint8Array(232), data, off(b, s), false); };
     sv.getBoxName = function (b) { return dec(data, bl + b * 0x22, 16); };
     sv.setBoxName = function (b, name) { data.fill(0, bl + b * 0x22, bl + b * 0x22 + 0x22); data.set(enc(name, 14, 0x20), bl + b * 0x22); };
     var tab = P['g' + g.gen];

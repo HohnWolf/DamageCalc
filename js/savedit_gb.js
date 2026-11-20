@@ -214,8 +214,11 @@
     });
   }
   function sum1(u8) { var s = 0; for (var i = I1.OT; i < I1.Check; i++) s = (s + u8[i]) & 255; return (~s) & 255; }
+  // Rohgröße 0x8000; Emulatoren hängen oft einen RTC-/Fußteil an (0x8010 VC, 0x802C BGB/mGBA, 0x8030), PKHeX legt Gen 2 als 0x10000 an.
+  // Der Anhang bleibt beim Speichern unverändert erhalten (data ist eine Kopie der ganzen Datei).
+  var GB_SIZES = [0x8000, 0x8010, 0x802C, 0x8030];
   function open1(u8) {
-    if (u8.length !== 0x8000) return null;
+    if (GB_SIZES.indexOf(u8.length) === -1) return null;
     if (!(listOk(u8, I1.Party, 6) && listOk(u8, I1.CurrentBox, 20))) return null;
     var data = new Uint8Array(u8), sumOk = sum1(data) === data[I1.Check];
     var yellow = data[I1.Starter] ? data[I1.Starter] === 0x54 : data[I1.PikaFr] !== 0;
@@ -270,7 +273,7 @@
   };
   function sum2(u8, o) { var s = 0; for (var i = 0x2009; i <= o.End; i++) s = (s + u8[i]) & 0xFFFF; return s; }
   function open2(u8) {
-    if (u8.length !== 0x8000) return null;
+    if (GB_SIZES.indexOf(u8.length) === -1 && u8.length !== 0x10000) return null;
     var key = null, o;
     ['C', 'GS'].some(function (k) {
       var x = I2[k]; if (!(listOk(u8, x.Party, 6) && listOk(u8, x.CurrentBox, 20))) return false;

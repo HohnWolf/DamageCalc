@@ -9,6 +9,17 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.1.2',
+      de: [
+        'Damage Calculator: Gegen NCP-Quellcode, die Champions-Mechanik von @smogon/calc und den Showdown-Champions-Mod geprüft (30.000 Zufallsfälle). Neu: Forecast, Mimicry, Klutz und Feld-Samen wie bei NCP, Intimidate/Trace/Supersweet Syrup wirken automatisch (abschaltbar), Protect-Schalter mit ¼ Schaden für Piercing Drill/Unseen Fist. Korrigiert: Mega Sol (Wasser wie in der Sonne), Sharpness als Stärke-Bonus, Crush Claw mit Sheer Force, Dragon Darts 2 Treffer gegen ein Ziel, Fling mit Klutz, Meteor Beam/Electro Shot mit Simple. Hinweis: Wer Intimidate bisher als −1 eingetragen hat, bitte den Wert entfernen.',
+        'Save-Editor: Gegen PKHeX.Core mit 600 legalen Pokémon aus allen Generationen geprüft (Lesen, Speichern, Bearbeiten). Korrigiert: leere Team-/Box-Plätze in Gen 4–7 werden wie im Spiel verschlüsselt geschrieben (kein „Bad Egg“ mehr nach dem Löschen), Leerzeichen und Apostrophe in Gen-3/4-Namen bleiben erhalten (FARFETCH’D), Gen-4-Fundort nutzt das Pt/HGSS-Feld wie PKHeX, Gen-1/2-Spielstände mit Emulator-Anhang (BGB, mGBA, Virtual Console) werden erkannt.',
+        'Randomizer: In Gen 6/7 werden jetzt alle Gebiete mit wilden Pokémon randomisiert – Einträge dürfen wie beim UPR in den Füllplatz des Archivs wachsen (vorher blieben z. B. in Ultramond 22 Gebiete unverändert).'
+      ],
+      en: [
+        'Damage calculator: checked against the NCP source, the Champions mechanics of @smogon/calc and the Showdown Champions mod (30,000 random cases). New: Forecast, Mimicry, Klutz and terrain seeds like NCP, Intimidate/Trace/Supersweet Syrup apply automatically (can be turned off), Protect toggle with ¼ damage for Piercing Drill/Unseen Fist. Fixed: Mega Sol (Water as in sun), Sharpness as a power boost, Crush Claw with Sheer Force, Dragon Darts hits twice against one target, Fling with Klutz, Meteor Beam/Electro Shot with Simple. Note: if you entered Intimidate as −1 manually, please remove it.',
+        'Save editor: checked against PKHeX.Core with 600 legal Pokémon from every generation (read, save, edit). Fixed: empty party/box slots in Gen 4–7 are written encrypted like the game does (no more Bad Egg after deleting), spaces and apostrophes in Gen 3/4 names are kept (FARFETCH’D), Gen 4 met location uses the Pt/HGSS field like PKHeX, Gen 1/2 saves with emulator footers (BGB, mGBA, Virtual Console) are recognized.',
+        'Randomizer: Gen 6/7 now randomizes every wild encounter area – entries may grow into the archive padding like UPR (previously e.g. 22 areas in Ultra Moon stayed unchanged).'
+      ] },
     { v: '2.1.1',
       de: [
         'Damage Calculator (NCP-Parität): Dual-Typ-Boost-Items (Seelentau, Orbs) wirken jetzt korrekt, Technician prüft vor Aura/Power Spot/Steely Spirit/Battery, Hard Press/Crush Grip/Wring Out haben min. 1 BP, Meteor Beam/Electro Shot gegen Unaware, Parental Bond schließt Explosion/Fling im Einzel aus, Analytic beachtet Bizarroraum, Sturdy beachtet Ability Shield und Fähigkeiten-ignorierende Attacken, Heavy-Duty Boots und OHKO-Residual-Hinweise ergänzt, plus Gen-3/4/5-Fixes im Nuzlocke-Rechner (FRLG-Orden, Gen-5-Simple, Slow Start, Brick Break/Infiltrator).',

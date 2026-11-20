@@ -271,5 +271,22 @@ function g3Model(extra) {
     ok(arc && arc._lzCompressed === true, 'R8: NDS.narc markiert LZ-komprimierte Archive (_lzCompressed)');
   }
 
+  // ---------- 3DS: GARC-Einträge dürfen in den Ausrichtungs-Füllplatz wachsen (wie UPR), Länge steht in der FATB ----------
+  {
+    // GARC v6 mit 2 Einträgen: Länge 5 und 3, ausgerichtet auf 0x10
+    const head = 0x24, fato = 0x0C + 2 * 4, fatb = 0x0C + 2 * (4 + 12), dataOff = head + fato + fatb + 0x0C;
+    const g = new Uint8Array(dataOff + 0x20);
+    g.set([0x43, 0x52, 0x41, 0x47], 0); w32(g, 4, head); w16(g, 0x0A, 0x600); w32(g, 0x10, dataOff);
+    g.set([0x4F, 0x54, 0x41, 0x46], head); w32(g, head + 4, fato);
+    const fb = head + fato; g.set([0x42, 0x54, 0x41, 0x46], fb); w32(g, fb + 8, 2);
+    w32(g, fb + 12, 1); w32(g, fb + 16, 0); w32(g, fb + 20, 0x10); w32(g, fb + 24, 5);
+    w32(g, fb + 28, 1); w32(g, fb + 32, 0x10); w32(g, fb + 36, 0x20); w32(g, fb + 40, 3);
+    const pg = CTR.parseGarc(g);
+    ok(pg && pg.files[0][0].end - pg.files[0][0].start === 5 && pg.files[0][0].pend - pg.files[0][0].start === 0x10, 'GARC: Länge 5, Platz bis zum nächsten Eintrag 0x10');
+    ok(pg && pg.files[0][0].lenOff === fb + 24 && pg.files[1][0].lenOff === fb + 40, 'GARC: Position des Längenfelds in der FATB');
+    const src = require('fs').readFileSync(require('path').join(__dirname, '..', 'js', 'rand_3ds.js'), 'utf8');
+    ok(/we.loc.room/.test(src) && /we.loc.lenOff/.test(src), 'rand_3ds: wilde Pokémon nutzen den Füllplatz und schreiben die neue Länge');
+  }
+
   console.log(fails ? fails + ' Fehler' : 'alles ok'); process.exit(fails ? 1 : 0);
 })().catch(e => { console.log('Ausnahme', e); process.exit(1); });

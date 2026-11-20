@@ -442,5 +442,69 @@ function mn(o) {
   else fail('nuzcalc.js: perHit für hits > 1 fehlt');
 })();
 
+// ---------- Differenztest-Funde (tools/diff_calc_smogon.js gegen @smogon/calc Champions + NCP-Quellcode) ----------
+(function () {
+  const dmg = function (r) { return JSON.stringify(r.damage); };
+  // Mega Sol: Wasser wie in der Sonne halbiert, im Regen nicht verstärkt
+  const sol = mon('Snorlax', { ability: 'Mega Sol' }), plain = mon('Snorlax', { ability: 'Thick Fat' });
+  const sunWater = calc(plain, SNORLAX(), move('Liquidation'), { weather: 'Sun' });
+  eq('Mega Sol halbiert Wasser ohne Wetter wie Sonne', dmg(calc(sol, SNORLAX(), move('Liquidation'))), dmg(sunWater));
+  eq('Mega Sol: Regen verstärkt Wasser nicht', dmg(calc(sol, SNORLAX(), move('Liquidation'), { weather: 'Rain' })), dmg(sunWater));
+  eq('Mega Sol verstärkt Feuer wie Sonne', dmg(calc(sol, SNORLAX(), move('Flare Blitz'))), dmg(calc(plain, SNORLAX(), move('Flare Blitz'), { weather: 'Sun' })));
+  // Crush Claw hat einen Zusatzeffekt (Def -1, 50 %) → Sheer Force greift
+  const MD = require('../tools/ncp_data.js').MOVES;
+  eq('Crush Claw hat hasSecondaryEffect', !!MD['Crush Claw'].hasSecondaryEffect, true);
+  const cc = Object.assign({}, MD['Crush Claw'], { name: 'Crush Claw' });
+  const ccSF = calc(mon('Snorlax', { ability: 'Sheer Force' }), SNORLAX(), cc), ccNo = calc(mon('Snorlax', { ability: 'Thick Fat' }), SNORLAX(), cc);
+  eq('Sheer Force verstärkt Crush Claw', ccSF.damage[15] > ccNo.damage[15], true);
+  // Forecast: Formeo wechselt den Typ mit dem Wetter (NCP checkForecast)
+  const cast = function () { return mon('Castform', { ability: 'Forecast' }); };
+  eq('Forecast: Sonne → Feuer (Rock Slide sehr effektiv)', calc(SNORLAX(), cast(), move('Rock Slide'), { weather: 'Sun' }).effectiveness, 2);
+  eq('Forecast: Regen → Wasser (Thunderbolt sehr effektiv)', calc(SNORLAX(), cast(), move('Thunderbolt'), { weather: 'Rain' }).effectiveness, 2);
+  eq('Forecast: Schnee → Eis (Close Combat sehr effektiv)', calc(SNORLAX(), cast(), move('Close Combat'), { weather: 'Snow' }).effectiveness, 2);
+  eq('Forecast mit Cloud Nine bleibt Normal', calc(mon('Snorlax', { ability: 'Cloud Nine' }), cast(), move('Close Combat'), { weather: 'Sun' }).effectiveness, 2);
+  // Mimicry: Typ nach Feld (NCP checkMimicry)
+  eq('Mimicry: Elektrofeld → Elektro (Earthquake sehr effektiv)', calc(SNORLAX(), mon('Snorlax', { ability: 'Mimicry' }), move('Earthquake'), { terrain: 'Electric' }).effectiveness, 2);
+  eq('Mimicry: Nebelfeld → Fee (Dragon Claw wirkungslos)', calc(SNORLAX(), mon('Snorlax', { ability: 'Mimicry' }), move('Dragon Claw'), { terrain: 'Misty' }).effectiveness, 0);
+  // Klutz: Item wirkt nicht (NCP checkKlutz)
+  eq('Klutz: Life Orb wirkt nicht', dmg(calc(mon('Snorlax', { ability: 'Klutz', item: 'Life Orb' }), SNORLAX(), move('Body Slam'))), dmg(calc(mon('Snorlax', { ability: 'Klutz' }), SNORLAX(), move('Body Slam'))));
+  eq('Klutz: Air Balloon hebt nicht ab (Earthquake trifft)', calc(SNORLAX(), mon('Snorlax', { ability: 'Klutz', item: 'Air Balloon' }), move('Earthquake')).damage[0] > 0, true);
+  const spd = Calc.getSpeed(mon('Snorlax', { ability: 'Klutz', item: 'Choice Scarf' }), { weather: '' }, {});
+  eq('Klutz: Choice Scarf erhöht Initiative nicht', spd, Calc.getSpeed(mon('Snorlax', { ability: 'Klutz' }), { weather: '' }, {}));
+  eq('Klutz: Acrobatics sieht weiterhin ein Item (kein Doppel-BP)', dmg(calc(mon('Snorlax', { ability: 'Klutz', item: 'Life Orb' }), SNORLAX(), move('Acrobatics'))), dmg(calc(mon('Snorlax', { ability: 'Klutz', item: 'Leftovers' }), SNORLAX(), move('Acrobatics'))));
+  // Feld-Samen: +1 Def/SpD im passenden Feld, Item verbraucht (NCP checkSeeds)
+  eq('Electric Seed: +1 Def im Elektrofeld', dmg(calc(SNORLAX(), SNORLAX({ item: 'Electric Seed' }), move('Body Slam'), { terrain: 'Electric' })), dmg(calc(SNORLAX(), SNORLAX({ boosts: { df: 1 } }), move('Body Slam'), { terrain: 'Electric' })));
+  eq('Misty Seed: +1 SpD im Nebelfeld', dmg(calc(SNORLAX(), SNORLAX({ item: 'Misty Seed' }), move('Hyper Voice'), { terrain: 'Misty' })), dmg(calc(SNORLAX(), SNORLAX({ boosts: { sd: 1 } }), move('Hyper Voice'), { terrain: 'Misty' })));
+  eq('Psychic Seed ohne passendes Feld wirkt nicht', dmg(calc(SNORLAX(), SNORLAX({ item: 'Psychic Seed' }), move('Hyper Voice'), { terrain: 'Grassy' })), dmg(calc(SNORLAX(), SNORLAX(), move('Hyper Voice'), { terrain: 'Grassy' })));
+  // Dragon Darts: 2 Treffer gegen ein einzelnes Ziel, 1 Treffer je Ziel im Doppel gegen zwei Gegner
+  const dd = Object.assign({}, MD['Dragon Darts'], { name: 'Dragon Darts' });
+  eq('Dragon Darts im Einzel: 2 Treffer', calc(mon('Dragapult'), SNORLAX(), dd).nHits, 2);
+  eq('Dragon Darts im Doppel gegen zwei Ziele: 1 Treffer', calc(mon('Dragapult'), SNORLAX(), dd, { format: 'Doubles' }).nHits, 1);
+  eq('Dragon Darts im Doppel gegen ein Ziel: 2 Treffer', calc(mon('Dragapult'), SNORLAX(), Object.assign({ singleTarget: true }, dd), { format: 'Doubles' }).nHits, 2);
+})();
+
+// ---------- NCP-Vorab-Fähigkeiten der App: Intimidate, Trace, Supersweet Syrup (js/app.js applyEntryAbilities) ----------
+(function () {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
+  const a = src.indexOf('  var TRACE_BLOCK'), b = src.indexOf('  function recalc()');
+  const apply = new Function(src.slice(a, b) + '; return applyEntryAbilities;')();
+  const p = function (o) { return Object.assign({ ability: '', item: '', boosts: {} }, o); };
+  let m = [[p({ ability: 'Intimidate', intimidateOn: true }), null], [p({}), p({ ability: 'Defiant' })]];
+  apply(m);
+  eq('Intimidate: beide Gegner −1 Atk, Defiant netto +1', [m[1][0].boosts.at, m[1][1].boosts.at], [-1, 1]);
+  m = [[p({ ability: 'Intimidate', intimidateOn: false })], [p({})]]; apply(m);
+  eq('Intimidate abgeschaltet wirkt nicht', m[1][0].boosts.at || 0, 0);
+  m = [[p({ ability: 'Intimidate', intimidateOn: true })], [p({ ability: 'Clear Body' })]]; apply(m);
+  eq('Intimidate gegen Clear Body wirkungslos', m[1][0].boosts.at || 0, 0);
+  m = [[p({ ability: 'Intimidate', intimidateOn: true })], [p({ ability: 'Mirror Armor' })]]; apply(m);
+  eq('Mirror Armor wirft Intimidate zurück', [m[0][0].boosts.at, m[1][0].boosts.at || 0], [-1, 0]);
+  m = [[p({ ability: 'Intimidate', intimidateOn: true })], [p({ ability: 'Competitive' })]]; apply(m);
+  eq('Competitive: −1 Atk, +2 SpA', [m[1][0].boosts.at, m[1][0].boosts.sa], [-1, 2]);
+  m = [[p({ ability: 'Trace', traceOn: true })], [p({ ability: 'Intimidate', intimidateOn: true })]]; apply(m);
+  eq('Trace kopiert die Fähigkeit des Gegners', m[0][0].ability, 'Intimidate');
+  m = [[p({ ability: 'Supersweet Syrup', syrupOn: true })], [p({ ability: 'Defiant' })]]; apply(m);
+  eq('Supersweet Syrup löst Defiant aus', m[1][0].boosts.at, 2);
+})();
+
 if (bad) { console.log(bad + ' Problem(e)'); process.exit(1); }
 console.log('Calc-Fixes OK');

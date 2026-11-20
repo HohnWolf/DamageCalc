@@ -50,8 +50,9 @@
       var subs = [];
       for (var b = 0; b < 32; b++) {
         if (!(bits & (1 << b))) continue;
-        var s = u32(g, q), e = u32(g, q + 4), len = u32(g, q + 8); q += 12;
-        subs.push({ start: dataOffset + s, end: dataOffset + s + len });
+        var s = u32(g, q), e = u32(g, q + 4), len = u32(g, q + 8);
+        // pend = ausgerichtetes Ende (Füllplatz bis zum nächsten Eintrag), lenOff = Position des Längenfelds in der FATB
+        subs.push({ start: dataOffset + s, end: dataOffset + s + len, pend: dataOffset + Math.max(e, s + len), lenOff: q + 8 }); q += 12;
       }
       files.push(subs);
     }
@@ -70,7 +71,7 @@
     var dataOffset = u32(h, 0x10), head = await source.read(off, dataOffset), g = parseGarc(head);
     if (!g) return null;
     g.source = source; g.base = off; g.dataOffset = dataOffset;
-    g.entryLoc = function (i, j) { var f = g.files[i] && g.files[i][j || 0]; return f ? { off: off + f.start, size: f.end - f.start } : null; };
+    g.entryLoc = function (i, j) { var f = g.files[i] && g.files[i][j || 0]; return f ? { off: off + f.start, size: f.end - f.start, room: f.pend - f.start, lenOff: off + f.lenOff } : null; };
     return g;
   }
   // LZ11-Kompressor (optimale Aufteilung); Ergebnis wird nur genommen, wenn es in den Platz des Originals passt

@@ -42,17 +42,25 @@
   // ---------------- Texte ----------------
   var G3_ENC = {}, G4_ENC = {};
   (function () {
-    for (var b = 0; b < 256; b++) { var c = G3.decode(new Uint8Array([b, 0xFF]), 0, 2); if (c && !(c in G3_ENC) && b !== 0) G3_ENC[c] = b; }
+    for (var b = 0; b < 256; b++) { var c = G3.decode(new Uint8Array([b, 0xFF]), 0, 2); if (c && !(c in G3_ENC)) G3_ENC[c] = b; } // 0x00 = Leerzeichen (pokeemerald charmap)
     for (var k = 1; k < 0x1ED; k++) { var ch = NDS.g4char(k); if (ch && !(ch in G4_ENC)) G4_ENC[ch] = k; }
   })();
+  // gleichwertige Zeichen (Showdown/Tastatur ↔ Spielzeichensatz), damit z. B. FARFETCH'D nicht zu FARFETCHD wird
+  var CHAR_ALIAS = { "'": ['’', '‘'], '’': ["'", '‘'], '‘': ["'", '’'], '"': ['”', '“'], '“': ['"', '”'], '”': ['"', '“'], '...': ['…'] };
+  function encChar(tab, ch) {
+    if (tab[ch] !== undefined) return tab[ch];
+    var al = CHAR_ALIAS[ch] || [];
+    for (var a = 0; a < al.length; a++) if (tab[al[a]] !== undefined) return tab[al[a]];
+    return undefined;
+  }
   function enc3(str, max, size) { // feste Länge, 0xFF-Terminator, Rest 0xFF (Spitzname) bzw. 0 (nicht benötigt)
     var out = new Uint8Array(size).fill(0xFF), n = 0;
-    for (var i = 0; i < str.length && n < max; i++) { var c = G3_ENC[str.charAt(i)]; if (c !== undefined) out[n++] = c; }
+    for (var i = 0; i < str.length && n < max; i++) { var c = encChar(G3_ENC, str.charAt(i)); if (c !== undefined) out[n++] = c; }
     return out;
   }
   function enc4(str, max, size) { // u16 je Zeichen, 0xFFFF Terminator
     var out = new Uint8Array(size * 2).fill(0xFF), n = 0;
-    for (var i = 0; i < str.length && n < max; i++) { var c = G4_ENC[str.charAt(i)]; if (c !== undefined) { w16(out, n * 2, c); n++; } }
+    for (var i = 0; i < str.length && n < max; i++) { var c = encChar(G4_ENC, str.charAt(i)); if (c !== undefined) { w16(out, n * 2, c); n++; } }
     return out;
   }
 
@@ -326,8 +334,9 @@
         case 'form': return d[64] >> 3;
         case 'gender': return (d[64] >> 1) & 3;
         case 'pokerus': return d[130];
-        case 'metLoc': return u16(d, 128);
-        case 'eggLoc': return u16(d, 126);
+        // Gen 4 (PKHeX G4PKM): Pt/HGSS-Feld (0x46/0x44) hat Vorrang vor dem DP-Feld (0x80/0x7E)
+        case 'metLoc': return (this.gen !== 5 && u16(d, 0x46)) || u16(d, 128);
+        case 'eggLoc': return (this.gen !== 5 && u16(d, 0x44)) || u16(d, 126);
         case 'contest': return d[30 + i];
         case 'lang': return d[23];
         case 'otGender': return d[132] >> 7;
@@ -369,8 +378,15 @@
         case 'form': d[64] = (d[64] & 7) | (v << 3); break;
         case 'gender': d[64] = (d[64] & ~6) | ((v & 3) << 1); break;
         case 'pokerus': d[130] = v; break;
-        case 'metLoc': w16(d, 128, v); break;
-        case 'eggLoc': w16(d, 126, v); break;
+        case 'metLoc': case 'eggLoc':
+          var dpOff = k === 'metLoc' ? 128 : 126;
+          if (this.gen === 5) { w16(d, dpOff, v); break; }
+          // wie PKHeX: Pt/HGSS-Orte (112–1999, Eier 2011–2999) → DP-Feld "Ferner Ort" (3002); sonst DP-Feld, Pt/HGSS-Feld nur bei Pt/HG/SS-Herkunft
+          var exOff = k === 'metLoc' ? 0x46 : 0x44, ver4 = d[0x5F];
+          if (!v) { w16(d, dpOff, 0); w16(d, exOff, 0); }
+          else if ((v > 111 && v < 2000) || (v > 2010 && v < 3000)) { w16(d, dpOff, 3002); w16(d, exOff, v); }
+          else { w16(d, dpOff, v); w16(d, exOff, (ver4 === 12 || ver4 === 7 || ver4 === 8) ? v : 0); }
+          break;
         case 'contest': d[30 + i] = v; break;
         case 'lang': d[23] = v; break;
         case 'otGender': d[132] = (d[132] & 0x7F) | ((v & 1) << 7); break;
@@ -462,12 +478,12 @@
       data[gb + g.party - 4] = packed.length;
       for (var i = 0; i < Math.max(packed.length, old); i++) {
         var o = gb + g.party + i * 236;
-        if (packed[i]) PK4.encode(packed[i], data, o, true); else data.fill(0, o, o + 236);
+        PK4.encode(packed[i] || new Uint8Array(236), data, o, true); // leer = verschlüsseltes Blank-PK4 wie PKHeX (BlankPKM at rest)
       }
     };
     function boxOff(b, s) { return sb + g.box + b * g.stride + s * 136; }
     sv.getBoxMon = function (b, s) { return PK4.decode(data, boxOff(b, s), false); };
-    sv.setBoxMon = function (b, s, d) { var o = boxOff(b, s); if (d) PK4.encode(d, data, o, false); else data.fill(0, o, o + 136); };
+    sv.setBoxMon = function (b, s, d) { PK4.encode(d || new Uint8Array(136), data, boxOff(b, s), false); };
     sv.getBoxName = function (b) { return NDS.g4str(data, sb + g.names + b * 0x28, 20); };
     sv.setBoxName = function (b, name) { data.fill(0, sb + g.names + b * 0x28, sb + g.names + b * 0x28 + 0x28); data.set(enc4(name, 8, 20), sb + g.names + b * 0x28); };
     sv.growthOf = function (species) { var e = P.g4[species]; return e ? e[6] : 0; };
@@ -506,7 +522,7 @@
       case 'hiddenAbility': return d[0x42] & 1;
       case 'ball': return d[0x83];
     }
-    return PK4.get(d, k, i);
+    return PK4.get.call(this, d, k, i);
   };
   PK5.set = function (d, k, v, i) {
     switch (k) {
@@ -516,7 +532,7 @@
       case 'hiddenAbility': d[0x42] = (d[0x42] & ~1) | (v ? 1 : 0); return;
       case 'ball': d[0x83] = v; return;
     }
-    PK4.set(d, k, v, i);
+    PK4.set.call(this, d, k, v, i);
   };
   PK5.nature = function (d) { return d[0x41] < 25 ? d[0x41] : u32(d, 0) % 25; };
   PK5.natureIsPid = false;
@@ -542,10 +558,10 @@
     sv.setParty = function (list) {
       var packed = list.filter(Boolean), old = sv.partyCount();
       data[0x18E04] = packed.length;
-      for (var i = 0; i < Math.max(packed.length, old); i++) { var o = 0x18E08 + i * 220; if (packed[i]) PK5.encode(packed[i], data, o, true); else data.fill(0, o, o + 220); }
+      for (var i = 0; i < Math.max(packed.length, old); i++) { var o = 0x18E08 + i * 220; PK5.encode(packed[i] || new Uint8Array(220), data, o, true); }
     };
     sv.getBoxMon = function (b, s) { return PK5.decode(data, 0x400 + b * 0x1000 + s * 136, false); };
-    sv.setBoxMon = function (b, s, d) { var o = 0x400 + b * 0x1000 + s * 136; if (d) PK5.encode(d, data, o, false); else data.fill(0, o, o + 136); };
+    sv.setBoxMon = function (b, s, d) { PK5.encode(d || new Uint8Array(136), data, 0x400 + b * 0x1000 + s * 136, false); };
     sv.getBoxName = function (b) { return NDS.g5str(data, 0x04 + 0x28 * b, 10); };
     sv.setBoxName = function (b, name) { data.fill(0, 0x04 + 0x28 * b, 0x04 + 0x28 * b + 0x28); data.set(enc5(name, 8, 10), 0x04 + 0x28 * b); };
     sv.growthOf = function (sp) { var e = P.g5[sp]; return e ? e[6] : 0; };

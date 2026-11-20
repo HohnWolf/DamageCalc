@@ -1,7 +1,7 @@
 // Prüft den Save-Editor-Kern an echten Spielständen: node test/real_save.js <datei>
 global.window = {}; global.document = {};
 const r = __dirname + '/../';
-require(r + 'js/nds.js'); require(r + 'js/gen3.js'); require(r + 'data/pk_personal.js'); require(r + 'js/savedit.js');
+['data/pk_personal.js', 'data/pk_blocks67.js', 'data/pk_text.js', 'data/pk_gb.js', 'js/nds.js', 'js/gen3.js', 'js/savedit.js', 'js/savedit_gb.js', 'js/savedit_3ds.js'].forEach(function (f) { require(r + f); });
 const fs = require('fs'), assert = require('assert');
 const u8 = new Uint8Array(fs.readFileSync(process.argv[2]));
 const sv = window.CCSave.open(u8);

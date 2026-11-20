@@ -2030,7 +2030,8 @@ var MOVES_ADV = $.extend(true, {}, MOVES_GSC, {
         bp: 75,
         type: 'Normal',
         category: 'Physical',
-        makesContact: true
+        makesContact: true,
+        hasSecondaryEffect: true
     },
     'Astonish': {
         bp: 30,
