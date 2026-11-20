@@ -1,15 +1,18 @@
-// Matchlog-Oberfläche (Alpha) unter VGC. Der Kern (js/matchlog*.js) bleibt ohne UI.
-// Nutzt eine eigene Capture-Quelle oder übernimmt automatisch die laufende Quelle vom Game Projector.
+// Matchlog-Oberfläche unter VGC.
+// Verknüpft direkt mit dem RattataLab Teambuilder (cc_builder.teams[].id),
+// dem Game Projector (CCProjectorView) und der Team-Analyse (CCMatch.importMatchlog).
+// Speichert nur kompakte Showdown-Text-Logs im Archiv (kein Video/Frames); Video nur auf Klick behalten.
 (function () {
   var A = window.CC, C = window.CCCapture;
   if (!A || !window.CCMatchlog) return;
   var el = A.el, de = A.LANG === 'de';
   var S = de ? {
     title: 'Matchlog',
-    alphaNote: 'Alpha-Version: Liest Pokémon-Champions-Doppelkämpfe automatisch aus dem Capture-Bild. Erkennung und KP-Werte können noch Lücken haben.',
-    sub: 'Liest Doppelkämpfe aus dem Capture-Bild und schreibt das Protokoll selbst. Das Kampf-Log im Spiel bleibt zu.',
+    alphaNote: 'Sammelt während des Spiels leichtgewichtig Keyframes (ohne OCR-Last) und erstellt per Antigravity oder Gemini automatisch ein Showdown-Replay-Log für deine Team-Analyse.',
+    sub: 'Nutzt eine eigene Capture-Quelle oder automatisch den laufenden Stream vom Game Projector.',
     camera: 'Capture-Karte / Kamera …',
     screen: 'Bildschirm / Fenster',
+    projector: 'Game Projector',
     refresh: 'Geräte neu suchen',
     disconnect: 'Trennen',
     cameraN: 'Kamera {0}',
@@ -17,27 +20,55 @@
     srcOwn: 'Verbunden: {0}',
     srcProj: 'Nutzt laufende Quelle vom Game Projector.',
     srcFail: 'Die Quelle konnte nicht geöffnet werden.',
-    on: 'Matchlog lesen',
+    teamLabel: 'Team (Teambuilder):',
+    teamNone: 'Ohne Team',
+    teamEmptyHint: 'Lege im Teambuilder ein Team an, um Matchlogs direkt nach Team zu sortieren.',
+    on: 'Live-Abtastung (8 FPS)',
+    aiMode: 'Live ohne OCR (Keyframes)',
+    autoAgy: 'Nach Aufnahme automatisch an Antigravity',
+    autoAnalysis: 'Direkt in Team-Analyse übernehmen',
     need: 'Erst eine Quelle verbinden.',
-    desk: 'Die Texterkennung läuft in der Desktop-App (im Prozess, ohne PowerShell).',
+    desk: 'Antigravity / OCR läuft nur in der Desktop-App.',
     scene: 'Szene',
-    ocr: 'Letzte OCR',
-    roi: 'ROI und letztes Bild',
+    ocr: 'Status',
+    roi: 'ROI-Vorschau',
+    copySd: 'Showdown-Log kopieren',
+    sendAnalysis: 'In Team-Analyse',
+    saveArchive: 'Im Archiv speichern',
     save: 'JSON speichern',
     clear: 'Protokoll leeren',
     empty: 'Noch nichts erkannt.',
     fps: 'Abtastung 8 Bilder/s',
     recStart: 'Match aufnehmen',
     recStop: 'Aufnahme stoppen',
-    saveVideo: 'Video speichern',
-    recRun: 'Aufnahme + Live-Log: ',
-    recFail: 'Videoaufnahme wird hier nicht unterstützt.'
+    saveVideo: 'Video behalten',
+    recRun: 'Aufnahme läuft: ',
+    recFail: 'Videoaufnahme wird hier nicht unterstützt.',
+    agyBtn: 'Mit Antigravity auswerten',
+    agyBusy: 'Antigravity wertet aus…',
+    gemBtn: 'Mit Gemini API',
+    gemBusy: 'Gemini wertet aus…',
+    gemKeyPh: 'Optional: Gemini API Key (Kostenlose Stufe)',
+    expBtn: 'Für Google AI Pro exportieren',
+    archiveTitle: 'Gespeicherte Matchlogs (nur Text-Logs)',
+    archiveAll: 'Alle Teams',
+    archiveEmpty: 'Noch keine Matchlogs gespeichert.',
+    show: 'Anzeigen',
+    copy: 'Kopieren',
+    del: 'Löschen',
+    win: 'Sieg',
+    loss: 'Niederlage',
+    unk: 'Unbekannt',
+    addedAnalysis: 'In Team-Analyse übernommen.',
+    dupAnalysis: 'Dieses Log ist bereits in der Team-Analyse.',
+    copied: 'Showdown-Log kopiert.'
   } : {
     title: 'Matchlog',
-    alphaNote: 'Alpha version: automatically reads Pokémon Champions doubles from the capture feed. Recognition and HP values may still have gaps.',
-    sub: 'Reads doubles from the capture and writes the log itself. The in-game battle log stays closed.',
+    alphaNote: 'Collects lightweight keyframes during play (zero OCR lag) and generates a Showdown replay log via Antigravity or Gemini directly for Team Analysis.',
+    sub: 'Uses its own capture source or automatically shares the active Game Projector feed.',
     camera: 'Capture card / camera …',
     screen: 'Screen / window',
+    projector: 'Game Projector',
     refresh: 'Rescan devices',
     disconnect: 'Disconnect',
     cameraN: 'Camera {0}',
@@ -45,38 +76,163 @@
     srcOwn: 'Connected: {0}',
     srcProj: 'Using active source from Game Projector.',
     srcFail: 'The source could not be opened.',
-    on: 'Read Matchlog',
+    teamLabel: 'Team (Teambuilder):',
+    teamNone: 'No team',
+    teamEmptyHint: 'Create a team in the Teambuilder to group matchlogs by team.',
+    on: 'Live capture (8 FPS)',
+    aiMode: 'Live without OCR (Keyframes)',
+    autoAgy: 'Auto-send to Antigravity on stop',
+    autoAnalysis: 'Auto-add to Team Analysis',
     need: 'Connect a source first.',
-    desk: 'Text recognition runs in the desktop app (in-process, no PowerShell).',
+    desk: 'Antigravity / OCR requires the desktop app.',
     scene: 'Scene',
-    ocr: 'Last OCR',
-    roi: 'ROIs and last frame',
+    ocr: 'Status',
+    roi: 'ROI preview',
+    copySd: 'Copy Showdown log',
+    sendAnalysis: 'Send to Team Analysis',
+    saveArchive: 'Save to archive',
     save: 'Save JSON',
     clear: 'Clear log',
     empty: 'Nothing recognized yet.',
     fps: 'Sampling 8 frames/s',
     recStart: 'Record match',
     recStop: 'Stop recording',
-    saveVideo: 'Save video',
-    recRun: 'Recording + live log: ',
-    recFail: 'Video recording is not supported here.'
+    saveVideo: 'Keep video',
+    recRun: 'Recording: ',
+    recFail: 'Video recording is not supported here.',
+    agyBtn: 'Analyze with Antigravity',
+    agyBusy: 'Antigravity analyzing…',
+    gemBtn: 'Use Gemini API',
+    gemBusy: 'Gemini analyzing…',
+    gemKeyPh: 'Optional: Gemini API Key (Free tier)',
+    expBtn: 'Export for Google AI Pro',
+    archiveTitle: 'Saved Matchlogs (text logs only)',
+    archiveAll: 'All teams',
+    archiveEmpty: 'No matchlogs saved yet.',
+    show: 'View',
+    copy: 'Copy',
+    del: 'Delete',
+    win: 'Win',
+    loss: 'Loss',
+    unk: 'Unknown',
+    addedAnalysis: 'Added to Team Analysis.',
+    dupAnalysis: 'This log is already in Team Analysis.',
+    copied: 'Showdown log copied.'
   };
   function t(k, a) { var s = S[k] != null ? S[k] : k; return a == null ? s : s.replace('{0}', a); }
 
-  var engine = null, timer = null, busy = false, grabbing = false, enabled = false, showRoi = false;
+  var engine = null, kf = null, aiShowdownLog = '';
+  var timer = null, busy = false, grabbing = false, enabled = false, showRoi = false;
   var hidden = null, cap = null, capTrack = null, capFailed = false;
   var grabCanvas = null, gctx = null, overlay = null, octx = null;
-  var logEl = null, sceneEl = null, ocrEl = null, timeEl = null;
-  var btnRec = null, btnSaveVid = null, chkLive = null;
+  var logEl = null, sceneEl = null, ocrEl = null, timeEl = null, kfStatsEl = null;
+  var btnRec = null, btnSaveVid = null, chkLive = null, chkAiMode = null, chkAutoAgy = null, chkAutoAnalysis = null;
+  var btnAgy = null, btnGem = null, inpGemKey = null, selGemModel = null;
+  var selTeam = null, selArchiveTeam = null, archiveBox = null;
   var root = null, camSel = null, statusEl = null, btnDisc = null;
   var ownStream = null, ownLabel = '';
-  var recorder = null, recChunks = [], recTimer = null, recStartAt = 0, analyzing = false;
-  var recordedBlob = null, recordedUrl = '';
-  var lastJobs = [];
+  var recorder = null, recChunks = [], recTimer = null, recStartAt = 0;
+  var recordedBlob = null;
+  var archiveLogs = [];
+  var selectedTeamId = '';
+
+  function genId(prefix) {
+    return (prefix || 'ml') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+  }
+  function builderTeams() {
+    var b = A.load('cc_builder', null);
+    var list = (b && Array.isArray(b.teams)) ? b.teams : [];
+    var changed = false;
+    list.forEach(function (tm) {
+      if (tm && !tm.id) { tm.id = genId('tm'); changed = true; }
+    });
+    if (changed && b) A.save('cc_builder', b);
+    return { list: list, cur: (b && b.cur) || '' };
+  }
+  function teamNameOf(id) {
+    if (!id) return t('teamNone');
+    var list = builderTeams().list;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i].name || list[i].id;
+    }
+    return id;
+  }
+  function loadArchive() {
+    var D = window.desktop && window.desktop.matchlog;
+    var apply = function (data) {
+      archiveLogs = (data && Array.isArray(data.logs)) ? data.logs : [];
+      renderArchive();
+    };
+    if (D && D.loadStore) {
+      D.loadStore().then(apply, function () { apply(A.load('cc_matchlog_archive', null)); });
+    } else {
+      apply(A.load('cc_matchlog_archive', null));
+    }
+  }
+  function saveArchive() {
+    var payload = { v: 1, logs: archiveLogs };
+    A.save('cc_matchlog_archive', payload);
+    var D = window.desktop && window.desktop.matchlog;
+    if (D && D.saveStore) D.saveStore(payload).catch(function () {});
+  }
+  function parseLogMeta(showdownText) {
+    var lines = String(showdownText || '').split(/\r?\n/);
+    var p1 = '', p2 = '', win = '';
+    lines.forEach(function (l) {
+      if (l.indexOf('|player|p1|') === 0) p1 = (l.split('|')[3] || '').trim();
+      else if (l.indexOf('|player|p2|') === 0) p2 = (l.split('|')[3] || '').trim();
+      else if (l.indexOf('|win|') === 0) win = (l.split('|')[2] || '').trim();
+    });
+    var result = 'unknown';
+    if (win) {
+      if (p1 && win.toLowerCase() === p1.toLowerCase()) result = 'win';
+      else if (p2 && win.toLowerCase() === p2.toLowerCase()) result = 'loss';
+    }
+    return { p1: p1 || 'You', foe: p2 || 'Opponent', result: result };
+  }
+  function storeLog(showdownText, source) {
+    var clean = String(showdownText || '').trim();
+    if (!clean) return null;
+    var meta = parseLogMeta(clean);
+    var entry = {
+      id: genId('log'),
+      teamId: selectedTeamId || '',
+      teamName: teamNameOf(selectedTeamId),
+      when: Date.now(),
+      foe: meta.foe,
+      result: meta.result,
+      source: source || 'manual',
+      showdown: clean
+    };
+    archiveLogs.unshift(entry);
+    saveArchive();
+    renderArchive();
+    return entry;
+  }
+  function sendToAnalysis(showdownText, teamId, silent) {
+    var clean = String(showdownText || '').trim();
+    if (!clean || !window.CCMatch || !window.CCMatch.importMatchlog) return;
+    var res = window.CCMatch.importMatchlog(clean, teamId || '');
+    if (!silent && A && A.toast) {
+      if (res && res.status === 'ok') A.toast(t('addedAnalysis'));
+      else if (res && res.status === 'dup') A.toast(t('dupAnalysis'));
+    }
+  }
 
   function makeEngine() {
     var lex = window.CCMatchlogLex.fromGlobals();
     engine = window.CCMatchlog.create({ lex: lex, digits: window.CCMatchlogDigits || null });
+    if (window.CCMatchlogKeyframes) {
+      if (!kf) kf = window.CCMatchlogKeyframes.create();
+      else kf.reset();
+    }
+    aiShowdownLog = '';
+    paintKfStats();
+  }
+  function paintKfStats() {
+    if (!kfStatsEl || !kf) return;
+    var s = kf.stats();
+    kfStatsEl.textContent = 'Keyframes: Team-Preview ' + (s.hasTeamPreview ? '✓' : '–') + ' · ' + s.frameCount + ' Momente (' + s.sheetCount + ' Bögen)';
   }
   function stream() {
     if (ownStream) return ownStream;
@@ -139,6 +295,36 @@
       if (keep) camSel.value = keep;
     }, function () {});
   }
+  function fillTeams() {
+    var bt = builderTeams();
+    if (!selectedTeamId) {
+      var saved = A.load('cc_matchlog_team', '');
+      if (saved && bt.list.some(function (x) { return x.id === saved; })) selectedTeamId = saved;
+      else if (bt.cur) selectedTeamId = bt.cur;
+      else if (bt.list[0]) selectedTeamId = bt.list[0].id;
+    } else if (selectedTeamId && !bt.list.some(function (x) { return x.id === selectedTeamId; })) {
+      selectedTeamId = bt.cur || (bt.list[0] ? bt.list[0].id : '');
+    }
+    if (selTeam) {
+      selTeam.innerHTML = '';
+      selTeam.appendChild(el('option', { value: '', text: t('teamNone') }));
+      bt.list.forEach(function (tm) {
+        selTeam.appendChild(el('option', { value: tm.id, text: (tm.name || tm.id) }));
+      });
+      selTeam.value = selectedTeamId || '';
+    }
+    if (selArchiveTeam) {
+      var keep = selArchiveTeam.value || '__all__';
+      selArchiveTeam.innerHTML = '';
+      selArchiveTeam.appendChild(el('option', { value: '__all__', text: t('archiveAll') }));
+      selArchiveTeam.appendChild(el('option', { value: '', text: t('teamNone') }));
+      bt.list.forEach(function (tm) {
+        selArchiveTeam.appendChild(el('option', { value: tm.id, text: (tm.name || tm.id) }));
+      });
+      selArchiveTeam.value = keep;
+      if (!selArchiveTeam.value && keep !== '') selArchiveTeam.value = '__all__';
+    }
+  }
   function liveTrack(s) {
     var list = s && s.getVideoTracks ? s.getVideoTracks() : [];
     for (var i = 0; i < list.length; i++) {
@@ -149,7 +335,7 @@
   function resetSource() {
     cap = null; capTrack = null; capFailed = false;
     if (hidden) {
-      try { hidden.pause(); } catch (e) { /* egal */ }
+      try { hidden.pause(); } catch (e) {}
       hidden.srcObject = null;
     }
   }
@@ -159,7 +345,6 @@
       hidden.muted = true;
       hidden.playsInline = true;
       hidden.setAttribute('aria-hidden', 'true');
-      // Keine opacity: 0: Chromium drosselt sonst das Video-Decoding im Hintergrund.
       hidden.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.002;pointer-events:none;z-index:-1';
       document.body.appendChild(hidden);
     }
@@ -202,7 +387,7 @@
         return cap.grabFrame().then(function (bmp) {
           var im = null;
           try { im = drawSource(bmp, bmp.width, bmp.height); }
-          finally { try { bmp.close(); } catch (e) { /* schon zu */ } }
+          finally { try { bmp.close(); } catch (e) {} }
           return im;
         }, function () {
           capFailed = true;
@@ -222,13 +407,15 @@
     if (!D || !D.recognize) return Promise.resolve({ error: t('desk'), text: '' });
     return D.recognize({ width: image.width, height: image.height, b64: b64(image.abgr), whitelist: whitelist || '' });
   }
+  function currentShowdown() {
+    return aiShowdownLog || (engine && engine.showdown ? engine.showdown() : '');
+  }
   function paint() {
     if (!logEl || !engine) return;
-    var text = engine.text();
+    var text = aiShowdownLog || engine.text();
     logEl.textContent = text && text.trim() ? text : t('empty');
     var st = engine.state;
     if (sceneEl) sceneEl.textContent = t('scene') + ': ' + (st.debug.scene || '–');
-    if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + (st.debug.lastText || '–');
   }
   function drawRoi(image) {
     if (!overlay || !showRoi || !image) return;
@@ -276,21 +463,33 @@
       if (sceneEl) sceneEl.textContent = t('need');
       return;
     }
-    if (busy || grabbing) return;
+    if (grabbing) return;
     grabbing = true;
     grabStream(s).then(function (image) {
       grabbing = false;
       if (!enabled || !image) return;
+      var nowT = Date.now() / 1000;
       var frameInfo = image.width + '×' + image.height;
-      var step = engine.step(image, { t: Date.now() / 1000 });
-      if (sceneEl) sceneEl.textContent = t('scene') + ': ' + step.scene;
       drawRoi(image);
+
+      if (kf && grabCanvas) {
+        var kr = kf.step(image, grabCanvas, { t: nowT });
+        if (kr.added) paintKfStats();
+        if (chkAiMode && chkAiMode.checked) {
+          if (sceneEl) sceneEl.textContent = t('scene') + ': ' + (kr.scene || '–');
+          if (!recorder && timeEl) timeEl.textContent = t('fps') + ' · ' + frameInfo + ' · Keyframes';
+          return;
+        }
+      }
+
+      if (busy) return;
+      var step = engine.step(image, { t: nowT });
+      if (sceneEl) sceneEl.textContent = t('scene') + ': ' + step.scene;
       if (step.jobs && step.jobs.length) {
         busy = true;
-        lastJobs = step.jobs;
-        runJobs(step.jobs, Date.now() / 1000, frameInfo);
+        runJobs(step.jobs, nowT, frameInfo);
       } else {
-        if (timeEl) timeEl.textContent = t('fps') + ' · ' + frameInfo;
+        if (!recorder && timeEl) timeEl.textContent = t('fps') + ' · ' + frameInfo;
         paint();
       }
     }, function () {
@@ -325,6 +524,60 @@
     }
     if (btnSaveVid) btnSaveVid.disabled = !recordedBlob || recOn;
   }
+  function onAiLogReady(text, source, ms) {
+    aiShowdownLog = text || '';
+    paint();
+    if (!aiShowdownLog) return;
+    storeLog(aiShowdownLog, source);
+    if (chkAutoAnalysis && chkAutoAnalysis.checked) {
+      sendToAnalysis(aiShowdownLog, selectedTeamId, false);
+    }
+    if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + source + ' fertig (' + (ms || 0) + ' ms, ' + aiShowdownLog.split('\n').length + ' Zeilen)';
+  }
+  function runAntigravity() {
+    var D = window.desktop && window.desktop.matchlog;
+    if (!D || !D.antigravity) { if (ocrEl) ocrEl.textContent = t('desk'); return; }
+    if (!kf) return;
+    var sheets = kf.buildSheets();
+    if (!sheets.length) { if (ocrEl) ocrEl.textContent = t('ocr') + ': Keine Keyframes gesammelt.'; return; }
+    if (btnAgy) { btnAgy.disabled = true; btnAgy.textContent = t('agyBusy'); }
+    if (ocrEl) ocrEl.textContent = t('ocr') + ': Antigravity wertet ' + sheets.length + ' Kontaktbogen-Bild(er) aus…';
+    D.antigravity({ prompt: kf.buildPrompt(), sheets: sheets }).then(function (r) {
+      if (btnAgy) { btnAgy.disabled = false; btnAgy.textContent = t('agyBtn'); }
+      if (!r || !r.ok) {
+        if (ocrEl) ocrEl.textContent = t('ocr') + ': Antigravity-Fehler: ' + (r && r.error || 'Unbekannt');
+        return;
+      }
+      onAiLogReady(r.text, 'Antigravity', r.ms);
+    }, function (err) {
+      if (btnAgy) { btnAgy.disabled = false; btnAgy.textContent = t('agyBtn'); }
+      if (ocrEl) ocrEl.textContent = t('ocr') + ': Antigravity-Fehler: ' + (err && err.message || err);
+    });
+  }
+  function runGemini() {
+    var D = window.desktop && window.desktop.matchlog;
+    if (!D || !D.gemini) { if (ocrEl) ocrEl.textContent = t('desk'); return; }
+    if (!kf) return;
+    var apiKey = (inpGemKey && inpGemKey.value || '').trim();
+    if (!apiKey) { if (ocrEl) ocrEl.textContent = t('ocr') + ': Bitte Gemini API Key eintragen.'; return; }
+    A.save('cc_matchlog_gemini_key', apiKey);
+    var sheets = kf.buildSheets();
+    if (!sheets.length) { if (ocrEl) ocrEl.textContent = t('ocr') + ': Keine Keyframes gesammelt.'; return; }
+    var model = (selGemModel && selGemModel.value) || 'gemini-3.8-flash';
+    if (btnGem) { btnGem.disabled = true; btnGem.textContent = t('gemBusy'); }
+    if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini (' + model + ') wertet ' + sheets.length + ' Bild(er) aus…';
+    D.gemini({ apiKey: apiKey, model: model, prompt: kf.buildPrompt(), sheets: sheets }).then(function (r) {
+      if (btnGem) { btnGem.disabled = false; btnGem.textContent = t('gemBtn'); }
+      if (!r || !r.ok) {
+        if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini-Fehler: ' + (r && r.error || 'Unbekannt');
+        return;
+      }
+      onAiLogReady(r.text, 'Gemini', r.ms);
+    }, function (err) {
+      if (btnGem) { btnGem.disabled = false; btnGem.textContent = t('gemBtn'); }
+      if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini-Fehler: ' + (err && err.message || err);
+    });
+  }
   function startRec() {
     var s = stream();
     if (!s) {
@@ -339,6 +592,7 @@
     }
     makeEngine();
     paint();
+    recordedBlob = null;
     recChunks = [];
     var recStream = new MediaStream([vt]);
     var opts = { videoBitsPerSecond: 2500000 };
@@ -352,6 +606,9 @@
       recorder = null;
       syncRecUi();
       paint();
+      if (chkAutoAgy && chkAutoAgy.checked && kf && kf.stats().sheetCount > 0) {
+        runAntigravity();
+      }
     };
     recStartAt = Date.now();
     recorder.start(500);
@@ -372,15 +629,99 @@
     else startRec();
   }
 
+  function renderArchive() {
+    if (!archiveBox) return;
+    archiveBox.innerHTML = '';
+    var filter = selArchiveTeam ? selArchiveTeam.value : '__all__';
+    var filtered = archiveLogs.filter(function (l) {
+      if (filter === '__all__') return true;
+      return (l.teamId || '') === filter;
+    });
+    if (!filtered.length) {
+      archiveBox.appendChild(el('div', { class: 'ml-sub', text: t('archiveEmpty') }));
+      return;
+    }
+    var groups = {}, order = [];
+    filtered.forEach(function (l) {
+      var key = l.teamId || '';
+      if (!groups[key]) { groups[key] = []; order.push(key); }
+      groups[key].push(l);
+    });
+    order.sort(function (a, b) {
+      if (!a && b) return 1;
+      if (a && !b) return -1;
+      return teamNameOf(a).localeCompare(teamNameOf(b), 'de');
+    });
+    order.forEach(function (tid) {
+      var items = groups[tid];
+      var grp = el('div', { class: 'ml-arch-group' });
+      var hd = el('div', { class: 'ml-arch-head' });
+      hd.appendChild(el('span', { text: teamNameOf(tid) + ' (' + items.length + ')' }));
+      hd.appendChild(el('span', { class: 'ml-arch-id', text: tid ? ('ID: ' + tid) : t('teamNone') }));
+      grp.appendChild(hd);
+      items.forEach(function (entry) {
+        var dt = new Date(entry.when || Date.now()).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' });
+        var resText = entry.result === 'win' ? t('win') : entry.result === 'loss' ? t('loss') : t('unk');
+        var resCls = entry.result === 'win' ? 'ml-win' : entry.result === 'loss' ? 'ml-loss' : '';
+        var row = el('div', { class: 'ml-arch-item' });
+        var meta = el('div', { class: 'ml-arch-meta' });
+        var title = el('div', { class: 'ml-arch-title' });
+        title.appendChild(el('span', { text: 'vs ' + (entry.foe || 'Opponent') + ' · ' }));
+        title.appendChild(el('span', { class: resCls, text: resText }));
+        meta.appendChild(title);
+        meta.appendChild(el('div', { class: 'ml-sub', text: dt + ' · ' + entry.showdown.split('\n').length + ' Zeilen' }));
+        row.appendChild(meta);
+
+        var acts = el('div', { class: 'ml-arch-acts' });
+        var bShow = el('button', { type: 'button', class: 'tbtn', text: t('show') });
+        bShow.addEventListener('click', function () { aiShowdownLog = entry.showdown; paint(); });
+        var bAna = el('button', { type: 'button', class: 'tbtn', text: t('sendAnalysis') });
+        bAna.addEventListener('click', function () { sendToAnalysis(entry.showdown, entry.teamId, false); });
+        var bCopy = el('button', { type: 'button', class: 'tbtn', text: t('copy') });
+        bCopy.addEventListener('click', function () {
+          if (navigator.clipboard) navigator.clipboard.writeText(entry.showdown);
+          if (A && A.toast) A.toast(t('copied'));
+        });
+        var bDel = el('button', { type: 'button', class: 'tbtn', text: '✕', title: t('del') });
+        bDel.addEventListener('click', function () {
+          archiveLogs = archiveLogs.filter(function (x) { return x.id !== entry.id; });
+          saveArchive();
+          renderArchive();
+        });
+        acts.appendChild(bShow);
+        acts.appendChild(bAna);
+        acts.appendChild(bCopy);
+        acts.appendChild(bDel);
+        row.appendChild(acts);
+        grp.appendChild(row);
+      });
+      archiveBox.appendChild(grp);
+    });
+  }
+
   function mount(host) {
     if (!host || host.querySelector('.ml-panel')) return;
     makeEngine();
     var box = el('section', { class: 'ml-panel' });
     box.appendChild(el('p', { class: 'ml-sub', text: t('sub') }));
+
+    // Team-Auswahl (Teambuilder-ID)
+    var teamRow = el('div', { class: 'ml-row' });
+    teamRow.appendChild(el('label', { class: 'ml-sub', text: t('teamLabel') }));
+    selTeam = el('select', { class: 'det-cam', id: 'mlTeamSel' });
+    selTeam.addEventListener('change', function () {
+      selectedTeamId = selTeam.value || '';
+      A.save('cc_matchlog_team', selectedTeamId);
+    });
+    teamRow.appendChild(selTeam);
+    box.appendChild(teamRow);
+
+    // Aufnahme & Live-Steuerung
     var row = el('div', { class: 'ml-row' });
     btnRec = el('button', { type: 'button', class: 'tbtn ml-rec', id: 'mlRecBtn', text: t('recStart') });
     btnRec.addEventListener('click', toggleRec);
     row.appendChild(btnRec);
+
     btnSaveVid = el('button', { type: 'button', class: 'tbtn', id: 'mlSaveVidBtn', text: t('saveVideo'), disabled: true });
     btnSaveVid.addEventListener('click', function () {
       if (!recordedBlob) return;
@@ -388,12 +729,21 @@
       A.saveFile('matchlog-' + stamp + '.webm', recordedBlob, recordedBlob.type || 'video/webm');
     });
     row.appendChild(btnSaveVid);
+
     chkLive = el('input', { type: 'checkbox', id: 'mlOn' });
     chkLive.addEventListener('change', function () { setOn(chkLive.checked); });
     var lab = el('label', { class: 'ml-check' });
     lab.appendChild(chkLive);
     lab.appendChild(el('span', { text: t('on') }));
     row.appendChild(lab);
+
+    chkAiMode = el('input', { type: 'checkbox', id: 'mlAiMode' });
+    chkAiMode.checked = true;
+    var labAi = el('label', { class: 'ml-check' });
+    labAi.appendChild(chkAiMode);
+    labAi.appendChild(el('span', { text: t('aiMode') }));
+    row.appendChild(labAi);
+
     var roi = el('input', { type: 'checkbox' });
     roi.addEventListener('change', function () {
       showRoi = roi.checked;
@@ -403,32 +753,122 @@
     rl.appendChild(roi);
     rl.appendChild(el('span', { text: t('roi') }));
     row.appendChild(rl);
+    box.appendChild(row);
+
+    // KI-Auswertung (Antigravity / Gemini)
+    var aiRow = el('div', { class: 'ml-row' });
+    btnAgy = el('button', { type: 'button', class: 'tbtn', text: t('agyBtn') });
+    btnAgy.addEventListener('click', runAntigravity);
+    aiRow.appendChild(btnAgy);
+
+    chkAutoAgy = el('input', { type: 'checkbox', id: 'mlAutoAgy' });
+    chkAutoAgy.checked = true;
+    var labAuto = el('label', { class: 'ml-check' });
+    labAuto.appendChild(chkAutoAgy);
+    labAuto.appendChild(el('span', { text: t('autoAgy') }));
+    aiRow.appendChild(labAuto);
+
+    chkAutoAnalysis = el('input', { type: 'checkbox', id: 'mlAutoAna' });
+    chkAutoAnalysis.checked = true;
+    var labAna = el('label', { class: 'ml-check' });
+    labAna.appendChild(chkAutoAnalysis);
+    labAna.appendChild(el('span', { text: t('autoAnalysis') }));
+    aiRow.appendChild(labAna);
+    box.appendChild(aiRow);
+
+    // Optional: Gemini API + Google AI Pro Export
+    var gemRow = el('div', { class: 'ml-row' });
+    inpGemKey = el('input', { type: 'password', class: 'det-cam', placeholder: t('gemKeyPh'), autocomplete: 'off' });
+    inpGemKey.value = A.load('cc_matchlog_gemini_key', '') || '';
+    inpGemKey.addEventListener('change', function () { A.save('cc_matchlog_gemini_key', inpGemKey.value.trim()); });
+    gemRow.appendChild(inpGemKey);
+    selGemModel = el('select', { class: 'det-cam' });
+    ['gemini-3.8-flash', 'gemini-3.8-pro', 'gemini-2.5-flash-lite'].forEach(function (m) {
+      selGemModel.appendChild(el('option', { value: m, text: m }));
+    });
+    gemRow.appendChild(selGemModel);
+    btnGem = el('button', { type: 'button', class: 'tbtn', text: t('gemBtn') });
+    btnGem.addEventListener('click', runGemini);
+    gemRow.appendChild(btnGem);
+    var btnExp = el('button', { type: 'button', class: 'tbtn', text: t('expBtn') });
+    btnExp.addEventListener('click', function () {
+      var D = window.desktop && window.desktop.matchlog;
+      if (!D || !D.exportSheets || !kf) return;
+      var sheets = kf.buildSheets();
+      if (!sheets.length) return;
+      var prompt = kf.buildPrompt();
+      if (navigator.clipboard) navigator.clipboard.writeText(prompt);
+      D.exportSheets({ sheets: sheets, prompt: prompt });
+    });
+    gemRow.appendChild(btnExp);
+    box.appendChild(gemRow);
+
+    // Protokoll-Aktionen
+    var actRow = el('div', { class: 'ml-row' });
+    var bCopySd = el('button', { type: 'button', class: 'tbtn', text: t('copySd') });
+    bCopySd.addEventListener('click', function () {
+      var sd = currentShowdown();
+      if (!sd) return;
+      if (navigator.clipboard) navigator.clipboard.writeText(sd);
+      if (A && A.toast) A.toast(t('copied'));
+    });
+    actRow.appendChild(bCopySd);
+    var bSend = el('button', { type: 'button', class: 'tbtn', text: t('sendAnalysis') });
+    bSend.addEventListener('click', function () { sendToAnalysis(currentShowdown(), selectedTeamId, false); });
+    actRow.appendChild(bSend);
+    var bArch = el('button', { type: 'button', class: 'tbtn', text: t('saveArchive') });
+    bArch.addEventListener('click', function () { storeLog(currentShowdown(), 'manual'); });
+    actRow.appendChild(bArch);
     var save = el('button', { type: 'button', class: 'tbtn', text: t('save') });
     save.addEventListener('click', function () {
       var snap = engine.snapshot();
+      snap.teamId = selectedTeamId || '';
+      snap.teamName = teamNameOf(selectedTeamId);
       snap.text = engine.text();
+      snap.showdown = currentShowdown();
       A.saveFile('matchlog.json', JSON.stringify(snap, null, 2), 'application/json');
     });
-    row.appendChild(save);
+    actRow.appendChild(save);
     var clear = el('button', { type: 'button', class: 'tbtn', text: t('clear') });
     clear.addEventListener('click', function () { makeEngine(); paint(); });
-    row.appendChild(clear);
-    box.appendChild(row);
+    actRow.appendChild(clear);
+    box.appendChild(actRow);
+
     if (!(window.desktop && window.desktop.matchlog)) box.appendChild(el('p', { class: 'ml-sub', text: t('desk') }));
+    kfStatsEl = el('div', { class: 'ml-debug', text: 'Keyframes: Team-Preview – · 0 Momente (0 Bögen)' });
     sceneEl = el('div', { class: 'ml-debug', text: t('scene') + ': –' });
     ocrEl = el('div', { class: 'ml-debug', text: t('ocr') + ': –' });
     timeEl = el('div', { class: 'ml-debug', text: t('fps') });
+    box.appendChild(kfStatsEl);
     box.appendChild(sceneEl);
     box.appendChild(ocrEl);
     box.appendChild(timeEl);
+
     overlay = el('canvas', { class: 'ml-roi' });
     overlay.hidden = true;
     octx = overlay.getContext('2d');
     box.appendChild(overlay);
+
     logEl = el('pre', { class: 'ml-log', text: t('empty') });
     box.appendChild(logEl);
+
+    // Archiv-Sektion (nach Team sortiert, nur Text-Logs)
+    var archSec = el('section', { class: 'ml-panel' });
+    var archHead = el('div', { class: 'ml-row' });
+    archHead.appendChild(el('h3', { text: t('archiveTitle') }));
+    selArchiveTeam = el('select', { class: 'det-cam' });
+    selArchiveTeam.addEventListener('change', renderArchive);
+    archHead.appendChild(selArchiveTeam);
+    archSec.appendChild(archHead);
+    archiveBox = el('div', { class: 'ml-arch-list' });
+    archSec.appendChild(archiveBox);
+    box.appendChild(archSec);
+
     host.appendChild(box);
+    fillTeams();
+    loadArchive();
   }
+
   function buildView() {
     root.innerHTML = '';
     var head = el('div', { class: 'ml-head' });
@@ -457,6 +897,9 @@
       sb.addEventListener('click', function () { C.chooseScreen(connectOwn); });
       srcRow.appendChild(sb);
     }
+    var pb = el('button', { class: 'tbtn', type: 'button', text: t('projector') });
+    pb.addEventListener('click', function () { A.showView('projector'); });
+    srcRow.appendChild(pb);
     btnDisc = el('button', { class: 'tbtn', type: 'button', text: t('disconnect'), disabled: true });
     btnDisc.addEventListener('click', disconnectOwn);
     srcRow.appendChild(btnDisc);
@@ -475,7 +918,7 @@
     root = document.getElementById('matchlogView');
     if (!root) return;
     if (!root.firstChild) buildView();
-    else { fillCameras(); syncSourceStatus(); }
+    else { fillCameras(); fillTeams(); syncSourceStatus(); renderArchive(); }
   }
   window.CCMatchlogUI = { render: render, mount: mount, setOn: setOn, stream: stream, disconnect: disconnectOwn };
 })();

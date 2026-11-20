@@ -22,3 +22,26 @@
 .ml-roi { width: min(100%, 480px); height: auto; border-radius: 8px; background: #000; }
 .ml-roi[hidden] { display: none; }
 .ml-rec.is-rec { background: #dc2626; color: #fff; border-color: #ef4444; }
+
+/* Gespeicherte Matchlogs (Archiv nach Team) */
+.ml-arch-list { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow: auto; }
+.ml-arch-group {
+  border: 1px solid var(--line, #2a2a30); border-radius: 8px;
+  padding: 8px 10px; background: rgba(0, 0, 0, .18);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.ml-arch-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 600; font-size: calc(13px * var(--fs, 1));
+  border-bottom: 1px solid var(--line, #2a2a30); padding-bottom: 4px;
+}
+.ml-arch-id { font: calc(11px * var(--fs, 1)) ui-monospace, Consolas, monospace; opacity: .7; font-weight: 400; }
+.ml-arch-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 6px 8px; border-radius: 6px; background: rgba(255, 255, 255, .03);
+}
+.ml-arch-meta { display: flex; flex-direction: column; gap: 2px; }
+.ml-arch-title { font-weight: 600; font-size: calc(13px * var(--fs, 1)); }
+.ml-win { color: #4ade80; }
+.ml-loss { color: #f87171; }
+.ml-arch-acts { display: flex; gap: 6px; flex-wrap: wrap; }

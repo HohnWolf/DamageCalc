@@ -1124,8 +1124,32 @@
     return sec;
   }
 
+  function importMatchlog(text, teamId) {
+    var trimmed = String(text || '').trim();
+    if (!trimmed) return { status: 'empty' };
+    var game = P.parseLog(trimmed, { source: 'matchlog', when: Date.now() });
+    var key = 'log:' + P.hashText(trimmed);
+    if (store.entries.some(function (e) { return e.key === key; })) {
+      return { status: 'dup', key: key };
+    }
+    var entry = makeEntry(key, 'showdown', '', game);
+    if (teamId) {
+      entry.teamId = teamId;
+      entry.pinned = true;
+      store.teamId = teamId;
+    } else {
+      assignEntry(entry, store.teamId);
+      if (entry.teamId) store.teamId = entry.teamId;
+    }
+    store.entries.push(entry);
+    persist();
+    if (root && root.firstChild) render();
+    return { status: 'ok', entry: entry };
+  }
+
   window.CCMatch = {
     render: render,
+    importMatchlog: importMatchlog,
     selfTest: function () { return runTests(); }
   };
 })();

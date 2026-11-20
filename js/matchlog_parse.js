@@ -18,6 +18,9 @@
   function opposing(s) {
     return /oppos|\bopp[a-z .]{1,5}(?:ing|tng)\b|(?:\b|[^a-z])p?posing\b|gegn/.test(s);
   }
+  function fieldEnded(s) {
+    return /[a-z]etered|peter|wore\s*off|ended|subsided|faded|disappeared|stopped|\bout\b|returned to normal|normalisiert|nachgelass|vorbei|abgeklung|aufgehort|verflogen|endet/.test(s);
+  }
   function oneMove(text, lex) {
     var L = lexApi();
     var hit = L.best(text, lex.moves);
@@ -61,6 +64,12 @@
     return { stat: stat, stages: stages };
   }
 
+  function cleanPlayerName(s) {
+    var t = flat(s).replace(/^[^a-zA-Z0-9_]+|[^a-zA-Z0-9_]+$/g, '');
+    if (t.length < 2 || t.length > 24) return '';
+    if (/^(?:the|opposing|you|your|foe|enemy|go|gol|los)$/i.test(t)) return '';
+    return t;
+  }
   function parse(text, lex, hint) {
     var raw = flat(text);
     var s = low(raw);
@@ -73,10 +82,12 @@
       return { kind: 'forfeit', side: /\byou\b|\bdu\b|\bdein\b/.test(s) ? 'you' : opposing(s) ? 'foe' : '', line: raw };
     }
     if (/you defeated|du hast .*besiegt|you win|gewonnen/.test(s) && !/fainted|wurde besiegt/.test(s.slice(0, 24))) {
-      return { kind: 'result', winner: 'you', line: raw };
+      var mw = raw.match(/(?:you defeated|du hast)\s+([^!.\n]+)/i);
+      return { kind: 'result', winner: 'you', foeName: mw ? cleanPlayerName(mw[1].replace(/\s+besiegt$/i, '')) : '', line: raw };
     }
     if (/you lost|you were defeated|verloren|wurde besiegt von/.test(s)) {
-      return { kind: 'result', winner: 'foe', line: raw };
+      var ml = raw.match(/(?:lost to|defeated by|besiegt von)\s+([^!.\n]+)/i);
+      return { kind: 'result', winner: 'foe', foeName: ml ? cleanPlayerName(ml[1]) : '', line: raw };
     }
     if (/flinch|zuruckgeschreck|zurueckgeschreck|konnte nicht angreifen|couldn.?t move/.test(s)) {
       return { kind: 'flinch', mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
@@ -106,7 +117,9 @@
     if (/knocked off|abgeschlagen|entrissen/.test(s)) {
       var kItem = lexApi().best(raw, lex.items);
       var kMon = mons.length > 1 ? mons[1] : mon;
-      return { kind: 'knock_off', mon: kMon, item: kItem ? kItem.entry.en : '', side: opposing(s) ? 'foe' : 'you', line: raw };
+      var afterOff = s.replace(/^.*?(?:knocked off|abgeschlagen|entrissen)/, '');
+      var kSide = opposing(afterOff) ? 'foe' : (mons.length > 1 && opposing(s) ? 'you' : (opposing(s) ? 'foe' : 'you'));
+      return { kind: 'knock_off', mon: kMon, item: kItem ? kItem.entry.en : '', side: kSide, line: raw };
     }
     if (/damaged by (?:the )?recoil|durch ruckstoss|ruckstossschaden/.test(s)) {
       return { kind: 'recoil', mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
@@ -120,19 +133,28 @@
       return { kind: 'effectiveness', value: value, mon: mon, side: opposing(s) ? 'foe' : 'you', line: raw };
     }
     if ((/electr/.test(s) && /field|batl|terrain|strom|feld|current/.test(s)) || /elektrofeld/.test(s)) {
-      return { kind: 'field', field: 'Electric Terrain', line: raw };
+      return { kind: fieldEnded(s) ? 'field_end' : 'field', field: 'Electric Terrain', line: raw };
     }
-    if (/tailwind|ruckenwind|rueckenwind/.test(s) && !/used|setzt|petered|wore off|ended|subsided|nachgelass|vorbei/.test(s)) {
-      return { kind: 'field', field: 'Tailwind', side: opposing(s) ? 'foe' : 'you', line: raw };
+    if (/tailwind|ruckenwind|rueckenwind/.test(s) && !/used|setzt/.test(s)) {
+      var twSide = opposing(s) ? 'foe' : 'you';
+      if (fieldEnded(s)) {
+        return { kind: 'field_end', field: 'Tailwind', side: twSide, line: raw };
+      }
+      if (/blew|behind|weht|hinter/.test(s) || !/side.?s|team.?s|deines|gegnerischen/.test(s)) {
+        return { kind: 'field', field: 'Tailwind', side: twSide, line: raw };
+      }
+      return null;
     }
-    if (/psychic terrain|psychofeld/.test(s)) return { kind: 'field', field: 'Psychic Terrain', line: raw };
-    if (/grassy terrain|grasfeld/.test(s)) return { kind: 'field', field: 'Grassy Terrain', line: raw };
-    if (/misty terrain|nebelfeld/.test(s)) return { kind: 'field', field: 'Misty Terrain', line: raw };
+    if (/psychic terrain|psychofeld/.test(s)) return { kind: fieldEnded(s) ? 'field_end' : 'field', field: 'Psychic Terrain', line: raw };
+    if (/grassy terrain|grasfeld/.test(s)) return { kind: fieldEnded(s) ? 'field_end' : 'field', field: 'Grassy Terrain', line: raw };
+    if (/misty terrain|nebelfeld/.test(s)) return { kind: fieldEnded(s) ? 'field_end' : 'field', field: 'Misty Terrain', line: raw };
     if (/started to snow|es schneit|schneesturm/.test(s)) return { kind: 'field', field: 'Snow', line: raw };
     if (/started to rain|es regnet|regenschauer/.test(s)) return { kind: 'field', field: 'Rain', line: raw };
     if (/sunlight turned harsh|sonnenlicht wurde grell/.test(s)) return { kind: 'field', field: 'Sun', line: raw };
     if (/sandstorm kicked up|sandsturm zieht auf/.test(s)) return { kind: 'field', field: 'Sandstorm', line: raw };
-    if (/trick room|bizarroraum/.test(s) && !/used|setzt/.test(s)) return { kind: 'field', field: 'Trick Room', line: raw };
+    if (/trick room|bizarroraum|twisted dimensions|dimensionen/.test(s) && !/used|setzt/.test(s)) {
+      return { kind: fieldEnded(s) ? 'field_end' : 'field', field: 'Trick Room', line: raw };
+    }
 
     var b = boostOf(s);
     if (b && (b.stat || /rose|fell|stieg|sink|sank/.test(s))) {
@@ -143,11 +165,13 @@
       return mons.length ? { kind: 'send_out', side: 'you', mons: mons, line: raw } : null;
     }
     if (/sent out|schickt|setzt .* ein ins feld|in den kampf/.test(s) && !/used|setzt .+ ein!/.test(s)) {
-      return mons.length ? { kind: 'send_out', side: 'foe', mons: mons, line: raw } : null;
+      var ms = raw.match(/^(.+?)\s+(?:sent out|schickt)/i);
+      return mons.length ? { kind: 'send_out', side: 'foe', mons: mons, foeName: ms ? cleanPlayerName(ms[1]) : '', line: raw } : null;
     }
     if (/withdrew|ruft .* zuruck|wechselt .* aus|wird zuruckgezogen/.test(s)) {
       var wSide = opposing(s) || hint === 'foe' ? 'foe' : (/\byou\b|\bdu\b/.test(s) ? 'you' : '');
-      return mon ? { kind: 'withdraw', side: wSide, mon: mon, line: raw } : null;
+      var mw2 = raw.match(/^(.+?)\s+withdrew/i);
+      return mon ? { kind: 'withdraw', side: wSide, mon: mon, foeName: (wSide === 'foe' && mw2) ? cleanPlayerName(mw2[1]) : '', line: raw } : null;
     }
     if (/used | setzt .+ ein|greift mit/.test(s)) {
       var mv = oneMove(raw, lex);

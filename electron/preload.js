@@ -52,9 +52,14 @@ contextBridge.exposeInMainWorld('desktop', {
     testDone: (result) => ipcRenderer.send('projector-test-done', result || {}),
     testInfo: (spec) => ipcRenderer.invoke('projector-test-info', spec || {}),
   },
-  // Matchlog: Ausschnitt (ABGR) an die prozessinterne Texterkennung. Kein PowerShell.
+  // Matchlog: OCR, Antigravity/Gemini KI-Auswertung, Kontaktbogen-Export und kompaktes Log-Archiv.
   matchlog: {
     recognize: (image) => ipcRenderer.invoke('matchlog-ocr', image || {}),
+    antigravity: (payload) => ipcRenderer.invoke('matchlog-antigravity', payload || {}),
+    gemini: (payload) => ipcRenderer.invoke('matchlog-gemini', payload || {}),
+    exportSheets: (payload) => ipcRenderer.invoke('matchlog-export-sheets', payload || {}),
+    loadStore: () => ipcRenderer.invoke('matchlog-store-load'),
+    saveStore: (data) => ipcRenderer.invoke('matchlog-store-save', data || {}),
   },
   // Match-Overlays für OBS (electron/match.js): Stand schicken, Adresse, Teamlogos, Start-Screen abspielen
   match: {

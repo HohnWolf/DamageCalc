@@ -133,7 +133,7 @@
     var bb = bbox(mask);
     if (!bb || bb.w < 8 || bb.h < 8) return null;
     scale = scale || 2;
-    var pad = 4;
+    var pad = 6;
     var sw = bb.w + pad * 2, sh = bb.h + pad * 2;
     var dw = sw * scale, dh = sh * scale;
     if (dw > 1600) { var k = 1600 / dw; dw = 1600; dh = Math.max(8, Math.round(dh * k)); }

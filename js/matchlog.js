@@ -26,9 +26,13 @@
     var seed = opts.digits || (typeof window !== 'undefined' ? window.CCMatchlogDigits : null);
     var bank = opts.bank || Hp.createBank(seed);
     var seen = {};
+    var lastHpOcr = {};
     var teamGot = {};
     var optsImage = null;
     var lastHpAt = -99;
+    var lastPlateAt = -99;
+    var lastTimerAt = -99;
+    var resultStreak = 0;
     var bannerText = { own: ['', ''], foe: ['', ''] };
     function consider(list, id, box, mode, kind, extra) {
       var prep = Prep.prepare(optsImage, box, mode);
@@ -82,32 +86,73 @@
       if (det.scene === 'target_select') {
         consider(jobs, 'tmove', Lay.scale(image, Lay.L.targetMove), 'ui', 'move_name', { from: 'target' });
       }
-      if (det.scene === 'command' || det.scene === 'move_select' || det.scene === 'target_select' || det.scene === 'communicating') {
+      var nowT = meta.t != null ? meta.t : Date.now() / 1000;
+      if ((det.scene === 'command' || det.scene === 'move_select' || det.scene === 'target_select' || det.scene === 'communicating') && nowT - lastTimerAt >= 1.0) {
+        lastTimerAt = nowT;
         consider(jobs, 'opp_timer', Lay.scale(image, Lay.L.oppTimer), 'digit', 'timer', { whitelist: '0123456789:', maxInk: 900 });
       }
-      if (det.scene === 'command' || (det.scene === 'battle' && (!st.slotMon.oppA || !st.slotMon.oppB))) {
-        if (det.scene === 'command' || !st.slotMon.oppA) consider(jobs, 'nmA', Lay.scale(image, Lay.L.oppName[0]), 'ui', 'plate_name', { slot: 'oppA' });
-        if (det.scene === 'command' || !st.slotMon.oppB) consider(jobs, 'nmB', Lay.scale(image, Lay.L.oppName[1]), 'ui', 'plate_name', { slot: 'oppB' });
+      var oppADead = !st.slotMon.oppA || (st.lastHp[st.slotMon.oppA] && st.lastHp[st.slotMon.oppA].pct === 0);
+      var oppBDead = !st.slotMon.oppB || (st.lastHp[st.slotMon.oppB] && st.lastHp[st.slotMon.oppB].pct === 0);
+      var ownADead = !st.slotMon.ownA || (st.lastHp[st.slotMon.ownA] && st.lastHp[st.slotMon.ownA].pct === 0);
+      var ownBDead = !st.slotMon.ownB || (st.lastHp[st.slotMon.ownB] && st.lastHp[st.slotMon.ownB].pct === 0);
+      var checkPlate = (nowT - lastPlateAt >= (det.scene === 'command' ? 1.2 : 1.0)) && !jobs.length;
+      if (checkPlate && (det.scene === 'command' || (det.scene === 'battle' && (oppADead || oppBDead || ownADead || ownBDead)))) {
+        lastPlateAt = nowT;
+        if (det.scene === 'command' || oppADead) consider(jobs, 'nmA', Lay.scale(image, Lay.L.oppName[0]), 'ui', 'plate_name', { slot: 'oppA' });
+        if (det.scene === 'command' || oppBDead) consider(jobs, 'nmB', Lay.scale(image, Lay.L.oppName[1]), 'ui', 'plate_name', { slot: 'oppB' });
+        if (ownADead) consider(jobs, 'nmOA', Lay.scale(image, Lay.L.ownName[0]), 'ui', 'plate_name', { slot: 'ownA' });
+        if (ownBDead) consider(jobs, 'nmOB', Lay.scale(image, Lay.L.ownName[1]), 'ui', 'plate_name', { slot: 'ownB' });
       }
-      var nowT = meta.t != null ? meta.t : Date.now() / 1000;
-      var checkHp = det.scene === 'command' || det.scene === 'move_select' || (det.scene === 'battle' && nowT - lastHpAt >= 0.45);
+      var checkHp = (det.scene === 'command' || det.scene === 'move_select' || (det.scene === 'battle' && nowT - lastHpAt >= 0.35));
       if (checkHp) {
         lastHpAt = nowT;
         var hpSlots = hp && hp.slots ? hp.slots : {};
         ['ownA', 'ownB'].forEach(function (sl, idx) {
           if (!hpSlots[sl] || !hpSlots[sl].value) {
-            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.ownHp[idx]), 'digit', 'hp', { slot: sl, isOwn: true, whitelist: '0123456789/%', maxInk: 1600 });
+            var box = Lay.scale(image, Lay.L.ownHp[idx]);
+            var id = 'hp_' + sl;
+            var prep = Prep.prepare(image, box, 'digit');
+            if (prep.count >= 35 && prep.count <= 1600) {
+              if (seen[id] === prep.hash) {
+                if (lastHpOcr[sl] && lastHpOcr[sl].hash === prep.hash && lastHpOcr[sl].val) {
+                  var pOwn = { slots: {} };
+                  pOwn.slots[sl] = { value: lastHpOcr[sl].val };
+                  State.noteHp(st, pOwn);
+                }
+              } else {
+                seen[id] = prep.hash;
+                if (prep.image) jobs.push({ id: id, kind: 'hp', mode: 'digit', image: prep.image, ink: prep.count, slot: sl, isOwn: true, hash: prep.hash, whitelist: '0123456789/', maxInk: 1600 });
+              }
+            }
           }
         });
         ['oppA', 'oppB'].forEach(function (sl, idx) {
           if (!hpSlots[sl] || !hpSlots[sl].value) {
-            consider(jobs, 'hp_' + sl, Lay.scale(image, Lay.L.oppPct[idx]), 'digit', 'hp', { slot: sl, isOwn: false, whitelist: '0123456789/%', maxInk: 1450 });
+            if (hpSlots[sl] && hpSlots[sl].count === 0) return;
+            var box = Lay.scale(image, Lay.L.oppPct[idx]);
+            var id = 'hp_' + sl;
+            var prep = Prep.prepare(image, box, 'digit');
+            if (prep.count >= 35 && prep.count <= 1450) {
+              if (seen[id] === prep.hash) {
+                if (lastHpOcr[sl] && lastHpOcr[sl].hash === prep.hash && lastHpOcr[sl].val) {
+                  var pOpp = { slots: {} };
+                  pOpp.slots[sl] = { value: lastHpOcr[sl].val };
+                  State.noteHp(st, pOpp);
+                }
+              } else {
+                seen[id] = prep.hash;
+                if (prep.image) jobs.push({ id: id, kind: 'hp', mode: 'digit', image: prep.image, ink: prep.count, slot: sl, isOwn: false, hash: prep.hash, whitelist: '0123456789%', maxInk: 1450 });
+              }
+            }
           }
         });
       }
-      if (det.scene === 'result' && st.phase !== 'pre') {
+      if (det.scene === 'result' && st.phase !== 'pre' && (st.turnPlayed || st.turnN >= 2)) {
+        resultStreak += 1;
         consider(jobs, 'result', Lay.scale(image, Lay.L.result), 'outline', 'result');
-        if (!st.result) State.noteText(st, 'result-scene', '', { kind: 'result', winner: '', line: 'Ergebnisbild' }, meta.t);
+        if (!st.result && resultStreak >= 3) State.noteText(st, 'result-scene', '', { kind: 'result', winner: '', line: 'Ergebnisbild' }, meta.t);
+      } else {
+        resultStreak = 0;
       }
       return { scene: det.scene, features: det.features, detail: det, hp: hp, jobs: jobs, t: meta.t };
     }
@@ -145,13 +190,7 @@
       if (job.kind === 'plate_name') {
         var mon = Parse.parse(text, lex, 'team_name');
         if (mon && mon.mon) {
-          var id = State.noteFoeSpecies(st, mon.mon);
-          if (id) {
-            st.slotMon[job.slot] = id;
-            if (st.turnN <= 2 && st.leads.foe.length < 2 && st.leads.foe.indexOf(id) < 0) {
-              st.leads.foe.push(id);
-            }
-          }
+          State.notePlateMon(st, job.slot, mon.mon, t);
         }
         State.noteText(st, job.kind, text, null, t);
         return st;
@@ -159,6 +198,7 @@
       if (job.kind === 'hp') {
         var val = job.isOwn ? Hp.parseFraction(text) : Hp.parsePct(text);
         if (val) {
+          if (job.hash) lastHpOcr[job.slot] = { hash: job.hash, val: val };
           var patch = { slots: {} };
           patch.slots[job.slot] = { value: val };
           State.noteHp(st, patch);
@@ -181,7 +221,8 @@
     }
     function snapshot() { return State.exportSnap(st); }
     function text() { return Format.render(snapshot()); }
-    return { step: step, apply: apply, snapshot: snapshot, text: text, state: st, bank: bank, lex: lex };
+    function showdown() { return Format.renderShowdown ? Format.renderShowdown(snapshot()) : ''; }
+    return { step: step, apply: apply, snapshot: snapshot, text: text, showdown: showdown, state: st, bank: bank, lex: lex };
   }
   return { create: create };
 });

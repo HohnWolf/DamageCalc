@@ -119,7 +119,8 @@ eq('withdraw without you is neutral', ev('< GS withdrew Pelipper!').side, '');
   eq('scene flicker ignored with timer', st5.turnN, 1);
   State.noteTimer(st5, 415); // Timer sinkt im nächsten Zug -> Turn 2
   eq('timer drop after play starts turn 2', st5.turnN, 2);
-  eq('tailwind petered out ignored', ev("The opposing side’s tailwind petered out!"), null);
+  eq('tailwind petered out is field_end', ev("The opposing side’s tailwind petered out!").kind, 'field_end');
+  eq('tailwind netered out is field_end', ev("The opposing side’s tailwind netered out!").kind, 'field_end');
   eq('opps tng is foe', ev("The opps tng Archaludon’s Sp Atk rosel").side, 'foe');
 })();
 

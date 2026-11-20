@@ -187,9 +187,32 @@
       });
       return s;
     }
+    function readPctMask(mask) {
+      var glyphs = glyphsOf(mask);
+      if (!glyphs.length) return '';
+      var maxH = 0;
+      for (var i = 0; i < glyphs.length; i++) if (glyphs[i].h > maxH) maxH = glyphs[i].h;
+      if (maxH < 12) return '';
+      var digs = [], pctParts = [];
+      for (var j = 0; j < glyphs.length; j++) {
+        var g = glyphs[j];
+        if (!g.sep && g.h >= maxH * 0.78) digs.push(g);
+        else if (digs.length && g.h < maxH * 0.78) pctParts.push(g);
+      }
+      if (!digs.length || digs.length > 3) return '';
+      var hasPct = pctParts.some(function (p) { return p.h >= maxH * 0.42; });
+      if (!hasPct) return '';
+      var s = '';
+      for (var k = 0; k < digs.length; k++) {
+        var m = match(digs[k].norm);
+        if (!m) return '';
+        s += m.ch;
+      }
+      return s + '%';
+    }
     if (seed) Object.keys(seed).forEach(function (ch) { (seed[ch] || []).forEach(function (p) { add(ch, unpack(p)); }); });
     return {
-      add: add, match: match, learnFromMask: learnFromMask, readMask: readMask,
+      add: add, match: match, learnFromMask: learnFromMask, readMask: readMask, readPctMask: readPctMask,
       export: function () { return JSON.parse(JSON.stringify(bank)); },
       size: function () { return Object.keys(bank).reduce(function (n, k) { return n + bank[k].length; }, 0); }
     };
@@ -215,24 +238,30 @@
   }
   function parsePct(s) {
     var src = String(s || '').trim();
-    var m = src.match(/\b(\d{1,3})\s*%/);
-    if (!m && src === '100') m = [src, src];
+    var compact = src.replace(/\s+/g, '');
+    var m = compact.match(/^(\d{1,3})%$/);
+    if (!m) m = src.match(/(?:^|\s)(\d{1,3})\s*%(?:\s|$)/);
+    if (!m && compact === '100') m = [compact, '100'];
     if (!m) return null;
     var n = parseInt(m[1], 10);
-    if (isNaN(n) || n > 100) return null;
+    if (isNaN(n) || n < 0 || n > 100) return null;
     return { pct: n };
   }
   function readBox(img, box, bank, kind) {
+    if (kind === 'pct') {
+      var om = Prep.outlineMask(Prep.crop(img, box));
+      if (om.count < 80) return { text: '', value: null, count: 0 };
+    }
     var prep = Prep.prepare(img, box, 'digit');
-    var text = bank.readMask(prep.mask);
-    var clean = text.indexOf('?') < 0;
+    var text = kind === 'pct' && bank.readPctMask ? bank.readPctMask(prep.mask) : bank.readMask(prep.mask);
+    var clean = text && text.indexOf('?') < 0;
     var val = null;
     if (clean && kind === 'hp') val = parseFraction(text);
-    if (clean && kind === 'pct' && prep.count >= 30 && prep.count <= 500) val = parsePct(text);
+    if (clean && kind === 'pct' && prep.count >= 30 && prep.count <= 2200) val = parsePct(text);
     if (!val && kind === 'pct') {
       var ui = Prep.prepare(img, box, 'ui');
-      var t2 = bank.readMask(ui.mask);
-      if (t2.indexOf('?') < 0 && ui.count >= 20 && ui.count <= 500) {
+      var t2 = bank.readPctMask ? bank.readPctMask(ui.mask) : bank.readMask(ui.mask);
+      if (t2 && t2.indexOf('?') < 0 && ui.count >= 20 && ui.count <= 2200) {
         val = parsePct(t2);
         if (val) text = t2;
       }

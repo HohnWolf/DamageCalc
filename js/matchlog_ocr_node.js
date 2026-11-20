@@ -1,37 +1,23 @@
-// Matchlog-OCR im Prozess: tesseract.js (WASM) in einem Node-Worker.
-// Kein PowerShell, kein Python. Stirbt der Worker, startet der nächste Aufruf ihn neu.
+// Matchlog-OCR im Prozess: tesseract.js (WASM) mit 2 parallelen Node-Workern (eng+deu).
+// Kein PowerShell, kein Python. Stirbt ein Worker, startet der nächste Aufruf ihn neu.
 const path = require('path');
 const { createWorker } = require('tesseract.js');
 const bmp = require('bmp-js');
 
-function create(opts) {
-  opts = opts || {};
+function createSlot(opts) {
   const langPath = opts.langPath || path.join(__dirname, '..', 'vendor', 'tessdata');
   const cachePath = opts.cachePath || path.join(__dirname, '..', '.tess-cache');
   const langs = opts.langs || 'eng+deu';
   let worker = null;
   let starting = null;
   let lastWhitelist = '';
-  // Ohne Bilder (Matchlog aus) gibt der Worker nach dieser Zeit seinen Speicher frei; das nächste Bild startet ihn neu.
-  const idleMs = opts.idleMs != null ? opts.idleMs : 180000;
-  let idleTimer = null, busy = 0;
+  let busy = false;
 
-  function armIdle() {
-    clearTimeout(idleTimer);
-    idleTimer = null;
-    if (!idleMs || busy) return;
-    idleTimer = setTimeout(function () {
-      idleTimer = null;
-      if (!busy && !starting) kill();
-    }, idleMs);
-    if (idleTimer.unref) idleTimer.unref();
-  }
   function kill() {
-    clearTimeout(idleTimer);
-    idleTimer = null;
     const w = worker;
     worker = null;
     lastWhitelist = '';
+    busy = false;
     if (w) w.terminate().catch(function () {});
   }
   function boot() {
@@ -55,37 +41,71 @@ function create(opts) {
     }).finally(function () { starting = null; });
     return starting;
   }
+  async function run(bmpBuf, wl) {
+    busy = true;
+    const t0 = Date.now();
+    try {
+      const w = await boot();
+      if (wl !== lastWhitelist) {
+        await w.setParameters({ tessedit_char_whitelist: wl });
+        lastWhitelist = wl;
+      }
+      const res = await w.recognize(bmpBuf);
+      const text = String(res && res.data && res.data.text || '').replace(/\s+/g, ' ').trim();
+      return { text: text, ms: Date.now() - t0, engine: 'tess' };
+    } catch (e) {
+      kill();
+      return { text: '', error: String(e && e.message || e), ms: Date.now() - t0, engine: 'tess' };
+    } finally {
+      busy = false;
+    }
+  }
+  return { boot, run, stop: kill, isBusy: () => busy };
+}
+
+function create(opts) {
+  opts = opts || {};
+  const poolSize = opts.workers || 2;
+  const slots = [];
+  for (let i = 0; i < poolSize; i++) slots.push(createSlot(opts));
+  // Ersten Worker sofort vorwärmen
+  slots[0].boot().catch(() => {});
+
+  const queue = [];
+
   function toBmp(image) {
     const data = Buffer.from(image.abgr || image.data);
     const encoded = bmp.encode({ data: data, width: image.width, height: image.height });
     return Buffer.from(encoded.data);
   }
-  async function recognize(image) {
-    if (!image || !image.width || !image.height) return { text: '', error: 'leeres Bild' };
-    if (image.width < 8 || image.height < 8) return { text: '', ms: 0 };
-    const t0 = Date.now();
-    busy++;
-    clearTimeout(idleTimer);
-    idleTimer = null;
-    try {
-      const w = await boot();
-      const wl = String(image.whitelist || '');
-      if (wl !== lastWhitelist) {
-        await w.setParameters({ tessedit_char_whitelist: wl });
-        lastWhitelist = wl;
-      }
-      const res = await w.recognize(toBmp(image));
-      const text = String(res && res.data && res.data.text || '').replace(/\s+/g, ' ').trim();
-      return { text: text, ms: Date.now() - t0 };
-    } catch (e) {
-      kill();
-      return { text: '', error: String(e && e.message || e), ms: Date.now() - t0 };
-    } finally {
-      busy--;
-      if (worker) armIdle();
-    }
+
+  function pump() {
+    if (!queue.length) return;
+    const free = slots.find((s) => !s.isBusy());
+    if (!free) return;
+    const item = queue.shift();
+    free.run(item.bmpBuf, item.wl).then(item.resolve, (err) => {
+      item.resolve({ text: '', error: String(err && err.message || err), ms: 0, engine: 'tess' });
+    }).finally(pump);
   }
-  return { recognize: recognize, stop: kill };
+
+  function recognize(image) {
+    if (!image || !image.width || !image.height) return Promise.resolve({ text: '', error: 'leeres Bild' });
+    if (image.width < 8 || image.height < 8) return Promise.resolve({ text: '', ms: 0 });
+    const bmpBuf = toBmp(image);
+    const wl = String(image.whitelist || '');
+    return new Promise((resolve) => {
+      queue.push({ bmpBuf, wl, resolve });
+      pump();
+    });
+  }
+
+  function stop() {
+    queue.length = 0;
+    slots.forEach((s) => s.stop());
+  }
+
+  return { recognize: recognize, stop: stop };
 }
 
 module.exports = { create: create };

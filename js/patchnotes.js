@@ -9,6 +9,17 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.1.3',
+      de: [
+        'Matchlog (KI-Keyframes & Antigravity): Sammelt während des Spiels leichtgewichtig Keyframes ohne OCR-Last und erstellt nach „Aufnahme stoppen“ automatisch über die lokale Antigravity CLI (oder optional über die Gemini API / Google AI Pro Export) ein vollständiges Showdown-Replay-Log inkl. aller 6 Gegner-Icons aus der Team-Preview.',
+        'Matchlog ↔ Teambuilder & Team-Analyse: Jedes Matchlog wird direkt über ein Dropdown mit deiner Teambuilder-Team-ID verknüpft, automatisch in die Team-Analyse übernommen und platzsparend (nur als Text-Log, ohne Videos/Frames) nach Team gruppiert im Matchlog-Archiv gespeichert. Das Video wird nur noch auf Klick über „Video behalten“ gesichert.',
+        'Matchlog-Kern verbessert: Vollständige 0–9 Ziffernvorlagen für Gegner-KP-Prozente, saubere Erkennung von Tailwind-Ende und Spread-Move-Treffern, direkte Game-Projector-Verknüpfung sowie Showdown-Log-Export.'
+      ],
+      en: [
+        'Matchlog (AI keyframes & Antigravity): collects lightweight keyframes during play without OCR lag and automatically builds a complete Showdown replay log via the local Antigravity CLI on “Stop recording” (or optionally via Gemini API / Google AI Pro export), including all 6 opponent Team Preview icons.',
+        'Matchlog ↔ Teambuilder & Team Analysis: each matchlog links directly to your Teambuilder team ID via dropdown, imports straight into Team Analysis, and stores only compact text logs (no videos or frames) grouped by team in the Matchlog archive. Recorded video is only kept when clicking “Keep video”.',
+        'Matchlog core improvements: complete 0–9 digit templates for opponent HP percentages, accurate Tailwind end and spread-move hit tracking, direct Game Projector shortcut, and Showdown replay log export.'
+      ] },
     { v: '2.1.2',
       de: [
         'Damage Calculator: Gegen NCP-Quellcode, die Champions-Mechanik von @smogon/calc und den Showdown-Champions-Mod geprüft (30.000 Zufallsfälle). Neu: Forecast, Mimicry, Klutz und Feld-Samen wie bei NCP, Intimidate/Trace/Supersweet Syrup wirken automatisch (abschaltbar), Protect-Schalter mit ¼ Schaden für Piercing Drill/Unseen Fist. Korrigiert: Mega Sol (Wasser wie in der Sonne), Sharpness als Stärke-Bonus, Crush Claw mit Sheer Force, Dragon Darts 2 Treffer gegen ein Ziel, Fling mit Klutz, Meteor Beam/Electro Shot mit Simple. Hinweis: Wer Intimidate bisher als −1 eingetragen hat, bitte den Wert entfernen.',
