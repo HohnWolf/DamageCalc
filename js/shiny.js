@@ -29,7 +29,7 @@
     dexStats: '{0} Shinys · {1} Arten · Shiny-Dex {2}/{3}', noCatches: 'Noch keine Shinys. Beende einen Hunt mit „Gefunden!“ oder trage einen Fang ein.',
     viaHunt: '{0} Begegnungen · {1}', phasesN: '{0} Phasen', autoTitle: 'Automatik', autoConnect: 'Aufnahme automatisch wieder verbinden', autoConnectT: 'Verbindet beim Öffnen eines Hunts automatisch wieder mit der zuletzt genutzten Capture-Karte bzw. dem Fenster.', autoDetect: 'Erkennung starten, sobald der Timer startet', autoDetectT: 'Startet die automatische Erkennung, wenn du den Timer des Hunts startest (Voraussetzung: Bereich und Referenz bzw. Suchtext sind eingerichtet).', hkTitle: 'Globale Hotkeys', hkHint: 'Zählen auch, wenn das Spiel oder der Emulator im Vordergrund ist. Sie wirken auf alle Hunts mit Haken bei „Hotkeys zählen diesen Hunt“.',
     hkDesktop: 'Globale Hotkeys gibt es nur in der Desktop-App. Im Browser zählen + und − bei geöffnetem Shiny-Zähler.',
-    act_inc: 'Zählen (+)', act_dec: 'Zurück (−)', act_phase: 'Phase abschließen', act_timer: 'Timer starten/pausieren',
+    act_inc: 'Zählen (+)', act_dec: 'Zurück (−)', act_phase: 'Phase abschließen', act_found: 'Gefunden (★)', act_timer: 'Timer starten/pausieren',
     change: 'Ändern', remove: 'Entfernen', pressKeys: 'Tastenkombination drücken … (Esc bricht ab)', hkOk: 'aktiv', hkFail: 'belegt oder ungültig', none: '—',
     obsTitle: 'OBS-Overlay', obsHint: 'In OBS eine „Browser“-Quelle mit dieser Adresse anlegen (Breite z. B. 600, Höhe 250). Hintergrund ist durchsichtig.',
     obsDesktop: 'Das OBS-Overlay gibt es nur in der Desktop-App.', copy: 'Kopieren', layout: 'Layout', l_row: 'Nebeneinander', l_card: 'Karte', l_count: 'Nur Zahl', l_free: 'Frei anordnen',
@@ -46,7 +46,8 @@
     projectorDesktop: 'Den Projektor gibt es nur in der Desktop-App.', projectorNoVideo: 'Erst eine Aufnahme verbinden (Bildschirm oder Capture-Karte).',
     projectorOpenFail: 'Das Projektor-Fenster konnte nicht geöffnet werden.',
     projectorNoAudio: 'Diese Quelle liefert keinen Ton. Das Bild wird trotzdem gezeigt.',
-    projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Obergrenze für die Aufnahme.'
+    projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Obergrenze für die Aufnahme.',
+    spriteStyle: 'Darstellung', st_3d: '3D-Modell', st_home: 'HOME', st_sprite: 'Sprite'
   } : {
     title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
     tabHunts: 'Hunts', tabDex: 'Collection', tabSetup: 'Hotkeys & OBS', newHunt: '+ New hunt', huntsActive: 'Active', huntsDone: 'Found',
@@ -66,7 +67,7 @@
     dexStats: '{0} shinies · {1} species · Shiny Dex {2}/{3}', noCatches: 'No shinies yet. Finish a hunt with "Found!" or add a catch.',
     viaHunt: '{0} encounters · {1}', phasesN: '{0} phases', autoTitle: 'Automation', autoConnect: 'Reconnect the capture automatically', autoConnectT: 'Reconnects to the last used capture card or window when a hunt opens.', autoDetect: 'Start detection when the timer starts', autoDetectT: 'Starts the automatic detection when you start the hunt timer (needs area and reference or search text to be set up).', hkTitle: 'Global hotkeys', hkHint: 'They count even while the game or emulator is in front. They act on every hunt with "Hotkeys count this hunt" ticked.',
     hkDesktop: 'Global hotkeys are only available in the desktop app. In the browser + and − count while the shiny counter is open.',
-    act_inc: 'Count (+)', act_dec: 'Back (−)', act_phase: 'Finish phase', act_timer: 'Start/pause timer',
+    act_inc: 'Count (+)', act_dec: 'Back (−)', act_phase: 'Finish phase', act_found: 'Found (★)', act_timer: 'Start/pause timer',
     change: 'Change', remove: 'Remove', pressKeys: 'Press a key combination … (Esc cancels)', hkOk: 'active', hkFail: 'taken or invalid', none: '—',
     obsTitle: 'OBS overlay', obsHint: 'Add a "Browser" source in OBS with this address (e.g. width 600, height 250). The background is transparent.',
     obsDesktop: 'The OBS overlay is only available in the desktop app.', copy: 'Copy', layout: 'Layout', l_row: 'Side by side', l_card: 'Card', l_count: 'Number only', l_free: 'Free arrangement',
@@ -83,7 +84,8 @@
     projectorDesktop: 'The projector is only available in the desktop app.', projectorNoVideo: 'Connect a capture first (screen or capture card).',
     projectorOpenFail: 'The projector window could not be opened.',
     projectorNoAudio: 'This source has no audio. The picture is still shown.',
-    projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Cap for the capture.'
+    projectorFps: 'Frames/s', projectorFpsN: 'Frames per second (10 to 60)', projectorFpsHint: 'Cap for the capture.',
+    spriteStyle: 'Style', st_3d: '3D model', st_home: 'HOME', st_sprite: 'Sprite'
   };
   function t(k) { var s = S[k] != null ? S[k] : k; for (var i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(arguments[i]); return s; }
   function fmt(n) { return Math.round(n).toLocaleString(de ? 'de-DE' : 'en-US'); }
@@ -112,16 +114,43 @@
   }
   function norm(s) { return String(s || '').toLowerCase().replace(/[\s.'’:-]/g, '').replace(/♀/g, 'f').replace(/♂/g, 'm'); }
   function sid(n) { return NAT[n] ? NAT[n][0] : ''; }
+  function spriteMode() {
+    var m = A.setting ? A.setting('spriteShiny') : '3d';
+    return m === 'home' || m === 'sprite' ? m : '3d';
+  }
+  function setSpriteMode(m) {
+    var v = m === 'home' || m === 'sprite' ? m : '3d';
+    if (A.setSetting) A.setSetting('spriteShiny', v);
+    pushState();
+    syncOverlay();
+  }
+  function shinyChain(id, mode) {
+    var base = 'https://play.pokemonshowdown.com/sprites/';
+    var ani = base + 'ani-shiny/' + id + '.gif';
+    var home = base + 'home-centered-shiny/' + id + '.png';
+    var home2 = base + 'home-shiny/' + id + '.png';
+    var px = base + 'gen5-shiny/' + id + '.png';
+    if (mode === 'home') return [home, home2, ani, px];
+    if (mode === 'sprite') return [px, home, home2, ani];
+    return [ani, px, home, home2];
+  }
   function shinyImg(n, cls, big) {
     if (!big && n && NAT[n] && A.spriteById) return A.spriteById(sid(n), cls || '', true, monName(n));
     var img = el('img', { class: cls || '', alt: '', loading: 'lazy' });
     if (!n || !NAT[n]) { img.classList.add('none'); return img; }
-    var chain = big ? ['https://play.pokemonshowdown.com/sprites/ani-shiny/' + sid(n) + '.gif'] : [];
-    chain.push('https://play.pokemonshowdown.com/sprites/gen5-shiny/' + sid(n) + '.png', 'https://play.pokemonshowdown.com/sprites/home-shiny/' + sid(n) + '.png');
+    var chain = big ? shinyChain(sid(n), spriteMode()) : [
+      'https://play.pokemonshowdown.com/sprites/gen5-shiny/' + sid(n) + '.png',
+      'https://play.pokemonshowdown.com/sprites/home-shiny/' + sid(n) + '.png'
+    ];
+    function syncCls(u) {
+      if (!big) return;
+      img.classList.toggle('ani', u.indexOf('/ani-shiny/') !== -1);
+      img.classList.toggle('home', u.indexOf('/home') !== -1);
+    }
     var i = 0;
-    img.onerror = function () { i++; if (i < chain.length) img.src = chain[i]; else img.onerror = null; };
+    img.onerror = function () { i++; if (i < chain.length) { syncCls(chain[i]); img.src = chain[i]; } else img.onerror = null; };
+    syncCls(chain[0]);
     img.src = chain[0];
-    if (big) img.classList.add('ani');
     return img;
   }
   function normalImg(n, cls) {
@@ -185,6 +214,7 @@
   });
   store.tab = store.tab || 'hunts';
   store.auto = { connect: !!(store.auto && store.auto.connect), detect: !!(store.auto && store.auto.detect) };
+  if (store.hotkeys.found == null) store.hotkeys.found = '';
   if (store.hotkeys.clip == null) store.hotkeys.clip = '';
   if (store.hotkeys.projector == null) store.hotkeys.projector = 'CommandOrControl+Alt+P';
   // Discord-Kanal (Webhook) für die Nachricht bei "Gefunden!": Screenshot und, falls aufgenommen, der Clip
@@ -216,6 +246,7 @@
     if (o.accent && o.accent !== '#f2c94c') q.push('accent=' + o.accent.slice(1));
     if (o.bg) q.push('bg=' + o.bg.slice(1));
     if (+o.size !== 1 && o.layout !== 'free') q.push('size=' + o.size);
+    if (spriteMode() !== '3d') q.push('style=' + spriteMode());
     var u = base + (q.length ? '?' + q.join('&') : '');
     if (edit) u += (u.indexOf('?') >= 0 ? '&' : '?') + 'edit=1';
     return u;
@@ -480,10 +511,22 @@
       persist(); render();
     });
   }
+  function triggerFound(h) {
+    if (!h || h.status === 'found') return;
+    if (document.querySelector('.sh-modal')) return;
+    var shot = grabShot(h), clip = autoClip(h, 'found');
+    openCatch(null, h, null, { shot: shot, clip: clip });
+  }
   // global hotkeys and the window keys
   function hotkeyAction(action) {
     if (action === 'clip') { if (Clip) Clip.trigger('manual', sel() ? huntName(sel()) : '', sel() ? sel().id : ''); return; }
     if (action === 'projector') { if (window.CCProjector) window.CCProjector.toggle(sel() ? sel().id : null); return; }
+    if (action === 'found') {
+      var target = sel();
+      if (!target || target.status === 'found') target = store.hunts.filter(function (h) { return h.hotkey && h.status !== 'found'; })[0] || null;
+      if (target) triggerFound(target);
+      return;
+    }
     if (action === 'phase') autoClip(sel(), 'phase');
     var list = store.hunts.filter(function (h) { return h.hotkey && h.status !== 'found'; });
     if (!list.length && sel()) list = [sel()];
@@ -508,6 +551,7 @@
     // wie bisher zählt auch '=' (US-Tastatur ohne Shift); eigene Belegung, frei änderbar
     window.RLHotkeys.register('shiny.incEq', { label: ['Begegnung zählen (=)', 'Count encounter (=)'], group: 'shiny', def: '=', when: inShiny, run: function () { count(sel(), 1); } });
     window.RLHotkeys.register('shiny.dec', { label: ['Begegnung abziehen (−)', 'Remove encounter (−)'], group: 'shiny', def: 'Minus', when: inShiny, run: function () { count(sel(), -1); } });
+    window.RLHotkeys.register('shiny.found', { label: ['Shiny gefunden (★)', 'Shiny found (★)'], group: 'shiny', def: '', when: inShiny, run: function () { triggerFound(sel()); } });
   }
 
   // ---------------- OBS state for the desktop app ----------------
@@ -526,7 +570,7 @@
   function doPush() {
     pushTimer = null; lastPush = Date.now();
     var active = store.overlay.hunt && hunt(store.overlay.hunt) ? store.overlay.hunt : (sel() ? sel().id : null);
-    D.pushState({ hunts: store.hunts.map(stateOf), active: active, overlay: { free: store.overlay.free } });
+    D.pushState({ hunts: store.hunts.map(stateOf), active: active, overlay: { free: store.overlay.free, style: spriteMode() } });
   }
   function pushState() {
     if (!D) return;
@@ -687,6 +731,14 @@
     var stage = el('div', { class: 'sh-stage' });
     stage.appendChild(shinyImg(h.species, 'sh-big', true));
     cc.appendChild(stage);
+    var sty = el('div', { class: 'btn-group nc-mini sh-style-pick', title: t('spriteStyle') });
+    var curSty = spriteMode();
+    [['3d', t('st_3d')], ['home', t('st_home')], ['sprite', t('st_sprite')]].forEach(function (x) {
+      var b = el('button', { type: 'button', class: curSty === x[0] ? 'on' : '', text: x[1] });
+      b.addEventListener('click', function () { setSpriteMode(x[0]); render(); });
+      sty.appendChild(b);
+    });
+    cc.appendChild(sty);
     cc.appendChild(el('div', { class: 'sh-name', text: huntName(h) + (h.title && h.species ? ' · ' + monName(h.species) : '') }));
     var num = el('div', { class: 'sh-count', 'data-count': h.id, text: fmt(h.count), title: t('setT') });
     num.addEventListener('dblclick', function () { openSetCount(h); });
@@ -710,10 +762,7 @@
       var fb = el('button', { class: 'tbtn', text: t('failedBtn'), title: t('failedT') });
       fb.addEventListener('click', function () { autoClip(h, 'phase'); finishPhase(h, h.species, true, false); render(); });
       var gb = el('button', { class: 'primary-btn sh-foundbtn', text: t('foundBtn') });
-      gb.addEventListener('click', function () {
-        var shot = grabShot(h), clip = autoClip(h, 'found');
-        openCatch(null, h, null, { shot: shot, clip: clip });
-      });
+      gb.addEventListener('click', function () { triggerFound(h); });
       var rb = el('button', { class: 'tbtn', text: t('resetBtn') });
       rb.addEventListener('click', function () {
         ccConfirm(t('resetConfirm'), function () {
@@ -1130,7 +1179,7 @@
     var hp = el('div', { class: 'panel sh-card' });
     hp.appendChild(el('h3', { text: t('hkTitle') }));
     hp.appendChild(el('div', { class: 'hint', text: D ? t('hkHint') : t('hkDesktop') }));
-    ['inc', 'dec', 'phase', 'timer', 'clip', 'projector'].forEach(function (a) {
+    ['inc', 'dec', 'phase', 'found', 'timer', 'clip', 'projector'].forEach(function (a) {
       var r = el('div', { class: 'sh-hk-row' });
       r.appendChild(el('span', { class: 'sh-hk-name', text: t('act_' + a) }));
       var key = el('span', { class: 'sh-hk-key', text: accelLabel(store.hotkeys[a]) });
@@ -1182,6 +1231,7 @@
     sel3(t('which'), [['', t('whichSel')]].concat(store.hunts.map(function (h) { return [h.id, huntName(h)]; })), o.hunt || '', function (v) { o.hunt = v; });
     var isFree = o.layout === 'free';
     sel3(t('layout'), [['row', t('l_row')], ['card', t('l_card')], ['count', t('l_count')], ['free', t('l_free')]], o.layout, function (v) { o.layout = v; render(); });
+    sel3(t('spriteStyle'), [['3d', t('st_3d')], ['home', t('st_home')], ['sprite', t('st_sprite')]], spriteMode(), function (v) { setSpriteMode(v); });
     // free arrangement: every part has its own size, so the overall size is not needed
     if (!isFree) sel3(t('size'), [[0.6, '60 %'], [0.8, '80 %'], [1, '100 %'], [1.25, '125 %'], [1.5, '150 %'], [2, '200 %']], o.size, function (v) { o.size = +v; });
     ['sprite', 'name', 'odds', 'phase', 'timer'].forEach(function (k) {
@@ -1286,6 +1336,10 @@
     openFail: t('projectorOpenFail'), noAudio: t('projectorNoAudio')
   });
   var baseOverlay = '';
+  function syncOverlay() {
+    pushState();
+    if (baseOverlay && window.CCProjector && window.CCProjector.isOpen()) window.CCProjector.syncOverlay(overlayHref(baseOverlay, false));
+  }
   if (D) D.overlayInfo().then(function (info) {
     baseOverlay = (info && info.url) || '';
     if (window.CCProjector && window.CCProjector.isOpen()) window.CCProjector.syncOverlay(overlayHref(baseOverlay, false));
@@ -1300,7 +1354,7 @@
     persist();
     if (document.body && document.body.dataset.view === 'shiny') render();
   }
-  window.CCShiny = { getAuto: function (k) { return !!store.auto[k]; }, setAuto: function (k, v) { store.auto[k] = !!v; persist(); }, disconnectAll: disconnectAll, render: render, renderStartArt: renderStartArt, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref };
+  window.CCShiny = { getAuto: function (k) { return !!store.auto[k]; }, setAuto: function (k, v) { store.auto[k] = !!v; persist(); }, disconnectAll: disconnectAll, render: render, renderStartArt: renderStartArt, syncOverlay: syncOverlay, _store: function () { return store; }, _count: count, _hotkey: hotkeyAction, _overlayHref: overlayHref, _spriteMode: spriteMode, _shinyChain: shinyChain };
   function boot() {
     renderStartArt(); applyHotkeys(); pushState();
     // Ungültige Bildrate aus dem Speicher sofort auf 10–60 zurückschreiben.

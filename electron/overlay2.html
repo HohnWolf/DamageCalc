@@ -31,6 +31,7 @@
     background: var(--bg, transparent); border-radius: calc(10px * var(--s)); text-shadow: 0 2px 4px rgba(0,0,0,.6); }
   .ov.card { flex-direction: column; text-align: center; }
   .sprite { width: calc(120px * var(--s)); height: calc(120px * var(--s)); object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+  .sprite.smooth { image-rendering: auto; }
   .txt { display: flex; flex-direction: column; gap: calc(2px * var(--s)); }
   .ov.card .txt { align-items: center; }
   .name { font-weight: 700; font-size: calc(20px * var(--s)); }
@@ -154,28 +155,43 @@
 
   // ---------------- sprites: local cache first, remembered per Pokémon ----------------
   var SD = 'https://play.pokemonshowdown.com/sprites/';
-  function chainOf(id) {
-    return ['ani-shiny/' + id + '.gif', 'gen5-shiny/' + id + '.png', 'home-shiny/' + id + '.png'].map(function (p) { return '/match/img?u=' + encodeURIComponent(SD + p); });
+  var urlStyle = q.get('style') || '';
+  function cleanStyle(v) { return v === 'home' || v === 'sprite' ? v : '3d'; }
+  function chainOf(id, style) {
+    var list = style === 'home'
+      ? ['home-centered-shiny/' + id + '.png', 'home-shiny/' + id + '.png', 'ani-shiny/' + id + '.gif', 'gen5-shiny/' + id + '.png']
+      : style === 'sprite'
+        ? ['gen5-shiny/' + id + '.png', 'home-centered-shiny/' + id + '.png', 'home-shiny/' + id + '.png', 'ani-shiny/' + id + '.gif']
+        : ['ani-shiny/' + id + '.gif', 'gen5-shiny/' + id + '.png', 'home-centered-shiny/' + id + '.png', 'home-shiny/' + id + '.png'];
+    return list.map(function (p) { return '/match/img?u=' + encodeURIComponent(SD + p); });
   }
-  var spriteUrl = {}, spriteWait = {}; // id -> working address / callbacks of a running search
-  function findSprite(id, done) {
-    if (spriteUrl[id]) { done(spriteUrl[id]); return; }
-    if (spriteWait[id]) { spriteWait[id].push(done); return; }
-    spriteWait[id] = [done];
-    var chain = chainOf(id), i = 0;
+  var spriteUrl = {}, spriteWait = {}; // key -> working address / callbacks of a running search
+  function findSprite(id, style, done) {
+    var key = id + '|' + style;
+    if (spriteUrl[key]) { done(spriteUrl[key]); return; }
+    if (spriteWait[key]) { spriteWait[key].push(done); return; }
+    spriteWait[key] = [done];
+    var chain = chainOf(id, style), i = 0;
     (function next() {
-      if (i >= chain.length) { var w = spriteWait[id]; delete spriteWait[id]; w.forEach(function (f) { f(''); }); return; }
+      if (i >= chain.length) { var w = spriteWait[key]; delete spriteWait[key]; w.forEach(function (f) { f(''); }); return; }
       var im = new Image(), u = chain[i++];
-      im.onload = function () { spriteUrl[id] = u; var w = spriteWait[id]; delete spriteWait[id]; w.forEach(function (f) { f(u); }); };
+      im.onload = function () { spriteUrl[key] = u; var w = spriteWait[key]; delete spriteWait[key]; w.forEach(function (f) { f(u); }); };
       im.onerror = next;
       im.src = u;
     })();
   }
   var lastSprite = '';
-  function setSprite(id) {
-    if (!id || id === lastSprite) return;
-    lastSprite = id;
-    findSprite(id, function (u) { if (lastSprite === id && u && E.sprite.getAttribute('src') !== u) E.sprite.src = u; });
+  function setSprite(id, style) {
+    var st = cleanStyle(urlStyle || style);
+    var key = id + '|' + st;
+    if (!id || key === lastSprite) return;
+    lastSprite = key;
+    findSprite(id, st, function (u) {
+      if (lastSprite === key && u) {
+        E.sprite.classList.toggle('smooth', decodeURIComponent(u).indexOf('/home') !== -1);
+        if (E.sprite.getAttribute('src') !== u) E.sprite.src = u;
+      }
+    });
   }
 
   // ---------------- timer: runs here, no data needed per second ----------------
@@ -198,8 +214,9 @@
   function show(s) {
     if (free && !edit && s.overlay && s.overlay.free) applyFree(s.overlay.free);
     var hs = s.hunts || [];
+    var curStyle = cleanStyle(urlStyle || (s.overlay && s.overlay.style));
     // load the sprites of every hunt ahead, so switching the hunt shows its image at once
-    hs.forEach(function (x) { if (x.sprite && !spriteUrl[x.sprite]) findSprite(x.sprite, function () {}); });
+    hs.forEach(function (x) { if (x.sprite && !spriteUrl[x.sprite + '|' + curStyle]) findSprite(x.sprite, curStyle, function () {}); });
     var want = q.get('hunt');
     var h = null;
     hs.forEach(function (x) { if ((want && want !== 'active' ? x.id === want : x.id === s.active)) h = x; });
@@ -209,7 +226,7 @@
       if (edit) { setText(E.name, 'Pokémon'); setText(E.odds, '1/4.096 · 0,00 %'); setText(E.phase, 'Phase 2'); setText(E.timer, '0:00:00'); }
       return;
     }
-    setSprite(h.sprite);
+    setSprite(h.sprite, curStyle);
     setText(E.name, h.name);
     var txt = h.count.toLocaleString('de-DE');
     if (last !== null && h.count !== last && E.count.animate) {

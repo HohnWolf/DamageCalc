@@ -9,6 +9,27 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.2.0',
+      de: [
+        'Shiny-Zähler: Im Zähler, unter „Hotkeys & OBS“ sowie in den Einstellungen unter „Sprite-Stil → Shiny-Zähler“ kannst du jetzt zwischen 3D-Modell (animiert), HD-Render (HOME) und Pixel-Sprite wählen. Auch das OBS-Overlay übernimmt die gewählte Darstellung sofort.',
+        'Shiny-Zähler (Hotkey „Gefunden“): Neuer Hotkey für „★ Gefunden!“ (global unter „Hotkeys & OBS“ sowie als Fenster-Tastenkürzel in den Einstellungen), der direkt Screenshot, Auto-Clip und den Fang-Dialog auslöst.'
+      ],
+      en: [
+        'Shiny counter: in the counter, under “Hotkeys & OBS”, and in Settings under “Sprite style → Shiny counter” you can now choose between 3D model (animated), HD render (HOME), and Pixel sprite. The OBS overlay adopts the selected style right away.',
+        'Shiny counter (“Found” hotkey): new hotkey for “★ Found!” (global under “Hotkeys & OBS” and as an in-window shortcut in Settings) that triggers screenshot, auto-clip, and the catch dialog.'
+      ],
+      full: {
+        de: [
+          'Shiny-Zähler: Auswahl zwischen 3D-Modell (animiert), HD-Render (HOME) und Pixel-Sprite direkt im Zähler, im OBS-Overlay und in den Einstellungen unter „Sprite-Stil“, plus neuer Hotkey für „★ Gefunden!“.',
+          'Matchlog & Team-Analyse: Leichtgewichtige KI-Keyframe-Erfassung (Antigravity CLI / Gemini API / Google AI Pro Export) ohne OCR-Last, direkte Verknüpfung mit Teambuilder-Team-ID und konkreter Version (v1, v2, …), Versions-Filter in der Team-Analyse, Archiv-Gruppierung, Schritt-für-Schritt-Anleitung sowie Floette-Mega-Fix.',
+          'Damage Calculator, Save-Editor & Randomizer: Umfangreiche Paritäts- und Differenztests gegen NCP/Smogon/Showdown, PKHeX.Core und echte ROMs mit zahlreichen Fixes für Fähigkeiten, Items, Gen 1–7 Spielstände und Gen 6/7 Wild-Encounter.'
+        ],
+        en: [
+          'Shiny counter: choose between 3D model (animated), HD render (HOME), and Pixel sprite right in the counter, in the OBS overlay, and in Settings under “Sprite style”, plus a new hotkey for “★ Found!”.',
+          'Matchlog & Team Analysis: lightweight AI keyframe capture (Antigravity CLI / Gemini API / Google AI Pro export) without OCR lag, direct Teambuilder team ID and version (v1, v2, …) linking, version filter in Team Analysis, archive grouping, step-by-step guide, and Mega Floette fix.',
+          'Damage Calculator, Save Editor & Randomizer: extensive parity and differential tests against NCP/Smogon/Showdown, PKHeX.Core, and real ROMs with numerous fixes for abilities, items, Gen 1–7 saves, and Gen 6/7 wild encounters.'
+        ]
+      } },
     { v: '2.1.5',
       de: [
         'Team-Analyse (Floette-Mega): Nach einem erneuten Einwechseln als Mega-Floette wird es jetzt sauber Floette-Eternal zugeordnet – kein doppeltes Floette mehr im Back/Mega-Feld, und Attacken wie Draining Kiss zählen korrekt bei Floette-Eternal.',

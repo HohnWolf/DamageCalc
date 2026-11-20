@@ -43,7 +43,9 @@
 .sh-stage { height: 150px; display: flex; align-items: center; justify-content: center; }
 .sh-big { max-height: 150px; max-width: 220px; image-rendering: pixelated; }
 .sh-big:not(.ani) { width: 150px; height: 150px; object-fit: contain; }
+.sh-big.home { image-rendering: auto; }
 .sh-big.none { display: none; }
+.sh-style-pick { margin-top: 2px; }
 .sh-name { font-weight: 700; font-size: calc(16px * var(--fs, 1)); text-align: center; }
 .sh-countrow { display: flex; align-items: center; gap: 16px; }
 .sh-count { font-size: calc(64px * var(--fs, 1)); font-weight: 800; line-height: 1; color: var(--shiny); font-variant-numeric: tabular-nums; min-width: 160px; text-align: center; }

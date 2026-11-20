@@ -2260,7 +2260,7 @@
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
   var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [], updateChannel: 'full',
-    motion: 'on', font: 'default', fontSize: 100, spriteCalc: 'pixel', spriteDex: null, spriteOverlay: 'home', pasteAuthor: '' };
+    motion: 'on', font: 'default', fontSize: 100, spriteCalc: 'pixel', spriteDex: null, spriteOverlay: 'home', spriteShiny: '3d', pasteAuthor: '' };
   // fonts of the setting "Schriftart": [id, de, en]; the CSS for html[data-font] is in css/teamshare.css
   var FONTS = [['default', 'Standard (Segoe UI)', 'Default (Segoe UI)'], ['system', 'System', 'System'], ['verdana', 'Verdana (gut lesbar)', 'Verdana (very legible)'],
     ['rounded', 'Rund (Trebuchet)', 'Rounded (Trebuchet)'], ['serif', 'Serifen (Georgia)', 'Serif (Georgia)'], ['mono', 'Monospace (Consolas)', 'Monospace (Consolas)']];
@@ -2675,6 +2675,14 @@
           [['home', 'HOME'], ['art', de ? 'Artwork' : 'Artwork'], ['3d', T('set3d')], ['pixel', T('setSprite')]], setting('spriteOverlay'), function (v) {
             setSetting('spriteOverlay', v);
             if (window.CCOverlay && window.CCOverlay.push) window.CCOverlay.push();
+          });
+        row(gSpr, de ? 'Shiny-Zähler' : 'Shiny counter', de ? 'Großes Pokémon-Bild im Shiny-Zähler und im OBS-Overlay.' : 'Large Pokémon picture in the shiny counter and OBS overlay.',
+          SPR3, setting('spriteShiny'), function (v) {
+            setSetting('spriteShiny', v);
+            if (window.CCShiny) {
+              if (document.body.dataset.view === 'shiny' && window.CCShiny.render) window.CCShiny.render();
+              if (window.CCShiny.syncOverlay) window.CCShiny.syncOverlay();
+            }
           });
 
         var gScale = makeGroup(de ? 'Anzeige & Sprache' : 'Display & language');

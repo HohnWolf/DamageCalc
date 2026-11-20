@@ -33,6 +33,7 @@
     background: var(--bg, transparent); border-radius: calc(10px * var(--s)); text-shadow: 0 2px 4px rgba(0,0,0,.6); }
   .ov.card { flex-direction: column; text-align: center; }
   .sprite { width: calc(120px * var(--s)); height: calc(120px * var(--s)); object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+  .sprite.smooth { image-rendering: auto; }
   .txt { display: flex; flex-direction: column; gap: calc(2px * var(--s)); }
   .ov.card .txt { align-items: center; }
   .name { font-weight: 700; font-size: calc(20px * var(--s)); }
@@ -155,14 +156,29 @@
   }
 
   var last = null, lastSprite = '';
-  function setSprite(id, shiny) {
-    var key = id + '|' + shiny;
+  var urlStyle = q.get('style') || '';
+  function cleanStyle(v) { return v === 'home' || v === 'sprite' ? v : '3d'; }
+  function chainOf(id, style) {
+    var base = 'https://play.pokemonshowdown.com/sprites/';
+    var ani = base + 'ani-shiny/' + id + '.gif';
+    var home = base + 'home-centered-shiny/' + id + '.png';
+    var home2 = base + 'home-shiny/' + id + '.png';
+    var px = base + 'gen5-shiny/' + id + '.png';
+    if (style === 'home') return [home, home2, ani, px];
+    if (style === 'sprite') return [px, home, home2, ani];
+    return [ani, px, home, home2];
+  }
+  function setSprite(id, style) {
+    var st = cleanStyle(urlStyle || style);
+    var key = id + '|' + st;
     if (key === lastSprite || !id) return;
     lastSprite = key;
     var img = document.getElementById('sprite');
-    var chain = ['https://play.pokemonshowdown.com/sprites/ani-shiny/' + id + '.gif', 'https://play.pokemonshowdown.com/sprites/gen5-shiny/' + id + '.png'];
+    var chain = chainOf(id, st);
     var i = 0;
-    img.onerror = function () { i++; if (i < chain.length) img.src = chain[i]; };
+    function sync(u) { img.classList.toggle('smooth', u.indexOf('/home') !== -1); }
+    img.onerror = function () { i++; if (i < chain.length) { sync(chain[i]); img.src = chain[i]; } };
+    sync(chain[0]);
     img.src = chain[0];
   }
   function tick() {
@@ -178,7 +194,7 @@
         if (edit) { document.getElementById('name').textContent = 'Pokémon'; document.getElementById('odds').textContent = '1/4.096 · 0,00 %'; document.getElementById('phase').textContent = 'Phase 2'; document.getElementById('timer').textContent = '0:00:00'; }
         return;
       }
-      setSprite(h.sprite, true);
+      setSprite(h.sprite, s.overlay && s.overlay.style);
       function put(id, text) { var e = document.getElementById(id); if (e.textContent !== text) e.textContent = text; }
       put('name', h.name);
       var c = document.getElementById('count');
