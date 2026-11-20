@@ -21,7 +21,17 @@
     srcProj: 'Nutzt laufende Quelle vom Game Projector.',
     srcFail: 'Die Quelle konnte nicht geöffnet werden.',
     teamLabel: 'Team (Teambuilder):',
+    verLabel: 'Version:',
+    verNone: '–',
     teamNone: 'Ohne Team',
+    guideTitle: 'Anleitung: So nutzt du Matchlog (Schritt für Schritt)',
+    guideSteps: [
+      '1. Quelle verbinden: Oben deine Capture-Karte auswählen oder auf „Game Projector“ klicken (Matchlog nutzt den laufenden Projektor-Stream automatisch mit).',
+      '2. Team & Version wählen: Im Dropdown „Team (Teambuilder)“ und daneben die passende „Version“ (z. B. v1, v2) auswählen.',
+      '3. Vor dem Kampf: Kurz vor oder in der Team-Preview auf „Match aufnehmen“ klicken (sammelt automatisch Keyframes im Hintergrund, ohne Ruckeln).',
+      '4. Nach dem Kampf: Auf „Aufnahme stoppen“ klicken. Antigravity erstellt automatisch das Showdown-Replay-Log, speichert nur den kompakten Text im Archiv und übernimmt das Spiel direkt in die Team-Analyse.',
+      '5. Video optional: Nur wenn du das Video auf der Festplatte behalten willst, auf „Video behalten“ klicken – sonst wird es beim nächsten Match platzsparend verworfen. Ohne Antigravity kannst du alternativ „Mit Gemini API“ oder „Für Google AI Pro exportieren“ nutzen.'
+    ],
     teamEmptyHint: 'Lege im Teambuilder ein Team an, um Matchlogs direkt nach Team zu sortieren.',
     on: 'Live-Abtastung (8 FPS)',
     aiMode: 'Live ohne OCR (Keyframes)',
@@ -77,7 +87,17 @@
     srcProj: 'Using active source from Game Projector.',
     srcFail: 'The source could not be opened.',
     teamLabel: 'Team (Teambuilder):',
+    verLabel: 'Version:',
+    verNone: '–',
     teamNone: 'No team',
+    guideTitle: 'Guide: How to use Matchlog (Step by Step)',
+    guideSteps: [
+      '1. Connect source: Pick your capture card above or click “Game Projector” (Matchlog automatically shares the active projector stream).',
+      '2. Pick Team & Version: Choose your team in “Team (Teambuilder)” and the matching “Version” (e.g. v1, v2) next to it.',
+      '3. Before the match: Click “Record match” right before or during Team Preview (collects lightweight keyframes in the background with zero lag).',
+      '4. After the match: Click “Stop recording”. Antigravity automatically builds the Showdown replay log, saves only the compact text log to the archive, and imports the match straight into Team Analysis.',
+      '5. Video optional: Click “Keep video” only if you want to save the recording to disk — otherwise it is discarded on the next match to save space. Without Antigravity you can use “Use Gemini API” or “Export for Google AI Pro”.'
+    ],
     teamEmptyHint: 'Create a team in the Teambuilder to group matchlogs by team.',
     on: 'Live capture (8 FPS)',
     aiMode: 'Live without OCR (Keyframes)',
@@ -128,13 +148,14 @@
   var logEl = null, sceneEl = null, ocrEl = null, timeEl = null, kfStatsEl = null;
   var btnRec = null, btnSaveVid = null, chkLive = null, chkAiMode = null, chkAutoAgy = null, chkAutoAnalysis = null;
   var btnAgy = null, btnGem = null, inpGemKey = null, selGemModel = null;
-  var selTeam = null, selArchiveTeam = null, archiveBox = null;
+  var selTeam = null, selVersion = null, selArchiveTeam = null, archiveBox = null;
   var root = null, camSel = null, statusEl = null, btnDisc = null;
   var ownStream = null, ownLabel = '';
   var recorder = null, recChunks = [], recTimer = null, recStartAt = 0;
   var recordedBlob = null;
   var archiveLogs = [];
   var selectedTeamId = '';
+  var selectedVersionId = '';
 
   function genId(prefix) {
     return (prefix || 'ml') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
@@ -144,18 +165,42 @@
     var list = (b && Array.isArray(b.teams)) ? b.teams : [];
     var changed = false;
     list.forEach(function (tm) {
-      if (tm && !tm.id) { tm.id = genId('tm'); changed = true; }
+      if (!tm) return;
+      if (!tm.id) { tm.id = genId('tm'); changed = true; }
+      if (!Array.isArray(tm.versions) || !tm.versions.length) {
+        var v0 = { id: genId('ver'), name: 'v1', mons: Array.isArray(tm.mons) ? tm.mons : [] };
+        tm.versions = [v0];
+        tm.curVer = v0.id;
+        changed = true;
+      } else {
+        tm.versions.forEach(function (v, idx) {
+          if (v && !v.id) { v.id = genId('ver'); changed = true; }
+          if (v && !v.name) { v.name = 'v' + (idx + 1); changed = true; }
+        });
+      }
     });
     if (changed && b) A.save('cc_builder', b);
     return { list: list, cur: (b && b.cur) || '' };
   }
+  function teamById(id) {
+    if (!id) return null;
+    var list = builderTeams().list;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
   function teamNameOf(id) {
     if (!id) return t('teamNone');
-    var list = builderTeams().list;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].id === id) return list[i].name || list[i].id;
+    var tm = teamById(id);
+    return tm ? (tm.name || tm.id) : id;
+  }
+  function versionNameOf(teamId, verId) {
+    if (!teamId || !verId) return '';
+    var tm = teamById(teamId);
+    if (!tm || !Array.isArray(tm.versions)) return '';
+    for (var i = 0; i < tm.versions.length; i++) {
+      if (tm.versions[i].id === verId) return tm.versions[i].name || ('v' + (i + 1));
     }
-    return id;
+    return '';
   }
   function loadArchive() {
     var D = window.desktop && window.desktop.matchlog;
@@ -198,6 +243,8 @@
       id: genId('log'),
       teamId: selectedTeamId || '',
       teamName: teamNameOf(selectedTeamId),
+      versionId: selectedVersionId || '',
+      versionName: versionNameOf(selectedTeamId, selectedVersionId),
       when: Date.now(),
       foe: meta.foe,
       result: meta.result,
@@ -209,10 +256,10 @@
     renderArchive();
     return entry;
   }
-  function sendToAnalysis(showdownText, teamId, silent) {
+  function sendToAnalysis(showdownText, teamId, versionId, silent) {
     var clean = String(showdownText || '').trim();
     if (!clean || !window.CCMatch || !window.CCMatch.importMatchlog) return;
-    var res = window.CCMatch.importMatchlog(clean, teamId || '');
+    var res = window.CCMatch.importMatchlog(clean, teamId || '', versionId || '');
     if (!silent && A && A.toast) {
       if (res && res.status === 'ok') A.toast(t('addedAnalysis'));
       else if (res && res.status === 'dup') A.toast(t('dupAnalysis'));
@@ -295,6 +342,28 @@
       if (keep) camSel.value = keep;
     }, function () {});
   }
+  function fillVersions() {
+    var tm = teamById(selectedTeamId);
+    var vers = (tm && Array.isArray(tm.versions)) ? tm.versions : [];
+    if (!vers.length) {
+      selectedVersionId = '';
+    } else if (!selectedVersionId || !vers.some(function (v) { return v.id === selectedVersionId; })) {
+      selectedVersionId = (tm && tm.curVer && vers.some(function (v) { return v.id === tm.curVer; })) ? tm.curVer : vers[0].id;
+    }
+    if (selVersion) {
+      selVersion.innerHTML = '';
+      if (!vers.length) {
+        selVersion.appendChild(el('option', { value: '', text: t('verNone') }));
+        selVersion.disabled = true;
+      } else {
+        vers.forEach(function (v, idx) {
+          selVersion.appendChild(el('option', { value: v.id, text: v.name || ('v' + (idx + 1)) }));
+        });
+        selVersion.disabled = false;
+        selVersion.value = selectedVersionId || vers[0].id;
+      }
+    }
+  }
   function fillTeams() {
     var bt = builderTeams();
     if (!selectedTeamId) {
@@ -302,8 +371,10 @@
       if (saved && bt.list.some(function (x) { return x.id === saved; })) selectedTeamId = saved;
       else if (bt.cur) selectedTeamId = bt.cur;
       else if (bt.list[0]) selectedTeamId = bt.list[0].id;
+      selectedVersionId = A.load('cc_matchlog_ver', '') || '';
     } else if (selectedTeamId && !bt.list.some(function (x) { return x.id === selectedTeamId; })) {
       selectedTeamId = bt.cur || (bt.list[0] ? bt.list[0].id : '');
+      selectedVersionId = '';
     }
     if (selTeam) {
       selTeam.innerHTML = '';
@@ -313,6 +384,7 @@
       });
       selTeam.value = selectedTeamId || '';
     }
+    fillVersions();
     if (selArchiveTeam) {
       var keep = selArchiveTeam.value || '__all__';
       selArchiveTeam.innerHTML = '';
@@ -530,7 +602,7 @@
     if (!aiShowdownLog) return;
     storeLog(aiShowdownLog, source);
     if (chkAutoAnalysis && chkAutoAnalysis.checked) {
-      sendToAnalysis(aiShowdownLog, selectedTeamId, false);
+      sendToAnalysis(aiShowdownLog, selectedTeamId, selectedVersionId, false);
     }
     if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + source + ' fertig (' + (ms || 0) + ' ms, ' + aiShowdownLog.split('\n').length + ' Zeilen)';
   }
@@ -643,21 +715,28 @@
     }
     var groups = {}, order = [];
     filtered.forEach(function (l) {
-      var key = l.teamId || '';
-      if (!groups[key]) { groups[key] = []; order.push(key); }
-      groups[key].push(l);
+      var key = (l.teamId || '') + '::' + (l.versionId || '');
+      if (!groups[key]) { groups[key] = { teamId: l.teamId || '', versionId: l.versionId || '', versionName: l.versionName || '', items: [] }; order.push(key); }
+      groups[key].items.push(l);
     });
     order.sort(function (a, b) {
-      if (!a && b) return 1;
-      if (a && !b) return -1;
-      return teamNameOf(a).localeCompare(teamNameOf(b), 'de');
+      var ga = groups[a], gb = groups[b];
+      if (!ga.teamId && gb.teamId) return 1;
+      if (ga.teamId && !gb.teamId) return -1;
+      var cmp = teamNameOf(ga.teamId).localeCompare(teamNameOf(gb.teamId), 'de');
+      if (cmp) return cmp;
+      var va = versionNameOf(ga.teamId, ga.versionId) || ga.versionName || '';
+      var vb = versionNameOf(gb.teamId, gb.versionId) || gb.versionName || '';
+      return va.localeCompare(vb, 'de', { numeric: true });
     });
-    order.forEach(function (tid) {
-      var items = groups[tid];
+    order.forEach(function (gKey) {
+      var g = groups[gKey];
+      var items = g.items;
+      var vName = versionNameOf(g.teamId, g.versionId) || g.versionName || '';
       var grp = el('div', { class: 'ml-arch-group' });
       var hd = el('div', { class: 'ml-arch-head' });
-      hd.appendChild(el('span', { text: teamNameOf(tid) + ' (' + items.length + ')' }));
-      hd.appendChild(el('span', { class: 'ml-arch-id', text: tid ? ('ID: ' + tid) : t('teamNone') }));
+      hd.appendChild(el('span', { text: teamNameOf(g.teamId) + (vName ? ' · ' + vName : '') + ' (' + items.length + ')' }));
+      hd.appendChild(el('span', { class: 'ml-arch-id', text: g.teamId ? ('ID: ' + g.teamId + (g.versionId ? ' / ' + g.versionId : '')) : t('teamNone') }));
       grp.appendChild(hd);
       items.forEach(function (entry) {
         var dt = new Date(entry.when || Date.now()).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' });
@@ -676,7 +755,7 @@
         var bShow = el('button', { type: 'button', class: 'tbtn', text: t('show') });
         bShow.addEventListener('click', function () { aiShowdownLog = entry.showdown; paint(); });
         var bAna = el('button', { type: 'button', class: 'tbtn', text: t('sendAnalysis') });
-        bAna.addEventListener('click', function () { sendToAnalysis(entry.showdown, entry.teamId, false); });
+        bAna.addEventListener('click', function () { sendToAnalysis(entry.showdown, entry.teamId, entry.versionId, false); });
         var bCopy = el('button', { type: 'button', class: 'tbtn', text: t('copy') });
         bCopy.addEventListener('click', function () {
           if (navigator.clipboard) navigator.clipboard.writeText(entry.showdown);
@@ -705,15 +784,25 @@
     var box = el('section', { class: 'ml-panel' });
     box.appendChild(el('p', { class: 'ml-sub', text: t('sub') }));
 
-    // Team-Auswahl (Teambuilder-ID)
+    // Team- & Versions-Auswahl (Teambuilder-ID + Version-ID)
     var teamRow = el('div', { class: 'ml-row' });
     teamRow.appendChild(el('label', { class: 'ml-sub', text: t('teamLabel') }));
     selTeam = el('select', { class: 'det-cam', id: 'mlTeamSel' });
     selTeam.addEventListener('change', function () {
       selectedTeamId = selTeam.value || '';
+      selectedVersionId = '';
+      fillVersions();
       A.save('cc_matchlog_team', selectedTeamId);
+      A.save('cc_matchlog_ver', selectedVersionId);
     });
     teamRow.appendChild(selTeam);
+    teamRow.appendChild(el('label', { class: 'ml-sub', text: t('verLabel') }));
+    selVersion = el('select', { class: 'det-cam', id: 'mlVerSel' });
+    selVersion.addEventListener('change', function () {
+      selectedVersionId = selVersion.value || '';
+      A.save('cc_matchlog_ver', selectedVersionId);
+    });
+    teamRow.appendChild(selVersion);
     box.appendChild(teamRow);
 
     // Aufnahme & Live-Steuerung
@@ -814,7 +903,7 @@
     });
     actRow.appendChild(bCopySd);
     var bSend = el('button', { type: 'button', class: 'tbtn', text: t('sendAnalysis') });
-    bSend.addEventListener('click', function () { sendToAnalysis(currentShowdown(), selectedTeamId, false); });
+    bSend.addEventListener('click', function () { sendToAnalysis(currentShowdown(), selectedTeamId, selectedVersionId, false); });
     actRow.appendChild(bSend);
     var bArch = el('button', { type: 'button', class: 'tbtn', text: t('saveArchive') });
     bArch.addEventListener('click', function () { storeLog(currentShowdown(), 'manual'); });
@@ -824,6 +913,8 @@
       var snap = engine.snapshot();
       snap.teamId = selectedTeamId || '';
       snap.teamName = teamNameOf(selectedTeamId);
+      snap.versionId = selectedVersionId || '';
+      snap.versionName = versionNameOf(selectedTeamId, selectedVersionId);
       snap.text = engine.text();
       snap.showdown = currentShowdown();
       A.saveFile('matchlog.json', JSON.stringify(snap, null, 2), 'application/json');
@@ -881,6 +972,15 @@
     head.appendChild(h2);
     root.appendChild(head);
     root.appendChild(el('p', { class: 'ml-alpha-note', text: t('alphaNote') }));
+
+    var guide = el('details', { class: 'ml-guide' });
+    guide.appendChild(el('summary', { text: t('guideTitle') }));
+    var list = el('div', { class: 'ml-guide-body' });
+    (S.guideSteps || []).forEach(function (line) {
+      list.appendChild(el('p', { text: line }));
+    });
+    guide.appendChild(list);
+    root.appendChild(guide);
 
     var srcRow = el('div', { class: 'ml-src-row' });
     camSel = el('select', { class: 'det-cam', 'aria-label': t('camera') });

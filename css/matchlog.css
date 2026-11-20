@@ -45,3 +45,26 @@
 .ml-win { color: #4ade80; }
 .ml-loss { color: #f87171; }
 .ml-arch-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Einklappbare Schritt-für-Schritt-Anleitung */
+.ml-guide {
+  border: 1px solid var(--line, #2a2a30);
+  border-radius: 8px;
+  background: rgba(59, 130, 246, .08);
+  padding: 8px 12px;
+  font-size: calc(13px * var(--fs, 1));
+}
+.ml-guide summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: revert;
+}
+.ml-guide-body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.45;
+  opacity: .92;
+}
+.ml-guide-body p { margin: 0; }

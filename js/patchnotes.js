@@ -9,6 +9,17 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.1.4',
+      de: [
+        'Matchlog & Team-Analyse (Team-Versionen): Im Matchlog wählst du neben dem Team jetzt auch die konkrete Teambuilder-Version (v1, v2, …). Gespeicherte Logs werden im Archiv sauber nach Team und Version gruppiert und direkt mit ihrer Versions-ID in die Team-Analyse übernommen.',
+        'Team-Analyse: Bei Teams mit mehreren Versionen gibt es neben dem Team-Dropdown jetzt einen Versions-Filter („Alle Versionen“ oder einzelne Version), der Spiele, Team-Pokémon und Movesets exakt auf die gewählte Version abstimmt.',
+        'Matchlog: Einklappbare Schritt-für-Schritt-Anleitung (DE/EN) direkt oben in der Ansicht, die genau erklärt, welche Knöpfe in welcher Reihenfolge genutzt werden.'
+      ],
+      en: [
+        'Matchlog & Team Analysis (team versions): in Matchlog you can now pick the exact Teambuilder version (v1, v2, …) next to the team. Saved logs are grouped by team and version in the archive and imported into Team Analysis with their version ID.',
+        'Team Analysis: for teams with multiple versions, a new version filter (“All versions” or a specific version) next to the team dropdown scopes matches, team Pokémon, and movesets to that exact version.',
+        'Matchlog: collapsible step-by-step guide (DE/EN) at the top of the view explaining each button and workflow step.'
+      ] },
     { v: '2.1.3',
       de: [
         'Matchlog (KI-Keyframes & Antigravity): Sammelt während des Spiels leichtgewichtig Keyframes ohne OCR-Last und erstellt nach „Aufnahme stoppen“ automatisch über die lokale Antigravity CLI (oder optional über die Gemini API / Google AI Pro Export) ein vollständiges Showdown-Replay-Log inkl. aller 6 Gegner-Icons aus der Team-Preview.',

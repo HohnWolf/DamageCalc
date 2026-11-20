@@ -12,6 +12,7 @@
     title: 'Team-Analyse',
     sub: 'Ein Team aus dem Teambuilder, alle Spiele dazu: Replays in einem Bericht.',
     team: 'Team', teamNone: 'Kein Team im Teambuilder', teamPick: 'Team wählen …',
+    ver: 'Version', verAll: 'Alle Versionen',
     names: 'Spielernamen', namesPh: 'Namen, mit Komma getrennt',
     namesHint: 'Daran erkennt das Tool deine Seite. Leer lassen geht, wenn das gewählte Team im Replay vorkommt.',
     gamesN: '{0} Spiele', record: '{0}–{1}', noGames: 'Noch keine Spiele',
@@ -82,6 +83,7 @@
     title: 'Team-Analyse',
     sub: 'One teambuilder team, every game with it: replays in a single report.',
     team: 'Team', teamNone: 'No team in the teambuilder', teamPick: 'Choose a team …',
+    ver: 'Version', verAll: 'All versions',
     names: 'Player names', namesPh: 'Names, separated by commas',
     namesHint: 'This is how the tool finds your side. Leaving it empty is fine when the chosen team appears in the replay.',
     gamesN: '{0} games', record: '{0}–{1}', noGames: 'No games yet',
@@ -187,16 +189,23 @@
       persist();
     }
   }
-  function monsOf(tm) {
+  function monsOf(tm, verId) {
     if (!tm) return [];
-    return (tm.mons || []).map(function (m) {
+    var srcMons = tm.mons || [];
+    if (verId && Array.isArray(tm.versions)) {
+      tm.versions.some(function (v) {
+        if (v && v.id === verId && Array.isArray(v.mons)) { srcMons = v.mons; return true; }
+        return false;
+      });
+    }
+    return srcMons.map(function (m) {
       var forme = m.set && m.set.forme;
       var sp = forme && A.DEX[forme] && forme.indexOf('Mega ') !== 0 ? forme : m.species;
       var moves = ((m.set && m.set.moves) || []).filter(function (mv) { return mv && mv !== '(No Move)'; });
       return { species: sp, moves: moves };
     }).filter(function (m) { return m.species && A.DEX[m.species]; });
   }
-  function teamMons() { return monsOf(currentTeam()); }
+  function teamMons() { return monsOf(currentTeam(), store.versionId || ''); }
   function bestOverlap(side) {
     var best = 0;
     teams().forEach(function (tm) { var n = overlap(side, monsOf(tm)); if (n > best) best = n; });
@@ -314,7 +323,12 @@
   }
 
   function teamEntries() {
-    return store.entries.filter(function (e) { return e.teamId === store.teamId; });
+    var vid = store.versionId || '';
+    return store.entries.filter(function (e) {
+      if (e.teamId !== store.teamId) return false;
+      if (vid && (e.versionId || '') !== vid) return false;
+      return true;
+    });
   }
   function counted() {
     var out = [];
@@ -830,7 +844,16 @@
     var list = teams();
     var opts = list.map(function (x) { return [x.id, (x.name || x.id) + ' (' + store.entries.filter(function (e) { return e.teamId === x.id && e.game; }).length + ')']; });
     if (!opts.length) opts = [['', t('teamNone')]];
-    top.appendChild(fieldSelect(t('team'), store.teamId, opts, function (v) { store.teamId = v; persist(); render(); }));
+    top.appendChild(fieldSelect(t('team'), store.teamId, opts, function (v) { store.teamId = v; store.versionId = ''; persist(); render(); }));
+    if (tm && Array.isArray(tm.versions) && tm.versions.length > 1) {
+      var vOpts = [['', t('verAll') + ' (' + store.entries.filter(function (e) { return e.teamId === tm.id && e.game; }).length + ')']];
+      tm.versions.forEach(function (ver, idx) {
+        var cnt = store.entries.filter(function (e) { return e.teamId === tm.id && e.versionId === ver.id && e.game; }).length;
+        vOpts.push([ver.id, (ver.name || ('v' + (idx + 1))) + ' (' + cnt + ')']);
+      });
+      if (store.versionId && !tm.versions.some(function (ver) { return ver.id === store.versionId; })) store.versionId = '';
+      top.appendChild(fieldSelect(t('ver'), store.versionId || '', vOpts, function (v) { store.versionId = v || ''; persist(); render(); }));
+    }
     var names = el('label', { class: 'ma-field ma-names' });
     names.appendChild(el('span', { text: t('names') }));
     var inp = el('input', { type: 'text', value: store.names || '', placeholder: t('namesPh'), title: t('namesHint') });
@@ -1124,7 +1147,7 @@
     return sec;
   }
 
-  function importMatchlog(text, teamId) {
+  function importMatchlog(text, teamId, versionId) {
     var trimmed = String(text || '').trim();
     if (!trimmed) return { status: 'empty' };
     var game = P.parseLog(trimmed, { source: 'matchlog', when: Date.now() });
@@ -1135,6 +1158,7 @@
     var entry = makeEntry(key, 'showdown', '', game);
     if (teamId) {
       entry.teamId = teamId;
+      if (versionId) entry.versionId = versionId;
       entry.pinned = true;
       store.teamId = teamId;
     } else {
