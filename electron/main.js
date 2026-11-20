@@ -117,10 +117,10 @@ function createWindow() {
     if (/^https?:/.test(url)) { e.preventDefault(); shell.openExternal(url); }
   });
 
-  // F5 / Strg+R neu laden, F12 Entwicklertools, F11 Vollbild
+  // F5 / Strg+R (Cmd+R auf macOS) neu laden, F12 Entwicklertools, F11 Vollbild
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
-    if (input.key === 'F5' || (input.control && input.key.toLowerCase() === 'r')) { win.webContents.reloadIgnoringCache(); e.preventDefault(); }
+    if (input.key === 'F5' || ((input.control || (process.platform === 'darwin' && input.meta)) && input.key.toLowerCase() === 'r')) { win.webContents.reloadIgnoringCache(); e.preventDefault(); }
     if (input.key === 'F12') { win.webContents.toggleDevTools(); e.preventDefault(); }
     if (input.key === 'F11') { win.setFullScreen(!win.isFullScreen()); e.preventDefault(); }
   });
@@ -244,7 +244,16 @@ if (!app.requestSingleInstanceLock()) {
     if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
   });
   app.whenReady().then(() => {
-    Menu.setApplicationMenu(null);
+    // Auf macOS braucht Electron ein Anwendungs- und Bearbeiten-Menü, damit Cmd+C/V/X/A/Z/Q funktionieren
+    if (process.platform === 'darwin') {
+      Menu.setApplicationMenu(Menu.buildFromTemplate([
+        { role: 'appMenu' },
+        { role: 'editMenu' },
+        { role: 'windowMenu' }
+      ]));
+    } else {
+      Menu.setApplicationMenu(null);
+    }
     // Sprites und Item-Symbole kommen von Drittanbietern: 30 Tage im Festplatten-Cache halten, damit sie bei Ausfall oder ohne Netz weiter erscheinen
     session.defaultSession.webRequest.onHeadersReceived({ urls: [
       'https://play.pokemonshowdown.com/sprites/*', 'https://raw.githubusercontent.com/PokeAPI/sprites/*',

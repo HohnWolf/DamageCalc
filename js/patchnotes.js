@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.2.1',
+      de: [
+        'macOS: Standard-Tastenkürzel wie Cmd+C, Cmd+V, Cmd+X, Cmd+A, Cmd+Z, Cmd+Q und Cmd+R funktionieren jetzt in der Mac-App (z. B. beim Kopieren und Einfügen von Teams im Teambuilder und Damage Calculator).'
+      ],
+      en: [
+        'macOS: standard shortcuts like Cmd+C, Cmd+V, Cmd+X, Cmd+A, Cmd+Z, Cmd+Q, and Cmd+R now work in the Mac app (e.g. copying and pasting teams in the Team Builder and Damage Calculator).'
+      ] },
     { v: '2.2.0',
       de: [
         'Shiny-Zähler: Im Zähler, unter „Hotkeys & OBS“ sowie in den Einstellungen unter „Sprite-Stil → Shiny-Zähler“ kannst du jetzt zwischen 3D-Modell (animiert), HD-Render (HOME) und Pixel-Sprite wählen. Auch das OBS-Overlay übernimmt die gewählte Darstellung sofort.',
