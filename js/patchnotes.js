@@ -9,6 +9,15 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.1.5',
+      de: [
+        'Team-Analyse (Floette-Mega): Nach einem erneuten Einwechseln als Mega-Floette wird es jetzt sauber Floette-Eternal zugeordnet – kein doppeltes Floette mehr im Back/Mega-Feld, und Attacken wie Draining Kiss zählen korrekt bei Floette-Eternal.',
+        'Matchlog (KI-Keyframes): Feinere Erfassung von Kampftext-Wechseln (0,7 s Abstand, bis zu 108 Kacheln), damit auch kurz aufeinanderfolgende Attacken nach Wechseln oder Terrain-Meldungen nicht übersprungen werden.'
+      ],
+      en: [
+        'Team Analysis (Floette-Mega): switching Mega Floette back in now maps cleanly to Floette-Eternal — no duplicate Floette in Back/Mega, and moves like Draining Kiss count under Floette-Eternal.',
+        'Matchlog (AI keyframes): tighter battle-text change capture (0.7 s interval, up to 108 tiles) so moves right after switches or terrain messages are not skipped.'
+      ] },
     { v: '2.1.4',
       de: [
         'Matchlog & Team-Analyse (Team-Versionen): Im Matchlog wählst du neben dem Team jetzt auch die konkrete Teambuilder-Version (v1, v2, …). Gespeicherte Logs werden im Archiv sauber nach Team und Version gruppiert und direkt mit ihrer Versions-ID in die Team-Analyse übernommen.',

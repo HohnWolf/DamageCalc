@@ -12,7 +12,7 @@
 
   var TILE_W = 640, TILE_H = 360;
   var GRID_COLS = 3, GRID_ROWS = 3;
-  var MAX_FRAMES = 90; // bis zu 10 Kontaktbögen à 9 Kacheln; bei Überlauf wird ausgedünnt statt abgeschnitten
+  var MAX_FRAMES = 108; // bis zu 12 Kontaktbögen à 9 Kacheln; bei Überlauf wird ausgedünnt statt abgeschnitten
 
   function fmtTs(sec) {
     if (!isFinite(sec)) return '00:00';
@@ -98,17 +98,17 @@
         }
       }
 
-      // 3. Kampf-Text-Änderung (nur in battle / result, nicht in Menüs/Lobby; mind. 1.2s Abstand)
+      // 3. Kampf-Text-Änderung (nur in battle / result, nicht in Menüs/Lobby; 0.7s Abstand damit kein Move-Text verloren geht)
       if (det.scene === 'battle' || det.scene === 'result') {
         if (det.scene === 'battle') {
           sawBattle = true;
           cmdSavedSinceBattle = false;
         }
         var btPrep = Prep.prepare(image, Lay.scale(image, Lay.L.battleText), 'outline');
-        if (btPrep.count >= 90) {
+        if (btPrep.count >= 80) {
           var inkDiff = Math.abs(btPrep.count - lastTextInk);
-          var isNew = btPrep.hash !== lastTextHash && (inkDiff >= 70 || t - lastFrameT >= 2.2);
-          if (isNew && t - lastFrameT >= 1.2) {
+          var isNew = btPrep.hash !== lastTextHash && (inkDiff >= 35 || t - lastFrameT >= 1.5);
+          if (isNew && t - lastFrameT >= 0.7) {
             lastTextHash = btPrep.hash;
             lastTextInk = btPrep.count;
             added = pushFrame(srcCanvas, t, 'TXT') || added;

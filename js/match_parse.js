@@ -44,10 +44,19 @@
   function baseFor(name) {
     var c = canonSpecies(name);
     if (!c) return '';
+    var idx = dexIndex();
     var megaDex = /^Mega (.+?)(?: [XYZ])?$/.exec(c);
-    if (megaDex) return canonSpecies(megaDex[1]);
+    if (megaDex) {
+      var mb = canonSpecies(megaDex[1]);
+      if (mb === 'Floette' && (!idx || idx.byId.floetteeternal)) return 'Floette-Eternal';
+      return mb;
+    }
     var megaSd = /^(.*?)-Mega(?:-[XYZ])?$/.exec(c);
-    if (megaSd) return canonSpecies(megaSd[1]);
+    if (megaSd) {
+      var sb = canonSpecies(megaSd[1]);
+      if (sb === 'Floette' && (!idx || idx.byId.floetteeternal)) return 'Floette-Eternal';
+      return sb;
+    }
     return c;
   }
 
