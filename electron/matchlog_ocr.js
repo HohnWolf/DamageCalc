@@ -11,7 +11,7 @@ const { spawn } = require('child_process');
 const ocr = require('../js/matchlog_ocr_node');
 
 function safeSheetName(name, idx) {
-  const base = path.basename(String(name || '')).replace(/[\\/:*?"<>|]+/g, '').trim();
+  const base = path.posix.basename(String(name || '').replace(/\\/g, '/')).replace(/[\\/:*?"<>|]+/g, '').trim();
   if (!base || base === '.' || base === '..') return 'sheet-' + (idx + 1) + '.jpg';
   return base;
 }
