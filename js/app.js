@@ -808,7 +808,7 @@
     $('forme').addEventListener('change', function () { applyForme(side, $('forme').value, true); recalc(); });
     $('item').addEventListener('change', function () { syncMegaForItem(side); recalc(); });
     ['t1', 't2', 'nature', 'status'].forEach(function (k) { $(k).addEventListener('change', recalc); });
-    $('ability').addEventListener('change', function () { renderConditions(side); recalc(); });
+    $('ability').addEventListener('change', function () { renderConditions(side); applyAbilityField($('ability').value); recalc(); });
     // dynamic extra inputs (move extras, conditions)
     root.addEventListener('change', function (ev) {
       var t = ev.target;
@@ -953,7 +953,7 @@
   function defaultSet(species) {
     return { sps: { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 }, nature: 'Hardy', ability: DEX[species] ? DEX[species].ab : '', item: '(none)', moves: [] };
   }
-  function loadSet(side, species, set, setName) {
+  function loadSet(side, species, set, setName, keepField) {
     var $ = side.$;
     var base = baseOf(species);
     if (!DEX[base]) return;
@@ -982,6 +982,7 @@
     $('nature').value = C.NATURES[set.nature] ? set.nature : 'Hardy';
     var ab = DEX[forme].ab && forme.indexOf('Mega ') === 0 ? DEX[forme].ab : (set.ability || DEX[forme].ab || DEX[base].ab);
     setAbility(side, ab);
+    if (!keepField) applyAbilityField(ab);
     $('status').value = 'Healthy';
     side.fainted = 0;
     $('cond').innerHTML = '';
@@ -1040,7 +1041,10 @@
     if (changeAbility && d.ab) {
       var isMega = forme.indexOf('Mega ') === 0;
       var wasAb = $('ability').value;
-      if (isMega || side.lastFormeAb === wasAb) setAbility(side, d.ab);
+      if (isMega || side.lastFormeAb === wasAb) {
+        setAbility(side, d.ab);
+        applyAbilityField(d.ab);
+      }
     }
     side.lastFormeAb = d.ab;
     refreshLegal(side);
@@ -1210,7 +1214,7 @@
     loadSet(side, st.baseSpecies, {
       sps: st.sps, nature: st.nature, ability: st.ability, item: st.item, forme: st.forme,
       moves: st.moves.map(function (m) { return m.name; })
-    }, st.setName);
+    }, st.setName, true);
     side.setLabel = st.setLabel || side.setLabel; $('pick').value = displayLabel(side);
     side.src = st.src || null; $('toBuilder').disabled = !side.src;
     if (st.forme && $('forme').value !== st.forme && formesOf(side.baseSpecies).indexOf(st.forme) !== -1) applyForme(side, st.forme, false);
@@ -1318,11 +1322,36 @@
   }
 
   // ======================= field =======================
+  var AUTO_WEATHER = {
+    Drought: 'Sun', 'Orichalcum Pulse': 'Sun', Drizzle: 'Rain', 'Sand Stream': 'Sand', 'Snow Warning': 'Snow',
+    'Desolate Land': 'Harsh Sun', 'Primordial Sea': 'Heavy Rain', 'Delta Stream': 'Strong Winds'
+  };
+  var AUTO_TERRAIN = {
+    'Electric Surge': 'Electric', 'Hadron Engine': 'Electric',
+    'Grassy Surge': 'Grassy', 'Psychic Surge': 'Psychic', 'Misty Surge': 'Misty'
+  };
   var field = load('cc_field', null) || {
     format: 'Doubles', terrain: 'None', weather: 'None', gravity: false,
     ruin: { tablets: false, vessel: false, sword: false, beads: false }, fairyAura: false, darkAura: false, auraBreak: false,
     sides: [{}, {}]
   };
+  function applyAbilityField(ab) {
+    if (!ab || !field) return;
+    var changed = false;
+    if (AUTO_WEATHER[ab] && field.weather !== AUTO_WEATHER[ab]) {
+      field.weather = AUTO_WEATHER[ab];
+      changed = true;
+    }
+    if (AUTO_TERRAIN[ab] && field.terrain !== AUTO_TERRAIN[ab]) {
+      field.terrain = AUTO_TERRAIN[ab];
+      changed = true;
+    }
+    if (changed) {
+      save('cc_field', field);
+      var root = document.getElementById('fieldPanel');
+      if (root && root.children.length) renderField();
+    }
+  }
   // [key, English name, m = move / a = ability] – the name is translated via the move/ability names
   var SIDE_TOGGLES = [
     ['helpingHand', 'Helping Hand', 'm'], ['auroraVeil', 'Aurora Veil', 'm'], ['reflect', 'Reflect', 'm'],
@@ -1600,17 +1629,12 @@
       format: field.format, weather: field.weather === 'None' ? '' : field.weather, terrain: field.terrain === 'None' ? '' : field.terrain,
       gravity: field.gravity, trickRoom: !!field.trickRoom, ruin: Object.assign({}, field.ruin), fairyAura: field.fairyAura, darkAura: field.darkAura, auraBreak: field.auraBreak
     };
-    // ruin abilities, weather and terrain from all Pokémon on the field
-    var autoWeather = { Drought: 'Sun', Drizzle: 'Rain', 'Sand Stream': 'Sand', 'Snow Warning': 'Snow',
-      'Desolate Land': 'Harsh Sun', 'Primordial Sea': 'Heavy Rain', 'Delta Stream': 'Strong Winds' };
-    var autoTerrain = { 'Electric Surge': 'Electric', 'Grassy Surge': 'Grassy', 'Psychic Surge': 'Psychic', 'Misty Surge': 'Misty' };
+    // ruin abilities from all Pokémon on the field
     all.forEach(function (x) {
       if (x.ability === 'Tablets of Ruin') fld.ruin.tablets = true;
       if (x.ability === 'Vessel of Ruin') fld.ruin.vessel = true;
       if (x.ability === 'Sword of Ruin') fld.ruin.sword = true;
       if (x.ability === 'Beads of Ruin') fld.ruin.beads = true;
-      if (!fld.weather && autoWeather[x.ability]) fld.weather = autoWeather[x.ability];
-      if (!fld.terrain && autoTerrain[x.ability]) fld.terrain = autoTerrain[x.ability];
       // Cloud Nine / Air Lock suppress the weather for everyone (speed abilities included)
       if (x.ability === 'Cloud Nine' || x.ability === 'Air Lock') fld.weatherSuppressed = true;
     });
