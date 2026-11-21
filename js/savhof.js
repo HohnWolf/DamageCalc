@@ -41,6 +41,31 @@
       };
       return;
     }
+    if (gen === 2 && sv.decStr && data.length >= 0x3E00) {
+      // Gen 2 (pokegold/pokecrystal): 30 Teams ab 0x3200, je 0x61 Bytes (1 Byte WinCount + 6 x 0x10 Bytes: species, id(2), dv(2), level, nick(10))
+      var HB2 = 0x3200, REC2 = 0x61, EN2 = 0x10;
+      sv.hof = {
+        entries: function () {
+          var out = [];
+          for (var t = 0; t < 30; t++) {
+            var base = HB2 + t * REC2, win = data[base];
+            if (!win || win === 0xFF) break;
+            var team = [];
+            for (var m = 0; m < 6; m++) {
+              var o = base + 1 + m * EN2, sp = data[o];
+              if (!sp || sp === 0xFF || sp > 251) break;
+              var dv1 = data[o + 3], dv2 = data[o + 4];
+              var sh = (dv2 & 0x0F) === 10 && (dv2 >> 4) === 10 && (dv1 & 0x0F) === 10 && (((dv1 >> 4) & 2) !== 0);
+              team.push({ species: sp, level: data[o + 5], nick: sv.decStr(o + 6, 10), shiny: sh, moves: null });
+            }
+            if (team.length) out.push({ n: win, date: '', team: team });
+          }
+          return out;
+        },
+        clear: function () { for (var i = 0; i < 30 * REC2; i++) data[HB2 + i] = 0; }
+      };
+      return;
+    }
     if (gen === 3 && data.length >= 0x1E000) {
       var US = 0xF80, SZ = 0x14, TEAM = 6 * SZ;
       // Zwei Sektoren bilden einen zusammenhängenden Puffer (je 0xF80 Bytes)
@@ -109,6 +134,36 @@
           });
         }
       };
+    } else if (gen === 5) {
+      // Gen 5 (PKHeX SAV5): BW = 0x7C800 / 0x7E000, B2W2 = 0x74000 / 0x75800; 15 Einträge x 0x16C (6 x 0x3C + 4 Byte Datum)
+      var HB5 = sv.game === 'BW' ? 0x7C800 : 0x74000, REC5 = 0x16C, EN5 = 0x3C;
+      if (HB5 + 0x155C > data.length) return;
+      var dec5 = function (o, max) { var s = ''; for (var i = 0; i < max; i++) { var c = u16(data, o + i * 2); if (!c || c === 0xFFFF) break; s += String.fromCharCode(c); } return s; };
+      sv.hof = {
+        entries: function () {
+          var out = [];
+          for (var e = 0; e < 15; e++) {
+            var r = HB5 + e * REC5, team = [];
+            for (var m = 0; m < 6; m++) {
+              var o = r + m * EN5, sp = u16(data, o);
+              if (!sp || sp > 649) continue;
+              team.push({ species: sp, level: data[o + 2], nick: dec5(o + 0x0C, 11), shiny: shiny(u16(data, o + 8), u16(data, o + 10), u32(data, o + 4)),
+                moves: [u16(data, o + 0x32), u16(data, o + 0x34), u16(data, o + 0x36), u16(data, o + 0x38)] });
+            }
+            if (team.length) {
+              var y = u16(data, r + REC5 - 4);
+              out.push({ n: e + 1, date: y ? (y < 100 ? 2000 + y : y) + '-' + pad(data[r + REC5 - 2]) + '-' + pad(data[r + REC5 - 1]) : '', team: team });
+            }
+          }
+          return out.reverse();
+        },
+        clear: function () {
+          [HB5, HB5 + 0x1800].forEach(function (b) {
+            if (b + 0x155C > data.length) return;
+            for (var i = 0; i < 0x155C; i++) data[b + i] = 0;
+          });
+        }
+      };
     } else if (gen === 6 && sv.blocks && sv.blocks[36]) {
       var bo = sv.blocks[36][0], ES = 0x1B4, PS = 0x48;
       var dec = function (o, max) { var s = ''; for (var i = 0; i < max; i++) { var c = u16(data, o + i * 2); if (!c) break; s += String.fromCharCode(c); } return s; };
@@ -130,6 +185,25 @@
           return out;
         },
         clear: function () { for (var i = 0; i < 16 * ES; i++) data[bo + i] = 0; }
+      };
+    } else if (gen === 7 && sv.blocks && sv.blocks[5]) {
+      // Gen 7 (PKHeX HallOfFame7): direkt nach den Event-Flags in Block 5 (SM: +0x9C4, USUM: +0xA3C), 2 Teams x 6 u16 (Erst-Einzug & Aktuell)
+      var bo7 = sv.blocks[5][0] + (String(sv.game).toUpperCase() === 'USUM' ? 0xA3C : 0x9C4);
+      if (bo7 + 24 > data.length) return;
+      sv.hof = {
+        entries: function () {
+          var out = [], labels = ['Erst-Einzug', 'Aktueller Champ'];
+          for (var t = 1; t >= 0; t--) {
+            var team = [];
+            for (var m = 0; m < 6; m++) {
+              var sp = u16(data, bo7 + (t * 6 + m) * 2);
+              if (sp && sp <= 807) team.push({ species: sp, level: 0, nick: '', shiny: false, moves: null });
+            }
+            if (team.length) out.push({ n: t + 1, date: labels[t], team: team });
+          }
+          return out;
+        },
+        clear: function () { for (var i = 0; i < 24; i++) data[bo7 + i] = 0; }
       };
     }
   };

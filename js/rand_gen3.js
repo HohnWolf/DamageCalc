@@ -205,7 +205,12 @@
     rom.trainers.forEach(function (tr) {
       if (tr.partyOff < 0 || !tr.party.length) return;
       var flags = u8[tr.off], hasItem = !!(flags & 2), custom = !!(flags & 1);
-      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [], tag: rivalTag(tr) };
+      var tm = {
+        label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [], tag: rivalTag(tr),
+        setDouble: function () { if (tr.off + 24 < u8.length && u8[tr.off + 24] === 0) u8[tr.off + 24] = 1; },
+        getNameBytes: function () { return u8.slice(tr.off + 4, tr.off + 16); },
+        setNameBytes: function (b) { u8.set(b.subarray(0, 12), tr.off + 4); }
+      };
       tr.party.forEach(function (pm, j) {
         var mo = tr.partyOff + j * tr.partySize;
         tm.mons.push({
@@ -448,6 +453,17 @@
         return true;
       }
       return false;
+    };
+    if (tbl && tbl.runIn) model.patchRunIndoors = function () { if (tbl.runIn < u8.length) { u8[tbl.runIn] = 0; return true; } return false; };
+    if (tbl && tbl.txtSpd) model.patchFastestText = function () { if (tbl.txtSpd + 2 < u8.length) { u8[tbl.txtSpd] = 4; u8[tbl.txtSpd + 1] = 1; u8[tbl.txtSpd + 2] = 0; return true; } return false; };
+    if (tbl && tbl.pcPot) model.patchPcPotion = function (it) { if (tbl.pcPot + 2 <= u8.length) { w16(u8, tbl.pcPot, it); return true; } return false; };
+    if (tbl && tbl.typeEff) model.patchTypeEff = function () {
+      var o = tbl.typeEff, n = 0;
+      while (o + 2 < u8.length && u8[o] !== 0xFE && u8[o] !== 0xFF) {
+        if ((u8[o] === 7 || u8[o] === 17) && u8[o + 1] === 8 && u8[o + 2] === 5) { u8[o + 2] = 10; n++; }
+        o += 3;
+      }
+      return n > 0;
     };
     model.commit = function () { return u8; };
     return model;

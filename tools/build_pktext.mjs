@@ -14,7 +14,7 @@ for (const l of ['de', 'en']) {
   o.abilities = rd(`other/${l}/text_Abilities_${l}.txt`);
   o.natures = rd(`other/${l}/text_Natures_${l}.txt`).filter(Boolean);
   o.types = rd(`other/${l}/text_Types_${l}.txt`).filter(Boolean);
-  o.items = rd(`items/text_Items_${l}.txt`).slice(0, 1000);
+  o.items = rd(`items/text_Items_${l}.txt`);
   o.items1 = rd(`items/gen1/text_ItemsG1_${l}.txt`);
   o.items2 = rd(`items/gen2/text_ItemsG2_${l}.txt`);
   o.items3 = rd(`items/gen3/text_ItemsG3_${l}.txt`);

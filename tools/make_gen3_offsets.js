@@ -25,7 +25,7 @@ fs.readFileSync(src, 'utf8').split(/\r?\n/).forEach(line => {
   } else if (k === 'StaticPokemon{}') {
     const sp = val.match(/Species=\[([^\]]*)\]/), lv = val.match(/Level=\[([^\]]*)\]/);
     cur.statics.push([sp ? list(sp[1]) : [], lv ? list(lv[1]) : []]);
-  } else if (/^(Game|Version|FreeSpace|TrainerData|PokemonTMHMCompat|TmMoves|MoveTutorData|MoveTutorMoves|TradeTableOffset|TradeTableSize|TradesUnused|StaticEggPokemonOffsets|ItemBallPic|PickupTableStartLocator|PickupItemCount|ShopItemOffsets|SkipShops|MainGameShops|StarterPokemon)$/.test(k)) {
+  } else if (/^(Game|Version|FreeSpace|TrainerData|PokemonTMHMCompat|TmMoves|MoveTutorData|MoveTutorMoves|TradeTableOffset|TradeTableSize|TradesUnused|StaticEggPokemonOffsets|ItemBallPic|PickupTableStartLocator|PickupItemCount|ShopItemOffsets|SkipShops|MainGameShops|StarterPokemon|RunIndoorsTweakOffset|TextSpeedValuesOffset|PCPotionOffset|TypeEffectivenessOffset)$/.test(k)) {
     cur.v[k] = (k === 'Game' || k === 'PickupTableStartLocator') ? val : val.startsWith('[') ? list(val) : num(val);
   }
 });
@@ -37,7 +37,7 @@ entries.forEach(e => {
     name: e.name, free: v.FreeSpace, tr: v.TrainerData, compat: v.PokemonTMHMCompat, tm: v.TmMoves, tut: v.MoveTutorData && v.MoveTutorMoves ? [v.MoveTutorData, v.MoveTutorMoves] : undefined,
     trade: v.TradeTableOffset ? [v.TradeTableOffset, v.TradeTableSize, v.TradesUnused || []] : undefined, eggs: v.StaticEggPokemonOffsets || [], statics: e.statics,
     ball: v.ItemBallPic, pickup: v.PickupTableStartLocator ? [v.PickupTableStartLocator, v.PickupItemCount] : undefined, shops: v.ShopItemOffsets ? [v.ShopItemOffsets, v.SkipShops || [], v.MainGameShops || []] : undefined,
-    starter: v.StarterPokemon
+    starter: v.StarterPokemon, runIn: v.RunIndoorsTweakOffset || undefined, txtSpd: v.TextSpeedValuesOffset || undefined, pcPot: v.PCPotionOffset || undefined, typeEff: v.TypeEffectivenessOffset || undefined
   };
 });
 fs.writeFileSync(dst, '// Offsets der Gen-3-Spiele aus dem Universal Pokémon Randomizer ZX (GPL-3.0, Ajarmar). Erzeugt mit tools/make_gen3_offsets.js.\nwindow.GEN3_OFFS = ' + JSON.stringify(out) + ';\n');

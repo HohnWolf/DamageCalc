@@ -95,7 +95,19 @@
     });
     // Trainer
     rom.trainers.forEach(function (tr) {
-      var tm = { label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [], tag: window.RIVAL_TAGS && window.RIVAL_TAGS[rom.type] ? window.RIVAL_TAGS[rom.type][tr.id] || null : null };
+      var th = F.trdata && F.trdata[tr.id];
+      var tm = {
+        label: ((rom.classNames && rom.classNames[tr.cls]) || 'Trainer') + ' ' + tr.name, mons: [],
+        tag: window.RIVAL_TAGS && window.RIVAL_TAGS[rom.type] ? window.RIVAL_TAGS[rom.type][tr.id] || null : null,
+        setDouble: function () { if (th && th.length > 12 && th[2] === 0) { th[2] = 1; th[12] |= 0x80; } },
+        duplicateFirst: function () {
+          if (!th || !tr.pk || tr.party.length !== 1 || !F.trpoke) return false;
+          var dbl = new Uint8Array(tr.rec * 2);
+          dbl.set(tr.pk.subarray(0, tr.rec), 0); dbl.set(tr.pk.subarray(0, tr.rec), tr.rec);
+          F.trpoke[tr.id] = dbl; tr.pk = dbl; th[3] = 2;
+          return true;
+        }
+      };
       tr.party.forEach(function (pm) {
         var po = pm.idx * tr.rec;
         tm.mons.push({

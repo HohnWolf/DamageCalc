@@ -21,7 +21,9 @@
     limitGens: [], dualTypeOnly: false, banBadAbilities: false, ensureTwoAbilities: false, statsFollowEvo: false,
     movesGuaranteed: 0, movesReorderDamaging: false, movesGoodDamagingPct: 0, movesBlockBroken: false,
     trainerFullyEvolved: false, trainerFullyEvolvedLevel: 30, starterMax600: false,
-    updateMoves: 0, updateStats: 0, starterHeldItem: false, tradeIVs: false, tradeItems: false
+    updateMoves: 0, updateStats: 0, starterHeldItem: false, tradeIVs: false, tradeItems: false,
+    doubleBattleMode: false, shuffleTrainerNames: false, fastestText: false, runIndoors: false, pcPotion: false, updateTypeEff: false,
+    totems: 'keep', totemLevelPct: 0, totemAura: false
   };
   var GEN_END = [0, 151, 251, 386, 493, 649, 721, 809];
   var BAD_ABILITIES = [57, 58, 107, 108, 118, 119, 188, 222, 223], BROKEN_MOVES = [49, 82]; // Plus, Minus, Vorahnung, Vorwarnung, Honigsammler, Schnüffler, Aura-Bruch, Empfänger, Alchemie; Schallwelle, Drachenwut (Festschaden)
@@ -731,6 +733,50 @@
         if (rivalLog.length) { L('=== Rivalen behalten ihren Starter ==='); rivalLog.forEach(L); L(''); }
       }
       summary.trainers = nTr; L('');
+    }
+    // Doppelkampf-Modus (UPR ZX: Trainer auf Doppelkampf stellen; 1-Pokémon-Trainer bei Unterstützung verdoppeln)
+    if (o.doubleBattleMode && model.trainers && model.trainers.length) {
+      var nDbl = 0;
+      model.trainers.forEach(function (tr) {
+        if (!tr.setDouble || !tr.mons || !tr.mons.length) return;
+        if (tr.mons.length === 1 && tr.duplicateFirst) { if (tr.duplicateFirst()) { tr.setDouble(); nDbl++; } }
+        else if (tr.mons.length >= 2) { tr.setDouble(); nDbl++; }
+      });
+      if (nDbl) { L('=== Doppelkampf-Modus: ' + nDbl + ' Trainer umgestellt ==='); L(''); }
+    }
+    // Trainer-Namen untereinander mischen
+    if (o.shuffleTrainerNames && model.trainers && model.trainers.length) {
+      var named = model.trainers.filter(function (t) { return t.getNameBytes && t.setNameBytes; });
+      if (named.length > 1) {
+        var nbs = named.map(function (t) { return t.getNameBytes(); });
+        for (var ni = nbs.length - 1; ni > 0; ni--) { var nj = rng.int(ni + 1), tmpN = nbs[ni]; nbs[ni] = nbs[nj]; nbs[nj] = tmpN; }
+        named.forEach(function (t, idx) { t.setNameBytes(nbs[idx]); });
+        L('=== Trainer-Namen gemischt (' + named.length + ') ==='); L('');
+      }
+    }
+    // Gen 7: Herrscher-Pokémon (Totem)
+    if ((o.totems !== 'keep' || o.totemLevelPct || o.totemAura) && model.totems && model.totems.length) {
+      L('=== Herrscher-Pokémon (Totem) ===');
+      var tPct = Math.max(-50, Math.min(100, +o.totemLevelPct || 0));
+      model.totems.forEach(function (tm, idx) {
+        var oldSp = tm.get(), nw = oldSp;
+        if (o.totems === 'random') nw = rng.pick(pool);
+        else if (o.totems === 'similar') nw = pickSimilar(oldSp, pool);
+        if (o.totems !== 'keep') tm.set(nw);
+        var lv = tPct ? scaleLv(tm.level, tPct) : tm.level;
+        if (tPct) tm.setLevel(lv);
+        var auraTxt = '';
+        if (o.totemAura && tm.setAura) { var av = 1 + rng.int(14); tm.setAura(av); auraTxt = ', Aura #' + av; }
+        L('Totem #' + (idx + 1) + ': ' + nameOf(oldSp) + ' → ' + nameOf(nw) + ' Lv' + lv + auraTxt);
+      });
+      L('');
+    }
+    if (o.fastestText && model.patchFastestText) { L(model.patchFastestText() ? '=== Schnellster Text: gepatcht ===' : '=== Schnellster Text: nicht verfügbar ==='); L(''); }
+    if (o.runIndoors && model.patchRunIndoors) { L(model.patchRunIndoors() ? '=== Turbotreter in Gebäuden: gepatcht ===' : '=== Turbotreter in Gebäuden: nicht verfügbar ==='); L(''); }
+    if (o.updateTypeEff && model.patchTypeEff) { L(model.patchTypeEff() ? '=== Typ-Effektivität (Gen 6+ Stahl): gepatcht ===' : '=== Typ-Effektivität: nicht verfügbar ==='); L(''); }
+    if (o.pcPotion && model.patchPcPotion && ID) {
+      var pcPool = []; for (var pi2 = 1; pi2 <= ID.max; pi2++) if (ID.bad.indexOf(pi2) === -1 && ID.tms.indexOf(pi2) === -1) pcPool.push(pi2);
+      if (pcPool.length) { var pIt = rng.pick(pcPool); if (model.patchPcPotion(pIt)) { L('=== PC-Trank: Item #' + pIt + ' ==='); L(''); } }
     }
 
     if (model.patchEvoDex && (o.starters !== 'keep' || o.wild !== 'keep' || o.statics !== 'keep' || o.trades !== 'keep')) model.patchEvoDex();

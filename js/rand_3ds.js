@@ -16,10 +16,10 @@
     'CTR-P-EK2': { gen: 6, type: 'xy', name: 'Y', nameEn: 'Y', max: 721, maxMove: 617, maxAbility: 188, stats: 'a/2/1/8', learn: 'a/2/1/4', evo: 'a/2/1/5', move: 'a/2/1/2', wild: 'a/0/1/2', trd: 'a/0/3/8', trp: 'a/0/4/0' },
     'CTR-P-ECR': { gen: 6, type: 'oras', name: 'Omega Rubin', nameEn: 'Omega Ruby', max: 721, maxMove: 621, maxAbility: 188, stats: 'a/1/9/5', learn: 'a/1/9/1', evo: 'a/1/9/2', move: 'a/1/8/9', wild: 'a/0/1/3', trd: 'a/0/3/6', trp: 'a/0/3/8' },
     'CTR-P-ECL': { gen: 6, type: 'oras', name: 'Alpha Saphir', nameEn: 'Alpha Sapphire', max: 721, maxMove: 621, maxAbility: 188, stats: 'a/1/9/5', learn: 'a/1/9/1', evo: 'a/1/9/2', move: 'a/1/8/9', wild: 'a/0/1/3', trd: 'a/0/3/6', trp: 'a/0/3/8' },
-    'CTR-P-BND': { stat: 'a/1/5/5', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Sonne', nameEn: 'Sun', max: 802, maxMove: 719, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/5', trp: 'a/1/0/6' },
-    'CTR-P-BNE': { stat: 'a/1/5/5', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Mond', nameEn: 'Moon', max: 802, maxMove: 719, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/5', trp: 'a/1/0/6' },
-    'CTR-P-A2A': { stat: 'a/1/5/9', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Sonne', nameEn: 'Ultra Sun', max: 807, maxMove: 728, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/6', trp: 'a/1/0/7' },
-    'CTR-P-A2B': { stat: 'a/1/5/9', skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Mond', nameEn: 'Ultra Moon', max: 807, maxMove: 728, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/6', trp: 'a/1/0/7' }
+    'CTR-P-BND': { stat: 'a/1/5/5', totems: [1, 4, 9, 14, 19, 24, 33, 39, 45], skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Sonne', nameEn: 'Sun', max: 802, maxMove: 719, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/5', trp: 'a/1/0/6' },
+    'CTR-P-BNE': { stat: 'a/1/5/5', totems: [1, 4, 9, 14, 19, 24, 33, 39, 45], skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49]), gen: 7, type: 'sm', name: 'Mond', nameEn: 'Moon', max: 802, maxMove: 719, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/5', trp: 'a/1/0/6' },
+    'CTR-P-A2A': { stat: 'a/1/5/9', totems: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249], skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Sonne', nameEn: 'Ultra Sun', max: 807, maxMove: 728, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/2', trd: 'a/1/0/6', trp: 'a/1/0/7' },
+    'CTR-P-A2B': { stat: 'a/1/5/9', totems: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249], skipStatics: [1, 4, 9, 14, 19, 24, 33, 39, 45, 137, 146, 158, 159, 160, 162, 229, 231, 249].concat([8, 13, 17, 18, 23, 31, 32, 37, 38, 43, 44, 48, 49, 140, 141, 147, 148, 163, 164, 230, 232, 250]), gen: 7, type: 'usum', name: 'Ultra Mond', nameEn: 'Ultra Moon', max: 807, maxMove: 728, maxAbility: 232, stats: 'a/0/1/7', learn: 'a/0/1/3', evo: 'a/0/1/4', move: 'a/0/1/1', wild: 'a/0/8/3', trd: 'a/1/0/6', trp: 'a/1/0/7' }
   };
   // Plätze für wilde Pokémon: [Anfang, Anzahl, Name] (je 4 Byte: Art+Form, Mindest-, Höchstlevel)
   var XY_SLOTS = [[0, 12, 'Gras'], [48, 12, 'Gelbe Blumen'], [96, 12, 'Violette Blumen'], [144, 12, 'Rote Blumen'], [192, 12, 'Hohes Gras'], [240, 5, 'Surfen'], [260, 5, 'Felsbrecher'],
@@ -146,6 +146,21 @@
       if (model.starters.length !== 3) model.starters = [];
       if (gifts) for (var gi = 3; gi < Math.floor(gifts.length / 0x14); gi++) addStatic(gifts, gi * 0x14, 3, { egg: gifts[gi * 0x14 + 10] === 1 });
       if (stEnc) for (var si = 0; si < Math.floor(stEnc.length / 0x38); si++) if (g.skipStatics.indexOf(si) === -1) addStatic(stEnc, si * 0x38, 3, { resetMoves: true });
+      // Gen 7: Herrscher-Pokémon (Totem) nach UPR ZX
+      if (stEnc && g.totems) {
+        model.totems = [];
+        g.totems.forEach(function (ti) {
+          var o = ti * 0x38;
+          if (o + 0x38 > stEnc.length || !species[u16(stEnc, o)]) return;
+          model.totems.push({
+            level: stEnc[o + 3],
+            get: function () { return u16(stEnc, o); },
+            set: function (n) { w16(stEnc, o, n); stEnc[o + 2] = 0; for (var q = 12; q <= 18; q += 2) w16(stEnc, o + q, 0); },
+            setLevel: function (l) { stEnc[o + 3] = l; },
+            setAura: function (v) { stEnc[o + 0x25] = v; }
+          });
+        });
+      }
       // Ingame-Tausche (Datei 4, 0x34 Byte je Eintrag): gegebene Art bei +0 (Form bei +4), verlangte Art bei +0x2C
       var tradeF = entry(statG, 4);
       if (tradeF) {
@@ -173,7 +188,10 @@
         else if (g.type === 'oras') { flags = u16(th, 0); count = th[7]; hasMoves = !!(flags & 1); hasItem = !!(flags & 2); rec = 8 + (hasItem ? 2 : 0) + (hasMoves ? 8 : 0); }
         else { flags = th[0]; count = th[3]; hasMoves = !!(flags & 1); hasItem = !!(flags & 2); rec = 8 + (hasItem ? 2 : 0) + (hasMoves ? 8 : 0); }
         if (!count || count > 6 || tp.length < count * rec) continue;
-        var tm = { label: 'Trainer ' + t, mons: [] };
+        var tm = {
+          label: 'Trainer ' + t, mons: [],
+          setDouble: (function (th, isG7) { return function () { if (th.length > 12 && th[2] === 0) { th[2] = 1; th[12] |= isG7 ? 0x08 : 0x80; } }; })(th, g.gen === 7)
+        };
         for (var n = 0; n < count; n++) (function (n, tp, th) {
           var o = n * rec, lvO = g.gen === 7 ? 14 : 2, spO = g.gen === 7 ? 16 : 4, frO = spO + 2;
           var sp = u16(tp, o + spO), lv = u16(tp, o + lvO);

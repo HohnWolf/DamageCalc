@@ -6,16 +6,16 @@
   if (!A || !S || !T0 || !P) return;
   var el = A.el, esc = A.esc, de = A.LANG === 'de', T = de ? T0.de : T0.en;
   var L = de ? {
-    title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 1–7.',
-    pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 1 und 2 (Game Boy), 3 (GBA), 4 und 5 (DS) sowie 6 und 7 (3DS, die "main"-Datei).',
+    title: 'Save File Editor', sub: 'Bearbeite Spielstände: Team, Boxen, Pokémon (Werte, Attacken, Item, Wesen, Shiny) und Trainerdaten. Die Originaldatei bleibt unverändert, du speicherst eine neue Datei. Unterstützt: Generation 1–9 (inkl. Switch).',
+    pick: 'Spielstand wählen …', drop: 'oder eine .sav- / .dsv- / Switch-main-Datei hierher ziehen', bad: 'Diese Datei wird nicht erkannt. Unterstützt werden Spielstände der Generation 1–7 (.sav, .dsv, 3DS main) sowie Switch Generation 8–9 (Schwert/Schild, Legenden: Arceus, Karmesin/Purpur).',
     game: 'Erkannt:', save: 'Spielstand speichern', saved: 'Gespeichert. Mach vorher immer eine Sicherungskopie deines echten Spielstands.', trainer: 'Trainer', party: 'Team', box: 'Box',
     name: 'Name', money: 'Geld', gender: 'Geschlecht', male: 'Männlich', female: 'Weiblich', time: 'Spielzeit (Std : Min)', empty: 'Leer', apply: 'Übernehmen', remove: 'Entfernen', create: 'Neues Pokémon',
     formName: 'Form', hiddenAb: 'VF', allAb: 'Alle Fähigkeiten (Cheat)', species: 'Pokémon', nick: 'Spitzname', level: 'Level', exp: 'Erfahrung', item: 'Item', none: '–', nature: 'Wesen', shiny: 'Shiny', friendship: 'Freundschaft', egg: 'Ei', ability: 'Fähigkeit',
     slot2: 'Zweite Fähigkeit', moves: 'Attacken', pp: 'AP', ppups: 'AP-Ups', ev: 'EP', iv: 'IP', stats: 'Werte', ot: 'Ursprungstrainer', stat: ['KP', 'Angr', 'Vert', 'Init', 'SpA', 'SpV'],
     dv: 'DVs', statexp: 'Erfahrungswerte (EP)', gbstat: ['KP', 'Angr', 'Vert', 'Init', 'Spezial'], edit: 'Pokémon bearbeiten', ok: 'Pokémon übernommen (noch nicht gespeichert).', evsum: 'EP-Summe', delconfirm: 'Dieses Pokémon entfernen?', all: 'Maximal', self: 'Eigenes Team'
   } : {
-    title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generations 1 to 7 (.sav, .dsv).',
-    pick: 'Choose save file …', drop: 'or drag a .sav / .dsv file here', bad: 'This file is not recognized. Generation 1 and 2 (Game Boy), 3 (GBA), 4 and 5 (DS) and 6 and 7 (3DS, the "main" file) saves are supported.',
+    title: 'Save File Editor', sub: 'Edit save files: party, boxes, Pokémon (stats, moves, item, nature, shiny) and trainer data. The original file stays untouched, you save a new file. Supported: generations 1 to 9 (incl. Switch).',
+    pick: 'Choose save file …', drop: 'or drag a .sav / .dsv / Switch main file here', bad: 'This file is not recognized. Generation 1–7 (.sav, .dsv, 3DS main) and Switch generation 8–9 (Sword/Shield, Legends: Arceus, Scarlet/Violet) saves are supported.',
     game: 'Detected:', save: 'Save file', saved: 'Saved. Always keep a backup of your real save first.', trainer: 'Trainer', party: 'Party', box: 'Box',
     name: 'Name', money: 'Money', gender: 'Gender', male: 'Male', female: 'Female', time: 'Play time (h : min)', empty: 'Empty', apply: 'Apply', remove: 'Remove', create: 'New Pokémon',
     formName: 'Form', hiddenAb: 'HA', allAb: 'All abilities (cheat)', species: 'Pokémon', nick: 'Nickname', level: 'Level', exp: 'Experience', item: 'Item', none: '–', nature: 'Nature', shiny: 'Shiny', friendship: 'Friendship', egg: 'Egg', ability: 'Ability',
@@ -35,6 +35,7 @@
     hours: 'Stunden', minutes: 'Minuten', seconds: 'Sekunden', coins: 'Münzen', bp: 'Kampfpunkte (BP)',
     badges: 'Orden', badge: 'Orden', badgeA: 'Region 1', badgeB: 'Region 2',
     tabHof: 'Ruhmeshalle', hofEmpty: 'Noch kein Eintrag in der Ruhmeshalle.', hofClear: 'Ruhmeshalle leeren', hofAsk: 'Alle Einträge der Ruhmeshalle löschen?', hofNo: 'Eintrag',
+    tabWc: 'Geheimgeschehen', wcEmpty: 'Keine Wunderkarten im Spielstand.', wcUsed: 'Eingelöst', wcUnused: 'Offen (abholbar)', wcImp: 'Karte importieren', wcExp: 'Export', wcClearFlags: 'Erhalten-Flags leeren', wcBad: 'Ungültige Wunderkarten-Datei (erwartet {0}, {1} Bytes).', wcSlot: 'Platz',
     tabItems: 'Items', tabDex: 'Pokédex', tabEvents: 'Events', tRib: 'Bänder', ribNone: 'Für dieses Format gibt es keine Bänder.', ribAll: 'Alle', ribClear: 'Keine',
     pItems: 'Items', pKey: 'Basis-Items', pTm: 'TMs & VMs', pMail: 'Briefe', pMed: 'Medizin', pBerry: 'Beeren', pBall: 'Bälle', pBattle: 'Kampf-Items', pPc: 'PC-Items', pZ: 'Z-Kristalle',
     giveAll: 'Alles geben (Max)', clearPouch: 'Tasche leeren', sortPouch: 'Nach ID sortieren', addItem: '+ Item hinzufügen', slotsUsed: 'Plätze belegt', noBag: 'Für diesen Spielstand gibt es noch keinen Editor.', outOfList: 'nicht in der Standardliste',
@@ -58,6 +59,7 @@
     hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds', coins: 'Coins', bp: 'Battle Points (BP)',
     badges: 'Badges', badge: 'Badge', badgeA: 'region 1', badgeB: 'region 2',
     tabHof: 'Hall of Fame', hofEmpty: 'No Hall of Fame entry yet.', hofClear: 'Clear Hall of Fame', hofAsk: 'Delete all Hall of Fame entries?', hofNo: 'Entry',
+    tabWc: 'Mystery Gifts', wcEmpty: 'No Wonder Cards in this save.', wcUsed: 'Redeemed', wcUnused: 'Unused (claimable)', wcImp: 'Import card', wcExp: 'Export', wcClearFlags: 'Clear received flags', wcBad: 'Invalid Wonder Card file (expected {0}, {1} bytes).', wcSlot: 'Slot',
     tabItems: 'Items', tabDex: 'Pokédex', tabEvents: 'Events', tRib: 'Ribbons', ribNone: 'This format has no ribbons.', ribAll: 'All', ribClear: 'None',
     pItems: 'Items', pKey: 'Key Items', pTm: 'TMs & HMs', pMail: 'Mail', pMed: 'Medicine', pBerry: 'Berries', pBall: 'Balls', pBattle: 'Battle Items', pPc: 'PC Items', pZ: 'Z-Crystals',
     giveAll: 'Give all (max)', clearPouch: 'Clear pouch', sortPouch: 'Sort by ID', addItem: '+ Add item', slotsUsed: 'slots used', noBag: 'There is no editor for this save yet.', outOfList: 'not in the standard list',
@@ -82,7 +84,7 @@
   function maxAbility() { return st.sv.maxAbility; }
   // Basiswerte/Fähigkeiten/Geschlecht je Art und Form (Formen aus PKHeX-Personal-Daten fN; Gen 3: Deoxys je Spiel)
   function pers(species, form) {
-    var sv = st.sv, nat = sv.natOf(species), e = P['g' + sv.gen][nat], ft = form > 0 && P['f' + sv.gen] && P['f' + sv.gen][nat];
+    var sv = st.sv, nat = sv.natOf(species), tab = P['g' + sv.gen] || P.g7, e = tab && tab[nat], ft = form > 0 && P['f' + sv.gen] && P['f' + sv.gen][nat];
     if (sv.gen === 3 && nat === 386 && P.deoxys3) e = P.deoxys3[sv.game === 'FRLG' ? 'FR' : sv.game] || e; // FR/BG lassen sich im Spielstand nicht unterscheiden
     if (ft && ft[form - 1]) e = ft[form - 1];
     return e || [50, 50, 50, 50, 50, 50, 0, 127, 0, 0];
@@ -1112,6 +1114,45 @@
     }
     return box;
   }
+  function wcPanel() {
+    var sv = st.sv, wc = sv.wc, box = el('div', { class: 'sv-ed' });
+    box.appendChild(el('h3', { text: X.tabWc + ' (' + wc.ext + ')' }));
+    var list = wc.list(), usedCount = list.filter(Boolean).length;
+    var bar = el('div', { class: 'sv-bar sv-tools' });
+    var impIn = el('input', { type: 'file', accept: wc.ext, style: 'display:none' });
+    impIn.onchange = function () {
+      var f = impIn.files[0]; if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () {
+        var b = new Uint8Array(fr.result);
+        var free = list.indexOf(null); if (free < 0) free = 0;
+        if (b.length !== wc.cardSize || !wc.setRaw(free, b)) { st.err = X.wcBad.replace('{0}', wc.ext).replace('{1}', wc.cardSize); render(); return; }
+        st.err = ''; st.dirty = true; render();
+      };
+      fr.readAsArrayBuffer(f);
+    };
+    var impB = el('button', { type: 'button', class: 'sv-mini', text: X.wcImp + ' (' + wc.ext + ')' }); impB.onclick = function () { impIn.click(); };
+    var cfB = el('button', { type: 'button', class: 'sv-mini', text: X.wcClearFlags }); cfB.onclick = function () { wc.clearFlags(); st.dirty = true; render(); };
+    bar.appendChild(impB); bar.appendChild(impIn); bar.appendChild(cfB);
+    box.appendChild(bar);
+    if (!usedCount) { box.appendChild(el('p', { class: 'hint', text: X.wcEmpty })); return box; }
+    list.forEach(function (c) {
+      if (!c) return;
+      var card = el('div', { class: 'sv-sec' });
+      var det = c.type === 'mon' && c.species ? (speciesName(c.species) + (c.level ? ' Lv ' + c.level : '')) : (c.type === 'item' && c.item ? (nm(itemList(), c.item) || ('Item #' + c.item)) : '');
+      card.appendChild(el('div', { html: '<b>#' + c.id + '</b> ' + esc(c.title || (X.wcSlot + ' ' + (c.slot + 1))) + (det ? ' <span class="hint">· ' + esc(det) + '</span>' : '') }));
+      var act = el('div', { class: 'sv-bar sv-tools' });
+      var tog = el('button', { type: 'button', class: 'sv-mini', text: c.used ? X.wcUsed : X.wcUnused });
+      tog.onclick = function () { wc.setUsed(c.slot, !c.used); st.dirty = true; render(); };
+      var exB = el('button', { type: 'button', class: 'sv-mini', text: X.wcExp });
+      exB.onclick = function () { download('wc_' + (c.id || c.slot) + wc.ext, wc.getRaw(c.slot)); };
+      var dlB = el('button', { type: 'button', class: 'sv-mini', text: X.del });
+      dlB.onclick = function () { wc.remove(c.slot); st.dirty = true; render(); };
+      act.appendChild(tog); act.appendChild(exB); act.appendChild(dlB);
+      card.appendChild(act); box.appendChild(card);
+    });
+    return box;
+  }
   function trainerPanel() {
     var sv = st.sv, t = sv.getTrainer(), box = el('div', { class: 'sv-tr' });
     box.appendChild(el('h3', { text: L.trainer }));
@@ -1184,12 +1225,14 @@
       var cols = el('div', { class: 'sv-cols' });
       var left = el('div', { class: 'sv-left' });
       var seg = el('div', { class: 'sv-tabs sv-seg' });
-      [['mon', X.tabMon], ['trainer', X.tabTrainer]].concat(sv.hof ? [['hof', X.tabHof]] : [], sv.bag ? [['items', X.tabItems], ['dex', X.tabDex], ['events', X.tabEvents]] : []).forEach(function (t) { var tb = el('button', { type: 'button', class: 'sv-tab' + (st.pane === t[0] ? ' on' : ''), text: t[1] }); tb.onclick = function () { st.pane = t[0]; render(); }; seg.appendChild(tb); });
+      [['mon', X.tabMon], ['trainer', X.tabTrainer]].concat(sv.hof ? [['hof', X.tabHof]] : [], sv.wc ? [['wc', X.tabWc]] : [], sv.bag ? [['items', X.tabItems], ['dex', X.tabDex], ['events', X.tabEvents]] : []).forEach(function (t) { var tb = el('button', { type: 'button', class: 'sv-tab' + (st.pane === t[0] ? ' on' : ''), text: t[1] }); tb.onclick = function () { st.pane = t[0]; render(); }; seg.appendChild(tb); });
       if (!sv.bag && (st.pane === 'items' || st.pane === 'dex' || st.pane === 'events')) st.pane = 'mon';
-      var wide = st.pane === 'items' || st.pane === 'dex' || st.pane === 'events' || st.pane === 'hof';
+      if (!sv.wc && st.pane === 'wc') st.pane = 'mon';
+      var wide = st.pane === 'items' || st.pane === 'dex' || st.pane === 'events' || st.pane === 'hof' || st.pane === 'wc';
       left.appendChild(seg);
       if (st.pane === 'trainer') left.appendChild(trainerPanel());
       else if (st.pane === 'hof' && sv.hof) left.appendChild(hofPanel());
+      else if (st.pane === 'wc' && sv.wc) left.appendChild(wcPanel());
       else if (st.pane === 'items') left.appendChild(bagPanel());
       else if (st.pane === 'dex') left.appendChild(dexPanel());
       else if (st.pane === 'events') left.appendChild(eventsPanel());

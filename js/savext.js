@@ -207,5 +207,70 @@
     if (gen === 6) { var bo6 = sv.blocks[11][0] + (key === 'XY' ? 0x3C : 0x30); cn.push({ k: 'bp', max: 9999, get: function () { return u16(data, bo6); }, set: function (v) { w16(data, bo6, Math.min(9999, v)); } }); }
     if (gen === 7) { var bo7 = sv.blocks[9][0] + 0x11C; cn.push({ k: 'bp', max: 9999, get: function () { return u32(data, bo7); }, set: function (v) { w32(data, bo7, Math.min(9999, v)); } }); }
     sv.counters = cn;
+
+    // ---------- Geheimgeschehen / Wonder Cards (PKHeX: MysteryBlock5/6/7) ----------
+    function decU16Str(b, o, max) {
+      var s = '';
+      for (var i = 0; i < max; i++) { var c = u16(b, o + i * 2); if (!c || c === 0xFFFF) break; s += String.fromCharCode(c); }
+      return s;
+    }
+    function cryptLcg(b, o, len, seed) {
+      var s = seed >>> 0;
+      for (var i = 0; i < len; i += 2) {
+        s = (Math.imul(s, 0x41C64E6D) + 0x6073) >>> 0;
+        var v = u16(b, o + i) ^ (s >>> 16);
+        w16(b, o + i, v);
+      }
+    }
+    if (gen === 5 && data.length >= 0x1D298) {
+      var MB5 = 0x1C800, DL5 = 0xA90, SZ5 = 0xCC, MAX5 = 12;
+      var withDec5 = function (fn) {
+        var sd = u32(data, MB5 + DL5);
+        cryptLcg(data, MB5, DL5, sd);
+        var res;
+        try { res = fn(); } finally { cryptLcg(data, MB5, DL5, sd); }
+        return res;
+      };
+      sv.wc = {
+        ext: '.pgf', max: MAX5, cardSize: SZ5,
+        list: function () {
+          return withDec5(function () {
+            var out = [];
+            for (var i = 0; i < MAX5; i++) {
+              var o = MB5 + 0x100 + i * SZ5, id = u16(data, o + 0xB0), type = data[o + 0xB3];
+              if (!id && !type) { out.push(null); continue; }
+              out.push({ slot: i, id: id, title: decU16Str(data, o + 0x60, 36), type: type === 1 ? 'mon' : type === 2 ? 'item' : 'other',
+                species: type === 1 ? u16(data, o + 0x1A) : 0, item: type === 2 ? u16(data, o) : 0, level: data[o + 0x5B], used: !!(data[o + 0xB4] & 2) });
+            }
+            return out;
+          });
+        },
+        getRaw: function (i) { return withDec5(function () { return data.slice(MB5 + 0x100 + i * SZ5, MB5 + 0x100 + (i + 1) * SZ5); }); },
+        setRaw: function (i, bytes) { if (bytes.length !== SZ5) return false; withDec5(function () { data.set(bytes, MB5 + 0x100 + i * SZ5); }); return true; },
+        setUsed: function (i, v) { withDec5(function () { var o = MB5 + 0x100 + i * SZ5 + 0xB4; data[o] = v ? (data[o] | 2) : (data[o] & ~2); }); },
+        remove: function (i) { withDec5(function () { for (var k = 0; k < SZ5; k++) data[MB5 + 0x100 + i * SZ5 + k] = 0; }); },
+        clearFlags: function () { withDec5(function () { for (var k = 0; k < 0x100; k++) data[MB5 + k] = 0; }); }
+      };
+    } else if ((gen === 6 && sv.blocks && sv.blocks[41]) || (gen === 7 && sv.blocks && sv.blocks[27])) {
+      var mbo = sv.blocks[gen === 6 ? 41 : 27][0], SZ67 = 0x108, MAX67 = gen === 6 ? 24 : 48;
+      sv.wc = {
+        ext: gen === 6 ? '.wc6' : '.wc7', max: MAX67, cardSize: SZ67,
+        list: function () {
+          var out = [];
+          for (var i = 0; i < MAX67; i++) {
+            var o = mbo + 0x100 + i * SZ67, id = u16(data, o), ct = data[o + 0x51];
+            if (!id && !data[o + 2]) { out.push(null); continue; }
+            out.push({ slot: i, id: id, title: decU16Str(data, o + 2, 36), type: ct === 0 ? 'mon' : ct === 1 ? 'item' : 'other',
+              species: ct === 0 ? u16(data, o + 0x82) : 0, item: ct === 1 ? u16(data, o + 0x68) : 0, level: data[o + 0xD0], used: !!(data[o + 0x52] & 2) });
+          }
+          return out;
+        },
+        getRaw: function (i) { return data.slice(mbo + 0x100 + i * SZ67, mbo + 0x100 + (i + 1) * SZ67); },
+        setRaw: function (i, bytes) { if (bytes.length !== SZ67) return false; data.set(bytes, mbo + 0x100 + i * SZ67); return true; },
+        setUsed: function (i, v) { var o = mbo + 0x100 + i * SZ67 + 0x52; data[o] = v ? (data[o] | 2) : (data[o] & ~2); },
+        remove: function (i) { for (var k = 0; k < SZ67; k++) data[mbo + 0x100 + i * SZ67 + k] = 0; },
+        clearFlags: function () { for (var k = 0; k < 0x100; k++) data[mbo + k] = 0; }
+      };
+    }
   };
 })();

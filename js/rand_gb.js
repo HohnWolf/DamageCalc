@@ -432,6 +432,17 @@
       u8[0x14E] = sum >> 8; u8[0x14F] = sum & 255;
       return u8;
     };
+    // QoL-Patches nach UPR ZX (Gen 1/2): Schnellster Text (Z80 RET = 0xC9), PC-Trank (Gen 1), Typ-Effektivität (Gen 2: Geist/Unlicht neutral gegen Stahl)
+    if (e.TextDelayFunctionOffset) model.patchFastestText = function () { if (e.TextDelayFunctionOffset < u8.length) { u8[e.TextDelayFunctionOffset] = 0xC9; return true; } return false; };
+    if (g1 && e.PCPotionOffset) model.patchPcPotion = function (it) { if (e.PCPotionOffset < u8.length) { u8[e.PCPotionOffset] = it & 255; return true; } return false; };
+    if (!g1 && e.TypeEffectivenessOffset) model.patchTypeEff = function () {
+      var o = e.TypeEffectivenessOffset, n = 0;
+      while (o + 2 < u8.length && u8[o] !== 0xFE && u8[o] !== 0xFF) {
+        if ((u8[o] === 8 || u8[o] === 27) && u8[o + 1] === 9 && u8[o + 2] === 5) { u8[o + 2] = 10; n++; }
+        o += 3;
+      }
+      return n > 0;
+    };
     return model;
   }
 

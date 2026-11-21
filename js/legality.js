@@ -18,7 +18,12 @@
       itemRange: 'Ungültiges Item', itemHeld: 'Item kann nicht gehalten werden', ballRange: 'Ungültiger Ball', ballNone: 'Kein Ball gesetzt',
       langBad: 'Ungültige Sprache für diese Generation', otEmpty: 'Name des Trainers leer', nickEmpty: 'Spitzname leer', pkrsBad: 'Ungültiger Pokérus-Zustand',
       dateBad: 'Ungültiges Datum', dateOrder: 'Ei-Datum liegt nach dem Fangdatum', dateFuture: 'Datum liegt in der Zukunft', locUnknown: 'Unbekannter Fundort', eggLocUnknown: 'Unbekannter Ei-Ort', eggMet: 'Ei hat einen Fundort', friendEgg: 'Ei mit hoher Freundschaft',
-      contest: 'Wettbewerbswerte ohne Fell-Wert', sinnohRibbon: 'Widersprüchliche Bänder', sheen: 'Fell-Wert über 255'
+      contest: 'Wettbewerbswerte ohne Fell-Wert', sinnohRibbon: 'Widersprüchliche Bänder', sheen: 'Fell-Wert über 255',
+      cherishFateful: 'Jubelball erfordert eine schicksalhafte Begegnung (Event)',
+      transferFuture: 'Ursprungsspiel liegt in einer neueren Generation als dieser Spielstand',
+      transferLoc: 'Übertragenes Pokémon hat keinen gültigen Transfer-Fundort (Park der Freunde / Poképorter / Poké-Mover)',
+      memBad: 'Ungültige Herkunfts-Erinnerung (Stärke oder Gefühl außerhalb des erlaubten Bereichs)',
+      memMissing: 'Erinnerungs-ID gesetzt, aber Stärke oder Gefühl ist 0'
     },
     en: {
       speciesBad: 'Invalid species for this generation', levelRange: 'Level outside 1–100', expMax: 'Experience above the level 100 maximum', levelMismatch: 'Party level does not match experience',
@@ -34,11 +39,16 @@
       itemRange: 'Invalid item', itemHeld: 'Item cannot be held', ballRange: 'Invalid ball', ballNone: 'No ball set',
       langBad: 'Invalid language for this generation', otEmpty: 'Trainer name is empty', nickEmpty: 'Nickname is empty', pkrsBad: 'Invalid Pokérus state',
       dateBad: 'Invalid date', dateOrder: 'Egg date is after the met date', dateFuture: 'Date is in the future', locUnknown: 'Unknown met location', eggLocUnknown: 'Unknown egg location', eggMet: 'Egg has a met location', friendEgg: 'Egg with high friendship',
-      contest: 'Contest stats without sheen', sinnohRibbon: 'Contradicting ribbons', sheen: 'Sheen above 255'
+      contest: 'Contest stats without sheen', sinnohRibbon: 'Contradicting ribbons', sheen: 'Sheen above 255',
+      cherishFateful: 'Cherish Ball requires a fateful encounter (event)',
+      transferFuture: 'Origin game belongs to a newer generation than this save',
+      transferLoc: 'Transferred Pokémon does not have a valid transfer met location (Pal Park / Poké Transfer / Poké Transporter)',
+      memBad: 'Invalid origin memory (intensity or feeling out of range)',
+      memMissing: 'Memory ID set, but intensity or feeling is 0'
     }
   };
-  var BALL_MAX = { 3: 12, 4: 24, 5: 25, 6: 25, 7: 26 };
-  var LANG_OK = { 3: [1, 2, 3, 4, 5, 7], 4: [1, 2, 3, 4, 5, 7, 8], 5: [1, 2, 3, 4, 5, 7, 8], 6: [1, 2, 3, 4, 5, 7, 8], 7: [1, 2, 3, 4, 5, 7, 8, 9, 10] };
+  var BALL_MAX = { 3: 12, 4: 24, 5: 25, 6: 25, 7: 26, 8: 27, 9: 27 };
+  var LANG_OK = { 3: [1, 2, 3, 4, 5, 7], 4: [1, 2, 3, 4, 5, 7, 8], 5: [1, 2, 3, 4, 5, 7, 8], 6: [1, 2, 3, 4, 5, 7, 8], 7: [1, 2, 3, 4, 5, 7, 8, 9, 10], 8: [1, 2, 3, 4, 5, 7, 8, 9, 10], 9: [1, 2, 3, 4, 5, 7, 8, 9, 10] };
   var HELD_CACHE = {};
 
   function heldItems(game) {
@@ -183,6 +193,19 @@
       for (i = 0; i < 5; i++) cs += F.get(d, 'contest', i);
       if (cs && !sheen) warn('contest');
     }
+    // ---- Event-Ball (Jubelball = 16) & Herkunfts-Erinnerungen (Gen 6/7 nach PKHeX MemoryVerifier)
+    if (!gb && gen >= 4 && gen <= 7) {
+      var fateful2 = gen <= 5 ? (d[0x40] & 1) : (d[0x1D] & 1);
+      if (F.get(d, 'ball') === 16 && !fateful2) bad('cherishFateful');
+    }
+    if ((gen === 6 || gen === 7) && d.length >= 0xE0) {
+      // PK6/PK7 OT Memory: Intensity 0xCC (0..7), Memory 0xCD, Feeling 0xD0 (0..24); HT Memory: Intensity 0xA4, Memory 0xA5, Feeling 0xA8
+      [[0xCC, 0xCD, 0xD0], [0xA4, 0xA5, 0xA8]].forEach(function (mm2) {
+        var inten = d[mm2[0]], mid = d[mm2[1]], feel = d[mm2[2]];
+        if (inten > 7 || feel > 24) bad('memBad');
+        else if (mid && (!inten || !feel)) warn('memMissing');
+      });
+    }
     return out.concat(moves());
 
     function encounterCheck() {
@@ -190,8 +213,17 @@
       if (gen === 3) { ver = (u16(d, 70) >> 7) & 15; fateful = d[79] >> 7; }
       else if (gen <= 5) { ver = d[0x5F]; fateful = d[0x40] & 1; }
       else { ver = d[0xDF]; fateful = d[0x1D] & 1; }
-      var og = ver >= 1 && ver <= 5 ? 3 : (ver === 7 || ver === 8 || (ver >= 10 && ver <= 12)) ? 4 : (ver >= 20 && ver <= 23) ? 5 : (ver >= 24 && ver <= 27) ? 6 : (ver >= 30 && ver <= 33) ? 7 : 0;
-      if (og !== gen || fateful) return; // Übertragene Pokémon, Colosseum/XD und Event-Pokémon lassen sich ohne Eventdatenbank nicht prüfen
+      // Ursprungs-Generation inkl. Colosseum/XD (15) und VC Gen 1/2 (35..41)
+      var og = ver >= 1 && ver <= 5 ? 3 : ver === 15 ? 3 : (ver === 7 || ver === 8 || (ver >= 10 && ver <= 12)) ? 4 : (ver >= 20 && ver <= 23) ? 5 : (ver >= 24 && ver <= 27) ? 6 : (ver >= 30 && ver <= 33) ? 7 : (ver >= 35 && ver <= 41) ? 1 : 0;
+      if (og > gen && !(og === 1 && gen === 7)) { bad('transferFuture'); return; }
+      if (og && og !== gen) {
+        // Transfer-Ketten-Prüfung (PKHeX): Gen 3->4 (Pal Park 55), Gen 4->5 (Poké Transfer 30001), Gen 3-5->6/7 (Poké Transporter 30001 / 30013), VC Gen 1/2->7 (30013)
+        if (gen === 4 && og === 3 && loc !== 55) warn('transferLoc');
+        else if (gen === 5 && og <= 4 && loc !== 30001 && loc !== 30002) warn('transferLoc');
+        else if (gen >= 6 && og <= 5 && loc !== 30001 && loc !== 30013 && !(og === 1 && gen === 7 && loc === 30013)) warn('transferLoc');
+        return;
+      }
+      if (fateful) return;
       if (el) { if (ml !== 1) warn('hatchLevel'); return; }
       if (gen === 5 && loc === 30015) return; // Traumwelt
       var fam = [nat].concat(E.anc[nat] || []), w = E.wild[ver] && E.wild[ver][loc], i, j;
