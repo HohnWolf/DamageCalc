@@ -214,8 +214,8 @@
       pkAllTypes: 'Alle Typen', pkClearFilter: 'Filter zurücksetzen', pkSortT: 'Sortieren nach {0}',
       pkGroupFit: 'Passt zu diesem Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Beeren', pkGroupStones: 'Mega-Steine', tbPP: 'AP {0}',
       tbSpeedTiers: 'Initiative', tbEmptyTeam: 'Das Team ist leer.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Attacke {0}', tbPower: 'Stärke {0}', tbAcc: 'Genauigkeit {0} %', tbAccAlways: 'trifft immer', tbNatTitle: 'Wesen wählen', tbNatRevert: 'Zurück zu:', tbNatNeutral: 'neutral, kein Wert verändert', tbFormChange: 'Formwechsel', tbFormChangeT: 'Form im Kampf: Werte und Fähigkeit passen sich an', tbStoneSet: 'Item auf {0} gesetzt', tbLook: 'Aussehen & Form', tbMale: 'Männlich', tbFemale: 'Weiblich', tbAbInForm: 'Fähigkeit als {0}', tbAbNormal: 'normale Form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Aussehen & Form', tbDone: 'Fertig', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regionalformen und andere Formen mit eigenen Werten, Typen oder Fähigkeiten', tbVariant: 'Variante', tbVariantHint: 'Nur das Aussehen ändert sich, Werte und Typen bleiben gleich', tbGender: 'Geschlecht', tbGenderless: 'Dieses Pokémon hat kein Geschlecht.', tbOnlyMale: 'Dieses Pokémon kann nur männlich sein.', tbOnlyFemale: 'Dieses Pokémon kann nur weiblich sein.', tbRatio: 'Verteilung: {0} % männlich, {1} % weiblich', tbNoGender: 'Geschlechtslos', tbRandom: 'Egal', tbNormalColor: 'Normal',
-      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Pokémon-Darstellung', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
-      setModelHint: 'Wie das große Pokémon-Bild im Teambuilder und in beiden Pokédexen angezeigt wird', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
+      setTitle: 'Einstellungen', setBtn: 'Einstellungen', setModel: 'Teambuilder', set3d: '3D-Modell (animiert)', setHome: 'HD-Render (HOME)', setSprite: 'Pixel-Sprite',
+      setModelHint: 'Großes Pokémon-Bild im Teambuilder.', setTheme: 'Design', setDark: 'Dunkel', setLight: 'Hell',
       setThemeHint: 'Gilt sofort für die ganze App und bleibt gespeichert.',
       setUiStyle: 'Oberflächen-Stil', setUiStyleHint: 'Aufbau und Aussehen der gesamten App: Seitenleiste (Pro) oder obere Leiste (Studio).',
       setZoom: 'Oberflächengröße', setZoomHint: 'Automatisch passt die Größe ans Fenster an. Feste Stufen vergrößern oder verkleinern die gesamte Oberfläche.', setZoomAuto: 'Automatisch',
@@ -370,8 +370,8 @@
       pkAllTypes: 'All types', pkClearFilter: 'Reset filters', pkSortT: 'Sort by {0}',
       pkGroupFit: 'Fits this Pokémon', pkGroupItems: 'Items', pkGroupBerries: 'Berries', pkGroupStones: 'Mega Stones', tbPP: 'PP {0}',
       tbSpeedTiers: 'Speed', tbEmptyTeam: 'The team is empty.', tbMonCount: '{0}/6', tbTabMon: 'Pokémon', tbMoveN: 'Move {0}', tbPower: 'Power {0}', tbAcc: 'Accuracy {0}%', tbAccAlways: 'never misses', tbNatTitle: 'Select a nature', tbNatRevert: 'Revert to:', tbNatNeutral: 'neutral, no stat changed', tbFormChange: 'Form change', tbFormChangeT: 'Form in battle: stats and ability follow', tbStoneSet: 'Item set to {0}', tbLook: 'Look & form', tbMale: 'Male', tbFemale: 'Female', tbAbInForm: 'Ability as {0}', tbAbNormal: 'normal form: {0}', tbNormalVal: 'normal {0}', tbLookTitle: 'Look & form', tbDone: 'Done', tbFormsOwn: 'Form', tbFormsOwnHint: 'Regional forms and other forms with their own stats, types or abilities', tbVariant: 'Variant', tbVariantHint: 'Only the look changes, stats and types stay the same', tbGender: 'Gender', tbGenderless: 'This Pokémon has no gender.', tbOnlyMale: 'This Pokémon can only be male.', tbOnlyFemale: 'This Pokémon can only be female.', tbRatio: 'Ratio: {0}% male, {1}% female', tbNoGender: 'Genderless', tbRandom: 'Any', tbNormalColor: 'Normal',
-      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Pokémon artwork', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
-      setModelHint: 'How the big Pokémon picture is shown in the Teambuilder and both Pokédexes', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
+      setTitle: 'Settings', setBtn: 'Settings', setModel: 'Teambuilder', set3d: '3D model (animated)', setHome: 'HD render (HOME)', setSprite: 'Pixel sprite',
+      setModelHint: 'Large Pokémon picture in the Teambuilder.', setTheme: 'Theme', setDark: 'Dark', setLight: 'Light',
       setThemeHint: 'Applies to the whole app right away and stays saved.',
       setUiStyle: 'Interface style', setUiStyleHint: 'Layout and look of the whole app: sidebar (Pro) or top bar (Studio).',
       setZoom: 'UI scale', setZoomHint: 'Auto scales the interface to fit the window. Fixed levels zoom the entire interface in or out.', setZoomAuto: 'Auto',
@@ -2284,7 +2284,7 @@
   // ======================= settings =======================
   // cc_settings: { model: '3d' | 'sprite', start: 'start' | 'calc' | 'builder', nav }; theme is cc_theme, language is cc_lang
   var SETTING_DEFAULTS = { model: '3d', start: 'start', zoom: 'auto', uiStyle: 'pro', startLayout: 'cats', sbCollapsed: false, disabledTools: [], updateChannel: 'full',
-    motion: 'on', font: 'default', fontSize: 100, spriteCalc: 'pixel', spriteDex: null, spriteOverlay: 'home', spriteShiny: '3d', pasteAuthor: '' };
+    motion: 'on', font: 'default', fontSize: 100, spriteCalc: 'pixel', spriteDex: '3d', spriteOverlay: 'home', spriteShiny: '3d', pasteAuthor: '' };
   // fonts of the setting "Schriftart": [id, de, en]; the CSS for html[data-font] is in css/teamshare.css
   var FONTS = [['default', 'Standard (Segoe UI)', 'Default (Segoe UI)'], ['system', 'System', 'System'], ['verdana', 'Verdana (gut lesbar)', 'Verdana (very legible)'],
     ['rounded', 'Rund (Trebuchet)', 'Rounded (Trebuchet)'], ['serif', 'Serifen (Georgia)', 'Serif (Georgia)'], ['mono', 'Monospace (Consolas)', 'Monospace (Consolas)']];
@@ -2392,6 +2392,8 @@
   }
   function setting(k) { var s = load('cc_settings', {}) || {}; return s[k] != null ? s[k] : SETTING_DEFAULTS[k]; }
   function setSetting(k, v) { var s = load('cc_settings', {}) || {}; s[k] = v; save('cc_settings', s); }
+  // migration: the Pokédex style used to follow 'model' while spriteDex was unset; keep that look as its own value
+  (function () { var s = load('cc_settings', {}) || {}; if (s.spriteDex == null && s.model) { s.spriteDex = s.model; save('cc_settings', s); } })();
   var settingsModal = null, settingsRedraw = null, settingsTab = 'look';
   // update state from the desktop app (electron/updater.js): idle | checking | none | available | progress | ready | portable | error | off
   var updStatus = { state: 'off' };
@@ -2682,8 +2684,6 @@
         row(gSpr, T('setModel'), T('setModelHint'), SPR3, setting('model'), function (v) {
           setSetting('model', v);
           if (window.CCBuilder && document.body.dataset.view === 'builder') window.CCBuilder.render();
-          if (window.CCGoDex && document.body.dataset.view === 'godex') window.CCGoDex.render();
-          if (window.CCGoCounter && document.body.dataset.view === 'gocounter') window.CCGoCounter.render();
           if (window.CCGoInfo && document.body.dataset.view === 'goinfo') window.CCGoInfo.render();
         });
         row(gSpr, 'Damage Calculator', de ? 'Kleine Bilder in den Reitern A/B, der Team-Leiste, der Zugreihenfolge und bei den Attacken.' : 'Small pictures in the A/B tabs, the team bar, the turn order and next to the moves.',
@@ -2691,9 +2691,11 @@
             setSetting('spriteCalc', v);
             if (window.CCApp && window.CCApp.redrawSprites) window.CCApp.redrawSprites();
           });
-        row(gSpr, de ? 'Pokédex' : 'Pokédex', de ? 'Großes Bild im Nationalen Pokédex.' : 'Large picture in the National Pokédex.', SPR3, setting('spriteDex') || setting('model'), function (v) {
+        row(gSpr, de ? 'Pokédex' : 'Pokédex', de ? 'Großes Bild im Nationalen Pokédex, im GO-Pokédex und in Top Counter.' : 'Large picture in the National Pokédex, the GO Pokédex and Top Counters.', SPR3, setting('spriteDex'), function (v) {
           setSetting('spriteDex', v);
           if (window.CCDex && document.body.dataset.view === 'dex') window.CCDex.render();
+          if (window.CCGoDex && document.body.dataset.view === 'godex') window.CCGoDex.render();
+          if (window.CCGoCounter && document.body.dataset.view === 'gocounter') window.CCGoCounter.render();
         });
         row(gSpr, de ? 'Match-Overlay (OBS)' : 'Match overlay (OBS)', de ? 'Bilder in Team-Overlay und Teampreview. Offene Overlays übernehmen es beim nächsten Abruf.' : 'Pictures in the team overlay and team preview. Open overlays pick it up with the next update.',
           [['home', 'HOME'], ['art', de ? 'Artwork' : 'Artwork'], ['3d', T('set3d')], ['pixel', T('setSprite')]], setting('spriteOverlay'), function (v) {

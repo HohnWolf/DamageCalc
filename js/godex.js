@@ -97,7 +97,7 @@
   }
   function spriteImg(s, f, cls) {
     var base = 'https://play.pokemonshowdown.com/sprites/', id = spriteIdFor(s, f);
-    var mode = (A.setting && A.setting('model')) || '3d';
+    var mode = (A.setting && A.setting('spriteDex')) || '3d';
     function urlsFor(spId) {
       var ani = base + 'ani/' + spId + '.gif';
       var home = base + 'home-centered/' + spId + '.png';
@@ -367,7 +367,7 @@
     tb.appendChild(el('span', { class: 'dex-num-pill', text: '#' + fmtNum(s.num) }));
     tb.appendChild(el('h1', { class: 'dex-mon-title', text: nm(s) + (f.label ? ' · ' + formLabel(f.label, s.num) : '') }));
     top.appendChild(tb);
-    var curMode = (A.setting && A.setting('model')) || '3d';
+    var curMode = (A.setting && A.setting('spriteDex')) || '3d';
     var artCtrl = el('div', { class: 'dex-art-controls' });
     var bossBtn = el('button', { type: 'button', class: 'tbtn gd-boss-btn', title: de ? 'Beste Konter gegen dieses Pokémon als Raid-Boss berechnen' : 'Calculate best counters against this Pokémon as a raid boss', text: de ? '⚔ Top Counter' : '⚔ Top Counters' });
     bossBtn.addEventListener('click', function () {
@@ -378,7 +378,7 @@
     [['3d', '3D'], ['home', 'HOME'], ['sprite', 'Pixel']].forEach(function (o) {
       var ab = el('button', { type: 'button', class: curMode === o[0] ? 'on' : '', 'data-art': o[0], text: o[1] });
       ab.addEventListener('click', function () {
-        if (A.setSetting) A.setSetting('model', o[0]);
+        if (A.setSetting) A.setSetting('spriteDex', o[0]);
         renderDetail();
       });
       artGrp.appendChild(ab);

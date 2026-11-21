@@ -1201,7 +1201,7 @@
     root = document.getElementById('gocounterView');
     if (!root) return;
 
-    var curMode = (A.setting && A.setting('model')) || '3d';
+    var curMode = (A.setting && A.setting('spriteDex')) || '3d';
     root.innerHTML = '';
 
     var wrap = el('div', { class: 'gc-layout' });
@@ -1593,7 +1593,7 @@
     [['3d', '3D'], ['home', 'HOME'], ['sprite', 'Pixel']].forEach(function (o) {
       var ab = el('button', { type: 'button', class: curMode === o[0] ? 'on' : '', 'data-art': o[0], text: o[1] });
       ab.addEventListener('click', function () {
-        if (A.setSetting) A.setSetting('model', o[0]);
+        if (A.setSetting) A.setSetting('spriteDex', o[0]);
         render();
       });
       artGrp.appendChild(ab);
