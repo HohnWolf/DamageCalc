@@ -190,30 +190,50 @@
       return out;
     }
 
-    function buildPrompt() {
-      return [
+    function buildPrompt(ctx) {
+      ctx = ctx || {};
+      var lines = [
         'You are an expert Pokémon VGC / Pokémon Champions Doubles battle logger.',
-        'Analyze the attached chronological screenshots (first image may be Team Preview, followed by numbered 3x3 contact sheets with timestamps and [CMD] turn-separator markers).',
-        'Convert the entire match into a 100% valid Pokémon Showdown replay log so it can be imported directly into a Showdown replay parser (RattataLab Team Analysis / PASRS 7.0).',
-        '',
+        'Analyze ALL attached chronological screenshots (first image may be Team Preview, followed by numbered 3x3 contact sheets with timestamps and [CMD] turn-separator markers).',
+        'Convert the ENTIRE match into a 100% valid Pokémon Showdown replay log so it can be imported directly into RattataLab Team Analysis / PASRS 7.0.',
+        ''
+      ];
+
+      if (ctx.playerName || (ctx.teamMons && ctx.teamMons.length)) {
+        lines.push('KNOWN PLAYER (p1) CONTEXT (ground truth from Teambuilder — ALWAYS use these exact species names, regional forms, items, abilities, and move names for p1):');
+        if (ctx.playerName) lines.push('- Player p1 name: ' + ctx.playerName);
+        if (ctx.teamName) lines.push('- Team: ' + ctx.teamName + (ctx.versionName ? ' (' + ctx.versionName + ')' : ''));
+        (ctx.teamMons || []).forEach(function (m, i) {
+          var parts = [(i + 1) + '. ' + m.species];
+          if (m.item) parts.push('@ ' + m.item);
+          if (m.ability) parts.push('| Ability: ' + m.ability);
+          if (m.moves && m.moves.length) parts.push('| Moves: ' + m.moves.join(', '));
+          lines.push('  ' + parts.join(' '));
+        });
+        lines.push('');
+      }
+
+      lines.push(
         'Rules:',
         '1. Output ONLY the raw Showdown protocol lines starting with |player|p1|... (no markdown code fences, no explanations, no extra text).',
         '2. p1 is ALWAYS the player (bottom-left HP plates / left side of Team Preview). p2 is ALWAYS the opponent (top-right % plates / right side of Team Preview).',
-        '3. Extract player names if visible (e.g. from "X sent out Y", "You lost to X", "X\'s Omni Ring"). Fallback: You / Opponent.',
-        '4. In |poke|p1| and |poke|p2|, list ALL 6 Pokémon of each team in English species names (identify the 6 opponent Pokémon from the icons in Team Preview!). Include p1 items from Team Preview if visible.',
+        '3. Extract player names if visible (e.g. from "X sent out Y", "You lost to X", "X\'s Omni Ring"). Use the known p1 name if provided; fallback: You / Opponent.',
+        '4. In |poke|p1| and |poke|p2|, list ALL 6 Pokémon of each team in exact English Showdown species names (identify all 6 opponent Pokémon from the icons in Team Preview! Use regional forms like Arcanine-Hisui, Goodra-Hisui, Zoroark-Hisui, Floette-Eternal, Basculegion-F). Include p1 items.',
         '5. Put the 4 opening leads as |switch|p1a: ...|, |switch|p1b: ...|, |switch|p2a: ...|, |switch|p2b: ...| BEFORE |turn|1.',
-        '6. Use exact Showdown syntax for every event in chronological order:',
+        '6. Carefully read EVERY tile in chronological order and NEVER omit |move| lines! Whenever HP changes in a turn, look closely at the surrounding tiles for the "X used Y!" battle text and log the |move| line (using the known p1 move list to disambiguate blurry/partial text).',
+        '7. Use exact Showdown syntax for every event:',
         '   - |turn|1, |turn|2, ... (each [CMD] command screen starts a new turn; do not skip Turn 1)',
-        '   - |switch|p1a: Species|Species, L50|100/100 (for every switch-in and post-KO replacement!)',
+        '   - |switch|p1a: Species|Species, L50|100/100 (for every switch-in and post-KO replacement! When a Mega-evolved Floette-Eternal switches back in, keep its species as Floette-Eternal or Floette-Eternal-Mega, NEVER plain Floette)',
         '   - |detailschange|p1a: Raichu|Raichu-Mega-X, L50 and |-mega|p1a: Raichu|Raichu|Raichunite X (for Mega Evolutions)',
         '   - |move|p1a: Arcanine|Head Smash|p2a: Noivern (use exact English move names)',
-        '   - |-damage|p2a: Noivern|1/100 or |-damage|p1a: Arcanine|1/171 or |-damage|...|0 fnt (for ALL targets of spread moves like Earthquake / Blizzard! If Focus Sash triggers, HP is 1/max)',
+        '   - |-damage|p2a: Noivern|1/100 or |-damage|p1a: Arcanine|1/171 or |-damage|...|0 fnt (for ALL targets of spread moves like Earthquake / Blizzard / Heat Wave / Rock Slide! If Focus Sash triggers, HP is 1/max)',
         '   - |faint|p1b: Espathra',
         '   - |-sidestart|p2: Opponent|move: Tailwind (when Tailwind starts) and |-sideend|p2: Opponent|move: Tailwind (when Tailwind peters out! Never log Tailwind ending as sidestart)',
-        '   - |-fieldstart|move: Electric Terrain, |-weather|Snow, |-boost|p1b: Espathra|spe|1, |-enditem|p1b: Espathra|Electric Seed|[from] move: Knock Off',
+        '   - |-fieldstart|move: Grassy Terrain, |-weather|SunnyDay / Snow / RainDance / Sandstorm, |-boost|..., |-enditem|...',
         '   - |win|<WinnerName> at the end.',
-        '7. Double-check slot consistency (p1a, p1b, p2a, p2b), never duplicate a move or switch from consecutive frames, and verify HP values against the HUD plates.'
-      ].join('\n');
+        '8. Double-check slot consistency (p1a, p1b, p2a, p2b), never duplicate a move or switch from consecutive frames, and verify HP values against the HUD plates.'
+      );
+      return lines.join('\n');
     }
 
     return { reset: reset, step: step, stats: stats, buildSheets: buildSheets, buildPrompt: buildPrompt };

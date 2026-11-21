@@ -56,6 +56,7 @@ contextBridge.exposeInMainWorld('desktop', {
   matchlog: {
     recognize: (image) => ipcRenderer.invoke('matchlog-ocr', image || {}),
     antigravity: (payload) => ipcRenderer.invoke('matchlog-antigravity', payload || {}),
+    agyModels: () => ipcRenderer.invoke('matchlog-agy-models'),
     gemini: (payload) => ipcRenderer.invoke('matchlog-gemini', payload || {}),
     exportSheets: (payload) => ipcRenderer.invoke('matchlog-export-sheets', payload || {}),
     loadStore: () => ipcRenderer.invoke('matchlog-store-load'),

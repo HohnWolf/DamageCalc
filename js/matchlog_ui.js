@@ -147,7 +147,7 @@
   var grabCanvas = null, gctx = null, overlay = null, octx = null;
   var logEl = null, sceneEl = null, ocrEl = null, timeEl = null, kfStatsEl = null;
   var btnRec = null, btnSaveVid = null, chkLive = null, chkAiMode = null, chkAutoAgy = null, chkAutoAnalysis = null;
-  var btnAgy = null, btnGem = null, inpGemKey = null, selGemModel = null;
+  var btnAgy = null, selAgyModel = null, btnGem = null, inpGemKey = null, selGemModel = null;
   var selTeam = null, selVersion = null, selArchiveTeam = null, archiveBox = null;
   var root = null, camSel = null, statusEl = null, btnDisc = null;
   var ownStream = null, ownLabel = '';
@@ -606,15 +606,78 @@
     }
     if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + source + ' fertig (' + (ms || 0) + ' ms, ' + aiShowdownLog.split('\n').length + ' Zeilen)';
   }
+  function buildAiContext() {
+    var tm = teamById(selectedTeamId);
+    var srcMons = [];
+    if (tm) {
+      if (selectedVersionId && Array.isArray(tm.versions)) {
+        tm.versions.some(function (v) {
+          if (v && v.id === selectedVersionId && Array.isArray(v.mons)) { srcMons = v.mons; return true; }
+          return false;
+        });
+      }
+      if (!srcMons.length && Array.isArray(tm.mons)) srcMons = tm.mons;
+    }
+    var teamMons = srcMons.map(function (m) {
+      if (!m) return null;
+      var s = m.set || {};
+      var sp = (s.forme && s.forme.indexOf('Mega ') !== 0) ? s.forme : (m.species || '');
+      if (!sp) return null;
+      var moves = (s.moves || []).filter(function (mv) { return mv && mv !== '(No Move)'; });
+      return { species: sp, item: s.item || '', ability: s.ability || '', moves: moves };
+    }).filter(Boolean);
+    var mStore = A.load('cc_match', null);
+    var pName = '';
+    if (mStore && mStore.names) {
+      pName = String(mStore.names).split(',')[0].trim();
+    }
+    return {
+      playerName: pName,
+      teamName: tm ? (tm.name || '') : '',
+      versionName: versionNameOf(selectedTeamId, selectedVersionId),
+      teamMons: teamMons
+    };
+  }
+  function fillAgyModels() {
+    if (!selAgyModel) return;
+    var saved = A.load('cc_matchlog_agy_model', '') || '';
+    var fallback = [
+      { id: '', label: de ? 'Antigravity Standard' : 'Antigravity Default' },
+      { id: 'gemini-3.8-flash-medium', label: 'Gemini 3.8 Flash (Medium)' },
+      { id: 'gemini-3.8-flash-high', label: 'Gemini 3.8 Flash (High)' },
+      { id: 'gemini-4-neon-medium', label: 'Gemini 4 Neon (Medium)' },
+      { id: 'gemini-4-neon-high', label: 'Gemini 4 Neon (High)' },
+      { id: 'claude-sonnet-5-5-medium', label: 'Claude Sonnet 5.5 (Medium)' }
+    ];
+    function paintOpts(list) {
+      selAgyModel.innerHTML = '';
+      selAgyModel.appendChild(el('option', { value: '', text: de ? 'Modell: Standard' : 'Model: Default' }));
+      list.forEach(function (m) {
+        if (!m || !m.id) return;
+        selAgyModel.appendChild(el('option', { value: m.id, text: m.label || m.id }));
+      });
+      if (saved && Array.from(selAgyModel.options).some(function (o) { return o.value === saved; })) {
+        selAgyModel.value = saved;
+      }
+    }
+    paintOpts(fallback.slice(1));
+    var D = window.desktop && window.desktop.matchlog;
+    if (D && D.agyModels) {
+      D.agyModels().then(function (r) {
+        if (r && r.ok && Array.isArray(r.models) && r.models.length) paintOpts(r.models);
+      }, function () {});
+    }
+  }
   function runAntigravity() {
     var D = window.desktop && window.desktop.matchlog;
     if (!D || !D.antigravity) { if (ocrEl) ocrEl.textContent = t('desk'); return; }
     if (!kf) return;
     var sheets = kf.buildSheets();
     if (!sheets.length) { if (ocrEl) ocrEl.textContent = t('ocr') + ': Keine Keyframes gesammelt.'; return; }
+    var model = (selAgyModel && selAgyModel.value) || '';
     if (btnAgy) { btnAgy.disabled = true; btnAgy.textContent = t('agyBusy'); }
-    if (ocrEl) ocrEl.textContent = t('ocr') + ': Antigravity wertet ' + sheets.length + ' Kontaktbogen-Bild(er) aus…';
-    D.antigravity({ prompt: kf.buildPrompt(), sheets: sheets }).then(function (r) {
+    if (ocrEl) ocrEl.textContent = t('ocr') + ': Antigravity' + (model ? ' (' + model + ')' : '') + ' wertet ' + sheets.length + ' Kontaktbogen-Bild(er) aus…';
+    D.antigravity({ prompt: kf.buildPrompt(buildAiContext()), sheets: sheets, model: model }).then(function (r) {
       if (btnAgy) { btnAgy.disabled = false; btnAgy.textContent = t('agyBtn'); }
       if (!r || !r.ok) {
         if (ocrEl) ocrEl.textContent = t('ocr') + ': Antigravity-Fehler: ' + (r && r.error || 'Unbekannt');
@@ -638,7 +701,7 @@
     var model = (selGemModel && selGemModel.value) || 'gemini-3.8-flash';
     if (btnGem) { btnGem.disabled = true; btnGem.textContent = t('gemBusy'); }
     if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini (' + model + ') wertet ' + sheets.length + ' Bild(er) aus…';
-    D.gemini({ apiKey: apiKey, model: model, prompt: kf.buildPrompt(), sheets: sheets }).then(function (r) {
+    D.gemini({ apiKey: apiKey, model: model, prompt: kf.buildPrompt(buildAiContext()), sheets: sheets }).then(function (r) {
       if (btnGem) { btnGem.disabled = false; btnGem.textContent = t('gemBtn'); }
       if (!r || !r.ok) {
         if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini-Fehler: ' + (r && r.error || 'Unbekannt');
@@ -850,6 +913,12 @@
     btnAgy.addEventListener('click', runAntigravity);
     aiRow.appendChild(btnAgy);
 
+    selAgyModel = el('select', { class: 'det-cam', id: 'mlAgyModelSel', title: de ? 'Antigravity-Modell wählen' : 'Choose Antigravity model' });
+    selAgyModel.addEventListener('change', function () {
+      A.save('cc_matchlog_agy_model', selAgyModel.value || '');
+    });
+    aiRow.appendChild(selAgyModel);
+
     chkAutoAgy = el('input', { type: 'checkbox', id: 'mlAutoAgy' });
     chkAutoAgy.checked = true;
     var labAuto = el('label', { class: 'ml-check' });
@@ -885,7 +954,7 @@
       if (!D || !D.exportSheets || !kf) return;
       var sheets = kf.buildSheets();
       if (!sheets.length) return;
-      var prompt = kf.buildPrompt();
+      var prompt = kf.buildPrompt(buildAiContext());
       if (navigator.clipboard) navigator.clipboard.writeText(prompt);
       D.exportSheets({ sheets: sheets, prompt: prompt });
     });
@@ -957,6 +1026,7 @@
 
     host.appendChild(box);
     fillTeams();
+    fillAgyModels();
     loadArchive();
   }
 
