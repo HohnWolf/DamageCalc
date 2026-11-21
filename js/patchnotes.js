@@ -9,6 +9,13 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.3.1',
+      de: [
+        'Einstellungen (Sprite-Stil): Alle fünf Sprite-Auswahlleisten (Teambuilder, Damage Calculator, Pokédex, Match-Overlay und Shiny-Zähler) haben jetzt dieselbe Reihenfolge (3D → HOME → Pixel, beim Match-Overlay zusätzlich Artwork).'
+      ],
+      en: [
+        'Settings (Sprite style): all five sprite style selectors (Teambuilder, Damage Calculator, Pokédex, Match overlay, and Shiny counter) now use the same order (3D → HOME → Pixel, plus Artwork for Match overlay).'
+      ] },
     { v: '2.3.0',
       de: [
         'Matchlog (KI-Kontext & Modellauswahl): Das gewählte Teambuilder-Team inkl. Version (alle 6 Pokémon, Items, Fähigkeiten und Attacken) sowie der eigene Spielername werden jetzt als Kontext an Antigravity, Gemini API und den Google-AI-Pro-Export übergeben. Direkt neben „Mit Antigravity auswerten“ gibt es zudem ein neues Modell-Dropdown.',

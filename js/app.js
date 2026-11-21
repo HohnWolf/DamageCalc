@@ -2687,7 +2687,7 @@
           if (window.CCGoInfo && document.body.dataset.view === 'goinfo') window.CCGoInfo.render();
         });
         row(gSpr, 'Damage Calculator', de ? 'Kleine Bilder in den Reitern A/B, der Team-Leiste, der Zugreihenfolge und bei den Attacken.' : 'Small pictures in the A/B tabs, the team bar, the turn order and next to the moves.',
-          [['pixel', T('setSprite')], ['home', T('setHome')], ['3d', T('set3d')]], setting('spriteCalc'), function (v) {
+          [['3d', T('set3d')], ['home', T('setHome')], ['pixel', T('setSprite')]], setting('spriteCalc'), function (v) {
             setSetting('spriteCalc', v);
             if (window.CCApp && window.CCApp.redrawSprites) window.CCApp.redrawSprites();
           });
@@ -2698,7 +2698,7 @@
           if (window.CCGoCounter && document.body.dataset.view === 'gocounter') window.CCGoCounter.render();
         });
         row(gSpr, de ? 'Match-Overlay (OBS)' : 'Match overlay (OBS)', de ? 'Bilder in Team-Overlay und Teampreview. Offene Overlays übernehmen es beim nächsten Abruf.' : 'Pictures in the team overlay and team preview. Open overlays pick it up with the next update.',
-          [['home', 'HOME'], ['art', de ? 'Artwork' : 'Artwork'], ['3d', T('set3d')], ['pixel', T('setSprite')]], setting('spriteOverlay'), function (v) {
+          [['3d', T('set3d')], ['home', 'HOME'], ['pixel', T('setSprite')], ['art', 'Artwork']], setting('spriteOverlay'), function (v) {
             setSetting('spriteOverlay', v);
             if (window.CCOverlay && window.CCOverlay.push) window.CCOverlay.push();
           });
