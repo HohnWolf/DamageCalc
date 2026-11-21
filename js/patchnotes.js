@@ -9,6 +9,25 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.5.0',
+      de: [
+        'Randomizer (Neues Design & UPR-Patches): Überarbeitete Oberfläche mit stabilem Karten-Grid, Live-Aktiv-Badges je Tab, Preset-Karten, Gen-Pill-Toggles, Seed-Kopierbutton und voller Dark-/Light-/OLED-Unterstützung. Neu: Doppelkampf-Modus (Gen 3–7, inkl. 1-Pokémon-Verdopplung in Gen 4/5), Gen-7-Herrscher-Pokémon (Totems inkl. Aura & Level), Trainer-Namen mischen (Gen 3) sowie QoL-Patches (Schnellster Text Gen 1–3, Turbotreter innen Gen 3, PC-Trank Gen 1/3, Typ-Effektivität Gen 6+ für Gen 2/3).',
+        'Save File Editor (Gen 8–9 Switch & PKHeX-Erweiterungen): Neu mit Nintendo-Switch-Unterstützung für Schwert/Schild (PK8), Strahlender Diamant/Leuchtende Perle (BDSP mit MD5), Legenden: Arceus (PA8) und Karmesin/Purpur (PK9 inkl. Gen-9-Species-Mapping, Box-Namen & vollständigen Gen-8/9-Datenbanken). Außerdem: Ruhmeshalle jetzt für alle Generationen 1–7, neuer Tab „Geheimgeschehen“ (Wonder Cards Gen 5–7: .pgf/.wc6/.wc7 Import/Export, Eingelöst-Flag) und tiefere Legalitätsprüfung (Jubelball, Gen-6/7-Erinnerungen, Transfer-Ketten).'
+      ],
+      en: [
+        'Randomizer (New Design & UPR Patches): redesigned UI with responsive card grid, live active badges per tab, preset cards, generation pill toggles, clickable seed copy tag, and full Dark/Light/OLED theme support. Added Double Battle Mode (Gen 3–7, incl. 1-Pokémon doubling in Gen 4/5), Gen 7 Totem Pokémon (with level & aura), trainer name shuffling (Gen 3), and QoL patches (Fastest Text Gen 1–3, Running Shoes indoors Gen 3, PC Potion Gen 1/3, Gen 6+ type effectiveness for Gen 2/3).',
+        'Save File Editor (Gen 8–9 Switch & PKHeX Parity): added Nintendo Switch support for Sword/Shield (PK8), Brilliant Diamond/Shining Pearl (BDSP with MD5), Legends: Arceus (PA8), and Scarlet/Violet (PK9 incl. Gen 9 species mapping, box names & full Gen 8/9 databases). Also added Hall of Fame for Gen 2/5/7 (now Gen 1–7 complete), new Mystery Gifts tab (Gen 5–7 Wonder Cards: .pgf/.wc6/.wc7 import/export, redeemed toggle), and deeper legality checks (Cherish Ball, Gen 6/7 memories, transfer chains).'
+      ],
+      full: {
+        de: [
+          'Randomizer: Komplett überarbeitetes Design (Karten-Grid, Live-Aktiv-Badges, Preset-Karten, Gen-Pills, Seed-Kopie) sowie neue UPR-ZX-Features: Doppelkampf-Modus (Gen 3–7), Gen-7-Herrscher-Pokémon (Totems), Trainer-Namen mischen und QoL-/Typ-Patches (Schnellster Text, Turbotreter innen, PC-Trank, Stahl-Typ-Update).',
+          'Save File Editor: Switch-Unterstützung für SwSh, BDSP, PLA und SV (SwishCrypto/MD5, PK8/PA8/PK9 inkl. Gen-9-Species-Mapping & Gen-8/9-Datenbanken), Ruhmeshalle für Gen 1–7 komplett, Geheimgeschehen/Wonder Cards (Gen 5–7) und erweiterte Legalitätsprüfung (Event-Ball, Erinnerungen, Transfer-Ketten).'
+        ],
+        en: [
+          'Randomizer: redesigned UI (card grid, live active badges, preset cards, generation pills, seed copy) plus new UPR ZX features: Double Battle Mode (Gen 3–7), Gen 7 Totem Pokémon, trainer name shuffling, and QoL/type patches (Fastest Text, Running Shoes indoors, PC Potion, Gen 6+ Steel effectiveness).',
+          'Save File Editor: Switch support for SwSh, BDSP, PLA, and SV (SwishCrypto/MD5, PK8/PA8/PK9 incl. Gen 9 species mapping & Gen 8/9 databases), complete Gen 1–7 Hall of Fame, Mystery Gifts/Wonder Cards (Gen 5–7), and extended legality checks (Cherish Ball, memories, transfer chains).'
+        ]
+      } },
     { v: '2.4.0',
       de: [
         'Matchlog: Eigenes Logo/Icon in der Seitenleiste (Pro), der oberen Navigationsleiste (Studio), der Start-Übersicht und den Werkzeugeinstellungen ergänzt.'
