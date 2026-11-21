@@ -9,6 +9,25 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.4.0',
+      de: [
+        'Matchlog: Eigenes Logo/Icon in der Seitenleiste (Pro), der oberen Navigationsleiste (Studio), der Start-Übersicht und den Werkzeugeinstellungen ergänzt.'
+      ],
+      en: [
+        'Matchlog: added its own icon across the sidebar (Pro), top navigation bar (Studio), start overview, and tool settings.'
+      ],
+      full: {
+        de: [
+          'Matchlog: Eigenes Logo/Icon in Seitenleiste, Top-Leiste, Start-Übersicht und Einstellungen. Antigravity CLI wird jetzt auch unter macOS/Linux in gängigen Pfaden gefunden; Timeouts für Antigravity/Gemini API, sichere Kontaktbogen-Dateinamen und englische Statusmeldungen ergänzt.',
+          'Teambuilder (Android): PokéPaste-Links aus QR-Codes oder Zwischenablage werden jetzt über CapacitorHttp geladen (kein CORS-Fehler mehr).',
+          'Einstellungen & Tastenkürzel: Einheitliche Reihenfolge (3D → HOME → Pixel) bei allen fünf Sprite-Stil-Leisten, korrekte Normalisierung für „+“/Strg++ und Anzeige des aktuell belegten Rückgängig-Kürzels im Hinweis.'
+        ],
+        en: [
+          'Matchlog: added its own icon in sidebar, top bar, start overview, and settings. Antigravity CLI is now discovered in common macOS/Linux paths, with timeouts for Antigravity/Gemini API, sanitized contact-sheet filenames, and translated status messages.',
+          'Teambuilder (Android): PokéPaste links from QR codes or clipboard now load via CapacitorHttp (avoiding CORS errors).',
+          'Settings & Shortcuts: unified order (3D → HOME → Pixel) across all five sprite style bars, proper normalization for “+”/Ctrl++, and active undo shortcut shown in the undo toast.'
+        ]
+      } },
     { v: '2.3.2',
       de: [
         'Matchlog (KI & Stabilität): Antigravity CLI wird jetzt auch unter macOS/Linux in gängigen Pfaden (/opt/homebrew/bin, /usr/local/bin, ~/.local/bin) gefunden. Ergänzt wurden Timeouts für Antigravity und Gemini API, sichere Dateinamen beim Kontaktbogen-Export sowie englische Statusmeldungen.',
