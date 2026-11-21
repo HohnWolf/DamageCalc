@@ -26,7 +26,8 @@
   var X = de ? {
     tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Haupt', tStats: 'Werte', tMoves: 'Attacken', tOt: 'Herkunft', set: 'Setzen', del: 'Löschen', exp2: 'Exportieren (.pk)', sdBtn: 'Showdown-Text', sdCopy: 'Kopieren', sdApply: 'Übernehmen', sdClose: 'Schließen', sdBad: 'Pokémon im Text nicht erkannt', imp: 'Importieren (.pk)',
     boxPrev: 'Vorherige Box', boxNext: 'Nächste Box', sortSp: 'Nach Dex-Nr. sortieren', sortLv: 'Nach Level sortieren', clearBox: 'Box leeren', clearConfirm: 'Alle Pokémon dieser Box entfernen?',
-    legalize: 'Legal machen', maxDv: 'Alle DVs 15', zeroSe: 'Alle Stat-EP 0', maxSe: 'Stat-EP max', maxIv: 'Alle IP 31', zeroEv: 'Alle EP 0', maxEv: 'EP 252/252/6', hint: 'Ziehen zum Verschieben oder Tauschen, Strg beim Ablegen kopiert. Entf löscht das markierte Pokémon.',
+    legalize: 'Legal machen', maxDv: 'Alle DVs 15', zeroSe: 'Alle Stat-EP 0', maxSe: 'Stat-EP max', maxIv: 'Alle IP 31', zeroEv: 'Alle EP 0', maxEv: 'EP 252/252/6', hint: window.RL_ANDROID ? 'Antippen zum Bearbeiten, „Verschieben / Tauschen“ zum Umsetzen zwischen Boxen und Team.' : 'Ziehen zum Verschieben oder Tauschen, Strg beim Ablegen kopiert. Entf löscht das markierte Pokémon.',
+    moveBtn: 'Verschieben / Tauschen', moveCancel: 'Abbrechen', movePick: 'Verschieben: Tippe zuerst ein Pokémon an.', moveDst: 'Verschieben: Tippe Ziel-Slot an (Box oder Team) zum Verschieben oder Tauschen.', moveDone: 'Verschoben / getauscht (noch nicht gespeichert).',
     fShiny: 'Nur Shiny', fEgg: 'Nur Eier',
     boxName: 'Box-Name', batchRun: 'Anwenden', batchAsk: 'Diese Änderung auf alle gewählten Pokémon anwenden?', batchDone: '{0} Pokémon bearbeitet (noch nicht gespeichert).',
     scope_box: 'Aktuelle Box', scope_boxes: 'Alle Boxen', scope_party: 'Team',
@@ -50,7 +51,8 @@
   } : {
     tabMon: 'Pokémon', tabTrainer: 'Trainer', tMain: 'Main', tStats: 'Stats', tMoves: 'Moves', tOt: 'OT / Misc', set: 'Set', del: 'Delete', exp2: 'Export (.pk)', sdBtn: 'Showdown text', sdCopy: 'Copy', sdApply: 'Apply', sdClose: 'Close', sdBad: 'Pokémon in the text not recognized', imp: 'Import (.pk)',
     boxPrev: 'Previous box', boxNext: 'Next box', sortSp: 'Sort by Dex no.', sortLv: 'Sort by level', clearBox: 'Clear box', clearConfirm: 'Remove all Pokémon in this box?',
-    legalize: 'Make legal', maxDv: 'All DVs 15', zeroSe: 'All stat exp 0', maxSe: 'Max stat exp', maxIv: 'All IVs 31', zeroEv: 'All EVs 0', maxEv: 'EVs 252/252/6', hint: 'Drag to move or swap, hold Ctrl when dropping to copy. Delete removes the selected Pokémon.',
+    legalize: 'Make legal', maxDv: 'All DVs 15', zeroSe: 'All stat exp 0', maxSe: 'Max stat exp', maxIv: 'All IVs 31', zeroEv: 'All EVs 0', maxEv: 'EVs 252/252/6', hint: window.RL_ANDROID ? 'Tap to edit, use “Move / Swap” to move Pokémon between boxes and party.' : 'Drag to move or swap, hold Ctrl when dropping to copy. Delete removes the selected Pokémon.',
+    moveBtn: 'Move / Swap', moveCancel: 'Cancel', movePick: 'Move: Tap a Pokémon first.', moveDst: 'Move: Tap a target slot (Box or Party) to move or swap.', moveDone: 'Moved / swapped (not saved yet).',
     fShiny: 'Shiny only', fEgg: 'Eggs only',
     boxName: 'Box name', batchRun: 'Apply', batchAsk: 'Apply this change to all selected Pokémon?', batchDone: '{0} Pokémon edited (not saved yet).',
     scope_box: 'Current box', scope_boxes: 'All boxes', scope_party: 'Party',
@@ -72,7 +74,7 @@
     dirty: 'Unsaved changes', impBad: 'File does not fit this save.', nothing: 'No Pokémon selected.', ball: 'Ball', metLv: 'Met level',
     memeWarn: 'Warning: the Gen 7 signature (MemeCrypto) could not be renewed – the game may reject this save.'
   };
-  var st = { sv: null, name: '', orig: null, base: 0, err: '', msg: '', box: 0, sel: null, mon: null, dirty: false, tab: 'main', pane: 'mon', pi: 0, ev: 'flags' };
+  var st = { sv: null, name: '', orig: null, base: 0, err: '', msg: '', box: 0, sel: null, mon: null, dirty: false, tab: 'main', pane: 'mon', pi: 0, ev: 'flags', moveFrom: null };
   var root;
 
   function download(name, bytes) { A.saveFile(name, bytes); }
@@ -202,7 +204,7 @@
   function defaultMoves() { return [1]; }
 
   function load(file) {
-    st.err = ''; st.msg = ''; st.sel = null; st.mon = null;
+    st.err = ''; st.msg = ''; st.sel = null; st.mon = null; st.moveFrom = null;
     var fr = new FileReader();
     fr.onload = function () {
       var u8 = new Uint8Array(fr.result), sv = null;
@@ -334,6 +336,7 @@
     box.appendChild(gqb);
     var bar = el('div', { class: 'sv-bar' });
     var ap = el('button', { class: 'primary-btn', text: L.apply }); ap.onclick = apply; bar.appendChild(ap);
+    var gmv = el('button', { type: 'button', class: 'sv-mini sv-move-btn' + (st.moveFrom && st.moveFrom !== 'pick' && sameLoc(st.moveFrom, st.sel) ? ' on' : ''), text: X.moveBtn }); gmv.onclick = function () { toggleMove(st.sel); }; bar.appendChild(gmv);
     var gex = el('button', { type: 'button', class: 'sv-mini', text: X.exp2 }); gex.onclick = exportMon; bar.appendChild(gex);
     var gim = el('button', { type: 'button', class: 'sv-mini', text: X.imp }); gim.onclick = function () { importMon(); }; bar.appendChild(gim);
     var rm = el('button', { class: 'sv-del', text: L.remove }); rm.onclick = remove; bar.appendChild(rm);
@@ -591,6 +594,7 @@
     box.appendChild(hd); box.appendChild(cb); box.appendChild(tabs); box.appendChild(PN[st.tab] || PN.main);
     var bar = el('div', { class: 'sv-bar' });
     var ap = el('button', { class: 'primary-btn', text: X.set }); ap.onclick = apply; bar.appendChild(ap);
+    var mv = el('button', { type: 'button', class: 'sv-mini sv-move-btn' + (st.moveFrom && st.moveFrom !== 'pick' && sameLoc(st.moveFrom, st.sel) ? ' on' : ''), text: X.moveBtn }); mv.onclick = function () { toggleMove(st.sel); }; bar.appendChild(mv);
     var rm = el('button', { class: 'sv-del', text: X.del }); rm.onclick = remove; bar.appendChild(rm);
     var ex = el('button', { type: 'button', class: 'sv-mini', text: X.exp2 }); ex.onclick = exportMon; bar.appendChild(ex);
     var im = el('button', { type: 'button', class: 'sv-mini', text: X.imp }); im.onclick = function () { importMon(); }; bar.appendChild(im);
@@ -619,7 +623,7 @@
     if (!window.confirm(L.delconfirm)) return;
     if (s.kind === 'party') { var list = sv.getParty(); list.splice(s.slot, 1); sv.setParty(list); }
     else sv.setBoxMon(s.box, s.slot, null);
-    st.mon = null; st.sel = null; st.dirty = true; render();
+    st.mon = null; st.sel = null; st.moveFrom = null; st.dirty = true; render();
   }
 
   // ---------- Slots: lesen, schreiben, ziehen ----------
@@ -647,7 +651,40 @@
     } else sv.setBoxMon(loc.box, loc.slot, d ? toBox(d) : null);
   }
   function sameLoc(a, b) { return a && b && a.kind === b.kind && a.slot === b.slot && (a.kind === 'party' || a.box === b.box); }
+  function moveOrSwap(src, loc, copy) {
+    if (!src || !loc || sameLoc(src, loc)) return false;
+    var a = getAt(src), b = getAt(loc);
+    if (!a) return false;
+    if (copy) putAt(loc, a);
+    else if (src.kind === 'party' && !b && st.sv.getParty().length <= 1) return false;
+    else { putAt(loc, a); putAt(src, b); }
+    st.dirty = true; st.sel = loc; var m = getAt(loc); st.mon = m ? new Uint8Array(m) : null;
+    return true;
+  }
+  function toggleMove(fromLoc) {
+    if (st.moveFrom) { st.moveFrom = null; render(); return; }
+    var src = fromLoc && getAt(fromLoc) ? fromLoc : (st.sel && getAt(st.sel) ? st.sel : null);
+    st.moveFrom = src ? { kind: src.kind, box: src.box, slot: src.slot } : 'pick';
+    render();
+  }
+  function handleSlotClick(loc) {
+    if (!st.moveFrom) { select(loc.kind, loc.box, loc.slot); return; }
+    if (st.moveFrom === 'pick') {
+      var d = getAt(loc);
+      if (d) { st.moveFrom = { kind: loc.kind, box: loc.box, slot: loc.slot }; st.sel = loc; st.mon = new Uint8Array(d); st.msg = ''; render(); }
+      else select(loc.kind, loc.box, loc.slot);
+      return;
+    }
+    if (sameLoc(st.moveFrom, loc)) { st.moveFrom = null; render(); return; }
+    if (moveOrSwap(st.moveFrom, loc, false)) st.msg = X.moveDone;
+    st.moveFrom = null;
+    render();
+  }
   function dnd(btn, loc) {
+    if (st.moveFrom) {
+      if (st.moveFrom !== 'pick' && sameLoc(st.moveFrom, loc)) btn.classList.add('sv-move-src');
+      else if (st.moveFrom !== 'pick' || getAt(loc)) btn.classList.add('sv-move-target');
+    }
     btn.draggable = true;
     Array.prototype.forEach.call(btn.querySelectorAll('img'), function (im) { im.draggable = false; });
     btn.ondragstart = function (e) { if (!getAt(loc)) { e.preventDefault(); return; } st.drag = loc; btn.classList.add('dragging'); try { e.dataTransfer.setData('text/plain', 'slot'); e.dataTransfer.effectAllowed = 'copyMove'; } catch (x) { /* ignore */ } };
@@ -659,13 +696,7 @@
       if (!st.drag) return;
       e.preventDefault(); e.stopPropagation();
       var src = st.drag; st.drag = null;
-      if (sameLoc(src, loc)) return;
-      var a = getAt(src), b = getAt(loc);
-      if (!a) return;
-      if (e.ctrlKey) putAt(loc, a);
-      else if (src.kind === 'party' && !b && st.sv.getParty().length <= 1) return;
-      else { putAt(loc, a); putAt(src, b); }
-      st.dirty = true; st.sel = loc; var m = getAt(loc); st.mon = m ? new Uint8Array(m) : null; render();
+      if (moveOrSwap(src, loc, e.ctrlKey)) { st.moveFrom = null; render(); }
     };
   }
 
@@ -860,7 +891,7 @@
   }
   function importMon(file) {
     if (!file) {
-      var inp = el('input', { type: 'file', accept: '.pk1,.pk2,.pk3,.pk4,.pk5,.pk6,.pk7,.pkm', style: 'display:none' });
+      var inp = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : '.pk1,.pk2,.pk3,.pk4,.pk5,.pk6,.pk7,.pkm', style: 'display:none' });
       inp.onchange = function () { if (inp.files[0]) importMon(inp.files[0]); };
       document.body.appendChild(inp); inp.click(); setTimeout(function () { inp.remove(); }, 60000); return;
     }
@@ -880,12 +911,12 @@
     function key(d) { var sp = F.get(d, 'species'), nat = sv.natOf(sp); return by === 'lv' ? S.levelFor(pers(sp)[6], F.get(d, 'exp')) : nat; }
     list.sort(function (x, y) { return key(x) - key(y) || sv.natOf(F.get(x, 'species')) - sv.natOf(F.get(y, 'species')); });
     for (var j = 0; j < sv.slotsPerBox; j++) sv.setBoxMon(st.box, j, list[j] || null);
-    st.dirty = true; st.sel = null; st.mon = null; render();
+    st.dirty = true; st.sel = null; st.mon = null; st.moveFrom = null; render();
   }
   function clearBox() {
     if (!window.confirm(X.clearConfirm)) return;
     for (var i = st.sv.slotsPerBox - 1; i >= 0; i--) st.sv.setBoxMon(st.box, i, null);
-    st.dirty = true; st.sel = null; st.mon = null; render();
+    st.dirty = true; st.sel = null; st.mon = null; st.moveFrom = null; render();
   }
   function onKey(e) {
     if (!st.sv || !st.sel || !root || !root.offsetParent) return;
@@ -1119,7 +1150,7 @@
     box.appendChild(el('h3', { text: X.tabWc + ' (' + wc.ext + ')' }));
     var list = wc.list(), usedCount = list.filter(Boolean).length;
     var bar = el('div', { class: 'sv-bar sv-tools' });
-    var impIn = el('input', { type: 'file', accept: wc.ext, style: 'display:none' });
+    var impIn = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : wc.ext, style: 'display:none' });
     impIn.onchange = function () {
       var f = impIn.files[0]; if (!f) return;
       var fr = new FileReader();
@@ -1202,7 +1233,7 @@
     box.appendChild(h2);
     var body = el('div', { class: 'rd-body' });
     body.appendChild(el('p', { class: 'hint', text: L.sub }));
-    var inp = el('input', { type: 'file', style: 'display:none' });
+    var inp = el('input', window.RL_ANDROID ? { type: 'file', accept: '*/*', style: 'display:none' } : { type: 'file', style: 'display:none' });
     inp.onchange = function () { if (inp.files[0]) load(inp.files[0]); };
     var pick = el('button', { class: 'primary-btn rd-pick', text: L.pick }); pick.onclick = function () { inp.click(); };
     var dz = el('div', { class: 'rd-drop' }); dz.appendChild(pick); dz.appendChild(el('span', { class: 'hint', text: L.drop })); dz.appendChild(inp);
@@ -1277,13 +1308,25 @@
         });
       }
       renderFind();
+      if (st.moveFrom) {
+        var mb = el('div', { class: 'sv-move-banner' });
+        mb.appendChild(el('span', { text: st.moveFrom === 'pick' ? X.movePick : X.moveDst }));
+        var mc = el('button', { type: 'button', class: 'sv-mini', text: X.moveCancel });
+        mc.onclick = function () { st.moveFrom = null; render(); };
+        mb.appendChild(mc);
+        bt.appendChild(mb);
+      }
       var bg = el('div', { class: 'sv-grid sv-boxgrid' });
       for (var s = 0; s < sv.slotsPerBox; s++) (function (s) {
-        var sb2 = slotBtn(sv.getBoxMon(st.box, s), st.sel && st.sel.kind === 'box' && st.sel.box === st.box && st.sel.slot === s, function () { select('box', st.box, s); });
-        dnd(sb2, { kind: 'box', box: st.box, slot: s }); bg.appendChild(sb2);
+        var loc = { kind: 'box', box: st.box, slot: s };
+        var sb2 = slotBtn(sv.getBoxMon(st.box, s), st.sel && st.sel.kind === 'box' && st.sel.box === st.box && st.sel.slot === s, function () { handleSlotClick(loc); });
+        dnd(sb2, loc); bg.appendChild(sb2);
       })(s);
       bt.appendChild(bg);
       var tools = el('div', { class: 'sv-row sv-tools' });
+      var mvTool = el('button', { type: 'button', class: 'sv-mini sv-move-btn' + (st.moveFrom ? ' on' : ''), text: st.moveFrom ? X.moveCancel : X.moveBtn });
+      mvTool.onclick = function () { toggleMove(); };
+      tools.appendChild(mvTool);
       [[X.sortSp, function () { sortBox('sp'); }], [X.sortLv, function () { sortBox('lv'); }], [X.maxBox, maxBoxIvs], [X.clearBox, clearBox]].forEach(function (c) { var tb = el('button', { type: 'button', class: 'sv-mini', text: c[0] }); tb.onclick = c[1]; tools.appendChild(tb); });
       bt.appendChild(tools);
       {
@@ -1297,8 +1340,9 @@
       var pt = el('div', { class: 'sv-sec' }); pt.appendChild(el('h3', { text: L.party }));
       var pg = el('div', { class: 'sv-grid sv-party' });
       partyList().forEach(function (d, i) {
-        var pb = slotBtn(d, st.sel && st.sel.kind === 'party' && st.sel.slot === i, function () { select('party', 0, i); });
-        dnd(pb, { kind: 'party', box: 0, slot: i }); pg.appendChild(pb);
+        var loc = { kind: 'party', box: 0, slot: i };
+        var pb = slotBtn(d, st.sel && st.sel.kind === 'party' && st.sel.slot === i, function () { handleSlotClick(loc); });
+        dnd(pb, loc); pg.appendChild(pb);
       });
       pt.appendChild(pg);
       var ptools = el('div', { class: 'sv-row sv-tools' }); var hb2 = el('button', { type: 'button', class: 'sv-mini', text: X.heal }); hb2.onclick = healParty; ptools.appendChild(hb2); pt.appendChild(ptools);

@@ -2814,9 +2814,11 @@
           });
           var bLoad = el('button', { type: 'button', class: 'set-btn', text: T('setBackupLoad') });
           bLoad.addEventListener('click', function () {
-            var inp = el('input', { type: 'file', accept: '.json,application/json' });
+            var inp = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : '.json,application/json' });
+            inp.style.display = 'none';
             inp.addEventListener('change', function () {
               var f = inp.files && inp.files[0];
+              inp.remove();
               if (!f) return;
               var rd = new FileReader();
               rd.onload = function () {
@@ -2832,6 +2834,7 @@
               };
               rd.readAsText(f);
             });
+            document.body.appendChild(inp);
             inp.click();
           });
           g.appendChild(bSave); g.appendChild(bLoad);
@@ -2913,9 +2916,9 @@
   var MODES = [['calc', 'navCalc'], ['builder', 'navBuilder'], ['match', 'navMatch'], ['speedtier', 'navSpeedTier'], ['matchlog', 'navMatchlog', 'ALPHA'], ['soullink', 'navSL'], ['nuz', 'navNuz', 'BETA'], ['dex', 'navDex'], ['godex', 'navGoDex'], ['gocounter', 'navGoCounter'], ['goinfo', 'navGoInfo'], ['shiny', 'navShiny'], ['overlay', 'navOverlay'], ['catch', 'navCatch'], ['projector', 'navProjector'], ['randomizer', 'navRandomizer'], ['savedit', 'navSave', 'BETA'], ['mgspeed', 'navMgSpeed'], ['mgquiz', 'navMgQuiz'], ['mgdmg', 'navMgDmg'], ['mgtype', 'navMgType'], ['btlrandom', 'navBtlRandom'], ['btlchoice', 'navBtlChoice']];
   // categories: the start screen groups the tools, and the top bar (setting "all modes") shows only the tools of the current one
   var CATS = [['fight', ['calc', 'builder', 'match', 'speedtier', 'matchlog']], ['runs', ['soullink', 'nuz', 'randomizer', 'savedit']], ['go', ['godex', 'gocounter', 'goinfo']], ['play', ['mgspeed', 'mgquiz', 'mgdmg', 'mgtype']], ['rest', ['dex', 'shiny', 'overlay', 'catch', 'projector']], ['vs', ['btlrandom', 'btlchoice']]];
-  // Android-App (Capacitor, mobile/): ohne Shiny-Zähler, Match-Overlay und Fangrechner (brauchen den Desktop); in 'Sonstiges' bleibt dort nur der Pokédex
+  // Android-App (Capacitor, mobile/): ohne Match-Overlay, Game Projector und Matchlog (brauchen Desktop/OBS/Capture-Karte)
   if (window.RL_ANDROID) {
-    var REST = ['shiny', 'overlay', 'projector', 'matchlog']; // Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
+    var REST = ['overlay', 'projector', 'matchlog']; // Shiny-Zähler, Randomizer & Save Editor laufen auch auf Android (Dateien über Auswahl + Teilen-Dialog)
     VIEWS = VIEWS.filter(function (v) { return REST.indexOf(v) === -1; });
     MODES = MODES.filter(function (m) { return REST.indexOf(m[0]) === -1; });
     CATS = CATS.map(function (c) { return [c[0], c[1].filter(function (v) { return REST.indexOf(v) === -1; })]; }).filter(function (c) { return c[1].length; });
@@ -3076,7 +3079,7 @@
     return m ? T(m[1]) : '';
   }
   var sbOpen = {}, sbLastCat = null;
-  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', play: 'play', rest: window.RL_ANDROID ? 'dex' : 'shiny', vs: 'calc' };
+  var CAT_ICON = { fight: 'calc', runs: 'soullink', dex: 'dex', go: 'godex', play: 'play', rest: 'shiny', vs: 'calc' };
   function openCat(c) {
     if (c[1].length === 1) showView(c[1][0]);
     else { startCat = c[0]; showView('start', true); }

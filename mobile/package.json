@@ -2,7 +2,7 @@
   "name": "rattata-lab-android",
   "version": "1.0.0",
   "private": true,
-  "description": "Android-Hülle (Capacitor) für Rattata Labs, ohne die Werkzeuge aus 'Sonstiges'",
+  "description": "Android-Hülle (Capacitor) für Rattata Labs (inkl. lokalem Simulator-Worker)",
   "scripts": {
     "web": "node build-web.js",
     "sync": "node build-web.js && cap sync android",
@@ -16,6 +16,7 @@
     "@capacitor/share": "^7.0.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.0.0"
+    "@capacitor/cli": "^7.0.0",
+    "esbuild": "^0.25.11"
   }
 }

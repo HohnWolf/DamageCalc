@@ -217,7 +217,7 @@
     return box;
   }
   function filePicker(accept, kind) {
-    var inp = el('input', { type: 'file', accept: accept });
+    var inp = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : accept });
     inp.style.display = 'none';
     inp.addEventListener('change', function () { if (inp.files[0]) readFile(inp.files[0], kind); inp.remove(); });
     document.body.appendChild(inp);

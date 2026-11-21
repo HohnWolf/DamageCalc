@@ -1,5 +1,5 @@
 // Kämpfe: local doubles against the L0–L3 bots.
-// Desktop runs the bundled simulator in an Electron worker. Android has no simulator in the web view.
+// Desktop runs the bundled simulator in an Electron worker; Android runs it in a Web Worker (js/sim_bridge.js).
 // Sprites come from the app, never from a Pokémon Showdown server.
 (function () {
   'use strict';
@@ -12,7 +12,7 @@
   var ROOTS = { btlrandom: 'btlRandomView', btlchoice: 'btlChoiceView' };
   var cur = { view: null, mode: 'btlrandom', game: null, last: null, picks: [], targeting: null, busy: false, error: '', level: 2, foeSrc: 'builder', useBuilder: false, hp: {} };
 
-  function api() { return window.desktop && window.desktop.battle; }
+  function api() { return (window.desktop && window.desktop.battle) || (window.RL_SIM && window.RL_SIM.battle); }
   function pct(hp, max) { if (!max) return 0; return Math.max(0, Math.min(100, Math.round(100 * hp / max))); }
   function statusName(s) {
     return { brn: 'Brand', par: 'Paralyse', psn: 'Gift', tox: 'Vergiftung', slp: 'Schlaf', frz: 'Frost' }[s] || '';
@@ -95,8 +95,8 @@
       foes.forEach(function (t) { foeSel.appendChild(el('option', { value: t.id, text: t.name })); });
       box.appendChild(foeSel);
     }
-    var go = el('button', { type: 'button', class: 'primary-btn btl-go', text: T('Kampf starten', 'Start battle') });
-    if (!api()) go.disabled = true;
+    var go = el('button', { type: 'button', class: 'primary-btn btl-go', text: cur.busy ? T('Startet …', 'Starting …') : T('Kampf starten', 'Start battle') });
+    if (!api() || cur.busy) go.disabled = true;
     go.addEventListener('click', function () { begin(mineSel, foeSel); });
     box.appendChild(go);
     if (cur.error) box.appendChild(el('p', { class: 'btl-bad', text: cur.error }));
@@ -104,6 +104,7 @@
   }
 
   function begin(mineSel, foeSel) {
+    if (cur.busy || !api()) return;
     cur.error = '';
     var pasteA, pasteB, nameB = 'KI';
     if (cur.mode === 'btlrandom') {
@@ -121,6 +122,7 @@
     }
     cur.last = { pasteA: pasteA, pasteB: pasteB, level: cur.level, nameA: 'Du', nameB: nameB, seed: window.RLMetaStats.seedFor(Date.now() >>> 0, 1) };
     cur.busy = true;
+    drawLobby();
     api().start(cur.last).then(function (res) {
       cur.busy = false;
       if (!res || !res.ok) { cur.error = ((res && res.errors) || [res && res.error || '']).join(' '); drawLobby(); return; }
@@ -135,6 +137,11 @@
       if (!res) return;
       if (!res.ok) cur.error = res.error || '';
       if (res.view) cur.game = res.view;
+      cur.picks = []; cur.targeting = null;
+      drawBattle();
+    }, function (err) {
+      cur.busy = false;
+      cur.error = String(err && err.message || err);
       cur.picks = []; cur.targeting = null;
       drawBattle();
     });
@@ -204,7 +211,36 @@
     if (!stage || !cont) return;
     var row = root.querySelector('.btl-row');
     var z = parseFloat(document.body.style.zoom) || 1;
-    if (row) row.classList.toggle('btl-stack', (window.innerWidth / z) < 980 || (window.innerHeight / z) < 520);
+    var vw = window.innerWidth / z;
+    var vh = window.innerHeight / z;
+    if (window.RL_ANDROID) {
+      var isLand = vw > vh && vw >= 560;
+      if (row) row.classList.toggle('btl-stack', !isLand);
+      if (isLand) {
+        stage.style.height = '';
+        var lw = stage.clientWidth;
+        var lh = stage.clientHeight;
+        if (lw < 8) lw = Math.max(240, Math.round(vw * 0.65));
+        if (lh < 120) {
+          lh = Math.max(180, Math.min(Math.round(lw * 360 / 640), Math.round(vh - 96)));
+          stage.style.height = lh + 'px';
+        }
+        var lScale = Math.max(0.25, Math.min(lw / 640, lh / 360));
+        cont.style.transform = 'scale(' + lScale.toFixed(4) + ')';
+        cont.style.left = Math.max(0, Math.floor((lw - 640 * lScale) / 2)) + 'px';
+      } else {
+        var pw = stage.clientWidth || Math.max(240, Math.round(vw - 16));
+        var maxH = Math.max(180, Math.round(vh * 0.62));
+        var pScale = Math.max(0.25, Math.min(pw / 640, maxH / 360));
+        var sh = Math.max(160, Math.round(360 * pScale));
+        stage.style.height = sh + 'px';
+        cont.style.transform = 'scale(' + pScale.toFixed(4) + ')';
+        cont.style.left = Math.max(0, Math.floor((pw - 640 * pScale) / 2)) + 'px';
+      }
+      root.style.setProperty('--battle-scale', '1');
+      return;
+    }
+    if (row) row.classList.toggle('btl-stack', vw < 980 || vh < 520);
     var w = stage.clientWidth;
     var h = stage.clientHeight;
     if (w < 8 || h < 8) return;
@@ -235,19 +271,23 @@
       var ff = el('button', { type: 'button', class: 'tbtn', text: T('Aufgeben', 'Forfeit') });
       ff.addEventListener('click', function () {
         if (!window.confirm('Kampf aufgeben? Die KI gewinnt.')) return;
-        api().forfeit().then(function (res) { if (res && res.view) { cur.game = res.view; cur.picks = []; cur.targeting = null; drawBattle(); } });
+        api().forfeit().then(function (res) {
+          if (res && res.view) { cur.game = res.view; cur.picks = []; cur.targeting = null; drawBattle(); }
+        }, function (err) { cur.error = String(err && err.message || err); drawBattle(); });
       });
       acts.appendChild(ff);
     }
     var re = el('button', { type: 'button', class: 'tbtn', text: T('Revanche', 'Rematch') });
     re.addEventListener('click', function () {
-      if (!cur.last) return;
+      if (!cur.last || cur.busy) return;
+      cur.busy = true;
       cur.last = Object.assign({}, cur.last, { seed: window.RLMetaStats.seedFor(Date.now() >>> 0, 3) });
       api().start(cur.last).then(function (res) {
+        cur.busy = false;
         if (res && res.ok) { cur.game = res.view; cur.picks = []; cur.targeting = null; cur.error = ''; }
         else cur.error = ((res && res.errors) || [res && res.error || '']).join(' ');
         drawBattle();
-      });
+      }, function (err) { cur.busy = false; cur.error = String(err && err.message || err); drawBattle(); });
     });
     acts.appendChild(re);
     top.appendChild(acts);
@@ -264,7 +304,11 @@
     if (cur.error) box.appendChild(el('p', { class: 'btl-bad', text: cur.error }));
     if (v.ended) box.appendChild(el('p', { class: 'btl-end', text: v.winner ? ('Sieger: ' + v.winner) : 'Unentschieden' }));
     root.appendChild(box);
-    if (!resizeBound) { resizeBound = true; window.addEventListener('resize', fit); }
+    if (!resizeBound) {
+      resizeBound = true;
+      window.addEventListener('resize', fit);
+      window.addEventListener('orientationchange', function () { fit(); setTimeout(fit, 120); });
+    }
     fit();
     requestAnimationFrame(fit);
   }

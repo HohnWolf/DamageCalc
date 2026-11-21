@@ -681,11 +681,7 @@
 
   function backup() {
     var dump = JSON.stringify({ kind: 'rattata-match', v: 2, names: store.names, teamId: store.teamId, entries: store.entries }, null, 2);
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([dump], { type: 'application/json' }));
-    a.download = 'team-analyse.json';
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    A.saveFile('team-analyse.json', dump, 'application/json');
   }
 
   function problems() {
@@ -897,7 +893,7 @@
     acts.appendChild(btn('tbtn', t('demo'), loadDemo));
     if (teamEntries().some(function (e) { return e.source === 'demo'; })) acts.appendChild(btn('tbtn', t('clearDemo'), clearDemo));
     acts.appendChild(btn('tbtn', t('backup'), backup));
-    var file = el('input', { type: 'file', accept: 'application/json,.json' });
+    var file = el('input', { type: 'file', accept: window.RL_ANDROID ? '*/*' : 'application/json,.json' });
     file.hidden = true;
     file.addEventListener('change', function () {
       var f = file.files && file.files[0];

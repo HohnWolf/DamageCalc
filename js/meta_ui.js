@@ -1,5 +1,5 @@
-// Meta-Test in the teambuilder. Desktop runs the local Showdown simulator.
-// Android and the browser only get the instant panel plus an optional rough damage check.
+// Meta-Test in the teambuilder. Desktop runs the local Showdown simulator in Electron;
+// Android runs the same simulator in a Web Worker via js/sim_bridge.js.
 (function () {
   'use strict';
   var A = window.CC;
@@ -9,6 +9,8 @@
   var modal = null;
   var current = null;
   var ipcBound = false;
+
+  function metaApi() { return (window.desktop && window.desktop.meta) || (window.RL_SIM && window.RL_SIM.meta); }
 
   function T(deText, enText) { return de ? deText : enText; }
   function pct(x) { return Math.round(x * 1000) / 10; }
@@ -115,7 +117,7 @@
     function close() {
       document.removeEventListener('keydown', key, true);
       if (state.roughWorker) { try { state.roughWorker.terminate(); } catch (e) {} state.roughWorker = null; }
-      if (state.running && window.desktop && window.desktop.meta) window.desktop.meta.cancel();
+      if (state.running && metaApi()) metaApi().cancel();
       if (modal) { modal.remove(); modal = null; }
     }
     modal.addEventListener('mousedown', function (ev) { if (ev.target === modal) close(); });
@@ -150,10 +152,8 @@
       var body = el('div', { class: 'meta-body' });
       body.appendChild(sidePanel());
       var main = el('div', { class: 'meta-main' });
-      if (!window.desktop || !window.desktop.meta) {
-        main.appendChild(el('p', { class: 'meta-warn', text: window.RL_ANDROID
-          ? T('Android: volle Simulation nur in der Desktop-App. Unten eine grobe Schnellprüfung (Schadensrechner, 30 Spiele).', 'Android: the full simulation is desktop-only. Below is a rough 30-game damage check.')
-          : T('Der volle Simulator läuft in der Desktop-App. Hier siehst du die sofortige Rechnung und optional eine grobe Schnellprüfung.', 'The full simulator runs in the desktop app. Here you get the instant calc and an optional rough check.') }));
+      if (!metaApi()) {
+        main.appendChild(el('p', { class: 'meta-warn', text: T('Der volle Simulator läuft in der Desktop- oder Android-App. Hier siehst du die sofortige Rechnung und optional eine grobe Schnellprüfung.', 'The full simulator runs in the desktop or Android app. Here you get the instant calc and an optional rough check.') }));
       }
       main.appendChild(instant(mine, foe));
       main.appendChild(results());
@@ -202,13 +202,13 @@
       if (state.running) go.disabled = true;
       go.addEventListener('click', function () { begin(false); });
       acts.appendChild(go);
-      if (!window.desktop || !window.desktop.meta) {
+      if (!metaApi()) {
         var rough = el('button', { class: 'tbtn', text: T('Grobe 30', 'Rough 30') });
         rough.addEventListener('click', function () { begin(true); });
         acts.appendChild(rough);
       } else if (state.running) {
         var stop = el('button', { class: 'tbtn', text: T('Abbrechen', 'Cancel') });
-        stop.addEventListener('click', function () { window.desktop.meta.cancel(); });
+        stop.addEventListener('click', function () { metaApi().cancel(); });
         acts.appendChild(stop);
       }
       var imp = el('button', { class: 'tbtn', text: T('Paste', 'Paste') });
@@ -453,11 +453,12 @@
       var minePaste = pasteOf(state.entry);
       var ops = picked();
       if (!ops.length) { setMsg(T('Keine Teams.', 'No teams.')); return; }
-      if (rough || !window.desktop || !window.desktop.meta) { roughRun(ops); return; }
+      var api = metaApi();
+      if (rough || !api) { roughRun(ops); return; }
       state.running = true; state.rows = []; draw();
-      window.desktop.meta.validate(minePaste).then(function (v) {
-        if (!v.ok) { state.running = false; draw(); showErrors(v.errors); return; }
-        return window.desktop.meta.start({
+      api.validate(minePaste).then(function (v) {
+        if (!v || !v.ok) { state.running = false; draw(); showErrors((v && v.errors) || [T('Ungültiges Team.', 'Invalid team.')]); return; }
+        return api.start({
           paste: minePaste,
           opponents: ops.map(function (t) { return { id: t.id, name: decode(t.name), paste: t.paste, archetype: decode(t.archetype) }; }),
           games: state.games, level: state.level, seed: (Date.now() & 0xfffffff) || 1
@@ -467,6 +468,10 @@
         if (!res.ok) { state.running = false; draw(); showErrors(res.errors || [res.error || '']); return; }
         state.job = res.jobId;
         setMsg(T('Startet ' + res.matches + ' Paarungen …', 'Starting ' + res.matches + ' matchups …'));
+      }).catch(function (err) {
+        state.running = false;
+        draw();
+        showErrors([String(err && err.message || err)]);
       });
     }
     function showErrors(list) {
@@ -568,17 +573,22 @@
             wrap.remove();
             draw();
           };
-          if (window.desktop && window.desktop.meta) window.desktop.meta.validate(paste).then(done);
+          var api = metaApi();
+          if (api) api.validate(paste).then(done, function (err) { done({ ok: false, errors: [String(err && err.message || err)] }); });
           else done({ ok: true });
         }
         if (url.value.trim()) {
-          if (!window.desktop || !window.desktop.meta || !window.desktop.meta.fetchPaste) {
-            msg.textContent = T('Adressen lädt nur die Desktop-App. Den Text kannst du hier einfügen.', 'Only the desktop app can load a URL. Paste the text here.');
+          var api = metaApi();
+          if (!api || !api.fetchPaste) {
+            msg.textContent = T('Adressen lädt nur die Desktop- oder Android-App. Den Text kannst du hier einfügen.', 'Only the desktop or Android app can load a URL. Paste the text here.');
             return;
           }
-          window.desktop.meta.fetchPaste(url.value.trim()).then(function (res) {
-            if (!res.ok) { msg.textContent = (res.errors || []).join(' '); msg.className = 'meta-bad'; return; }
+          api.fetchPaste(url.value.trim()).then(function (res) {
+            if (!res || !res.ok) { msg.textContent = ((res && res.errors) || [T('Paste konnte nicht geladen werden.', 'Could not load paste.')]).join(' '); msg.className = 'meta-bad'; return; }
             take(res.paste, 'pokepaste');
+          }, function (err) {
+            msg.textContent = String(err && err.message || err);
+            msg.className = 'meta-bad';
           });
           return;
         }
@@ -591,9 +601,10 @@
       document.body.appendChild(wrap);
     }
 
-    if (window.desktop && window.desktop.meta && !ipcBound) {
+    var api = metaApi();
+    if (api && !ipcBound) {
       ipcBound = true;
-      window.desktop.meta.onProgress(function (p) {
+      api.onProgress(function (p) {
         var st = current;
         if (!modal || !st || !st.running) return;
         setProg(p.done || 0, p.total || 1);
@@ -604,7 +615,7 @@
           if (host && st.resultRow) host.appendChild(st.resultRow(p.row));
         }
       });
-      window.desktop.meta.onDone(function (p) {
+      api.onDone(function (p) {
         var st = current;
         if (!modal || !st) return;
         st.running = false;

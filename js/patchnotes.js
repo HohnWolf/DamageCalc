@@ -9,6 +9,25 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.6.0',
+      de: [
+        'Android (Alle 20 Werkzeuge): Sämtliche Werkzeuge aus der Desktop-App sind jetzt auch in der Android-App freigeschaltet — inklusive lokalem Pokémon-Showdown-Simulator als Web Worker für Kämpfe und den vollständigen Meta-Test, Shiny-Zähler (Touch-Steuerung, Import/Export), Save File Editor, Randomizer, Match-Overlay & Matchlog.',
+        'Android (Hoch- & Breitbild + Tablet-Optimierung): Überarbeitetes responsives Layout für Smartphones im Hoch- und Querformat sowie Tablets mit sauberer Touch-Bedienung, optimierten Tool-Leisten, zweispaltigen Ansichten im Querformat und Safe-Area-Unterstützung.'
+      ],
+      en: [
+        'Android (All 20 Tools): every tool from the desktop app is now enabled on Android — including a local Pokémon Showdown simulator Web Worker for Battles and full Meta Test, Shiny Counter (touch controls, import/export), Save File Editor, Randomizer, Match Overlay, and Matchlog.',
+        'Android (Portrait, Landscape & Tablet Optimization): refined responsive layouts for phones in portrait and landscape as well as tablets, with touch-friendly controls, streamlined toolbars, two-column landscape views, and safe-area support.'
+      ],
+      full: {
+        de: [
+          'Android: Alle 20 Werkzeuge jetzt vollständig auf Android verfügbar — inklusive lokalem Simulator-Web-Worker für Kämpfe & Meta-Test, Shiny-Zähler, Save File Editor, Randomizer, Match-Overlay & Matchlog.',
+          'Android-Layout: Hochformat-, Querformat- und Tablet-Optimierung mit verbesserter Touch-Bedienung und Safe-Area-Unterstützung.'
+        ],
+        en: [
+          'Android: all 20 tools now fully available on Android — including a local simulator Web Worker for Battles & Meta Test, Shiny Counter, Save File Editor, Randomizer, Match Overlay, and Matchlog.',
+          'Android layout: portrait, landscape, and tablet optimizations with improved touch ergonomics and safe-area support.'
+        ]
+      } },
     { v: '2.5.0',
       de: [
         'Randomizer (Neues Design & UPR-Patches): Überarbeitete Oberfläche mit stabilem Karten-Grid, Live-Aktiv-Badges je Tab, Preset-Karten, Gen-Pill-Toggles, Seed-Kopierbutton und voller Dark-/Light-/OLED-Unterstützung. Neu: Doppelkampf-Modus (Gen 3–7, inkl. 1-Pokémon-Verdopplung in Gen 4/5), Gen-7-Herrscher-Pokémon (Totems inkl. Aura & Level), Trainer-Namen mischen (Gen 3) sowie QoL-Patches (Schnellster Text Gen 1–3, Turbotreter innen Gen 3, PC-Trank Gen 1/3, Typ-Effektivität Gen 6+ für Gen 2/3).',

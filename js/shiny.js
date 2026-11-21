@@ -8,10 +8,12 @@
   if (!A || !O) return;
   var el = A.el, de = A.LANG === 'de';
   var NAT = window.NATDEX || [];
-  var D = window.desktop && window.desktop.shiny ? window.desktop.shiny : null;
+  var isAndroid = !!window.RL_ANDROID;
+  var D = !isAndroid && window.desktop && window.desktop.shiny ? window.desktop.shiny : null;
 
   var S = de ? {
-    title: 'Shiny-Zähler', sub: 'Begegnungen zählen, Quoten und Chancen im Blick, Phasen, Timer, Sammlung, Hotkeys und OBS-Overlay.',
+    title: 'Shiny-Zähler', sub: isAndroid ? 'Begegnungen zählen, Quoten und Chancen im Blick, Phasen, Timer und Sammlung.' : 'Begegnungen zählen, Quoten und Chancen im Blick, Phasen, Timer, Sammlung, Hotkeys und OBS-Overlay.',
+    expBtn: 'Export', impBtn: 'Import', expDone: 'Shiny-Daten exportiert', impDone: '{0} Hunt(s), {1} Fang/Fänge importiert', impBad: 'Ungültige Shiny-Datei.',
     tabHunts: 'Hunts', tabDex: 'Sammlung', tabSetup: 'Hotkeys & OBS', newHunt: '+ Neuer Hunt', huntsActive: 'Laufend', huntsDone: 'Gefunden',
     pick: 'Pokémon …', huntTitle: 'Titel (optional)', game: 'Spiel', method: 'Methode', charm: 'Schillerpin', charmNo: 'In diesem Spiel gibt es keinen Schillerpin',
     step: 'Schritt', stepT: 'Um wie viel ein Klick oder Hotkey zählt (z. B. 5 bei Horden)', del: 'Löschen', delConfirm: 'Hunt „{0}“ löschen?',
@@ -49,7 +51,8 @@
     projectorFps: 'Bilder/s', projectorFpsN: 'Bilder pro Sekunde (10 bis 60)', projectorFpsHint: 'Obergrenze für die Aufnahme.',
     spriteStyle: 'Darstellung', st_3d: '3D-Modell', st_home: 'HOME', st_sprite: 'Sprite'
   } : {
-    title: 'Shiny counter', sub: 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
+    title: 'Shiny counter', sub: isAndroid ? 'Count encounters, keep odds and chances in view, phases, timer and collection.' : 'Count encounters, keep odds and chances in view, phases, timer, collection, hotkeys and OBS overlay.',
+    expBtn: 'Export', impBtn: 'Import', expDone: 'Shiny data exported', impDone: '{0} hunt(s), {1} catch(es) imported', impBad: 'Invalid shiny file.',
     tabHunts: 'Hunts', tabDex: 'Collection', tabSetup: 'Hotkeys & OBS', newHunt: '+ New hunt', huntsActive: 'Active', huntsDone: 'Found',
     pick: 'Pokémon …', huntTitle: 'Title (optional)', game: 'Game', method: 'Method', charm: 'Shiny Charm', charmNo: 'This game has no Shiny Charm',
     step: 'Step', stepT: 'How much one click or hotkey counts (e.g. 5 for hordes)', del: 'Delete', delConfirm: 'Delete hunt "{0}"?',
@@ -314,11 +317,11 @@
   function setRunning(h, on) {
     if (on && !h.runStart) {
       h.runStart = Date.now();
-      if (store.auto.detect && window.CCShinyDetect && window.CCShinyDetect.autoStart) window.CCShinyDetect.autoStart(h, store.auto.connect);
+      if (!isAndroid && store.auto.detect && window.CCShinyDetect && window.CCShinyDetect.autoStart) window.CCShinyDetect.autoStart(h, store.auto.connect);
     }
     if (!on && h.runStart) {
       h.timeMs = timeOf(h); h.runStart = 0;
-      if (store.auto.detect && window.CCShinyDetect && window.CCShinyDetect.autoStop) window.CCShinyDetect.autoStop(h);
+      if (!isAndroid && store.auto.detect && window.CCShinyDetect && window.CCShinyDetect.autoStop) window.CCShinyDetect.autoStop(h);
     }
   }
   function huntName(h) { return h.title || monName(h.species) || (de ? 'Neuer Hunt' : 'New hunt'); }
@@ -354,7 +357,7 @@
   // clips (js/shiny_clip.js): automatically on "Found!" and on a phase, when switched on
   // returns the promise of the clip (resolves with the list entry or null), or null when no clip is made
   function autoClip(h, reason) {
-    if (!Clip || !Clip.active() || !h) return null;
+    if (isAndroid || !Clip || !Clip.active() || !h) return null;
     if (reason === 'found' ? !store.clip.autoFound : !store.clip.autoPhase) return null;
     var at = Date.now();
     return Clip.trigger(reason, huntName(h), h.id).then(function (c) {
@@ -514,8 +517,8 @@
   function triggerFound(h) {
     if (!h || h.status === 'found') return;
     if (document.querySelector('.sh-modal')) return;
-    var shot = grabShot(h), clip = autoClip(h, 'found');
-    openCatch(null, h, null, { shot: shot, clip: clip });
+    var media = isAndroid ? null : { shot: grabShot(h), clip: autoClip(h, 'found') };
+    openCatch(null, h, null, media);
   }
   // global hotkeys and the window keys
   function hotkeyAction(action) {
@@ -586,12 +589,63 @@
     pushState();
   }, 1000);
 
+  // ---------------- export / import ----------------
+  function exportShiny() {
+    var payload = { kind: 'rattata-shiny', v: 1, date: today(), hunts: store.hunts, collection: store.collection };
+    A.saveFile('shiny-hunts-' + today() + '.json', JSON.stringify(payload, null, 2), 'application/json');
+    A.toast(t('expDone'));
+  }
+  function importShiny() {
+    var inp = el('input', { type: 'file', accept: isAndroid ? '*/*' : '.json,application/json' });
+    inp.style.display = 'none';
+    inp.addEventListener('change', function () {
+      var f = inp.files && inp.files[0];
+      inp.remove();
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () {
+        try {
+          var parsed = JSON.parse(String(rd.result || ''));
+          var src = parsed && parsed.storage && parsed.storage.cc_shiny ? parsed.storage.cc_shiny : parsed;
+          if (!src || (!Array.isArray(src.hunts) && !Array.isArray(src.collection))) { A.toast(t('impBad')); return; }
+          var addedH = 0, addedC = 0;
+          var hIds = {}; store.hunts.forEach(function (h) { hIds[h.id] = 1; });
+          (src.hunts || []).forEach(function (h) {
+            if (!h || typeof h !== 'object') return;
+            if (!h.id) h.id = newId('h');
+            if (hIds[h.id]) return;
+            hIds[h.id] = 1;
+            store.hunts.push(fixHunt(h));
+            addedH++;
+          });
+          var cIds = {}; store.collection.forEach(function (c) { cIds[c.id] = 1; });
+          (src.collection || []).forEach(function (c) {
+            if (!c || typeof c !== 'object') return;
+            if (!c.id) c.id = newId('c');
+            if (cIds[c.id]) return;
+            cIds[c.id] = 1;
+            store.collection.push(c);
+            addedC++;
+          });
+          if (!store.sel && store.hunts.length) store.sel = store.hunts[0].id;
+          persist();
+          A.toast(t('impDone', addedH, addedC));
+          render();
+        } catch (e) { A.toast(t('impBad')); }
+      };
+      rd.readAsText(f);
+    });
+    document.body.appendChild(inp);
+    inp.click();
+  }
+
   // ---------------- render ----------------
   var root = null;
   function rerender() { if (root && document.body.dataset.view === 'shiny') render(); }
   function render() {
     root = document.getElementById('shinyView');
     if (!root) return;
+    if (isAndroid && store.tab === 'setup') store.tab = 'hunts';
     store.hunts.forEach(fixHunt);
     root.innerHTML = '';
     var head = el('div', { class: 'nz-head' });
@@ -599,16 +653,26 @@
     head.appendChild(el('span', { class: 'hint', text: t('sub') }));
     root.appendChild(head);
     var tabs = el('div', { class: 'nz-tabs' });
-    [['hunts', t('tabHunts')], ['dex', t('tabDex')], ['setup', t('tabSetup')]].forEach(function (x) {
+    var tabList = isAndroid ? [['hunts', t('tabHunts')], ['dex', t('tabDex')]] : [['hunts', t('tabHunts')], ['dex', t('tabDex')], ['setup', t('tabSetup')]];
+    tabList.forEach(function (x) {
       var b = el('button', { class: store.tab === x[0] ? 'on' : '', text: x[1], 'data-tab': x[0] });
       b.addEventListener('click', function () { store.tab = x[0]; persist(); render(); });
       tabs.appendChild(b);
     });
+    if (isAndroid) {
+      var io = el('div', { class: 'sh-io-bar' });
+      var expB = el('button', { type: 'button', class: 'tbtn', text: t('expBtn') });
+      expB.addEventListener('click', exportShiny);
+      var impB = el('button', { type: 'button', class: 'tbtn', text: t('impBtn') });
+      impB.addEventListener('click', importShiny);
+      io.appendChild(expB); io.appendChild(impB);
+      tabs.appendChild(io);
+    }
     root.appendChild(tabs);
     var body = el('div', { class: 'nz-body sh-body' });
     root.appendChild(body);
     if (store.tab === 'dex') renderDex(body);
-    else if (store.tab === 'setup') renderSetup(body);
+    else if (!isAndroid && store.tab === 'setup') renderSetup(body);
     else renderHunts(body);
   }
 
@@ -634,8 +698,8 @@
         c.appendChild(tx);
         var icons = el('div', { class: 'sh-item-ic' });
         if (h.runStart) icons.appendChild(el('span', { class: 'sh-dot', title: t('timer') }));
-        if (h.hotkey && h.status !== 'found') icons.appendChild(el('span', { class: 'sh-kb', text: '⌨', title: t('hotkey') }));
-        if (window.CCShinyDetect && window.CCShinyDetect.isRunning(h.id)) icons.appendChild(el('span', { class: 'sh-eye', text: '◉', title: 'Auto' }));
+        if (!isAndroid && h.hotkey && h.status !== 'found') icons.appendChild(el('span', { class: 'sh-kb', text: '⌨', title: t('hotkey') }));
+        if (!isAndroid && window.CCShinyDetect && window.CCShinyDetect.isRunning(h.id)) icons.appendChild(el('span', { class: 'sh-eye', text: '◉', title: 'Auto' }));
         c.appendChild(icons);
         var plus = el('button', { class: 'sh-item-plus', text: '+', title: t('act_inc') });
         plus.addEventListener('click', function (ev) { ev.stopPropagation(); count(h, 1); });
@@ -709,11 +773,13 @@
     st.addEventListener('change', function () { h.step = Math.max(1, Math.min(100, +st.value || 1)); persist(); render(); });
     stw.appendChild(st);
     cfg.appendChild(stw);
-    var hk = el('label', { class: 'nc-check sh-chk', title: t('hotkeyT') });
-    var hkb = el('input', { type: 'checkbox' }); hkb.checked = !!h.hotkey;
-    hkb.addEventListener('change', function () { h.hotkey = hkb.checked; persist(); render(); });
-    hk.appendChild(hkb); hk.appendChild(document.createTextNode(' ' + t('hotkey')));
-    cfg.appendChild(hk);
+    if (!isAndroid) {
+      var hk = el('label', { class: 'nc-check sh-chk', title: t('hotkeyT') });
+      var hkb = el('input', { type: 'checkbox' }); hkb.checked = !!h.hotkey;
+      hkb.addEventListener('change', function () { h.hotkey = hkb.checked; persist(); render(); });
+      hk.appendChild(hkb); hk.appendChild(document.createTextNode(' ' + t('hotkey')));
+      cfg.appendChild(hk);
+    }
     var del = el('button', { class: 'tbtn danger sh-del', text: t('del') });
     del.addEventListener('click', function () {
       ccConfirm(t('delConfirm', huntName(h)), function () {
@@ -786,7 +852,7 @@
     var hours = timeOf(h) / 3600000;
     if (hours > 0.01 && h.count) tm.appendChild(el('span', { class: 'hint', text: t('perHour', fmt(h.count / hours)) }));
     cc.appendChild(tm);
-    cc.appendChild(el('div', { class: 'hint sh-keys', text: t('keysLocal') }));
+    if (!isAndroid) cc.appendChild(el('div', { class: 'hint sh-keys', text: t('keysLocal') }));
     grid.appendChild(cc);
 
     // odds + statistics
@@ -816,8 +882,8 @@
     });
     grid.appendChild(ph);
 
-    // auto detection (alpha)
-    if (window.CCShinyDetect) {
+    // auto detection (alpha) — Desktop only
+    if (!isAndroid && window.CCShinyDetect) {
       var dp = el('div', { class: 'sh-detect panel' });
       grid.appendChild(dp);
       window.CCShinyDetect.panel(dp, h, { autoConnect: function () { return store.auto.connect; }, count: function () { count(h, 1); A.toast(t('counted', h.step || 1, huntName(h))); refreshList(); }, persist: persist, de: de,
@@ -830,7 +896,7 @@
         setFps: function (n) { store.projector.fps = window.CCProjectorMirror.clampFps(n); persist(); if (window.CCProjector && window.CCProjector.syncLimit) window.CCProjector.syncLimit(); },
         fpsLabel: t('projectorFps'), fpsNumber: t('projectorFpsN'), fpsHint: t('projectorFpsHint') });
     }
-    if (Clip) {
+    if (!isAndroid && Clip) {
       var cp = el('div', { class: 'sh-detect sh-clip panel' });
       grid.appendChild(cp);
       Clip.panel(cp, { name: function () { return huntName(h); }, hunt: function () { return h.id; },
