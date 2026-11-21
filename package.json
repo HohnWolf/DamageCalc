@@ -68,6 +68,11 @@
       "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSCameraUsageDescription": "Rattata Labs nutzt Kamera oder Capture-Karte für die Shiny-Erkennung, Clips und das Matchlog.",
+        "NSMicrophoneUsageDescription": "Rattata Labs nutzt den Audio-Eingang (z. B. Capture-Karte) für Shiny-Clips.",
+        "NSScreenCaptureUsageDescription": "Rattata Labs nutzt die Bildschirmaufnahme für die Shiny-Erkennung, Clips und das Matchlog."
+      },
       "artifactName": "RattataLab-${version}-mac-${arch}.${ext}"
     },
     "dmg": {

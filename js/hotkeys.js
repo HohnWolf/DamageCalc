@@ -49,10 +49,11 @@
     return out.join('+');
   }
   function de() { return (document.documentElement.lang || 'de').slice(0, 2) === 'de'; }
+  var isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
   function label(c) {
     if (!c) return '–';
     var KEY = { Plus: '+', Minus: '−', Up: '↑', Down: '↓', Left: '←', Right: '→', Space: de() ? 'Leertaste' : 'Space' };
-    return normalize(c).split('+').map(function (x) { return x === 'Ctrl' && de() ? 'Strg' : KEY[x] || x; }).join(' + ');
+    return normalize(c).split('+').map(function (x) { return x === 'Ctrl' ? (isMac ? '⌘' : (de() ? 'Strg' : 'Ctrl')) : KEY[x] || x; }).join(' + ');
   }
 
   // ---------- registry ----------

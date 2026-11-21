@@ -1152,13 +1152,14 @@
     else if (/^F\d+$/.test(k)) k = k;
     else if (k.length === 1) k = k.toUpperCase();
     var parts = [];
-    if (ev.ctrlKey) parts.push('CommandOrControl');
+    if (ev.ctrlKey || ev.metaKey) parts.push('CommandOrControl');
     if (ev.altKey) parts.push('Alt');
     if (ev.shiftKey) parts.push('Shift');
     parts.push(k);
     return parts.join('+');
   }
-  function accelLabel(a) { return a ? a.replace('CommandOrControl', de ? 'Strg' : 'Ctrl').replace(/\+/g, ' + ').replace('Plus', '+') : t('none'); }
+  var isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
+  function accelLabel(a) { return a ? a.replace('CommandOrControl', isMac ? '⌘' : (de ? 'Strg' : 'Ctrl')).replace(/\+/g, ' + ').replace('Plus', '+') : t('none'); }
   function renderSetup(body) {
     var wrap = el('div', { class: 'sh-setup' });
     body.appendChild(wrap);
