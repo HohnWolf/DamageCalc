@@ -9,6 +9,33 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.3.0',
+      de: [
+        'Matchlog (KI-Kontext & Modellauswahl): Das gewählte Teambuilder-Team inkl. Version (alle 6 Pokémon, Items, Fähigkeiten und Attacken) sowie der eigene Spielername werden jetzt als Kontext an Antigravity, Gemini API und den Google-AI-Pro-Export übergeben. Direkt neben „Mit Antigravity auswerten“ gibt es zudem ein neues Modell-Dropdown.',
+        'Damage Calculator (Automatisches Terrain & Wetter): Beim Auswählen eines Pokémon, beim Ändern der Fähigkeit oder beim Formen-/Mega-Wechsel mit Wetter- oder Terrain-Fähigkeit schaltet das Feld automatisch um. Ist „Keins“ gewählt, wird es nicht mehr still überschrieben.',
+        'Einstellungen (Teambuilder & Pokédex getrennt): „Pokémon-Darstellung“ heißt jetzt „Teambuilder“ und gilt nur noch dort; die Pokédex-Einstellung steuert getrennt den Nationalen Pokédex, GO-Pokédex und Top Counter.',
+        'macOS (Berechtigungen & Cmd-Hotkeys): Kamera-, Mikrofon- und Bildschirmaufnahme-Berechtigungen sind jetzt in der Info.plist hinterlegt, und Shiny-Zähler- sowie Fenster-Hotkeys unterstützen und zeigen auf macOS jetzt ⌘ statt Strg/Ctrl.'
+      ],
+      en: [
+        'Matchlog (AI context & model picker): the selected Teambuilder team including version (all 6 Pokémon, items, abilities, and moves) and your player name are now passed as context to Antigravity, the Gemini API, and Google AI Pro export, alongside a new model dropdown next to “Analyze with Antigravity”.',
+        'Damage Calculator (auto terrain & weather): selecting a Pokémon, changing its ability, or switching forms/Mega with a weather or terrain ability now switches the field automatically, while manually choosing “None” is no longer silently overridden.',
+        'Settings (Teambuilder & Pokédex decoupled): “Pokémon artwork” is now labeled “Teambuilder” and only affects the Team Builder; the Pokédex setting independently controls the National Pokédex, GO Pokédex, and Top Counters.',
+        'macOS (permissions & Cmd hotkeys): camera, microphone, and screen capture usage descriptions are now included in Info.plist, and Shiny Counter and window hotkeys now support and display ⌘ instead of Ctrl on macOS.'
+      ],
+      full: {
+        de: [
+          'Matchlog (KI-Kontext & Modellauswahl): Übergibt jetzt das gewählte Teambuilder-Team (inkl. Version, Items, Fähigkeiten und Attacken) sowie den Spielernamen an Antigravity, Gemini API und Google-AI-Pro-Export, plus neues Antigravity-Modell-Dropdown.',
+          'Damage Calculator (Automatisches Terrain & Wetter): Schaltet Wetter und Terrain beim Pokémon-, Fähigkeits- oder Mega-Wechsel automatisch um und respektiert manuelles „Keins“.',
+          'Einstellungen (Teambuilder & Pokédex getrennt): „Teambuilder“- und „Pokédex“-Darstellung (inkl. GO-Pokédex & Top Counter) laufen jetzt unabhängig voneinander.',
+          'macOS: Standard-Tastenkürzel (Cmd+C/V/X/A/Z/Q, Cmd+R), ⌘-Hotkeys im Shiny-Zähler und Fenster sowie Info.plist-Berechtigungen für Kamera, Mikrofon und Bildschirmaufnahme.'
+        ],
+        en: [
+          'Matchlog (AI context & model picker): now passes the selected Teambuilder team (including version, items, abilities, and moves) and player name to Antigravity, Gemini API, and Google AI Pro export, plus a new Antigravity model dropdown.',
+          'Damage Calculator (auto terrain & weather): automatically switches weather and terrain on Pokémon, ability, or Mega changes while respecting manual “None”.',
+          'Settings (Teambuilder & Pokédex decoupled): Teambuilder and Pokédex artwork settings (including GO Pokédex & Top Counters) now work independently.',
+          'macOS: standard shortcuts (Cmd+C/V/X/A/Z/Q, Cmd+R), ⌘ hotkeys in Shiny Counter and window shortcuts, plus Info.plist permissions for camera, microphone, and screen capture.'
+        ]
+      } },
     { v: '2.2.1',
       de: [
         'macOS: Standard-Tastenkürzel wie Cmd+C, Cmd+V, Cmd+X, Cmd+A, Cmd+Z, Cmd+Q und Cmd+R funktionieren jetzt in der Mac-App (z. B. beim Kopieren und Einfügen von Teams im Teambuilder und Damage Calculator).'
