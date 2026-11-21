@@ -38,7 +38,10 @@
   }
   function normalize(c) {
     if (!c) return '';
-    var p = String(c).split('+'), key = (p.pop() || '').trim();
+    var raw = String(c).trim(), p, key;
+    if (raw === '+') { p = []; key = 'Plus'; }
+    else if (/\+\+$/.test(raw)) { p = raw.slice(0, -2).split('+'); key = 'Plus'; }
+    else { p = raw.split('+'); key = (p.pop() || '').trim(); }
     if (key === '-') key = 'Minus';
     if (!key) return '';
     var mods = { Ctrl: 0, Alt: 0, Shift: 0 };

@@ -59,6 +59,9 @@
     gemBtn: 'Mit Gemini API',
     gemBusy: 'Gemini wertet aus…',
     gemKeyPh: 'Optional: Gemini API Key (Kostenlose Stufe)',
+    gemKeyMissing: 'Bitte Gemini API Key eintragen.',
+    noKeyframes: 'Keine Keyframes gesammelt.',
+    gemErr: 'Gemini-Fehler: ',
     expBtn: 'Für Google AI Pro exportieren',
     archiveTitle: 'Gespeicherte Matchlogs (nur Text-Logs)',
     archiveAll: 'Alle Teams',
@@ -125,6 +128,9 @@
     gemBtn: 'Use Gemini API',
     gemBusy: 'Gemini analyzing…',
     gemKeyPh: 'Optional: Gemini API Key (Free tier)',
+    gemKeyMissing: 'Please enter a Gemini API key.',
+    noKeyframes: 'No keyframes collected.',
+    gemErr: 'Gemini error: ',
     expBtn: 'Export for Google AI Pro',
     archiveTitle: 'Saved Matchlogs (text logs only)',
     archiveAll: 'All teams',
@@ -694,23 +700,23 @@
     if (!D || !D.gemini) { if (ocrEl) ocrEl.textContent = t('desk'); return; }
     if (!kf) return;
     var apiKey = (inpGemKey && inpGemKey.value || '').trim();
-    if (!apiKey) { if (ocrEl) ocrEl.textContent = t('ocr') + ': Bitte Gemini API Key eintragen.'; return; }
+    if (!apiKey) { if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + t('gemKeyMissing'); return; }
     A.save('cc_matchlog_gemini_key', apiKey);
     var sheets = kf.buildSheets();
-    if (!sheets.length) { if (ocrEl) ocrEl.textContent = t('ocr') + ': Keine Keyframes gesammelt.'; return; }
+    if (!sheets.length) { if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + t('noKeyframes'); return; }
     var model = (selGemModel && selGemModel.value) || 'gemini-3.8-flash';
     if (btnGem) { btnGem.disabled = true; btnGem.textContent = t('gemBusy'); }
     if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini (' + model + ') wertet ' + sheets.length + ' Bild(er) aus…';
     D.gemini({ apiKey: apiKey, model: model, prompt: kf.buildPrompt(buildAiContext()), sheets: sheets }).then(function (r) {
       if (btnGem) { btnGem.disabled = false; btnGem.textContent = t('gemBtn'); }
       if (!r || !r.ok) {
-        if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini-Fehler: ' + (r && r.error || 'Unbekannt');
+        if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + t('gemErr') + (r && r.error || t('unk'));
         return;
       }
       onAiLogReady(r.text, 'Gemini', r.ms);
     }, function (err) {
       if (btnGem) { btnGem.disabled = false; btnGem.textContent = t('gemBtn'); }
-      if (ocrEl) ocrEl.textContent = t('ocr') + ': Gemini-Fehler: ' + (err && err.message || err);
+      if (ocrEl) ocrEl.textContent = t('ocr') + ': ' + t('gemErr') + (err && err.message || err);
     });
   }
   function startRec() {

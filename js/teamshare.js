@@ -160,6 +160,15 @@
     if (!m) return Promise.reject(new Error('url'));
     var D = window.desktop && window.desktop.share;
     if (D && D.fetchPaste) return D.fetchPaste(m[1]).then(function (r) { if (!r || !r.ok) throw new Error(r && r.error || 'paste'); return r; });
+    var cap = window.Capacitor, H = cap && cap.Plugins && cap.Plugins.CapacitorHttp;
+    if (window.RL_ANDROID && H && H.request) {
+      return H.request({ method: 'GET', url: 'https://pokepast.es/' + m[1] + '/json', headers: { Accept: 'application/json' } })
+        .then(function (r) {
+          if (!r || r.status < 200 || r.status >= 300) throw new Error('HTTP ' + (r && r.status));
+          var j = typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || {});
+          return { title: j.title || '', author: j.author || '', paste: String(j.paste || '').replace(/\r\n/g, '\n') };
+        });
+    }
     return fetch('https://pokepast.es/' + m[1] + '/json').then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (j) { return { title: j.title || '', author: j.author || '', paste: String(j.paste || '').replace(/\r\n/g, '\n') }; });
   }

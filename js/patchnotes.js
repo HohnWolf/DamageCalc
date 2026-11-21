@@ -9,6 +9,17 @@
   var el = A.el, de = A.LANG === 'de';
   var KEY = 'cc_lastver', MAX = 40;
   var NOTES = [
+    { v: '2.3.2',
+      de: [
+        'Matchlog (KI & Stabilität): Antigravity CLI wird jetzt auch unter macOS/Linux in gängigen Pfaden (/opt/homebrew/bin, /usr/local/bin, ~/.local/bin) gefunden. Ergänzt wurden Timeouts für Antigravity und Gemini API, sichere Dateinamen beim Kontaktbogen-Export sowie englische Statusmeldungen.',
+        'Teambuilder (Android): PokéPaste-Links aus QR-Codes oder Zwischenablage werden auf Android jetzt über CapacitorHttp geladen (kein CORS-Fehler mehr).',
+        'Tastenkürzel & Rückgängig: „+“ und Kombinationen wie Strg++ werden korrekt normalisiert, und der Rückgängig-Hinweis zeigt jetzt das aktuell belegte Kürzel (inkl. ⌘ unter macOS).'
+      ],
+      en: [
+        'Matchlog (AI & stability): Antigravity CLI is now also discovered in common macOS/Linux paths (/opt/homebrew/bin, /usr/local/bin, ~/.local/bin). Added timeouts for Antigravity and Gemini API, sanitized sheet filenames on export, and translated status messages.',
+        'Teambuilder (Android): PokéPaste links from QR codes or clipboard now load via CapacitorHttp on Android (avoiding CORS errors).',
+        'Shortcuts & Undo: “+” and combinations like Ctrl++ now normalize properly, and the undo toast now shows the active shortcut (including ⌘ on macOS).'
+      ] },
     { v: '2.3.1',
       de: [
         'Einstellungen (Sprite-Stil): Alle fünf Sprite-Auswahlleisten (Teambuilder, Damage Calculator, Pokédex, Match-Overlay und Shiny-Zähler) haben jetzt dieselbe Reihenfolge (3D → HOME → Pixel, beim Match-Overlay zusätzlich Artwork).'

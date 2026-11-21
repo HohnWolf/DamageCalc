@@ -6,8 +6,37 @@
 const { app, ipcMain, dialog, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { spawn } = require('child_process');
 const ocr = require('../js/matchlog_ocr_node');
+
+function safeSheetName(name, idx) {
+  const base = path.basename(String(name || '')).replace(/[\\/:*?"<>|]+/g, '').trim();
+  if (!base || base === '.' || base === '..') return 'sheet-' + (idx + 1) + '.jpg';
+  return base;
+}
+
+function findAgyBin(platform, env, homeDir, exists) {
+  platform = platform || process.platform;
+  env = env || process.env;
+  homeDir = homeDir || os.homedir();
+  exists = exists || fs.existsSync;
+  const candidates = [];
+  if (platform === 'win32') {
+    if (env.LOCALAPPDATA) candidates.push(path.join(env.LOCALAPPDATA, 'agy', 'bin', 'agy.exe'));
+  } else {
+    if (homeDir) {
+      candidates.push(path.join(homeDir, '.local', 'bin', 'agy'));
+      candidates.push(path.join(homeDir, '.agy', 'bin', 'agy'));
+    }
+    if (platform === 'darwin') candidates.push('/opt/homebrew/bin/agy');
+    candidates.push('/usr/local/bin/agy');
+  }
+  for (const p of candidates) {
+    if (p && exists(p)) return p;
+  }
+  return 'agy';
+}
 
 let rec = null;
 
@@ -54,11 +83,6 @@ function init() {
     catch (err) { return { ok: false, error: String(err && err.message || err) }; }
   });
 
-  function findAgyBin() {
-    const localAgy = process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'agy', 'bin', 'agy.exe') : '';
-    return (localAgy && fs.existsSync(localAgy)) ? localAgy : 'agy';
-  }
-
   ipcMain.handle('matchlog-agy-models', async () => {
     const agyBin = findAgyBin();
     return await new Promise((resolve) => {
@@ -101,8 +125,8 @@ function init() {
     fs.mkdirSync(tmpDir, { recursive: true });
     const filePaths = [];
     try {
-      sheets.forEach((s) => {
-        const fp = path.join(tmpDir, s.name);
+      sheets.forEach((s, i) => {
+        const fp = path.join(tmpDir, safeSheetName(s && s.name, i));
         fs.writeFileSync(fp, Buffer.from(s.b64, 'base64'));
         filePaths.push(fp);
       });
@@ -126,28 +150,33 @@ function init() {
       else args.push('--effort', 'medium');
 
       return await new Promise((resolve) => {
-        let stdout = '', stderr = '';
+        let stdout = '', stderr = '', settled = false;
+        const done = (val) => { if (settled) return; settled = true; clearTimeout(timer); resolve(val); };
         let child;
         try {
           child = spawn(agyBin, args, { cwd: tmpDir, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
         } catch (err) {
-          resolve({ ok: false, error: 'Antigravity CLI (agy) nicht gefunden: ' + (err && err.message || err) });
+          done({ ok: false, error: 'Antigravity CLI (agy) nicht gefunden: ' + (err && err.message || err) });
           return;
         }
+        const timer = setTimeout(() => {
+          try { child.kill(); } catch (e) {}
+          done({ ok: false, error: 'Zeitüberschreitung (Antigravity)', ms: Date.now() - t0 });
+        }, 260000);
         child.stdout.setEncoding('utf8');
         child.stderr.setEncoding('utf8');
         child.stdout.on('data', (d) => { stdout += d; });
         child.stderr.on('data', (d) => { stderr += d; });
         child.on('error', (err) => {
-          resolve({ ok: false, error: 'Antigravity Startfehler: ' + (err && err.message || err) });
+          done({ ok: false, error: 'Antigravity Startfehler: ' + (err && err.message || err) });
         });
         child.on('close', (code) => {
           let text = String(stdout || '').trim();
           text = text.replace(/^```[a-z]*\r?\n?/i, '').replace(/\r?\n?```$/i, '').trim();
           const idx = text.indexOf('|player|');
           if (idx > 0) text = text.slice(idx).trim();
-          if (code === 0 && text) resolve({ ok: true, text, ms: Date.now() - t0 });
-          else resolve({ ok: false, error: (stderr || stdout || ('agy exit code ' + code)).trim().slice(0, 400), ms: Date.now() - t0 });
+          if (code === 0 && text) done({ ok: true, text, ms: Date.now() - t0 });
+          else done({ ok: false, error: (stderr || stdout || ('agy exit code ' + code)).trim().slice(0, 400), ms: Date.now() - t0 });
         });
       });
     } finally {
@@ -172,16 +201,23 @@ function init() {
 
       async function callModel(m) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts }],
-            generationConfig: { temperature: 0.1 }
-          })
-        });
-        const json = await res.json().catch(() => ({}));
-        return { ok: res.ok, status: res.status, json };
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 120000);
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            signal: ctrl.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts }],
+              generationConfig: { temperature: 0.1 }
+            })
+          });
+          const json = await res.json().catch(() => ({}));
+          return { ok: res.ok, status: res.status, json };
+        } finally {
+          clearTimeout(timer);
+        }
       }
 
       let resp = await callModel(model);
@@ -209,7 +245,8 @@ function init() {
       if (idx > 0) text = text.slice(idx).trim();
       return { ok: true, text, model, ms: Date.now() - t0 };
     } catch (err) {
-      return { ok: false, error: String(err && err.message || err), ms: Date.now() - t0 };
+      const msg = err && err.name === 'AbortError' ? 'Zeitüberschreitung (Gemini API)' : String(err && err.message || err);
+      return { ok: false, error: msg, ms: Date.now() - t0 };
     }
   });
 
@@ -226,8 +263,8 @@ function init() {
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
     const outDir = path.join(res.filePaths[0], 'matchlog-sheets-' + stamp);
     fs.mkdirSync(outDir, { recursive: true });
-    sheets.forEach((s) => {
-      fs.writeFileSync(path.join(outDir, s.name), Buffer.from(s.b64, 'base64'));
+    sheets.forEach((s, i) => {
+      fs.writeFileSync(path.join(outDir, safeSheetName(s && s.name, i)), Buffer.from(s.b64, 'base64'));
     });
     fs.writeFileSync(path.join(outDir, 'prompt.txt'), prompt, 'utf8');
     return { ok: true, dir: outDir, count: sheets.length };
@@ -236,4 +273,4 @@ function init() {
   app.on('before-quit', () => { if (rec) rec.stop(); });
 }
 
-module.exports = { init };
+module.exports = { init, safeSheetName, findAgyBin };

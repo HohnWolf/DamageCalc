@@ -553,7 +553,8 @@
     if (undoToast) undoToast.remove();
     var t = el('div', { class: 'toast toast-undo' });
     t.appendChild(el('span', { text: label }));
-    var b = el('button', { type: 'button', class: 'toast-undo-btn', text: (LANG === 'de' ? 'Rückgängig' : 'Undo') + ' (Strg+Z)' });
+    var hk = window.RLHotkeys ? window.RLHotkeys.label(window.RLHotkeys.get('undo')) : (LANG === 'de' ? 'Strg+Z' : 'Ctrl+Z');
+    var b = el('button', { type: 'button', class: 'toast-undo-btn', text: (LANG === 'de' ? 'Rückgängig' : 'Undo') + (hk && hk !== '–' ? ' (' + hk + ')' : '') });
     b.addEventListener('click', function () { doUndo(); });
     t.appendChild(b); document.body.appendChild(t); undoToast = t;
     setTimeout(function () { if (undoToast === t) undoToast = null; t.remove(); }, 7000);
