@@ -54,10 +54,47 @@ function init() {
     catch (err) { return { ok: false, error: String(err && err.message || err) }; }
   });
 
+  function findAgyBin() {
+    const localAgy = process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'agy', 'bin', 'agy.exe') : '';
+    return (localAgy && fs.existsSync(localAgy)) ? localAgy : 'agy';
+  }
+
+  ipcMain.handle('matchlog-agy-models', async () => {
+    const agyBin = findAgyBin();
+    return await new Promise((resolve) => {
+      let stdout = '';
+      let child;
+      try {
+        child = spawn(agyBin, ['models'], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (err) {
+        resolve({ ok: false, models: [] });
+        return;
+      }
+      const timer = setTimeout(() => { try { child.kill(); } catch (e) {} resolve({ ok: false, models: [] }); }, 8000);
+      child.stdout.setEncoding('utf8');
+      child.stdout.on('data', (d) => { stdout += d; });
+      child.on('error', () => { clearTimeout(timer); resolve({ ok: false, models: [] }); });
+      child.on('close', () => {
+        clearTimeout(timer);
+        const models = [];
+        String(stdout || '').split(/\r?\n/).forEach((line) => {
+          const s = line.trim();
+          if (!s || /^fetching/i.test(s)) return;
+          const parts = s.split(/\t+/);
+          if (parts.length >= 2 && /^[a-z0-9._-]+$/i.test(parts[0].trim())) {
+            models.push({ id: parts[0].trim(), label: parts.slice(1).join(' ').trim() });
+          }
+        });
+        resolve({ ok: models.length > 0, models });
+      });
+    });
+  });
+
   ipcMain.handle('matchlog-antigravity', async (e, payload) => {
     const t0 = Date.now();
     const sheets = (payload && payload.sheets) || [];
     const prompt = String(payload && payload.prompt || '');
+    const model = String(payload && payload.model || '').trim();
     if (!sheets.length) return { ok: false, error: 'Keine Keyframes gesammelt.' };
 
     const tmpDir = path.join(app.getPath('temp'), 'rl-matchlog-agy-' + Date.now());
@@ -70,8 +107,7 @@ function init() {
         filePaths.push(fp);
       });
 
-      const localAgy = process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'agy', 'bin', 'agy.exe') : '';
-      const agyBin = (localAgy && fs.existsSync(localAgy)) ? localAgy : 'agy';
+      const agyBin = findAgyBin();
       const fullPrompt = [
         'Read ALL of these chronological match screenshot files in parallel using read_file:',
         filePaths.map((fp, i) => `${i + 1}. ${fp}`).join('\n'),
@@ -79,18 +115,21 @@ function init() {
         prompt
       ].join('\n');
 
+      const args = [
+        '-p', fullPrompt,
+        '--add-dir', tmpDir,
+        '--output-format', 'text',
+        '--disable-slash-commands',
+        '--print-timeout', '240s'
+      ];
+      if (model) args.push('--model', model);
+      else args.push('--effort', 'medium');
+
       return await new Promise((resolve) => {
         let stdout = '', stderr = '';
         let child;
         try {
-          child = spawn(agyBin, [
-            '-p', fullPrompt,
-            '--add-dir', tmpDir,
-            '--output-format', 'text',
-            '--disable-slash-commands',
-            '--effort', 'low',
-            '--print-timeout', '180s'
-          ], { cwd: tmpDir, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+          child = spawn(agyBin, args, { cwd: tmpDir, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
         } catch (err) {
           resolve({ ok: false, error: 'Antigravity CLI (agy) nicht gefunden: ' + (err && err.message || err) });
           return;
